@@ -27,7 +27,7 @@ nrf_parameter_t				nrf_parameter;					// 2.4G初始化参数
 
 uint8_t                     sign_buffer[4];
 uint8_t						uart_tx_i = 0;					// 串口发送缓冲索引
-Uart_TypeDef 				uart232_var;					// 串口接收发送缓冲区
+
 RF_TypeDef 					rf_var;							// 2.4G数据包缓冲
 
 uint16_t					delay_nms = 0;					// 中断延时变量
@@ -63,23 +63,7 @@ uint8_t 					g_cardType[40] = {0x00};		// 返回卡类型
 uint8_t 					respon[BUF_LEN + 20] = {0x00};
 uint8_t 					g_cCid;							
 
-uint8_t 					flag_App_or_Ctr = 0;			// 0x00: idle
-															// 0x01: 通过2.4G下发数据包处理
-															// 0x02: 通过2.4G接收过来的数据包处理
-															// 0x11: 添加白名单
-															// 0x12: 删除白名单
-															// 0x13: 初始化白名单
-															// 0x14: 开启白名单
-															// 0x15: 关闭白名单
-															// 0x16: 开启考勤
-															// 0x17: 关闭考勤
-															// 0x18: 上传刷卡数据
-															// 0x19: 开启配对
-															// 0x0c: 关闭配对
-															// 0x0d: 上传配对数据
-															
-															// 0xfe: 帧长度不合法
-															// 0xff: 未能识别的帧 
+
 
 
 uint32_t                     MCUID[4];
