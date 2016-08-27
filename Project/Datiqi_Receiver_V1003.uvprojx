@@ -150,7 +150,7 @@
             <RestoreSysVw>1</RestoreSysVw>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
-          <TargetSelection>1</TargetSelection>
+          <TargetSelection>6</TargetSelection>
           <SimDlls>
             <CpuDll></CpuDll>
             <CpuDllArguments></CpuDllArguments>
@@ -164,7 +164,7 @@
             <PeripheralDll></PeripheralDll>
             <PeripheralDllArguments></PeripheralDllArguments>
             <InitializationFile></InitializationFile>
-            <Driver>BIN\UL2CM3.DLL</Driver>
+            <Driver>Segger\JL2CM3.dll</Driver>
           </TargetDlls>
         </DebugOption>
         <Utilities>
@@ -414,7 +414,7 @@
       </TargetOption>
       <Groups>
         <Group>
-          <GroupName>RVMDK</GroupName>
+          <GroupName>Start</GroupName>
           <Files>
             <File>
               <FileName>startup_stm32f10x_md.s</FileName>
@@ -424,7 +424,7 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>CMSIS</GroupName>
+          <GroupName>CmsisCore</GroupName>
           <Files>
             <File>
               <FileName>system_stm32f10x.c</FileName>
@@ -439,7 +439,7 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>StdPeriph_Driver</GroupName>
+          <GroupName>Stdlib</GroupName>
           <Files>
             <File>
               <FileName>misc.c</FileName>
@@ -489,57 +489,102 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>User</GroupName>
+          <GroupName>Include</GroupName>
           <Files>
             <File>
-              <FileName>app_handle_layer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\app_handle_layer.c</FilePath>
+              <FileName>clock.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\clock.h</FilePath>
             </File>
             <File>
-              <FileName>crc16.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\crc16.c</FilePath>
+              <FileName>define.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\define.h</FilePath>
             </File>
             <File>
-              <FileName>init.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\init.c</FilePath>
+              <FileName>hal_nrf.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\hal_nrf.h</FilePath>
             </File>
             <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\main.c</FilePath>
+              <FileName>hal_uart.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\hal_uart.h</FilePath>
             </File>
             <File>
-              <FileName>misc_func.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\misc_func.c</FilePath>
+              <FileName>init.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\init.h</FilePath>
             </File>
             <File>
-              <FileName>pos_handle_layer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\pos_handle_layer.c</FilePath>
+              <FileName>m24sr_cmd.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\m24sr_cmd.h</FilePath>
             </File>
             <File>
-              <FileName>rc500_handle_layer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\rc500_handle_layer.c</FilePath>
+              <FileName>main.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\main.h</FilePath>
             </File>
             <File>
-              <FileName>rf_handle_layer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\rf_handle_layer.c</FilePath>
+              <FileName>mcu_config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\mcu_config.h</FilePath>
             </File>
             <File>
-              <FileName>stm32f10x_it.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\stm32f10x_it.c</FilePath>
+              <FileName>mfrc500.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\mfrc500.h</FilePath>
             </File>
             <File>
-              <FileName>variable.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\variable.c</FilePath>
+              <FileName>misc_func.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\misc_func.h</FilePath>
+            </File>
+            <File>
+              <FileName>nrf.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\nrf.h</FilePath>
+            </File>
+            <File>
+              <FileName>rc500_handle_layer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\rc500_handle_layer.h</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_conf.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\stm32f10x_conf.h</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_it.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\stm32f10x_it.h</FilePath>
+            </File>
+            <File>
+              <FileName>variable.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\variable.h</FilePath>
+            </File>
+            <File>
+              <FileName>eeprom.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\eeprom.h</FilePath>
+            </File>
+            <File>
+              <FileName>ringbuffer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\ringbuffer.h</FilePath>
+            </File>
+            <File>
+              <FileName>version.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\version.h</FilePath>
+            </File>
+            <File>
+              <FileName>gpio.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\gpio.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -580,6 +625,76 @@
               <FileName>nrf.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Bsp\nrf.c</FilePath>
+            </File>
+            <File>
+              <FileName>eeprom.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Bsp\eeprom.c</FilePath>
+            </File>
+            <File>
+              <FileName>gpio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Bsp\gpio.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>User</GroupName>
+          <Files>
+            <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\main.c</FilePath>
+            </File>
+            <File>
+              <FileName>init.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\init.c</FilePath>
+            </File>
+            <File>
+              <FileName>misc_func.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\misc_func.c</FilePath>
+            </File>
+            <File>
+              <FileName>pos_handle_layer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\pos_handle_layer.c</FilePath>
+            </File>
+            <File>
+              <FileName>rc500_handle_layer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\rc500_handle_layer.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_handle_layer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\app_handle_layer.c</FilePath>
+            </File>
+            <File>
+              <FileName>rf_handle_layer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\rf_handle_layer.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_it.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\stm32f10x_it.c</FilePath>
+            </File>
+            <File>
+              <FileName>variable.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\variable.c</FilePath>
+            </File>
+            <File>
+              <FileName>ringbuffer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\ringbuffer.c</FilePath>
+            </File>
+            <File>
+              <FileName>version.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\version.c</FilePath>
             </File>
           </Files>
         </Group>
