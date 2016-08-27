@@ -22,6 +22,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "delay.h"
 
 /** @addtogroup STM32F10x_StdPeriph_Examples
   * @{
@@ -161,6 +162,8 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
+	TimingDelay_Decrement();
+	
 	if(uart232_var.flag_uart_rxing)												//串口接收超时计数器
 	{
 		uart232_var.uart_rx_timeout++;
