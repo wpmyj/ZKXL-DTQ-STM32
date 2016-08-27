@@ -36,7 +36,7 @@ void NRF_Module_Set(void)
 		
 	SPI_Init_NRF1();
 	hal_nrf_write_reg(EN_RXADDR, 0x3F);
-	Delay1Ms();
+	DelayMs(1);
 	if(hal_nrf_read_reg(EN_RXADDR) == 0x3F)
 		gbf_nrf1_can_be_used = TRUE;
 	if(gbf_nrf1_can_be_used)
@@ -45,7 +45,7 @@ void NRF_Module_Set(void)
 #ifdef	USE_NRF2	
 	SPI_Init_NRF2();	
 	hal_nrf_write_reg_2(EN_RXADDR, 0x3F);
-	Delay1Ms();
+	DelayMs(1);
 	if(hal_nrf_read_reg_2(EN_RXADDR) == 0x3F)
 		gbf_nrf2_can_be_used = TRUE;
 	if(gbf_nrf2_can_be_used)		
@@ -129,9 +129,9 @@ void nrf24InitConf_NRF1( void )
 	hal_nrf_get_clear_irq_flags();	
 	hal_nrf_set_operation_mode(HAL_NRF_PRX);
 	hal_nrf_set_power_mode(HAL_NRF_PWR_UP);		
-	Delay1Ms();
+	DelayMs(1);
 	CE_HIGH();
-	Delay1Ms();
+	DelayMs(1);
 	
 	//输出参数信息
 	DebugLog("[Radio]:nrf parameter:\r\n");
@@ -157,11 +157,11 @@ void nrf24SendPacket(const uint8_t *puBuf, uint8_t uWidth)
 	uint8_t uSendTimeOutCnt = 0;
 	hal_nrf_write_multibyte_reg(W_TX_PAYLOAD_NOACK, puBuf, uWidth);
 	CE_HIGH();
-	Delay1Ms();
+	DelayMs(1);
 	CE_LOW();
 	while(!((hal_nrf_nop() & (BIT_6|BIT_5|BIT_4)) & (1 << TX_DS)) && (uSendTimeOutCnt++ <= 3))
 	{
-		Delay1Ms();
+		DelayMs(1);
 	}
 	hal_nrf_write_reg(STATUS_2, 0x70);
 }
@@ -222,9 +222,9 @@ void nrf24InitConf_NRF2( void )
 	hal_nrf_set_crc_mode_2(HAL_NRF_CRC_16BIT);
 	hal_nrf_set_operation_mode_2(HAL_NRF_PRX);
 	hal_nrf_set_power_mode_2(HAL_NRF_PWR_UP);
-	Delay1Ms();
+	DelayMs(1);
 	CE_HIGH_2();
-	Delay1Ms();
+	DelayMs(1);
 }
 
 void nrf24InitConf_NRF2_SendMode(void)
@@ -255,9 +255,9 @@ void nrf24InitConf_NRF2_SendMode(void)
 	hal_nrf_set_crc_mode_2(HAL_NRF_CRC_16BIT);
 	hal_nrf_set_operation_mode_2(HAL_NRF_PTX);
 	hal_nrf_set_power_mode_2(HAL_NRF_PWR_UP);
-	Delay1Ms();
+	DelayMs(1);
 	CE_HIGH_2();
-	Delay1Ms();
+	DelayMs(1);
 }
 
 void nrf24SendPacket_NRF2(const uint8_t *puBuf, uint8_t uWidth)
@@ -266,12 +266,12 @@ void nrf24SendPacket_NRF2(const uint8_t *puBuf, uint8_t uWidth)
 	hal_nrf_write_multibyte_reg_2(W_TX_PAYLOAD_NOACK, puBuf, uWidth);
 	
 	CE_HIGH_2();
-	Delay1Ms();
+	DelayMs(1);
 	CE_LOW_2();
 	
 	while(!((hal_nrf_nop_2() & (BIT_6|BIT_5|BIT_4)) & (1 << TX_DS)) && (uSendTimeOutCnt++ <= 3))
 	{
-		Delay1Ms();
+		DelayMs(1);
 	}
 	hal_nrf_write_reg_2(STATUS_2, 0x70);
 }

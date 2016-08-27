@@ -29,12 +29,12 @@ void Fee_Test(void);
 ******************************************************************************/
 int main(void)
 {
-	DISABLE_ALL_IRQ();
+	//DISABLE_ALL_IRQ();
 	Platform_Init();
-	ENABLE_ALL_IRQ();
+	//ENABLE_ALL_IRQ();
 	
 	/* System function test start-----------------------------------------------*/
-	//Fee_Test();
+	 Fee_Test();
 	
 	/* System function test end ------------------------------------------------*/
 	
@@ -91,11 +91,11 @@ void Fee_Test(void)
 				WriteNum = 480-VarAddr;
 			
 			EE_WriteVariable(VarAddr, WriteNum);
-			Delay10Ms();
-			//Delay10Ms();
+			DelayMs(100);
+			//DelayMs(100);
 			EE_ReadVariable(VarAddr, &ReadData);
 			printf("FEE read data address  = %4x Write value = %4x Read Value = %4x\r\n",VarAddr,WriteNum,ReadData);			
-			//Delay10Ms();
+			//DelayMs(100);
 			TestNum++;
 			if(ReadData == WriteNum)
 			{

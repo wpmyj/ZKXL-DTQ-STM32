@@ -23,8 +23,8 @@ void Platform_Init(void)
 {
 	uint8_t temp = 0;
 	
-	RCC_Configuration();
-	SysTick_Config(64000000 / 1000);								//设置systick为1ms中断	
+	SysClockInit();
+	
 //ledInit(LED1);
 //ledInit(LED2);
 	ledInit(LGREEN);
@@ -39,8 +39,8 @@ void Platform_Init(void)
 //BEEP_EN();																	    //蜂鸣器声音提示初始化完毕
 	ledOn(LGREEN);																  //led提示初始化完毕
 	ledOn(LBLUE);																    //led提示初始化完毕
-	Delay100Ms();
-	Delay100Ms();
+	DelayMs(100);
+	DelayMs(100);
 //BEEP_DISEN();
 	ledOff(LGREEN);
 	ledOff(LBLUE);
@@ -71,13 +71,13 @@ void Platform_Init(void)
 	//目前16M晶振起振不正常，暂不处理
 //	if(gbf_hse_setup_fail)														
 //	{
-//		Delay100Ms();
+//		DelayMs(100);
 //		BEEP_EN();
-//		Delay100Ms();
+//		DelayMs(100);
 //		BEEP_DISEN();
-//		Delay100Ms();
+//		DelayMs(100);
 //		BEEP_EN();
-//		Delay100Ms();
+//		DelayMs(100);
 //		BEEP_DISEN();
 //	}
 }
