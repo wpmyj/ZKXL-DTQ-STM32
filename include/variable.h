@@ -15,6 +15,7 @@
 #include <string.h>
 #include "define.h"
 #include "hal_nrf.h"
+#include "gpio.h"
 
 /**
  * @enum nrf_esb_base_address_length_t
@@ -67,12 +68,6 @@ typedef enum
     NRF_ESB_CRC_LENGTH_2_BYTE   ///< CRC check set to 16-bit    
 } nrf_esb_crc_length_t;
 
-
-typedef enum {SINGLE_CHOICE = 0x01, MULTIPLE_CHOICE = 0x02, TRUE_OR_FALSE = 0x03} QuestionType;
-typedef enum {A = 0x01, B = 0x02, C = 0x04, D = 0x08, E = 0x10, F = 0x20, G = 0x40, H = 0x80} ChoiceAnswer;
-typedef enum {LETTER = 0, NUMBER = !LETTER} InputMode;
-typedef enum {LED1 	= 0,LED2 	= 1,LGREEN 	= 2,LBLUE 	= 3,} Led_TypeDef;
-typedef enum {OFF 	= 0,ON 	= 1} Switch_State;
 
 typedef struct
 {

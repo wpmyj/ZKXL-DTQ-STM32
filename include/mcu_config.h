@@ -24,30 +24,6 @@
 #define UART2_SUB_PRIORITY            1
 #define NRF_SUB_PRIORITY              0 
 
-/* LED defines ---------------------------------------------------------------*/
-#define LEDn                  			4
-#define LED1_GPIO_PORT       			GPIOC
-#define LED1_GPIO_CLK        			RCC_APB2Periph_GPIOC
-#define LED1_GPIO_PIN        			GPIO_Pin_1
-#define LED2_GPIO_PORT       			GPIOC
-#define LED2_GPIO_CLK        			RCC_APB2Periph_GPIOC
-#define LED2_GPIO_PIN        			GPIO_Pin_2
-#define LGREEN_GPIO_PORT       		GPIOB
-#define LGREEN_GPIO_CLK        		RCC_APB2Periph_GPIOB
-#define LGREEN_GPIO_PIN        		GPIO_Pin_6
-#define LBLUE_GPIO_PORT       		GPIOB
-#define LBLUE_GPIO_CLK        		RCC_APB2Periph_GPIOB
-#define LBLUE_GPIO_PIN        		GPIO_Pin_7
-
-/* BEEP defines ---------------------------------------------------------------*/
-/* BEEP defines ---------------------------------------------------------------*/
-#define BEEP_PORT             		GPIOC
-#define BEEP_CLK              		RCC_APB2Periph_GPIOC
-#define BEEP_PIN              		GPIO_Pin_0
-#define BEEP_EN()									{GPIO_SetBits(BEEP_PORT, BEEP_PIN);}
-#define BEEP_DISEN()							{GPIO_ResetBits(BEEP_PORT, BEEP_PIN);}
-#define BEEP_TOGGLE()							{BEEP_PORT->ODR ^= BEEP_PIN;}
-
 /* USART defines -------------------------------------------------------------*/
 /* USART defines -------------------------------------------------------------*/
 #define USART1pos              			USART1

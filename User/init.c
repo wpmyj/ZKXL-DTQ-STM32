@@ -10,11 +10,8 @@
   
 #include "main.h"
 #include "mcu_config.h"
-
-/* LED Variables -------------------------------------------------------------*/
-GPIO_TypeDef *GPIO_PORT[LEDn] = {LED1_GPIO_PORT,  LED2_GPIO_PORT, LGREEN_GPIO_PORT, LBLUE_GPIO_PORT};
-const uint16_t GPIO_PIN[LEDn] = {LED1_GPIO_PIN, LED2_GPIO_PIN, LGREEN_GPIO_PIN, LBLUE_GPIO_PIN};
-const uint32_t GPIO_CLK[LEDn] = {LED1_GPIO_CLK, LED2_GPIO_CLK, LGREEN_GPIO_CLK, LBLUE_GPIO_CLK};
+#include "version.h"
+#include "gpio.h"
 
 /*******************************************************************************
   * @brief  硬件平台初始化
@@ -27,7 +24,7 @@ void Platform_Init(void)
 	uint8_t temp = 0;
 	
 	RCC_Configuration();
-	SysTick_Config(64000000 / 1000);											//设置systick为1ms中断	
+	SysTick_Config(64000000 / 1000);								//设置systick为1ms中断	
 //ledInit(LED1);
 //ledInit(LED2);
 	ledInit(LGREEN);
@@ -39,25 +36,28 @@ void Platform_Init(void)
 	GPIOInit_MFRC500();
 	temp = PcdReset();															//复位并初始化RC500
 	
-//BEEP_EN();																	//蜂鸣器声音提示初始化完毕
-	ledOn(LGREEN);																//led提示初始化完毕
-	ledOn(LBLUE);																//led提示初始化完毕
+//BEEP_EN();																	    //蜂鸣器声音提示初始化完毕
+	ledOn(LGREEN);																  //led提示初始化完毕
+	ledOn(LBLUE);																    //led提示初始化完毕
 	Delay100Ms();
 	Delay100Ms();
 //BEEP_DISEN();
 	ledOff(LGREEN);
 	ledOff(LBLUE);
-	GetMcuid();                                                                //读取接收器UID
+	GetMcuid();                                     //读取接收器UID
 	DebugLog("\r\n===========================================================================\r\n");
 	DebugLog("[%s]:System clock freq is %dMHz\r\n",__func__, SystemCoreClock / 1000000);
-	DebugLog("[%s]:UID is %X%X%X%X%X%X%X%X\r\n",__func__,jsq_uid[0],jsq_uid[1],jsq_uid[2],jsq_uid[3],jsq_uid[4],jsq_uid[5],jsq_uid[6],jsq_uid[7]);             //串口打印答题器UID
+	DebugLog("[%s]:UID is %X%X%X%X%X%X%X%X\r\n",__func__,
+	         jsq_uid[0],jsq_uid[1],jsq_uid[2],jsq_uid[3],
+					 jsq_uid[4],jsq_uid[5],jsq_uid[6],jsq_uid[7]);           
+					 
 	if(temp)
 	{
 		DebugLog("[%s]:MFRC 500 reset error\r\n",__func__);
 	}
 	else
 	{
-		PcdAntennaOff();														//初始化后关闭天线
+		PcdAntennaOff();													 	  //初始化后关闭天线
 		DebugLog("[%s]:MFRC 500 reset ok\r\n",__func__);
 	}
 #ifdef ENABLE_WATCHDOG
@@ -81,110 +81,6 @@ void Platform_Init(void)
 //		BEEP_DISEN();
 //	}
 }
-
-/*******************************************************************************
-  * @brief  Get stm32 MCU.
-  * @param  None
-  * @retval None
-*******************************************************************************/
-void GetMcuid()
-{
-	//uint8_t i,j;
-	MCUID[0]=*(unsigned int*)(0x1FFFF7E8);
-	MCUID[1]=*(unsigned int*)(0x1FFFF7EC);
-	MCUID[2]=*(unsigned int*)(0x1FFFF7F0);
-	MCUID[3]=MCUID[0]+MCUID[1]+MCUID[2];
-	jsq_uid[7]=(uint8_t)(MCUID[3]>>0)&0x0f;
-	jsq_uid[6]=(uint8_t)(MCUID[3]>>4)&0x0f; 
-	jsq_uid[5]=(uint8_t)(MCUID[3]>>8)&0x0f;
-	jsq_uid[4]=(uint8_t)(MCUID[3]>>12)&0x0f;
-	jsq_uid[3]=(uint8_t)(MCUID[3]>>16)&0x0f;
-	jsq_uid[2]=(uint8_t)(MCUID[3]>>20)&0x0f;
-	jsq_uid[1]=(uint8_t)(MCUID[3]>>24)&0x0f;
-	jsq_uid[0]=(uint8_t)(MCUID[3]>>28)&0x0f;
-}
-
-/* LED Functions ------------------------------------------------------------ */
-/* LED Functions ------------------------------------------------------------ */
-/*******************************************************************************
-  * @brief  Configures LED GPIO.
-  * @param  Led: Specifies the Led to be set off.
-  *   This parameter can be one of following parameters:
-  *     @arg LED1
-  *     @arg LED2
-  * @retval None
-*******************************************************************************/
-void ledInit(Led_TypeDef Led)
-{
-	GPIO_InitTypeDef  GPIO_InitStructure;
-
-	/* Enable the GPIO_LED Clock */
-	RCC_APB2PeriphClockCmd(GPIO_CLK[Led], ENABLE);
-
-	/* Configure the GPIO_LED pin */
-	GPIO_InitStructure.GPIO_Pin = GPIO_PIN[Led];
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-
-	GPIO_Init(GPIO_PORT[Led], &GPIO_InitStructure);
-}
-
-/*******************************************************************************
-  * @brief  Turns selected LED Off.
-  * @param  Led: Specifies the Led to be set off.
-  *   This parameter can be one of following parameters:
-  *     @arg LED1
-  *     @arg LED2
-  * @retval None
-*******************************************************************************/
-void ledOn(Led_TypeDef Led)
-{
-	if((Led == LED1) || (Led == LED2))
-		GPIO_PORT[Led]->BRR = GPIO_PIN[Led];
-	else if((Led == LGREEN) || (Led == LBLUE))
-		GPIO_PORT[Led]->BSRR = GPIO_PIN[Led];
-}
-
-/*******************************************************************************
-  * @brief  Turns selected LED Off.
-  * @param  Led: Specifies the Led to be set off.
-  *   This parameter can be one of following parameters:
-  *     @arg LED1
-  *     @arg LED2
-  * @retval None
-*******************************************************************************/
-void ledOff(Led_TypeDef Led)
-{
-	if((Led == LED1) || (Led == LED2))
-		GPIO_PORT[Led]->BSRR = GPIO_PIN[Led];
-	else if((Led == LGREEN) || (Led == LBLUE))
-		GPIO_PORT[Led]->BRR = GPIO_PIN[Led];
-}
-
-/*******************************************************************************
-  * @brief  Toggles the selected LED.
-  * @param  Led: Specifies the Led to be set off.
-  *   This parameter can be one of following parameters:
-  *     @arg LED1
-  *     @arg LED2
-  * @retval None
-*******************************************************************************/
-void ledToggle(Led_TypeDef Led)
-{
-	GPIO_PORT[Led]->ODR ^= GPIO_PIN[Led];
-}
-
-void GPIOInit_BEEP(void)
-{
-	GPIO_InitTypeDef GPIO_InitStructure;
-	GPIO_InitStructure.GPIO_Pin = BEEP_PIN;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(BEEP_PORT, &GPIO_InitStructure);	
-}
-
-/* USART Functions ---------------------------------------------------------- */
-/* USART Functions ---------------------------------------------------------- */
 
 /****************************************************************************
 * 名    称：void Usart1_Init(void)
@@ -607,8 +503,5 @@ void GPIOInit_MFRC500(void)
 
 }
 
-/**
-  * @}
-  */
 /**************************************END OF FILE****************************/
 
