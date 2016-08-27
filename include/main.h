@@ -18,7 +18,6 @@
 #include "define.h"
 #include "variable.h"
 #include "mcu_config.h"
-#include "clock.h"
 #include "init.h"
 #include "hal_uart.h"
 #include "misc_func.h"
@@ -28,7 +27,10 @@
 #include "mfrc500.h"
 #include "m24sr_cmd.h"
 
-
+#include "delay.h"
+#include "eeprom.h"
+#include "gpio.h"
+#include "version.h"
 
 #endif //_MAIN_H_
 /**
