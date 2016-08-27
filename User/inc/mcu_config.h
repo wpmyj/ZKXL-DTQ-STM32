@@ -10,10 +10,21 @@
 
 #ifndef _MCU_CONFIG_H_
 #define _MCU_CONFIG_H_
+/* NVIC defines ---------------------------------------------------------------*/
+/* set system nvic group */
+#define SYSTEM_MVIC_GROUP_SET         NVIC_PriorityGroup_2
+
+/* Peripheral interrupt preemption set */
+#define UART1_PREEMPTION_PRIORITY     1
+#define UART2_PREEMPTION_PRIORITY     1
+#define NRF_PREEMPTION_PRIORITY       1 
+
+/* Peripheral interrupt response set */
+#define UART1_SUB_PRIORITY            1
+#define UART2_SUB_PRIORITY            1
+#define NRF_SUB_PRIORITY              0 
 
 /* LED defines ---------------------------------------------------------------*/
-/* LED defines ---------------------------------------------------------------*/
-
 #define LEDn                  			4
 #define LED1_GPIO_PORT       			GPIOC
 #define LED1_GPIO_CLK        			RCC_APB2Periph_GPIOC
@@ -21,21 +32,21 @@
 #define LED2_GPIO_PORT       			GPIOC
 #define LED2_GPIO_CLK        			RCC_APB2Periph_GPIOC
 #define LED2_GPIO_PIN        			GPIO_Pin_2
-#define LGREEN_GPIO_PORT       			GPIOB
-#define LGREEN_GPIO_CLK        			RCC_APB2Periph_GPIOB
-#define LGREEN_GPIO_PIN        			GPIO_Pin_6
-#define LBLUE_GPIO_PORT       			GPIOB
-#define LBLUE_GPIO_CLK        			RCC_APB2Periph_GPIOB
-#define LBLUE_GPIO_PIN        			GPIO_Pin_7
+#define LGREEN_GPIO_PORT       		GPIOB
+#define LGREEN_GPIO_CLK        		RCC_APB2Periph_GPIOB
+#define LGREEN_GPIO_PIN        		GPIO_Pin_6
+#define LBLUE_GPIO_PORT       		GPIOB
+#define LBLUE_GPIO_CLK        		RCC_APB2Periph_GPIOB
+#define LBLUE_GPIO_PIN        		GPIO_Pin_7
 
 /* BEEP defines ---------------------------------------------------------------*/
 /* BEEP defines ---------------------------------------------------------------*/
-#define BEEP_PORT             			GPIOC
-#define BEEP_CLK              			RCC_APB2Periph_GPIOC
-#define BEEP_PIN              			GPIO_Pin_0
-#define BEEP_EN()						{GPIO_SetBits(BEEP_PORT, BEEP_PIN);}
-#define BEEP_DISEN()					{GPIO_ResetBits(BEEP_PORT, BEEP_PIN);}
-#define BEEP_TOGGLE()					{BEEP_PORT->ODR ^= BEEP_PIN;}
+#define BEEP_PORT             		GPIOC
+#define BEEP_CLK              		RCC_APB2Periph_GPIOC
+#define BEEP_PIN              		GPIO_Pin_0
+#define BEEP_EN()									{GPIO_SetBits(BEEP_PORT, BEEP_PIN);}
+#define BEEP_DISEN()							{GPIO_ResetBits(BEEP_PORT, BEEP_PIN);}
+#define BEEP_TOGGLE()							{BEEP_PORT->ODR ^= BEEP_PIN;}
 
 /* USART defines -------------------------------------------------------------*/
 /* USART defines -------------------------------------------------------------*/

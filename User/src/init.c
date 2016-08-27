@@ -9,9 +9,8 @@
   */
   
 #include "main.h"
+#include "mcu_config.h"
 
-
-/* LED Variables -------------------------------------------------------------*/
 /* LED Variables -------------------------------------------------------------*/
 GPIO_TypeDef *GPIO_PORT[LEDn] = {LED1_GPIO_PORT,  LED2_GPIO_PORT, LGREEN_GPIO_PORT, LBLUE_GPIO_PORT};
 const uint16_t GPIO_PIN[LEDn] = {LED1_GPIO_PIN, LED2_GPIO_PIN, LGREEN_GPIO_PIN, LBLUE_GPIO_PIN};
@@ -36,7 +35,6 @@ void Platform_Init(void)
 	ledInit(LBLUE);
 	GPIOInit_BEEP();
 	Usart1_Init();
-	NVIC_Configuration_USART1();
 	GPIOInit_SE2431L();
 //	GPIOInit_ShuaiJianQi();
 	NVIC_Configuration_RFIRQ();
@@ -202,7 +200,8 @@ void Usart1_Init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
-
+	NVIC_InitTypeDef NVIC_InitStructure;
+	
 	RCC_APB2PeriphClockCmd(USART1pos_CLK , ENABLE);
 
 	GPIO_InitStructure.GPIO_Pin = USART1pos_TxPin;
@@ -226,21 +225,17 @@ void Usart1_Init(void)
 	/* Enable the USART1 */
 	USART_Cmd(USART1pos, ENABLE);
 	
-	uart232_var.flag_tx_ok[0] = true;
-	uart232_var.flag_tx_ok[1] = true;
-}
-
-void NVIC_Configuration_USART1(void)
-{
-	NVIC_InitTypeDef NVIC_InitStructure;
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	NVIC_PriorityGroupConfig(SYSTEM_MVIC_GROUP_SET);
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = UART1_PREEMPTION_PRIORITY;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = UART1_SUB_PRIORITY;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 	//÷–∂œ≈‰÷√..Only IDLE Interrupt..
 	USART_ITConfig(USART1,USART_IT_RXNE,ENABLE);
+	
+	uart232_var.flag_tx_ok[0] = true;
+	uart232_var.flag_tx_ok[1] = true;
 }
 
 /****************************************************************************
@@ -255,7 +250,8 @@ void Usart2_Init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
-
+	NVIC_InitTypeDef NVIC_InitStructure;
+	
 	RCC_APB2PeriphClockCmd(USART2pos_CLK , ENABLE);
 
 	GPIO_InitStructure.GPIO_Pin = USART2pos_TxPin;
@@ -276,21 +272,19 @@ void Usart2_Init(void)
 
 	/* Configure USART1 */
 	USART_Init(USART2pos, &USART_InitStructure);
-	/* Enable the USART1 */
-	USART_Cmd(USART2pos, ENABLE);
-}
-
-void NVIC_Configuration_USART2(void)
-{
-	NVIC_InitTypeDef NVIC_InitStructure;
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	
+	NVIC_PriorityGroupConfig(SYSTEM_MVIC_GROUP_SET);
 	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = UART2_PREEMPTION_PRIORITY;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = UART2_SUB_PRIORITY;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
+	
 	//÷–∂œ≈‰÷√..Only IDLE Interrupt..
 	USART_ITConfig(USART2,USART_IT_RXNE,ENABLE);
+	
+	/* Enable the USART1 */
+	USART_Cmd(USART2pos, ENABLE);
 }
 
 /*******************************************************************************
@@ -612,10 +606,10 @@ void NVIC_Configuration_RFIRQ(void)
 {
 	NVIC_InitTypeDef NVIC_InitStructure;
 
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	NVIC_PriorityGroupConfig(SYSTEM_MVIC_GROUP_SET);
 	NVIC_InitStructure.NVIC_IRQChannel = RFIRQ_EXTI_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NRF_PREEMPTION_PRIORITY;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = NRF_SUB_PRIORITY;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 }
