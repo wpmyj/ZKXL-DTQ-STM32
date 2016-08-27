@@ -26,48 +26,46 @@ void Platform_Init(void)
 {
 	uint8_t temp = 0;
 	
-	
 	RCC_Configuration();
 	SysTick_Config(64000000 / 1000);											//设置systick为1ms中断	
-//	ledInit(LED1);
-//	ledInit(LED2);
+//ledInit(LED1);
+//ledInit(LED2);
 	ledInit(LGREEN);
 	ledInit(LBLUE);
-	GPIOInit_BEEP();
+//GPIOInit_BEEP();
 	Usart1_Init();
 	GPIOInit_SE2431L();
-//	GPIOInit_ShuaiJianQi();
 	NVIC_Configuration_RFIRQ();
 	GPIOInit_MFRC500();
 	temp = PcdReset();															//复位并初始化RC500
 	
-	BEEP_EN();																	//蜂鸣器声音提示初始化完毕
+//BEEP_EN();																	//蜂鸣器声音提示初始化完毕
 	ledOn(LGREEN);																//led提示初始化完毕
 	ledOn(LBLUE);																//led提示初始化完毕
 	Delay100Ms();
 	Delay100Ms();
-	BEEP_DISEN();
+//BEEP_DISEN();
 	ledOff(LGREEN);
 	ledOff(LBLUE);
 	GetMcuid();                                                                //读取接收器UID
 	DebugLog("\r\n===========================================================================\r\n");
-	DebugLog("[Main]:System clock freq is %dMHz\r\n", SystemCoreClock / 1000000);
-	DebugLog("[Main]:UID is %X%X%X%X%X%X%X%X\n",jsq_uid[0],jsq_uid[1],jsq_uid[2],jsq_uid[3],jsq_uid[4],jsq_uid[5],jsq_uid[6],jsq_uid[7]);             //串口打印答题器UID
+	DebugLog("[%s]:System clock freq is %dMHz\r\n",__func__, SystemCoreClock / 1000000);
+	DebugLog("[%s]:UID is %X%X%X%X%X%X%X%X\r\n",__func__,jsq_uid[0],jsq_uid[1],jsq_uid[2],jsq_uid[3],jsq_uid[4],jsq_uid[5],jsq_uid[6],jsq_uid[7]);             //串口打印答题器UID
 	if(temp)
 	{
-		DebugLog("[Main]:MFRC 500 reset error\r\n");
+		DebugLog("[%s]:MFRC 500 reset error\r\n",__func__);
 	}
 	else
 	{
 		PcdAntennaOff();														//初始化后关闭天线
-		DebugLog("[Main]:MFRC 500 reset ok\r\n");
+		DebugLog("[%s]:MFRC 500 reset ok\r\n",__func__);
 	}
 #ifdef ENABLE_WATCHDOG
-	DebugLog("[Main]:watchdog enable\r\n");
+	DebugLog("[%s]:watchdog enable\r\n",__func__);
 #else
-	DebugLog("[Main]:watchdog disable\r\n");	
+	DebugLog("[%s]:watchdog disable\r\n",__func__);	
 #endif //ENABLE_WATCHDOG
-	DebugLog("[Main]:All peripherals init ok\r\n");
+	DebugLog("[%s]:All peripherals init ok\r\n",__func__);
 	DebugLog("===========================================================================\r\n");
 	
 	//目前16M晶振起振不正常，暂不处理
@@ -558,49 +556,6 @@ void SE2431L_TX(void)
 	GPIO_SetBits(SE2431L_CTX_PORT, SE2431L_CTX_PIN);
 }
 
-void GPIOInit_ShuaiJianQi(void)
-{
-	GPIO_InitTypeDef GPIO_InitStructure;
-	GPIO_InitStructure.GPIO_Pin = SKY12347_LE_PIN;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(SKY12347_LE_PORT, &GPIO_InitStructure);	
-	
-	/* Configure HMC273_0_5dB */
-	GPIO_InitStructure.GPIO_Pin = SKY12347_05dB_PIN;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(SKY12347_LOW_GPIO, &GPIO_InitStructure);
-	/* Configure HMC273_1dB */
-	GPIO_InitStructure.GPIO_Pin = SKY12347_1dB;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(SKY12347_LOW_GPIO, &GPIO_InitStructure);
-	/* Configure HMC273_2dB */
-	GPIO_InitStructure.GPIO_Pin = SKY12347_2dB;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(SKY12347_LOW_GPIO, &GPIO_InitStructure);
-	/* Configure HMC273_4dB */
-	GPIO_InitStructure.GPIO_Pin = SKY12347_4dB;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(SKY12347_LOW_GPIO, &GPIO_InitStructure);
-	/* Configure HMC273_8dB */
-	GPIO_InitStructure.GPIO_Pin = SKY12347_8dB;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(SKY12347_HIGH_GPIO, &GPIO_InitStructure);
-	/* Configure HMC273_16dB */
-	GPIO_InitStructure.GPIO_Pin = SKY12347_16dB;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(SKY12347_HIGH_GPIO, &GPIO_InitStructure);
-	
-	GPIO_SetBits(SKY12347_LE_PORT, SKY12347_LE_PIN);
-	GPIO_SetBits(SKY12347_05dB_PORT, SKY12347_05dB_PIN);
-//	SKY12347_LOW_ON(SKY12347_1dB);
-}
 
 void NVIC_Configuration_RFIRQ(void)
 {

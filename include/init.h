@@ -12,7 +12,6 @@
 
 #include "variable.h"
 #include "define.h"
-#include "crc16.h"
 
 
 void Platform_Init(void);
@@ -33,7 +32,6 @@ void GPIOInit_SE2431L(void);
 void SE2431L_LNA(void);
 void SE2431L_Bypass(void);
 void SE2431L_TX(void);
-void GPIOInit_ShuaiJianQi(void);
 void NVIC_Configuration_RFIRQ(void);
 void GPIOInit_MFRC500(void);
 
