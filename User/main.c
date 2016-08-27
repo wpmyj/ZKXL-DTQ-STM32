@@ -34,7 +34,7 @@ int main(void)
 	//ENABLE_ALL_IRQ();
 	
 	/* System function test start-----------------------------------------------*/
-	 Fee_Test();
+	Fee_Test();
 	
 	/* System function test end ------------------------------------------------*/
 	
