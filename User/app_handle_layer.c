@@ -216,22 +216,22 @@ void app_handle_layer(void)
 		case 0x1a:      //打印当前白名单			
 		    Length_AppToCtrPos = 4*white_len+10;  
 		    Buf_AppToCtrPos[0] = 0x5C;
-			Buf_AppToCtrPos[1] = 0x2B;
+		    Buf_AppToCtrPos[1] = 0x2B;
 		    Buf_AppToCtrPos[2] = sign_buffer[0];
 		    Buf_AppToCtrPos[3] = sign_buffer[1];
 		    Buf_AppToCtrPos[4] = sign_buffer[2];
 		    Buf_AppToCtrPos[5] = sign_buffer[3];
 		    Buf_AppToCtrPos[6] = 4*white_len+1;
-            Buf_AppToCtrPos[7] = white_len;
-		    for(temp_count=7,uid_p=0;temp_count<4*white_len,uid_p<white_len;temp_count=temp_count+4,uid_p++)
-            {
-			 Buf_AppToCtrPos[temp_count+1]=white_list[uid_p].uid[0];
-             Buf_AppToCtrPos[temp_count+2]=white_list[uid_p].uid[1];
-             Buf_AppToCtrPos[temp_count+3]=white_list[uid_p].uid[2];
-             Buf_AppToCtrPos[temp_count+4]=white_list[uid_p].uid[3]; 				
-			}
-            Buf_AppToCtrPos[4*white_len+8] = XOR_Cal(&Buf_AppToCtrPos[1], white_len+3);
-            Buf_AppToCtrPos[4*white_len+9] = 0xCA;
+		    Buf_AppToCtrPos[7] = white_len;
+		    for(temp_count=7,uid_p=0;(temp_count<4*white_len)&&(uid_p<white_len);temp_count=temp_count+4,uid_p++)
+		    {
+		        Buf_AppToCtrPos[temp_count+1]=white_list[uid_p].uid[0];
+		        Buf_AppToCtrPos[temp_count+2]=white_list[uid_p].uid[1];
+		        Buf_AppToCtrPos[temp_count+3]=white_list[uid_p].uid[2];
+		        Buf_AppToCtrPos[temp_count+4]=white_list[uid_p].uid[3];
+		    }
+		    Buf_AppToCtrPos[4*white_len+8] = XOR_Cal(&Buf_AppToCtrPos[1], white_len+3);
+		    Buf_AppToCtrPos[4*white_len+9] = 0xCA;
 		    flag_App_or_Ctr = 0x00;
 		    App_to_CtrPosReq =true;
 			break;
@@ -244,28 +244,27 @@ void app_handle_layer(void)
 		    Buf_AppToCtrPos[4] = sign_buffer[2];
 		    Buf_AppToCtrPos[5] = sign_buffer[3];	
 		    Buf_AppToCtrPos[6] = 0x34;
-		    for(temp_count=0,i=0;temp_count<4,i<8;temp_count++,i=i+2)
-            {
-			 Buf_AppToCtrPos[temp_count+7]=(jsq_uid[i]<<4|jsq_uid[i+1]);	
-			}
+		    for(temp_count=0,i=0;(temp_count<4)&&(i<8);temp_count++,i=i+2)
+		    {
+		        Buf_AppToCtrPos[temp_count+7]=(jsq_uid[i]<<4|jsq_uid[i+1]);
+		    }
 			
 		    for(temp_count=0;temp_count<3;temp_count++)
-			{
-			 Buf_AppToCtrPos[temp_count+11]=software[temp_count];
-			}
-			
-			for(temp_count=0,i=0;temp_count<15,i<30;temp_count++,i=i+2)
-			{
-			 Buf_AppToCtrPos[temp_count+14]=(hardware[i]<<4)|(hardware[i+1]);
-			 
-			}
+		    {
+		        Buf_AppToCtrPos[temp_count+11]=software[temp_count];
+		    }
 
-			for(temp_count=0,i=0;temp_count<8,i<16;temp_count++,i=i+2)
-			{
-			 Buf_AppToCtrPos[temp_count+29]=(company[i]<<4)|(company[i+1]);
-			}			
-            Buf_AppToCtrPos[37] = XOR_Cal(&Buf_AppToCtrPos[1],36);
-            Buf_AppToCtrPos[38] = 0xCA;
+		    for(temp_count=0,i=0;(temp_count<15)&&(i<30);temp_count++,i=i+2)
+		    {
+		        Buf_AppToCtrPos[temp_count+14]=(hardware[i]<<4)|(hardware[i+1]);
+		    }
+
+		    for(temp_count=0,i=0;(temp_count<8)&&(i<16);temp_count++,i=i+2)
+		    {
+		        Buf_AppToCtrPos[temp_count+29]=(company[i]<<4)|(company[i+1]);
+		    }
+		    Buf_AppToCtrPos[37] = XOR_Cal(&Buf_AppToCtrPos[1],36);
+		    Buf_AppToCtrPos[38] = 0xCA;
 		    flag_App_or_Ctr = 0x00;
 		    App_to_CtrPosReq =true;
 			break;
