@@ -1,5 +1,5 @@
-#ifndef __LED_H_
-#define __LED_H_
+#ifndef __VERSION_H_
+#define __VERSION_H_
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
@@ -10,6 +10,6 @@
 #define SUB_VERSION_2         0x03
 
 /* Private functions ---------------------------------------------------------*/
-void GetMcuid(void);
+void get_mcu_id(void);
 
 #endif

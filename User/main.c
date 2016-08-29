@@ -21,7 +21,9 @@ extern void app_handle_layer(void);
 extern void rc500_handle_layer(void);
 extern void rf_handle_layer(void);
 
-void Fee_Test(void);
+/* Private functions ---------------------------------------------------------*/
+static void Fee_Test(void);
+static void nrf51822_spi_test(void);
 
 /******************************************************************************
   Function:main
@@ -36,35 +38,53 @@ int main(void)
 	//DISABLE_ALL_IRQ();
 	Platform_Init();
 	//ENABLE_ALL_IRQ();
-	NRF_Module_Set();
-	my_nrf_parameters_init();
+
 	/* System function test start-----------------------------------------------*/
-	//Fee_Test();
+	// Fee_Test();
+	// nrf51822_spi_test();
 	
 	/* System function test end ------------------------------------------------*/
 	
 	while(1)
 	{	
-		static uint32_t i = 0;
-		uint8_t j = 0;
-		
 	  pos_handle_layer();
 	  app_handle_layer();
-		
-		my_nrf_transmit_start(TestBuffer,10,NRF_DATA_IS_USEFUL);
-		
-		for(j=0;j<10;j++)
-		{
-			printf(" %2x ",TestBuffer[j]);
-		}
-		printf("\r\n");
-		printf("Sent Data test num = %d! \r\n",i++);
-		DelayMs(500);
+
 //  rc500_handle_layer();
 //  rf_handle_layer();		
 	}	
 }
 
+
+
+/******************************************************************************
+  Function:nrf51822_spi_test
+  Description:
+  Input:None
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+static void nrf51822_spi_test(void)
+{
+    static uint32_t i = 0;
+    uint8_t j = 0;
+	
+    while(1)
+		{
+				my_nrf_transmit_start(TestBuffer,10,NRF_DATA_IS_USEFUL);
+				
+				for(j=0;j<10;j++)
+				{
+					printf(" %2x ",TestBuffer[j]);
+				}
+				printf("\r\n");
+
+				printf("Sent Data test num = %d! \r\n",i++);
+				
+				DelayMs(500);
+		}
+}
 /******************************************************************************
   Function:Fee_Test
   Description:
@@ -73,7 +93,7 @@ int main(void)
   Return:
   Others:None
 ******************************************************************************/
-void Fee_Test(void)
+static void Fee_Test(void)
 {
 /* Define --------------------------------------------------------------------*/
 #define  TEST_END_NUM   480
@@ -110,10 +130,9 @@ void Fee_Test(void)
 			
 			EE_WriteVariable(VarAddr, WriteNum);
 			DelayMs(100);
-			//DelayMs(100);
+
 			EE_ReadVariable(VarAddr, &ReadData);
-			printf("FEE read data address  = %4x Write value = %4x Read Value = %4x\r\n",VarAddr,WriteNum,ReadData);			
-			//DelayMs(100);
+			printf("FEE read data address  = %4x Write value = %4x Read Value = %4x\r\n",VarAddr,WriteNum,ReadData);
 			TestNum++;
 			if(ReadData == WriteNum)
 			{

@@ -22,8 +22,6 @@
 #include "hal_uart.h"
 #include "misc_func.h"
 #include "stm32f10x_it.h"
-//#include "hal_nrf.h"
-//#include "nrf.h"
 #include "mfrc500.h"
 #include "m24sr_cmd.h"
 
@@ -31,6 +29,7 @@
 #include "eeprom.h"
 #include "gpio.h"
 #include "version.h"
+#include "nrf.h"
 
 #endif //_MAIN_H_
 /**

@@ -15,12 +15,7 @@
 
 
 void Platform_Init(void);
-void GetMcuid(void);
-void ledInit(Led_TypeDef Led);
-void ledOn(Led_TypeDef Led);
-void ledOff(Led_TypeDef Led);
-void ledToggle(Led_TypeDef Led);
-void GPIOInit_BEEP(void);
+
 void Usart1_Init(void);
 void NVIC_Configuration_USART1(void);
 void Usart2_Init(void);
@@ -32,7 +27,6 @@ void GPIOInit_SE2431L(void);
 void SE2431L_LNA(void);
 void SE2431L_Bypass(void);
 void SE2431L_TX(void);
-void NVIC_Configuration_RFIRQ(void);
 void GPIOInit_MFRC500(void);
 
 
