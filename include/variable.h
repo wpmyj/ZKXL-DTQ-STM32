@@ -14,9 +14,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include "define.h"
-#include "hal_nrf.h"
 #include "gpio.h"
-
+//#include "nrf_config_and_hander.h"
 /**
  * @enum nrf_esb_base_address_length_t
  * @brief Enumerator used for selecting the base address length.
@@ -44,6 +43,21 @@ typedef enum
     NRF_ESB_OUTPUT_POWER_N20_DBM         ///< -20 dBm output power.
 } nrf_esb_output_power_t;
 
+/* An enum describing the radio's CRC mode ---------------------------------- */
+typedef enum
+{
+	HAL_NRF_CRC_OFF,    /**< CRC check disabled */
+	HAL_NRF_CRC_8BIT,   /**< CRC check set to 8-bit */
+	HAL_NRF_CRC_16BIT   /**< CRC check set to 16-bit */
+} hal_nrf_crc_mode_t;
+/* An enum describing the radio's address width ----------------------------- */
+typedef enum
+{
+	HAL_NRF_AW_3BYTES = 3,      /**< Set address width to 3 bytes */
+	HAL_NRF_AW_4BYTES,          /**< Set address width to 4 bytes */
+	HAL_NRF_AW_5BYTES           /**< Set address width to 5 bytes */
+}hal_nrf_address_width_t;
+
 
 /**
  * @enum nrf_esb_datarate_t
@@ -55,6 +69,14 @@ typedef enum
     NRF_ESB_DATARATE_1_MBPS,              ///< 1 Mbps datarate
     NRF_ESB_DATARATE_2_MBPS,              ///< 1 Mbps datarate
 } nrf_esb_datarate_t;
+
+/* An enum describing the radio's on-air datarate --------------------------- */
+typedef enum
+{
+	HAL_NRF_1MBPS,          /**< Datarate set to 1 Mbps  */
+	HAL_NRF_2MBPS,          /**< Datarate set to 2 Mbps  */
+	HAL_NRF_250KBPS         /**< Datarate set to 250 kbps*/
+}hal_nrf_datarate_t;
 
 
 /**
@@ -68,6 +90,14 @@ typedef enum
     NRF_ESB_CRC_LENGTH_2_BYTE   ///< CRC check set to 16-bit    
 } nrf_esb_crc_length_t;
 
+/* An enum describing the radio's output power mode's. ---------------------- */
+typedef enum
+{
+	HAL_NRF_18DBM,          /**< Output power set to -18dBm */
+	HAL_NRF_12DBM,          /**< Output power set to -12dBm */
+	HAL_NRF_6DBM,           /**< Output power set to -6dBm  */
+	HAL_NRF_0DBM            /**< Output power set to 0dBm   */
+}hal_nrf_output_power_t;
 
 typedef struct
 {

@@ -11,6 +11,10 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "eeprom.h"
+#include "nrf.h"
+uint8_t TestBuffer[10] = { 
+	0xAA,0x55,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88
+}; 
 
 extern void pos_handle_layer(void);
 extern void app_handle_layer(void);
@@ -32,16 +36,30 @@ int main(void)
 	//DISABLE_ALL_IRQ();
 	Platform_Init();
 	//ENABLE_ALL_IRQ();
-	
+	NRF_Module_Set();
+	my_nrf_parameters_init();
 	/* System function test start-----------------------------------------------*/
-	Fee_Test();
+	//Fee_Test();
 	
 	/* System function test end ------------------------------------------------*/
 	
 	while(1)
 	{	
+		static uint32_t i = 0;
+		uint8_t j = 0;
+		
 	  pos_handle_layer();
 	  app_handle_layer();
+		
+		my_nrf_transmit_start(TestBuffer,10,NRF_DATA_IS_USEFUL);
+		
+		for(j=0;j<10;j++)
+		{
+			printf(" %2x ",TestBuffer[j]);
+		}
+		printf("\r\n");
+		printf("Sent Data test num = %d! \r\n",i++);
+		DelayMs(500);
 //  rc500_handle_layer();
 //  rf_handle_layer();		
 	}	
@@ -118,6 +136,7 @@ void Fee_Test(void)
 		}
 	}	
 }
+
 
 /**************************************END OF FILE****************************/
 
