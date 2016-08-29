@@ -19,15 +19,28 @@
 #define nrf_debug(...)                    
 #endif 
 
-extern nrf_communication_t			nrf_communication;
-extern uint8_t 					dtq_to_jsq_sequence;
-extern uint8_t 					jsq_to_dtq_sequence;
+extern nrf_communication_t nrf_communication;
+extern uint8_t 					   dtq_to_jsq_sequence;
+extern uint8_t 					   jsq_to_dtq_sequence;
 
-void SPI_Init_NRF(void)
+/******************************************************************************
+  Function:my_nrf_transmit_start
+  Description:
+  Input:	
+	    data_buff：	   要发送的数组
+			data_buff_len：要发送的数组长度
+			nrf_data_type：发送数据类型，有效数据:NRF_DATA_IS_USEFUL 
+			ACK		:        NRF_DATA_IS_ACK
+  Output:
+  Return:
+  Others:注意：通信方式限制，若向同一UID答题器下发数据，时间要间隔3S以上
+******************************************************************************/
+void nrf51822_spi_init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
-	EXTI_InitTypeDef EXTI_InitStructure;
 	SPI_InitTypeDef  SPI_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+	EXTI_InitTypeDef EXTI_InitStructure;
 	
 	/* Configure SPI_MISO Pin */
 	GPIO_InitStructure.GPIO_Pin   = SPI_MISO_PIN;
@@ -70,14 +83,6 @@ void SPI_Init_NRF(void)
 	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(SPI_IRQ_PORT, &GPIO_InitStructure);
 
-	/* SPI中断配置 */
-	GPIO_EXTILineConfig(RFIRQ_PortSource, RFIRQ_PinSource);
-	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
-	EXTI_InitStructure.EXTI_Line = EXTI_LINE_RFIRQ;
-	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-	EXTI_Init(&EXTI_InitStructure);
-	
 	/* SPI相关参数配置 */
 	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
 	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
@@ -90,21 +95,26 @@ void SPI_Init_NRF(void)
 	SPI_InitStructure.SPI_CRCPolynomial = 7;
 
 	SPI_Init(SPI1, &SPI_InitStructure);
+	
+	/* SPI中断配置 */
+	NVIC_PriorityGroupConfig(SYSTEM_MVIC_GROUP_SET);
+	NVIC_InitStructure.NVIC_IRQChannel = RFIRQ_EXTI_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NRF_PREEMPTION_PRIORITY;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = NRF_SUB_PRIORITY;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+	
+	GPIO_EXTILineConfig(RFIRQ_PortSource, RFIRQ_PinSource);
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+	EXTI_InitStructure.EXTI_Line = EXTI_LINE_RFIRQ;
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+	EXTI_Init(&EXTI_InitStructure);
+	
 	SPI_Cmd(SPI1, ENABLE);							
 	SPI_CSN_HIGH();		//片选拉高，禁止SPI
 	SPI_CSN_HIGH_2();	//别忘，浪费我半天时间
 }
-
-/*******************************************************************************
-  * @brief  双频点，一收一发
-  * @param  None
-  * @retval None
-*******************************************************************************/
-void NRF_Module_Set(void)
-{
-	SPI_Init_NRF();	//2.4G接收端改为改为51822,只需要SPI相关配置，
-}
-
 
 /******************************************************************************
   Function:my_nrf_transmit_start
@@ -146,7 +156,6 @@ void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf
 	}
 	else{;}
 	
-
 }
 
 
@@ -184,7 +193,8 @@ void my_nrf_transmit_tx_failed_handler(void)
   Input:None
   Output:
   Return:
-  Others:答题器下发的数据完整保存在rf_var.rx_buf（包括包头0x5A、包尾0xCA、XOR校验、有效数据等），根据需要自行处理
+  Others:答题器下发的数据完整保存在rf_var.rx_buf（包括包头0x5A、包尾0xCA、XOR校验、
+         有效数据等），根据需要自行处理
 ******************************************************************************/
 void my_nrf_receive_success_handler(void)
 {
@@ -197,12 +207,6 @@ void my_nrf_receive_success_handler(void)
 	
 }
 
-
-
-
-/**
-  * @}
-  */
 /**************************************END OF FILE****************************/
 
 

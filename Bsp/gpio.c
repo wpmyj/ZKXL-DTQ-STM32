@@ -115,4 +115,19 @@ void GPIOInit_BEEP(void)
 	GPIO_Init(BEEP_PORT, &GPIO_InitStructure);	
 }
 
+/*******************************************************************************
+  * @brief  Initialize the Gpio port for system
+  * @param  None
+  * @retval None
+*******************************************************************************/
+void GpioInit(void)
+{
+	/* Initialize Led function */
+	ledInit(LGREEN);
+	ledInit(LBLUE);
+	
+	/* Initialize beep function */
+	GPIOInit_BEEP();
+}
+
 /************************END OF FILE******************************************/

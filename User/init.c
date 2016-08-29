@@ -24,29 +24,33 @@ void Platform_Init(void)
 {
 	uint8_t temp = 0;
 	
+	/* initialize system clock */
 	SysClockInit();
 	
+	/* initialize gpio port */
+	GpioInit();
 	
-//ledInit(LED1);
-//ledInit(LED2);
-	ledInit(LGREEN);
-	ledInit(LBLUE);
-//GPIOInit_BEEP();
 	Usart1_Init();
 	GPIOInit_SE2431L();
-	NVIC_Configuration_RFIRQ();
+	
+	/* initialize the spi interface with nrf51822 */
+	nrf51822_spi_init();	
+	nrf51822_parameters_init();
+	
 	GPIOInit_MFRC500();
 	temp = PcdReset();															//复位并初始化RC500
 	
 //BEEP_EN();																	    //蜂鸣器声音提示初始化完毕
 	ledOn(LGREEN);																  //led提示初始化完毕
 	ledOn(LBLUE);																    //led提示初始化完毕
-	DelayMs(100);
-	DelayMs(100);
+	DelayMs(200);
 //BEEP_DISEN();
 	ledOff(LGREEN);
 	ledOff(LBLUE);
-	GetMcuid();                                     //读取接收器UID
+		
+	/* get mcu uuid */
+	get_mcu_id();
+	
 	DebugLog("\r\n===========================================================================\r\n");
 	DebugLog("[%s]:System clock freq is %dMHz\r\n",__func__, SystemCoreClock / 1000000);
 	DebugLog("[%s]:UID is %X%X%X%X%X%X%X%X\r\n",__func__,
@@ -70,18 +74,6 @@ void Platform_Init(void)
 	DebugLog("[%s]:All peripherals init ok\r\n",__func__);
 	DebugLog("===========================================================================\r\n");
 	
-	//目前16M晶振起振不正常，暂不处理
-//	if(gbf_hse_setup_fail)														
-//	{
-//		DelayMs(100);
-//		BEEP_EN();
-//		DelayMs(100);
-//		BEEP_DISEN();
-//		DelayMs(100);
-//		BEEP_EN();
-//		DelayMs(100);
-//		BEEP_DISEN();
-//	}
 }
 
 /****************************************************************************
@@ -272,17 +264,6 @@ void SE2431L_TX(void)
 }
 
 
-void NVIC_Configuration_RFIRQ(void)
-{
-	NVIC_InitTypeDef NVIC_InitStructure;
-
-	NVIC_PriorityGroupConfig(SYSTEM_MVIC_GROUP_SET);
-	NVIC_InitStructure.NVIC_IRQChannel = RFIRQ_EXTI_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NRF_PREEMPTION_PRIORITY;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = NRF_SUB_PRIORITY;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_InitStructure);
-}
 
 void GPIOInit_MFRC500(void)
 {
@@ -319,7 +300,6 @@ void GPIOInit_MFRC500(void)
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_Init(MFRC500_DATA_Port, &GPIO_InitStructure);
     GPIO_WriteBit(MFRC500_DATA_Port, MFRC500_DATA_Pin, Bit_RESET);
-
 }
 
 /**************************************END OF FILE****************************/

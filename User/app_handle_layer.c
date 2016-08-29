@@ -305,86 +305,6 @@ void app_check_rf_flg(void)
 	}	
 }
 
-
-void app_handle_layer(void)
-{
-
-	app_check_rf_flg();
-	
-	app_cmd_process();
-	
-	if((delay_nms == 0)&&((attendance_on_off == ON) || match_on_off == ON))
-	{
-		delay_nms = 200;							//每秒寻卡5次
-		if(FindICCard() == MI_OK)
-		{
-			if(match_on_off)						//如果是配对开启
-			{
-				if(insert_uid_to_white_list(&g_cSNR[4], &uid_p))
-				{
-					white_list[uid_p].number = match_number++;
-					Buf_AppToCtrPos[0] = 0x5C;
-					Buf_AppToCtrPos[1] = 0x29;
-				  Buf_AppToCtrPos[2] = sign_buffer[0];
-				  Buf_AppToCtrPos[3] = sign_buffer[1];
-				  Buf_AppToCtrPos[4] = sign_buffer[2];
-				  Buf_AppToCtrPos[5] = sign_buffer[3];
-					Buf_AppToCtrPos[6] = 0x05;
-					memcpy(&Buf_AppToCtrPos[7], &g_cSNR[4],4);
-					Buf_AppToCtrPos[11] = white_list[uid_p].number;
-					Buf_AppToCtrPos[12] = XOR_Cal(&Buf_AppToCtrPos[1],11);
-					Buf_AppToCtrPos[13] = 0xCA;
-					Length_AppToCtrPos = 14;
-				}
-				else if(search_uid_in_white_list(&g_cSNR[4], &uid_p))
-				{
-					Buf_AppToCtrPos[0] = 0x5C;
-					Buf_AppToCtrPos[1] = 0x29;
-					Buf_AppToCtrPos[2] = sign_buffer[0];
-					Buf_AppToCtrPos[3] = sign_buffer[1];
-					Buf_AppToCtrPos[4] = sign_buffer[2];
-					Buf_AppToCtrPos[5] = sign_buffer[3];					
-					Buf_AppToCtrPos[6] = 0x05;
-					memcpy(&Buf_AppToCtrPos[7], &g_cSNR[4],4);
-					Buf_AppToCtrPos[11] = white_list[uid_p].number;
-					Buf_AppToCtrPos[12] = XOR_Cal(&Buf_AppToCtrPos[1],11);
-					Buf_AppToCtrPos[13] = 0xCA;
-					Length_AppToCtrPos = 14;
-				}
-				else
-				{
-					App_returnErr(0x29,0xE3);
-				}
-				App_to_CtrPosReq = true;				
-			}
-			else									//如果是考勤开启
-			{
-				//串口返回UID
-				Buf_AppToCtrPos[0] = 0x5C;
-				Buf_AppToCtrPos[1] = 0x26;
-				Buf_AppToCtrPos[2] = sign_buffer[0];
-				Buf_AppToCtrPos[3] = sign_buffer[1];
-				Buf_AppToCtrPos[4] = sign_buffer[2];
-				Buf_AppToCtrPos[5] = sign_buffer[3];
-				Buf_AppToCtrPos[6] = 0x04;
-				memcpy(&Buf_AppToCtrPos[7], &g_cSNR[4],4);
-				Buf_AppToCtrPos[11] = XOR_Cal(&Buf_AppToCtrPos[1],10);
-				Buf_AppToCtrPos[12] = 0xCA;
-				Length_AppToCtrPos = 0x10;
-				App_to_CtrPosReq = true;
-			}
-			
-			//蜂鸣器响300ms
-			time_for_buzzer_on = 10;
-			time_for_buzzer_off = 300;
-			
-			//不重复寻卡
-			PcdHalt();
-		}
-	}
-	Buzze_Control();	// 等待蜂鸣器关闭
-}
-
 bool uidcmp(uint8_t *uid1, uint8_t *uid2)
 {
 	if((uid1[0] == uid2[0])&&(uid1[1] == uid2[1])&&(uid1[2] == uid2[2])&&(uid1[3] == uid2[3]))
@@ -618,4 +538,84 @@ void Buzze_Control(void)
 		BEEP_DISEN();
 	}
 }
+
+void app_handle_layer(void)
+{
+
+	app_check_rf_flg();
+	
+	app_cmd_process();
+	
+	if((delay_nms == 0)&&((attendance_on_off == ON) || match_on_off == ON))
+	{
+		delay_nms = 200;							//每秒寻卡5次
+		if(FindICCard() == MI_OK)
+		{
+			if(match_on_off)						//如果是配对开启
+			{
+				if(insert_uid_to_white_list(&g_cSNR[4], &uid_p))
+				{
+					white_list[uid_p].number = match_number++;
+					Buf_AppToCtrPos[0] = 0x5C;
+					Buf_AppToCtrPos[1] = 0x29;
+				  Buf_AppToCtrPos[2] = sign_buffer[0];
+				  Buf_AppToCtrPos[3] = sign_buffer[1];
+				  Buf_AppToCtrPos[4] = sign_buffer[2];
+				  Buf_AppToCtrPos[5] = sign_buffer[3];
+					Buf_AppToCtrPos[6] = 0x05;
+					memcpy(&Buf_AppToCtrPos[7], &g_cSNR[4],4);
+					Buf_AppToCtrPos[11] = white_list[uid_p].number;
+					Buf_AppToCtrPos[12] = XOR_Cal(&Buf_AppToCtrPos[1],11);
+					Buf_AppToCtrPos[13] = 0xCA;
+					Length_AppToCtrPos = 14;
+				}
+				else if(search_uid_in_white_list(&g_cSNR[4], &uid_p))
+				{
+					Buf_AppToCtrPos[0] = 0x5C;
+					Buf_AppToCtrPos[1] = 0x29;
+					Buf_AppToCtrPos[2] = sign_buffer[0];
+					Buf_AppToCtrPos[3] = sign_buffer[1];
+					Buf_AppToCtrPos[4] = sign_buffer[2];
+					Buf_AppToCtrPos[5] = sign_buffer[3];					
+					Buf_AppToCtrPos[6] = 0x05;
+					memcpy(&Buf_AppToCtrPos[7], &g_cSNR[4],4);
+					Buf_AppToCtrPos[11] = white_list[uid_p].number;
+					Buf_AppToCtrPos[12] = XOR_Cal(&Buf_AppToCtrPos[1],11);
+					Buf_AppToCtrPos[13] = 0xCA;
+					Length_AppToCtrPos = 14;
+				}
+				else
+				{
+					App_returnErr(0x29,0xE3);
+				}
+				App_to_CtrPosReq = true;				
+			}
+			else									//如果是考勤开启
+			{
+				//串口返回UID
+				Buf_AppToCtrPos[0] = 0x5C;
+				Buf_AppToCtrPos[1] = 0x26;
+				Buf_AppToCtrPos[2] = sign_buffer[0];
+				Buf_AppToCtrPos[3] = sign_buffer[1];
+				Buf_AppToCtrPos[4] = sign_buffer[2];
+				Buf_AppToCtrPos[5] = sign_buffer[3];
+				Buf_AppToCtrPos[6] = 0x04;
+				memcpy(&Buf_AppToCtrPos[7], &g_cSNR[4],4);
+				Buf_AppToCtrPos[11] = XOR_Cal(&Buf_AppToCtrPos[1],10);
+				Buf_AppToCtrPos[12] = 0xCA;
+				Length_AppToCtrPos = 0x10;
+				App_to_CtrPosReq = true;
+			}
+			
+			//蜂鸣器响300ms
+			time_for_buzzer_on = 10;
+			time_for_buzzer_off = 300;
+			
+			//不重复寻卡
+			PcdHalt();
+		}
+	}
+	Buzze_Control();	// 等待蜂鸣器关闭
+}
+
 /**************************************END OF FILE****************************/

@@ -22,18 +22,24 @@
 #include "main.h"
 #include "nrf.h"
 
-#define DELAY_FUNC				(Delay10us)
-#define DELAY_TIME				(500)
-	
-volatile nrf_config_t			m_nrf_config;
+/* Private define ------------------------------------------------------------*/
+#define DELAY_FUNC			(Delay10us)
+#define DELAY_TIME			(500)
+
+/* Private variables ---------------------------------------------------------*/
+volatile nrf_config_t		m_nrf_config;
 spi_cmd_type_t 					spi_cmd_type;
 volatile uint8_t				flag_nrf_int = 0;
 nrf_communication_t			nrf_communication;
-uint8_t 					dtq_to_jsq_sequence;
-uint8_t 					jsq_to_dtq_sequence;
+uint8_t 					      dtq_to_jsq_sequence;
+uint8_t 					      jsq_to_dtq_sequence;
+
+/* Private functions ---------------------------------------------------------*/
+static uint8_t hal_nrf_rw(SPI_TypeDef* SPIx, uint8_t value);
 
 
-uint8_t hal_nrf_rw(SPI_TypeDef* SPIx, uint8_t value)
+
+static uint8_t hal_nrf_rw(SPI_TypeDef* SPIx, uint8_t value)
 {
 	while(SPI_I2S_GetFlagStatus(SPIx, SPI_I2S_FLAG_TXE) == RESET);
 	SPI_I2S_SendData(SPIx, value);
@@ -253,7 +259,7 @@ uint8_t uesb_nrf_write_tx_payload_noack(const uint8_t *tx_pload, uint8_t length)
 }
 
 
-void my_nrf_parameters_init(void)
+void nrf51822_parameters_init(void)
 {
 	uint8_t i;
 	for(i = 0;i <nrf_communication.transmit_len;i++)
