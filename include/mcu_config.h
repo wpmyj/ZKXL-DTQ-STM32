@@ -45,69 +45,6 @@
 #define USART2pos_IRQHandler   			USART2_IRQHandler
 
 /* SPI defines ---------------------------------------------------------------*/
-/* SPI defines ---------------------------------------------------------------*/
-
-//NRF1---------------------------------------------------------//
-#define SPI_MISO_PORT              		GPIOA
-#define SPI_MISO_CLK               		RCC_APB2Periph_GPIOA
-#define SPI_MISO_PIN               		GPIO_Pin_6
-			
-#define SPI_MOSI_PORT              		GPIOA
-#define SPI_MOSI_CLK               		RCC_APB2Periph_GPIOA
-#define SPI_MOSI_PIN               		GPIO_Pin_7
-			
-#define SPI_SCK_PORT              		GPIOA
-#define SPI_SCK_CLK               		RCC_APB2Periph_GPIOA
-#define SPI_SCK_PIN               		GPIO_Pin_5
-			
-#define SPI_CSN_PORT              		GPIOA
-#define SPI_CSN_CLK               		RCC_APB2Periph_GPIOA
-#define SPI_CSN_PIN               		GPIO_Pin_4
-			
-#define SPI_CE_PORT              		GPIOC
-#define SPI_CE_CLK               		RCC_APB2Periph_GPIOC
-#define SPI_CE_PIN               		GPIO_Pin_4
-			
-#define SPI_IRQ_PORT              		GPIOC
-#define SPI_IRQ_CLK               		RCC_APB2Periph_GPIOC
-#define SPI_IRQ_PIN               		GPIO_Pin_5
-
-#define EXTI_LINE_RFIRQ 				EXTI_Line5
-#define RFIRQ_PinSource 				GPIO_PinSource5
-#define RFIRQ_PortSource 				GPIO_PortSourceGPIOC
-#define RFIRQ_EXTI_IRQn					EXTI9_5_IRQn
-#define RFIRQ_EXTI_IRQHandler			EXTI9_5_IRQHandler
-
-//NRF2-------------------------------------------------------//
-#define SPI_MISO_PORT_2             	GPIOB
-#define SPI_MISO_CLK_2              	RCC_APB2Periph_GPIOB
-#define SPI_MISO_PIN_2              	GPIO_Pin_14
-			
-#define SPI_MOSI_PORT_2             	GPIOB
-#define SPI_MOSI_CLK_2              	RCC_APB2Periph_GPIOB
-#define SPI_MOSI_PIN_2              	GPIO_Pin_15
-			
-#define SPI_SCK_PORT_2             		GPIOB
-#define SPI_SCK_CLK_2               	RCC_APB2Periph_GPIOB
-#define SPI_SCK_PIN_2               	GPIO_Pin_13
-			
-#define SPI_CSN_PORT_2              	GPIOB
-#define SPI_CSN_CLK_2               	RCC_APB2Periph_GPIOB
-#define SPI_CSN_PIN_2               	GPIO_Pin_4
-			
-#define SPI_CE_PORT_2              		GPIOB
-#define SPI_CE_CLK_2               		RCC_APB2Periph_GPIOB
-#define SPI_CE_PIN_2               		GPIO_Pin_5
-			
-#define SPI_IRQ_PORT_2              	GPIOB
-#define SPI_IRQ_CLK_2               	RCC_APB2Periph_GPIOB
-#define SPI_IRQ_PIN_2               	GPIO_Pin_3
-
-#define EXTI_LINE_RFIRQ_2 				EXTI_Line3
-#define RFIRQ_PinSource_2 				GPIO_PinSource3
-#define RFIRQ_PortSource_2 				GPIO_PortSourceGPIOB
-#define RFIRQ_EXTI_IRQn_2				EXTI3_IRQn
-#define RFIRQ_EXTI_IRQHandler_2			EXTI3_IRQHandler
 
 #define SE2431L_CTX_PORT				GPIOC	
 #define SE2431L_CTX_CLK					RCC_APB2Periph_GPIOC
@@ -118,29 +55,6 @@
 #define SE2431L_CSD_PORT				GPIOA
 #define SE2431L_CSD_CLK					RCC_APB2Periph_GPIOA
 #define SE2431L_CSD_PIN					GPIO_Pin_11
-
-#define SKY12347_LOW_GPIO				GPIOC
-#define SKY12347_HIGH_GPIO				GPIOA
-#define SKY12347_LOW_CLK     			RCC_APB2Periph_GPIOC
-#define SKY12347_HIGH_CLK    			RCC_APB2Periph_GPIOA
-#define SKY12347_1dB					GPIO_Pin_1
-#define SKY12347_2dB					GPIO_Pin_2
-#define SKY12347_4dB					GPIO_Pin_3
-#define SKY12347_8dB					GPIO_Pin_0
-#define SKY12347_16dB					GPIO_Pin_1
-
-#define SKY12347_05dB_PORT				GPIOC
-#define SKY12347_05dB_CLK				RCC_APB2Periph_GPIOC
-#define SKY12347_05dB_PIN				GPIO_Pin_14
-
-#define SKY12347_LE_PORT				GPIOC
-#define SKY12347_LE_CLK					RCC_APB2Periph_GPIOC
-#define SKY12347_LE_PIN					GPIO_Pin_13
-
-#define SKY12347_LOW_ON(_Pin_)			{GPIO_ResetBits(SKY12347_LOW_GPIO,_Pin_);}
-#define SKY12347_LOW_OFF(_Pin_)			{GPIO_SetBits(SKY12347_LOW_GPIO,_Pin_);}
-#define SKY12347_HIGH_ON(_Pin_)			{GPIO_ResetBits(SKY12347_HIGH_GPIO,_Pin_);}
-#define SKY12347_HIGH_OFF(_Pin_)		{GPIO_SetBits(SKY12347_HIGH_GPIO,_Pin_);}
 
 /*****************************************************************************
 *¶Ë¿Ú¶¨Òå

@@ -24,7 +24,8 @@ void Delay(__IO uint32_t nTime);
 void SysClockInit(void)
 {
 	SystemInit();
-
+	SystemCoreClockUpdate();
+	
   if(SysTick_Config(SystemCoreClock / 1000))
   { 
     /* Capture error */ 
@@ -45,6 +46,8 @@ void SysClockInit(void)
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
 	RCC_ClockSecuritySystemCmd(ENABLE);
+	
+	
 }
 
 /*******************************************************************************

@@ -12,6 +12,7 @@
 #include "mcu_config.h"
 #include "version.h"
 #include "gpio.h"
+#include "nrf.h"
 
 /*******************************************************************************
   * @brief  硬件平台初始化
@@ -24,6 +25,7 @@ void Platform_Init(void)
 	uint8_t temp = 0;
 	
 	SysClockInit();
+	
 	
 //ledInit(LED1);
 //ledInit(LED2);
@@ -220,189 +222,6 @@ int fgetc(FILE *f)
 }
 
 /* SPI Functions ------------------------------------------------------------ */
-/* SPI Functions ------------------------------------------------------------ */
-
-void SPI_Init_NRF1(void)
-{
-	GPIO_InitTypeDef GPIO_InitStructure;
-	EXTI_InitTypeDef EXTI_InitStructure;
-	SPI_InitTypeDef  SPI_InitStructure;
-
-	GPIO_InitStructure.GPIO_Pin   = SPI_MISO_PIN;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
-	GPIO_Init(SPI_MISO_PORT, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin   = SPI_MOSI_PIN;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
-	GPIO_Init(SPI_MOSI_PORT, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin   = SPI_SCK_PIN;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
-	GPIO_Init(SPI_SCK_PORT, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin   = SPI_CSN_PIN;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
-	GPIO_Init(SPI_CSN_PORT, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin   = SPI_CE_PIN;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
-	GPIO_Init(SPI_CE_PORT, &GPIO_InitStructure);
-
-	/* Configure SPI_IRQ Pin */
-	GPIO_InitStructure.GPIO_Pin   = SPI_IRQ_PIN;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
-	GPIO_Init(SPI_IRQ_PORT, &GPIO_InitStructure);
-
-	GPIO_EXTILineConfig(RFIRQ_PortSource, RFIRQ_PinSource);
-	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
-	EXTI_InitStructure.EXTI_Line = EXTI_LINE_RFIRQ;
-	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-	EXTI_Init(&EXTI_InitStructure);
-	
-	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
-	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
-	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
-	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
-	SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
-	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
-	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_4;		//4分频也行，不能是16分频
-	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
-	SPI_InitStructure.SPI_CRCPolynomial = 7;
-
-	SPI_Init(SPI1, &SPI_InitStructure);
-	SPI_Cmd(SPI1, ENABLE);
-	GPIO_SetBits(SPI_CSN_PORT, SPI_CSN_PIN);
-}
-/*******************************************************************************
-  * @brief  Configures STM32F103RBT SPI2 port.
-  * @param  None
-  * @retval None
-*******************************************************************************/
-void SPI_Init_NRF2(void)
-{
-	GPIO_InitTypeDef GPIO_InitStructure;
-	EXTI_InitTypeDef EXTI_InitStructure;
-	SPI_InitTypeDef  SPI_InitStructure;
-
-	GPIO_InitStructure.GPIO_Pin   = SPI_MISO_PIN;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
-	GPIO_Init(SPI_MISO_PORT, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin   = SPI_MOSI_PIN;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
-	GPIO_Init(SPI_MISO_PORT, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin   = SPI_SCK_PIN;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
-	GPIO_Init(SPI_SCK_PORT, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin   = SPI_CSN_PIN_2;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
-	GPIO_Init(SPI_CSN_PORT_2, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin   = SPI_CE_PIN_2;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
-	GPIO_Init(SPI_CE_PORT_2, &GPIO_InitStructure);
-
-	/* Configure SPI_IRQ Pin */
-	GPIO_InitStructure.GPIO_Pin   = SPI_IRQ_PIN_2;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
-	GPIO_Init(SPI_IRQ_PORT_2, &GPIO_InitStructure);
-
-	GPIO_EXTILineConfig(RFIRQ_PortSource_2, RFIRQ_PinSource_2);
-	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
-	EXTI_InitStructure.EXTI_Line = EXTI_LINE_RFIRQ_2;
-	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-	EXTI_Init(&EXTI_InitStructure);
-
-	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
-	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
-	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
-	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
-	SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
-	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
-	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;
-	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
-	SPI_InitStructure.SPI_CRCPolynomial = 7;
-
-	SPI_Init(SPI1, &SPI_InitStructure);
-	SPI_Cmd(SPI1, ENABLE);
-	GPIO_SetBits(SPI_CSN_PORT_2, SPI_CSN_PIN_2);
-}
-/*******************************************************************************
-  * @brief  Configures STM32F103RBT SPI2 port.
-  * @param  None
-  * @retval None
-*******************************************************************************/
-void SPI_Init_NRF21(void)
-{
-	GPIO_InitTypeDef GPIO_InitStructure;
-	EXTI_InitTypeDef EXTI_InitStructure;
-	SPI_InitTypeDef  SPI_InitStructure;
-
-	GPIO_InitStructure.GPIO_Pin   = SPI_MISO_PIN_2;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
-	GPIO_Init(SPI_MISO_PORT_2, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin   = SPI_MOSI_PIN_2;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
-	GPIO_Init(SPI_MOSI_PORT_2, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin   = SPI_SCK_PIN_2;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
-	GPIO_Init(SPI_SCK_PORT_2, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin   = SPI_CSN_PIN_2;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
-	GPIO_Init(SPI_CSN_PORT_2, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin   = SPI_CE_PIN_2;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
-	GPIO_Init(SPI_CE_PORT_2, &GPIO_InitStructure);
-
-	/* Configure SPI_IRQ Pin */
-	GPIO_InitStructure.GPIO_Pin   = SPI_IRQ_PIN_2;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
-	GPIO_Init(SPI_IRQ_PORT_2, &GPIO_InitStructure);
-
-	GPIO_EXTILineConfig(RFIRQ_PortSource_2, RFIRQ_PinSource_2);
-	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
-	EXTI_InitStructure.EXTI_Line = EXTI_LINE_RFIRQ_2;
-	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-	EXTI_Init(&EXTI_InitStructure);
-
-	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
-	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
-	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
-	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
-	SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
-	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
-	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;
-	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
-	SPI_InitStructure.SPI_CRCPolynomial = 7;
-
-	SPI_Init(SPI2, &SPI_InitStructure);
-	SPI_Cmd(SPI2, ENABLE);
-	GPIO_SetBits(SPI_CSN_PORT_2, SPI_CSN_PIN_2);
-}
 
 void GPIOInit_SE2431L(void)
 {

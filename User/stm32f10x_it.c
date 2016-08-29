@@ -23,7 +23,10 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "delay.h"
-
+#include "nrf.h"
+extern nrf_communication_t			nrf_communication;
+extern uint8_t 					dtq_to_jsq_sequence;
+extern uint8_t 					jsq_to_dtq_sequence;
 /** @addtogroup STM32F10x_StdPeriph_Examples
   * @{
   */
@@ -380,66 +383,71 @@ bool search_uid_in_white_list(uint8_t *g_uid , uint8_t *position);
 
 uint8_t blank_packet[]={0x5A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xCA };			//收到答题器空包包，回一个空包
 uint8_t response[] =   {0x5A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0xCA };		//收到答题器数据包，回确认包
+uint8_t irq_flag;
+uint8_t ack_buff[] = {0xAA,0xBB,0xCC,0xDD,0xEE,0xFF};
+
+
 void RFIRQ_EXTI_IRQHandler(void)
 {
-	uint8_t uid_p;
-	EXTI_ClearITPendingBit(EXTI_LINE_RFIRQ);
-	if(hal_nrf_get_irq_flags() & (1 << RX_DR))
-	{
-		rf_var.rx_len = hal_nrf_read_multibyte_reg(HAL_NRF_RX_PLOAD, rf_var.rx_buf) & 0xFF;
-	}
-	hal_nrf_get_clear_irq_flags();
-	hal_nrf_flush_rx();
-	hal_nrf_flush_tx();
+	//uint8_t	i;
 
-	if(white_on_off == ON)
+	if(EXTI_GetITStatus(EXTI_LINE_RFIRQ) != RESET)
 	{
-		if(search_uid_in_white_list(&rf_var.rx_buf[1], &uid_p))	
-		{
-			if(rf_var.rx_buf[6] != 0x00)									//如果收到的是数据包
+		EXTI_ClearITPendingBit(EXTI_LINE_RFIRQ);
+		
+		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_communication.receive_len, nrf_communication.receive_buf);		//读取数据
+		
+		if(( nrf_communication.dtq_uid[0] == nrf_communication.receive_buf[1])&&
+			(nrf_communication.dtq_uid[1] == nrf_communication.receive_buf[2])&&
+			(nrf_communication.dtq_uid[2] == nrf_communication.receive_buf[3])&&
+			(nrf_communication.dtq_uid[3] == nrf_communication.receive_buf[4]))			//白名单匹配
+		{		
+			if(nrf_communication.receive_buf[5] == NRF_DATA_IS_ACK)						//收到的是ACK
 			{
-				rf_var.flag_rx_ok = true;									//收到数据包
-				memcpy(response, rf_var.rx_buf, 7);
-				response[9] = XOR_Cal(&response[1], 8);
-				nrf24AddtoAck(response,11);									//收到数据包后返回应答
-			}
-			else															//如果收到的是空包
-			{
-				if(rf_var.flag_txing&&(white_list[uid_p].tx_flag == false))	//有数据下发且未曾下发过
+				if(nrf_communication.receive_buf[0] == jsq_to_dtq_sequence)				//返回ACK的包号和上次发送的是否相同
 				{
-					nrf24AddtoAck(rf_var.tx_buf,rf_var.tx_len);				//有需要下发的数据包，发送数据包
-					white_list[uid_p].tx_flag = true;
-					rf_var.flag_tx_ok = true;
+					nrf_communication.transmit_ok_flag = true;
+					//irq_debug("irq_debug，有效ACK,包号相同: %02X  \n",nrf_communication.receive_buf[0]);	
+//					for(i = 0; i < nrf_communication.receive_len; i++)
+//					{
+//						irq_debug("%02X ", nrf_communication.receive_buf[i]);
+//					}irq_debug("\r\n");
+
 				}
 				else
-					nrf24AddtoAck(rf_var.rx_buf,rf_var.rx_len);				//无下发数据包，返回空包数据
+				{
+					//irq_debug("irq_debug，无效ACK,包号不同: %02X \n",rf_var.rx_buf[0]);
+				}
+			}
+			else														//收到的是有效数据
+			{
+				if(dtq_to_jsq_sequence == nrf_communication.receive_buf[0])	//重复接收的数据，返回包号和上次一样的ACK
+				{
+					//irq_debug("irq_debug，重复收到数据,包号: %02X  \n",nrf_communication.receive_buf[0]);
+//					dtq_to_jsq_sequence = nrf_communication.receive_buf[0];			//更新接收包号		
+					my_nrf_transmit_start(ack_buff,6,NRF_DATA_IS_ACK);
+				}
+				else													//有效数据，返回ACK
+				{
+					//irq_debug("irq_debug，首次收到数据,包号: %02X  \n",nrf_communication.receive_buf[0]);
+//					for(i = 0; i < nrf_communication.receive_len; i++)
+//					{
+//						irq_debug("%02X ", nrf_communication.receive_buf[i]);
+//					}irq_debug("\r\n");
+					rf_var.rx_len = nrf_communication.receive_buf[6];
+					memcpy(rf_var.rx_buf, nrf_communication.receive_buf+10, rf_var.rx_len);	//有效数据复制到rf_var.rx_buf
+					
+					dtq_to_jsq_sequence = nrf_communication.receive_buf[0];				//更新接收包号
+					my_nrf_transmit_start(ack_buff,6,NRF_DATA_IS_ACK);		//回复ACK
+					my_nrf_receive_success_handler();						//用户接收到数据处理函数
+				}	
 			}
 		}
-		else
-		{
-			memset(rf_var.rx_buf, 0x00, rf_var.rx_len);						//不在白名单，过滤掉
-			rf_var.rx_len = 0x00;
-		}
+		else														//白名单不匹配，滤掉
+		{;}
 	}
-	else   
-	{
-     if(rf_var.rx_buf[6] != 0x00)									//如果收到的是数据包
-	 {
-	  rf_var.flag_rx_ok = true;									//收到数据包
-	  memcpy(response, rf_var.rx_buf, 7);
-	  response[9] = XOR_Cal(&response[1], 8);
-	  nrf24AddtoAck(response,11);									//收到数据包后返回应答
-	 }		
-	else
-	{	
-	 memcpy(blank_packet, rf_var.rx_buf, 6);
-	 blank_packet[8] = XOR_Cal(&blank_packet[1], 7);
-	 nrf24AddtoAck(blank_packet,10);		//返回空数据包
-	}
-   }
-	ledToggle(LGREEN);
+	ledToggle(LBLUE);
 }
-
 /**
   * @}
   */

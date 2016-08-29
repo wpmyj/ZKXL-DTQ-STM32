@@ -9,8 +9,91 @@
   */
  
 #include "main.h"
+#include "nrf.h"
 
-//#define USE_NRF2			(1)
+#define NRF_DEBUG
+
+#ifdef NRF_DEBUG
+#define nrf_debug  printf   
+#else  
+#define nrf_debug(...)                    
+#endif 
+
+extern nrf_communication_t			nrf_communication;
+extern uint8_t 					dtq_to_jsq_sequence;
+extern uint8_t 					jsq_to_dtq_sequence;
+
+void SPI_Init_NRF(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+	EXTI_InitTypeDef EXTI_InitStructure;
+	SPI_InitTypeDef  SPI_InitStructure;
+	
+	/* Configure SPI_MISO Pin */
+	GPIO_InitStructure.GPIO_Pin   = SPI_MISO_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+	GPIO_Init(SPI_MISO_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI_MOSI Pin */
+	GPIO_InitStructure.GPIO_Pin   = SPI_MOSI_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+	GPIO_Init(SPI_MOSI_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI_SCK Pin */
+	GPIO_InitStructure.GPIO_Pin   = SPI_SCK_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+	GPIO_Init(SPI_SCK_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI_CSN Pin */								//CSN_1 配置
+	GPIO_InitStructure.GPIO_Pin   = SPI_CSN_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(SPI_CSN_PORT, &GPIO_InitStructure);
+	
+	/* Configure SPI_CSN Pin */								//CSN_2 配置
+	GPIO_InitStructure.GPIO_Pin   = SPI_CSN_PIN_2;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(SPI_CSN_PORT_2, &GPIO_InitStructure);
+
+	/* Configure SPI_CE Pin */
+	GPIO_InitStructure.GPIO_Pin   = SPI_CE_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(SPI_CE_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI_IRQ Pin */
+	GPIO_InitStructure.GPIO_Pin   = SPI_IRQ_PIN;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+	GPIO_Init(SPI_IRQ_PORT, &GPIO_InitStructure);
+
+	/* SPI中断配置 */
+	GPIO_EXTILineConfig(RFIRQ_PortSource, RFIRQ_PinSource);
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+	EXTI_InitStructure.EXTI_Line = EXTI_LINE_RFIRQ;
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+	EXTI_Init(&EXTI_InitStructure);
+	
+	/* SPI相关参数配置 */
+	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
+	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
+	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
+	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;			//空闲为低	
+	SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;		//第一个电平读取信号  模式0
+	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
+	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_32;		//不超过2M
+	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
+	SPI_InitStructure.SPI_CRCPolynomial = 7;
+
+	SPI_Init(SPI1, &SPI_InitStructure);
+	SPI_Cmd(SPI1, ENABLE);							
+	SPI_CSN_HIGH();		//片选拉高，禁止SPI
+	SPI_CSN_HIGH_2();	//别忘，浪费我半天时间
+}
 
 /*******************************************************************************
   * @brief  双频点，一收一发
@@ -19,263 +102,102 @@
 *******************************************************************************/
 void NRF_Module_Set(void)
 {
-	bool gbf_nrf1_can_be_used = FALSE;
-	bool gbf_nrf2_can_be_used = FALSE;
-
-	nrf_parameter.power = HAL_NRF_0DBM;
-	nrf_parameter.datarate = HAL_NRF_1MBPS;	
-	nrf_parameter.crc_length = HAL_NRF_CRC_16BIT;	
-	nrf_parameter.base_address_length = HAL_NRF_AW_5BYTES;	
-	nrf_parameter.channel = 30;
-	nrf_parameter.pipe = HAL_NRF_PIPE0;
-	nrf_parameter.attempts = 3;
-	nrf_parameter.prefix_address = 0xAA;
-	nrf_parameter.base_address_high = 0xBB00;
-	nrf_parameter.base_address_low = 0x0001;
-	nrf_parameter.delay_us = 500;
-		
-	SPI_Init_NRF1();
-	hal_nrf_write_reg(EN_RXADDR, 0x3F);
-	DelayMs(1);
-	if(hal_nrf_read_reg(EN_RXADDR) == 0x3F)
-		gbf_nrf1_can_be_used = TRUE;
-	if(gbf_nrf1_can_be_used)
-		nrf24InitConf_NRF1();	
-
-#ifdef	USE_NRF2	
-	SPI_Init_NRF2();	
-	hal_nrf_write_reg_2(EN_RXADDR, 0x3F);
-	DelayMs(1);
-	if(hal_nrf_read_reg_2(EN_RXADDR) == 0x3F)
-		gbf_nrf2_can_be_used = TRUE;
-	if(gbf_nrf2_can_be_used)		
-		nrf24InitConf_NRF2_SendMode();
-#endif //USE_NRF2
-	
-	DebugLog("\r\n===========================================================================\r\n");
-	if((gbf_nrf1_can_be_used) && (gbf_nrf2_can_be_used == FALSE))
-		DebugLog("[Radio]:nrf1 ok and nrf2 not ok\r\n");
-	if((gbf_nrf1_can_be_used == FALSE) && (gbf_nrf2_can_be_used))
-		DebugLog("[Radio]:nrf1 not ok and nrf2 ok\r\n");
-	if((gbf_nrf1_can_be_used) && (gbf_nrf2_can_be_used))
-		DebugLog("[Radio]:nrf1 ok and nrf2 ok\r\n");
-	if((gbf_nrf1_can_be_used == FALSE) && (gbf_nrf2_can_be_used == FALSE))
-		DebugLog("[Radio]:nrf1 not ok and nrf2 not ok\r\n");
-	DebugLog("===========================================================================\r\n");
+	SPI_Init_NRF();	//2.4G接收端改为改为51822,只需要SPI相关配置，
 }
 
-void nrf24AllRegResetVal_nrf1(void)
-{
-	CE_LOW();
-	hal_nrf_set_power_mode(HAL_NRF_PWR_DOWN);
-	hal_nrf_flush_rx();
-	hal_nrf_flush_tx();
-	hal_nrf_write_reg(CONFIG, 0x08);
-	hal_nrf_write_reg(EN_AA, 0x3F);
-	hal_nrf_write_reg(EN_RXADDR, 0x03);
-	hal_nrf_write_reg(SETUP_AW, 0x03);
-	hal_nrf_write_reg(SETUP_RETR, 0x03);
-	hal_nrf_write_reg(RF_CH, 0x02);
-	hal_nrf_write_reg(RF_SETUP, 0x0E);
-	hal_nrf_write_reg(STATUS_2, 0x0E);
-	hal_nrf_write_reg(OBSERVE_TX, 0x00);
-	hal_nrf_write_reg(CD, 0x00);
-	hal_nrf_write_reg(RX_PW_P0, 0x00);
-	hal_nrf_write_reg(RX_PW_P1, 0x00);
-	hal_nrf_write_reg(RX_PW_P2, 0x00);
-	hal_nrf_write_reg(RX_PW_P3, 0x00);
-	hal_nrf_write_reg(RX_PW_P4, 0x00);
-	hal_nrf_write_reg(RX_PW_P5, 0x00);
-	hal_nrf_write_reg(DYNPD_2, 0x00);
-	hal_nrf_write_reg(FEATURE_2, 0x00);
-	CE_HIGH();
-}
 
-void nrf24InitConf_NRF1( void )
+/******************************************************************************
+  Function:my_nrf_transmit_start
+  Description:
+  Input:	data_buff：	   要发送的数组
+			data_buff_len：要发送的数组长度
+			nrf_data_type：发送数据类型，有效数据:NRF_DATA_IS_USEFUL 
+										ACK		:NRF_DATA_IS_ACK
+  Output:
+  Return:
+  Others:注意：通信方式限制，若向同一UID答题器下发数据，时间要间隔3S以上
+******************************************************************************/
+void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_data_type)
 {
-	uint8_t rx_address_buf[RX_ADR_WIDTH];
-	uint8_t act[1]={0x73};
-	CE_LOW();
-	nrf24AllRegResetVal_nrf1();
-	hal_nrf_set_power_mode(HAL_NRF_PWR_DOWN);
-		
-	rx_address_buf[0] = nrf_parameter.prefix_address;
-	rx_address_buf[1] = nrf_parameter.base_address_high >> 8;
-	rx_address_buf[2] = nrf_parameter.base_address_high >> 0; 
-	rx_address_buf[3] = nrf_parameter.base_address_low >> 8;
-	rx_address_buf[4] = nrf_parameter.base_address_low >> 0;
-		
-	
 
-	hal_nrf_flush_rx();
-	hal_nrf_flush_tx();
-	hal_nrf_enable_dynamic_ack(FALSE);
-	hal_nrf_enable_ack_payload(TRUE);
-	hal_nrf_enable_dynamic_payload(TRUE);
-	hal_nrf_setup_dynamic_payload(0x01);
-
-	hal_nrf_set_datarate(nrf_parameter.datarate);
-	hal_nrf_set_output_power(nrf_parameter.power);
-	hal_nrf_set_rf_channel(nrf_parameter.channel);
-	hal_nrf_set_address_width(nrf_parameter.base_address_length);
-	hal_nrf_set_address((hal_nrf_address_t)nrf_parameter.pipe, rx_address_buf);
-	hal_nrf_set_address(HAL_NRF_TX, rx_address_buf);		
-	hal_nrf_open_pipe((hal_nrf_address_t)nrf_parameter.pipe, TRUE);
-	hal_nrf_set_crc_mode(nrf_parameter.crc_length);	
-	hal_nrf_set_auto_retr(nrf_parameter.attempts, nrf_parameter.delay_us);	
-	
-	hal_nrf_write_multibyte_reg(ACTIVATE,act,1);	
-	
-	hal_nrf_get_clear_irq_flags();	
-	hal_nrf_set_operation_mode(HAL_NRF_PRX);
-	hal_nrf_set_power_mode(HAL_NRF_PWR_UP);		
-	DelayMs(1);
-	CE_HIGH();
-	DelayMs(1);
-	
-	//输出参数信息
-	DebugLog("[Radio]:nrf parameter:\r\n");
-	DebugLog("[Radio]:output power		%d dB\r\n", (nrf_parameter.power - 3)*6);
-	DebugLog("[Radio]:channel			%d\r\n", nrf_parameter.channel);
-	if(HAL_NRF_250KBPS == nrf_parameter.datarate)
-		DebugLog("[Radio]:datarate		250 Kbps\r\n");
-	else
-		DebugLog("[Radio]:datarate		%d Mbps\r\n", nrf_parameter.datarate + 1);
-	DebugLog("[Radio]:address			%02X%04X%04X\r\n", nrf_parameter.prefix_address, nrf_parameter.base_address_high,  nrf_parameter.base_address_low);
-	DebugLog("[Radio]:crc length		%d\r\n", nrf_parameter.crc_length);
-	DebugLog("[Radio]:retransmit delay	%d us\r\n", nrf_parameter.delay_us);
-	DebugLog("[Radio]:max tx_attempts		%d\r\n", nrf_parameter.attempts);
-}
-void nrf24AddtoAck(const uint8_t *puBuf, uint8_t uWidth)
-{
-	hal_nrf_flush_rx();
-	hal_nrf_flush_tx();
-	hal_nrf_write_multibyte_reg(W_ACK_PAYLOAD |HAL_NRF_PIPE0, puBuf, uWidth);
-}
-void nrf24SendPacket(const uint8_t *puBuf, uint8_t uWidth)
-{
-	uint8_t uSendTimeOutCnt = 0;
-	hal_nrf_write_multibyte_reg(W_TX_PAYLOAD_NOACK, puBuf, uWidth);
-	CE_HIGH();
-	DelayMs(1);
-	CE_LOW();
-	while(!((hal_nrf_nop() & (BIT_6|BIT_5|BIT_4)) & (1 << TX_DS)) && (uSendTimeOutCnt++ <= 3))
+	if(nrf_data_type == NRF_DATA_IS_USEFUL)		//有效数据包，发送nrf_communication.transmit_buf内容
 	{
-		DelayMs(1);
-	}
-	hal_nrf_write_reg(STATUS_2, 0x70);
-}
-
-#ifdef	USE_NRF2	
-void nrf24AllRegResetVal_nrf2(void)
-{
-	CE_LOW_2();
-	hal_nrf_set_power_mode_2(HAL_NRF_PWR_DOWN);
-	hal_nrf_flush_rx_2();
-	hal_nrf_flush_tx_2();
-	hal_nrf_write_reg_2(CONFIG, 0x08);
-	hal_nrf_write_reg_2(EN_AA, 0x3F);
-	hal_nrf_write_reg_2(EN_RXADDR, 0x03);
-	hal_nrf_write_reg_2(SETUP_AW, 0x03);
-	hal_nrf_write_reg_2(SETUP_RETR, 0x03);
-	hal_nrf_write_reg_2(RF_CH, 0x02);
-	hal_nrf_write_reg_2(RF_SETUP, 0x0E);
-	hal_nrf_write_reg_2(STATUS_2, 0x0E);
-	hal_nrf_write_reg_2(OBSERVE_TX, 0x00);
-	hal_nrf_write_reg_2(CD, 0x00);
-	hal_nrf_write_reg_2(RX_PW_P0, 0x00);
-	hal_nrf_write_reg_2(RX_PW_P1, 0x00);
-	hal_nrf_write_reg_2(RX_PW_P2, 0x00);
-	hal_nrf_write_reg_2(RX_PW_P3, 0x00);
-	hal_nrf_write_reg_2(RX_PW_P4, 0x00);
-	hal_nrf_write_reg_2(RX_PW_P5, 0x00);
-	hal_nrf_write_reg_2(DYNPD_2, 0x00);
-	hal_nrf_write_reg_2(FEATURE_2, 0x00);
-	CE_HIGH_2();
-}
-
-void nrf24InitConf_NRF2( void )
-{
-	uint8_t rx_address_buf[RX_ADR_WIDTH] = {0xAA,0xBB,0x00,0x00,0x02};
-	CE_LOW_2();
-	nrf24AllRegResetVal_nrf2();
-	hal_nrf_set_power_mode_2(HAL_NRF_PWR_DOWN);
-
-	hal_nrf_flush_rx_2();
-	hal_nrf_flush_tx_2();
-	hal_nrf_enable_dynamic_ack_2(FALSE);
-	hal_nrf_enable_ack_payload_2(FALSE);
-	hal_nrf_enable_dynamic_payload_2(TRUE);
-	hal_nrf_setup_dynamic_payload_2(0x01);
-	
-	//有源卡模式设置
-	hal_nrf_set_datarate_2(HAL_NRF_1MBPS);
-	hal_nrf_set_rf_channel_2(RF_CHANNEL_NRF2);
-	hal_nrf_set_address_2(HAL_NRF_PIPE0, rx_address_buf);
-	hal_nrf_set_address_2(HAL_NRF_TX, rx_address_buf);
- 
-	hal_nrf_set_output_power_2(HAL_NRF_0DBM);
-	hal_nrf_set_address_width_2(HAL_NRF_AW_5BYTES);
-	hal_nrf_open_pipe_2(HAL_NRF_PIPE0, TRUE);
-	hal_nrf_set_auto_retr_2(3,500);
-	hal_nrf_get_clear_irq_flags_2();
-	hal_nrf_set_crc_mode_2(HAL_NRF_CRC_16BIT);
-	hal_nrf_set_operation_mode_2(HAL_NRF_PRX);
-	hal_nrf_set_power_mode_2(HAL_NRF_PWR_UP);
-	DelayMs(1);
-	CE_HIGH_2();
-	DelayMs(1);
-}
-
-void nrf24InitConf_NRF2_SendMode(void)
-{
-	uint8_t tx_address_buf[TX_ADR_WIDTH] = {0xAA,0xBB,0x00,0x00,0x02};
-	
-	CE_LOW_2();
-	nrf24AllRegResetVal_nrf2();
-	hal_nrf_set_power_mode_2(HAL_NRF_PWR_DOWN);
-
-	hal_nrf_flush_rx_2();
-	hal_nrf_flush_tx_2();
-	hal_nrf_write_reg_2(RF_SETUP, 0x07);
-	hal_nrf_enable_dynamic_ack_2(FALSE);
-	hal_nrf_enable_ack_payload_2(FALSE);
-	hal_nrf_enable_dynamic_payload_2(TRUE);
-	hal_nrf_setup_dynamic_payload_2(0x01);
-	hal_nrf_set_datarate_2(HAL_NRF_1MBPS);
-	hal_nrf_set_output_power_2(HAL_NRF_0DBM);
-	hal_nrf_set_rf_channel_2(8);
-	hal_nrf_set_address_width_2(HAL_NRF_AW_5BYTES);
-	hal_nrf_set_address_2(HAL_NRF_PIPE0, tx_address_buf);
-	hal_nrf_set_address_2(HAL_NRF_TX, tx_address_buf);
-	hal_nrf_open_pipe_2(HAL_NRF_PIPE0, true);
-	hal_nrf_set_auto_retr_2(3,500);
-	
-	hal_nrf_get_clear_irq_flags_2();
-	hal_nrf_set_crc_mode_2(HAL_NRF_CRC_16BIT);
-	hal_nrf_set_operation_mode_2(HAL_NRF_PTX);
-	hal_nrf_set_power_mode_2(HAL_NRF_PWR_UP);
-	DelayMs(1);
-	CE_HIGH_2();
-	DelayMs(1);
-}
-
-void nrf24SendPacket_NRF2(const uint8_t *puBuf, uint8_t uWidth)
-{
-	uint8_t uSendTimeOutCnt = 0;
-	hal_nrf_write_multibyte_reg_2(W_TX_PAYLOAD_NOACK, puBuf, uWidth);
-	
-	CE_HIGH_2();
-	DelayMs(1);
-	CE_LOW_2();
-	
-	while(!((hal_nrf_nop_2() & (BIT_6|BIT_5|BIT_4)) & (1 << TX_DS)) && (uSendTimeOutCnt++ <= 3))
+		nrf_communication.transmit_ing_flag = true;
+		nrf_communication.transmit_ok_flag = false;
+		jsq_to_dtq_sequence++;
+		nrf_communication.transmit_buf[0] = jsq_to_dtq_sequence;	
+		memcpy((nrf_communication.transmit_buf + 1), nrf_communication.jsq_uid, 4);
+		nrf_communication.transmit_buf[5] = NRF_DATA_IS_USEFUL;			
+		nrf_communication.transmit_buf[6] = 0;
+		memcpy((nrf_communication.transmit_buf + 10), data_buff, data_buff_len);	//有效数据从第10位开始放
+		
+		nrf_communication.transmit_len = NRF_TOTAL_DATA_LEN;	
+		//uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);	//在定时器里发送，并判断是否发送成功
+		TIM_Cmd(TIM3, ENABLE);  	
+	}	
+	else if(nrf_data_type == NRF_DATA_IS_ACK)	//ACK数据包，发送nrf_communication.software_ack_buf 内容
 	{
-		DelayMs(1);
+		nrf_communication.software_ack_buf[0] = dtq_to_jsq_sequence;		
+		memcpy((nrf_communication.software_ack_buf + 1), nrf_communication.jsq_uid, 4);
+		nrf_communication.software_ack_buf[5] = NRF_DATA_IS_ACK;	
+		
+		nrf_communication.software_ack_len = NRF_TOTAL_DATA_LEN;	
+		uesb_nrf_write_tx_payload(nrf_communication.software_ack_buf,nrf_communication.software_ack_len);	
 	}
-	hal_nrf_write_reg_2(STATUS_2, 0x70);
+	else{;}
+	
+
 }
-#endif //USE_NRF2
+
+
+/******************************************************************************
+  Function:my_nrf_transmit_tx_success_handler
+  Description:向答题器发送数据后，收到答题器返回的软件ACK
+  Input:None
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void my_nrf_transmit_tx_success_handler(void)
+{
+	nrf_debug("nrf_debug，发送成功，包号：%02X	\n",jsq_to_dtq_sequence);	
+}
+
+
+/******************************************************************************
+  Function:my_nrf_transmit_tx_success_handler
+  Description:向答题器发送数据后，达到最大重发次数后，未收到答题器返回的软件ACK
+  Input:None
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void my_nrf_transmit_tx_failed_handler(void)
+{
+	nrf_debug("nrf_debug，发送失败，包号：%02X	\n",jsq_to_dtq_sequence);	
+}
+
+
+/******************************************************************************
+  Function:my_nrf_transmit_tx_success_handler
+  Description:收到答题器下发下来的数据
+  Input:None
+  Output:
+  Return:
+  Others:答题器下发的数据完整保存在rf_var.rx_buf（包括包头0x5A、包尾0xCA、XOR校验、有效数据等），根据需要自行处理
+******************************************************************************/
+void my_nrf_receive_success_handler(void)
+{
+	uint8_t i;
+	nrf_debug("nrf_debug，收到答题器下发有效数据。打印如下：\n");
+	for(i = 0; i < rf_var.rx_len; i++)		
+	{
+		nrf_debug("%02X ", rf_var.rx_buf[i]);
+	}nrf_debug("\r\n");
+	
+}
+
+
 
 
 /**
