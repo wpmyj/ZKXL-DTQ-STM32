@@ -208,5 +208,6 @@ void my_nrf_receive_success_handler(void);
 
 void nrf51822_spi_init(void);
 void nrf51822_parameters_init(void);
+void TIM3_Int_Init(u16 arr,u16 psc);
 
 #endif //__NRF_H_

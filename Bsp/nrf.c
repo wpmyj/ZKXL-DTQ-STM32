@@ -116,6 +116,33 @@ void nrf51822_spi_init(void)
 	SPI_CSN_HIGH_2();	//别忘，浪费我半天时间
 }
 
+
+
+void TIM3_Int_Init(u16 arr,u16 psc)
+{
+    TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE); //时钟使能
+	
+	//定时器TIM3初始化
+	TIM_TimeBaseStructure.TIM_Period = arr; //设置在下一个更新事件装入活动的自动重装载寄存器周期的值	
+	TIM_TimeBaseStructure.TIM_Prescaler =psc; //设置用来作为TIMx时钟频率除数的预分频值
+	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1; //设置时钟分割:TDTS = Tck_tim
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  //TIM向上计数模式
+	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure); //根据指定的参数初始化TIMx的时间基数单位
+ 
+	TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE ); //使能指定的TIM3中断,允许更新中断
+
+	//中断优先级NVIC设置
+	NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;  //TIM3中断
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = TIM3_PREEMPTION_PRIORITY;  //先占优先级0级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = TIM3_SUB_PRIORITY;  //从优先级3级
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //IRQ通道被使能
+	NVIC_Init(&NVIC_InitStructure);  //初始化NVIC寄存器
+				 
+}
+
 /******************************************************************************
   Function:my_nrf_transmit_start
   Description:
@@ -198,12 +225,15 @@ void my_nrf_transmit_tx_failed_handler(void)
 ******************************************************************************/
 void my_nrf_receive_success_handler(void)
 {
-	uint8_t i;
-	nrf_debug("nrf_debug，收到答题器下发有效数据。打印如下：\n");
-	for(i = 0; i < rf_var.rx_len; i++)		
-	{
-		nrf_debug("%02X ", rf_var.rx_buf[i]);
-	}nrf_debug("\r\n");
+//	uint8_t i;
+//	nrf_debug("nrf_debug，收到答题器下发有效数据。打印如下：\r\n");
+//	for(i = 0; i < rf_var.rx_len; i++)		
+//	{
+//		nrf_debug("%02X ", rf_var.rx_buf[i]);
+//		if((i+1)%10 == 0)
+//			nrf_debug("\r\n");
+//	}
+//	nrf_debug("\r\n");
 	
 }
 

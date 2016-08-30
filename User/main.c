@@ -12,10 +12,7 @@
 #include "main.h"
 #include "eeprom.h"
 #include "nrf.h"
-uint8_t TestBuffer[10] = { 
-	0xAA,0x55,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88
-}; 
-
+ 
 extern void pos_handle_layer(void);
 extern void app_handle_layer(void);
 extern void rc500_handle_layer(void);
@@ -24,6 +21,7 @@ extern void rf_handle_layer(void);
 /* Private functions ---------------------------------------------------------*/
 static void Fee_Test(void);
 static void nrf51822_spi_test(void);
+void app_send_data_to_clickers(void);
 
 /******************************************************************************
   Function:main
@@ -35,9 +33,8 @@ static void nrf51822_spi_test(void);
 ******************************************************************************/
 int main(void)
 {
-	//DISABLE_ALL_IRQ();
+	/* System initialize -------------------------------------------------------*/
 	Platform_Init();
-	//ENABLE_ALL_IRQ();
 
 	/* System function test start-----------------------------------------------*/
 	// Fee_Test();
@@ -54,7 +51,10 @@ int main(void)
 //  rf_handle_layer();		
 	}	
 }
-
+static uint8_t blank_packet[]={0x5A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xCA };			//收到答题器空包包，回一个空包
+static uint8_t response[] =   {0x5A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0xCA };		//收到答题器数据包，回确认包
+static uint8_t irq_flag;
+static uint8_t ack_buff[] = {0xAA,0xBB,0xCC,0xDD,0xEE,0xFF};
 
 
 /******************************************************************************
@@ -69,6 +69,7 @@ static void nrf51822_spi_test(void)
 {
     static uint32_t i = 0;
     uint8_t j = 0;
+	  uint8_t TestBuffer[10] = {0xAA,0x55,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88};
 	
     while(1)
 		{

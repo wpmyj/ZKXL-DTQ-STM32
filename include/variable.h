@@ -166,8 +166,8 @@ typedef struct
 
 typedef struct
 {
-	bool 							state;						//uid有效标志
-	bool	 						tx_flag;					//已下发标志	
+	bool 							  state;						//uid有效标志
+	bool	 						  tx_flag;					//已下发标志	
 	uint8_t 						count;						//收到空包计数
 	uint8_t							number;						//配对序号
 	uint8_t 						uid[4];						//UID

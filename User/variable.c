@@ -9,12 +9,12 @@
   */
   
 #include "main.h"
-white_list_t				white_list[MAX_WHITE_LEN];		// 白名单列表
-uint8_t						white_len;						// 白名单长度
-Switch_State				white_on_off;					// 白名单开关 
-Switch_State				attendance_on_off;				// 考勤开关 
-Switch_State				match_on_off;					// 配对开关 
-uint16_t					match_number = 1;					// 配对序号
+white_list_t			white_list[MAX_WHITE_LEN];		// 白名单列表
+uint8_t						white_len;						        // 白名单长度
+Switch_State			white_on_off;					        // 白名单开关 
+Switch_State			attendance_on_off;		        // 考勤开关 
+Switch_State			match_on_off;					        // 配对开关 
+uint16_t					match_number = 1;			  	    // 配对序号
 
 uint8_t 					NDEF_DataWrite[30] = {0x00, 0x00, 0x0f, 0x0e, 0x0d, 0x0c, 0x0b, 0x0a, 0x09, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x00};
 uint8_t 					NDEF_DataRead[0xFF] = {0x00};
@@ -45,14 +45,12 @@ uint8_t						FindCard_Step = 0;				// 寻卡的步骤
 uint16_t					Length_CtrRC500ToApp;			// RC500返回数据长度
 uint16_t 					Length_AppToCtrRC500;			// 应用层下发RC500指令长度
 
-uint16_t					Length_CtrPosToApp;				// pos下发指令长度
-uint16_t					Length_AppToCtrPos;				// 应用层上报指令长度
+
 	
 uint8_t						Buf_CtrRC500ToApp[UART_NBUF];	// RC500返回数据缓冲区
 uint8_t						Buf_AppToCtrRC500[UART_NBUF];	// 应用层下发RC500指令缓冲区
 	
-uint8_t						Buf_CtrPosToApp[UART_NBUF];		// pos下发指令缓冲
-uint8_t						Buf_AppToCtrPos[UART_NBUF];		// 应用层上报指令缓冲区
+
 
 uint8_t						Buf_CtrRC500return[UART_NBUF];	// RC500返回数据缓存区？？？
 
