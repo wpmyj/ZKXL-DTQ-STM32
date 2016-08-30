@@ -576,14 +576,19 @@
           <GroupName>User</GroupName>
           <Files>
             <File>
-              <FileName>system_stm32f10x.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.c</FilePath>
-            </File>
-            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\main.c</FilePath>
+            </File>
+            <File>
+              <FileName>pos_handle_layer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\pos_handle_layer.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_handle_layer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\app_handle_layer.c</FilePath>
             </File>
             <File>
               <FileName>init.c</FileName>
@@ -596,19 +601,9 @@
               <FilePath>..\User\misc_func.c</FilePath>
             </File>
             <File>
-              <FileName>pos_handle_layer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\pos_handle_layer.c</FilePath>
-            </File>
-            <File>
               <FileName>rc500_handle_layer.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\rc500_handle_layer.c</FilePath>
-            </File>
-            <File>
-              <FileName>app_handle_layer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\app_handle_layer.c</FilePath>
             </File>
             <File>
               <FileName>nrf_config_and_handler.c</FileName>
@@ -619,6 +614,11 @@
               <FileName>rf_handle_layer.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\rf_handle_layer.c</FilePath>
+            </File>
+            <File>
+              <FileName>system_stm32f10x.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_it.c</FileName>
