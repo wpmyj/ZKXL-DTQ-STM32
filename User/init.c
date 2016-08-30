@@ -24,6 +24,9 @@ void Platform_Init(void)
 {
 	uint8_t temp = 0;
 	
+	/* disable all IRQ */
+	DISABLE_ALL_IRQ();
+	
 	/* initialize system clock */
 	SysClockInit();
 	
@@ -36,9 +39,15 @@ void Platform_Init(void)
 	/* initialize the spi interface with nrf51822 */
 	nrf51822_spi_init();	
 	nrf51822_parameters_init();
+
+	/* 接收器重发定时器，因为答题器返回ACK随机延时0~255ms，所以这个值要大于255ms	*/
+	TIM3_Int_Init(NRF_RETRANSMIT_DELAY,64000);
 	
 	GPIOInit_MFRC500();
 	temp = PcdReset();															//复位并初始化RC500
+	
+	/* enable all IRQ */
+	ENABLE_ALL_IRQ();
 	
 //BEEP_EN();																	    //蜂鸣器声音提示初始化完毕
 	ledOn(LGREEN);																  //led提示初始化完毕
@@ -110,8 +119,6 @@ void Usart1_Init(void)
 
 	/* Configure USART1 */
 	USART_Init(USART1pos, &USART_InitStructure);
-	/* Enable the USART1 */
-	USART_Cmd(USART1pos, ENABLE);
 	
 	NVIC_PriorityGroupConfig(SYSTEM_MVIC_GROUP_SET);
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
@@ -119,8 +126,12 @@ void Usart1_Init(void)
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = UART1_SUB_PRIORITY;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
+	
 	//中断配置..Only IDLE Interrupt..
 	USART_ITConfig(USART1,USART_IT_RXNE,ENABLE);
+	
+	/* Enable the USART1 */
+	USART_Cmd(USART1pos, ENABLE);
 	
 	uart232_var.flag_tx_ok[0] = true;
 	uart232_var.flag_tx_ok[1] = true;

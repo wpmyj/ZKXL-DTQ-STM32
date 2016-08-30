@@ -11,9 +11,15 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-uint8_t uid_p;
+/* Private variables ---------------------------------------------------------*/
+uint8_t   uid_p;
+uint8_t		Buf_CtrPosToApp[UART_NBUF];		// pos下发指令缓冲
+uint8_t		Buf_AppToCtrPos[UART_NBUF];		// 应用层上报指令缓冲区
+uint16_t	Length_CtrPosToApp;				    // pos下发指令长度
+uint16_t	Length_AppToCtrPos;				    // 应用层上报指令长度
 
 
+/* Private functions ---------------------------------------------------------*/
 uint8_t FindICCard(void);
 bool initialize_white_list( void );
 bool delete_uid_from_white_list(uint8_t *g_uid);
@@ -31,36 +37,28 @@ void App_returnMatchSwitchState(Switch_State SWS);
 void App_returnErr(uint8_t cmd_type, uint8_t err_type);
 
 
+
+
+void App_send_data_to_clickers(void);
+
+
 void app_cmd_process(void)
 {
 	uint8_t temp_count = 0,i;
-	switch(flag_App_or_Ctr)
-	{		
-		case 0x01:		//下发给答题器的指令
-				memcpy(rf_var.tx_buf, Buf_CtrPosToApp, Length_CtrPosToApp);
-				rf_var.tx_len = Length_CtrPosToApp;
-				rf_var.flag_txing = true;
-				clear_white_list_tx_flag();
-				
-				Length_AppToCtrPos = 0x00;
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x5C;
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x10;
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = sign_buffer[0];
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = sign_buffer[1];
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = sign_buffer[2];
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = sign_buffer[3];
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x03;
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x00;
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = white_on_off;
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = white_len;
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = XOR_Cal(&Buf_AppToCtrPos[1], 9);
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = 0xCA;
-				App_to_CtrPosReq =true;
-				flag_App_or_Ctr = 0x00;
-		break;
 
-		case 0x02:		
-		    Length_AppToCtrPos = rf_var.rx_len+0x09;  //接收到答案打包上传
+	switch(flag_App_or_Ctr)
+	{	
+		/* send topic's data to clickers */
+		case 0x01:	
+				{			
+						App_send_data_to_clickers();
+						flag_App_or_Ctr = 0x00;
+				}
+				break;
+    
+		/* send clickers's data to topic */
+		case 0x02:		   
+		    Length_AppToCtrPos = rf_var.rx_len+0x09;  
 		    Buf_AppToCtrPos[0] = 0x5C;
 				Buf_AppToCtrPos[1] = 0x10;
 		    Buf_AppToCtrPos[2] = sign_buffer[0];
@@ -79,6 +77,7 @@ void app_cmd_process(void)
 				flag_App_or_Ctr = 0x00;
 				App_to_CtrPosReq =true;				
 			break;
+				
 		case 0x03:		//上传下发成功信息
 				Length_AppToCtrPos = 0x00;
 				Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x5C;
@@ -603,7 +602,7 @@ void app_handle_layer(void)
 				memcpy(&Buf_AppToCtrPos[7], &g_cSNR[4],4);
 				Buf_AppToCtrPos[11] = XOR_Cal(&Buf_AppToCtrPos[1],10);
 				Buf_AppToCtrPos[12] = 0xCA;
-				Length_AppToCtrPos = 0x10;
+				Length_AppToCtrPos = 0x0D;
 				App_to_CtrPosReq = true;
 			}
 			
@@ -616,6 +615,56 @@ void app_handle_layer(void)
 		}
 	}
 	Buzze_Control();	// 等待蜂鸣器关闭
+}
+
+/******************************************************************************
+  Function:app_send_data_to_clickers
+  Description:
+       上位机发送的数据发送给答题器
+  Input:None
+  Return:
+  Others:None
+******************************************************************************/
+void App_send_data_to_clickers(void)
+{
+//	   uint8_t j = 0;
+//	   static uint32_t i = 0;
+	  memcpy(rf_var.tx_buf, Buf_CtrPosToApp, Length_CtrPosToApp);
+		rf_var.tx_len = Length_CtrPosToApp;
+		rf_var.flag_txing = true;
+		clear_white_list_tx_flag();
+		
+		Length_AppToCtrPos = 0x00;
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x5C;
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x10;
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = sign_buffer[0];
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = sign_buffer[1];
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = sign_buffer[2];
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = sign_buffer[3];
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x03;
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x00;
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = white_on_off;
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = white_len;
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = XOR_Cal(&Buf_AppToCtrPos[1], 9);
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = 0xCA;
+		App_to_CtrPosReq =true;
+	  /* 有数据下发且未曾下发过 */
+		if(rf_var.flag_txing)	
+		{
+			my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL);
+			
+//			for(j=0;j<rf_var.tx_len;j++)
+//			{
+//				printf(" %2x ",rf_var.tx_buf[j]);
+//				if((j+1)%10 == 0)
+//					printf("\r\n");
+//			}
+//			printf("\r\n");
+
+//			printf("Sent Data test num = %d! \r\n",i++);
+			
+			rf_var.flag_tx_ok = true;
+		}
 }
 
 /**************************************END OF FILE****************************/

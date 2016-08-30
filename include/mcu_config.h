@@ -18,11 +18,13 @@
 #define UART1_PREEMPTION_PRIORITY     1
 #define UART2_PREEMPTION_PRIORITY     1
 #define NRF_PREEMPTION_PRIORITY       1 
+#define TIM3_PREEMPTION_PRIORITY      0
 
 /* Peripheral interrupt response set */
 #define UART1_SUB_PRIORITY            1
 #define UART2_SUB_PRIORITY            1
 #define NRF_SUB_PRIORITY              0 
+#define TIM3_SUB_PRIORITY             3
 
 /* USART defines -------------------------------------------------------------*/
 /* USART defines -------------------------------------------------------------*/

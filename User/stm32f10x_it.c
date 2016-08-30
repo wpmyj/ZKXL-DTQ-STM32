@@ -235,7 +235,6 @@ void SysTick_Handler(void)
   */
 void USART1pos_IRQHandler(void)
 {
-	// If the SC_USART detects a parity error 
 	if(USART_GetITStatus(USART1pos, USART_IT_PE) != RESET)
 	{
 		// Enable SC_USART RXNE Interrupt (until receiving the corrupted byte) 
@@ -246,7 +245,8 @@ void USART1pos_IRQHandler(void)
   
 	if(USART_GetITStatus(USART1pos, USART_IT_RXNE) != RESET)
 	{
-	    uart232_var.uart_temp = USART_ReceiveData(USART1pos);
+	  uart232_var.uart_temp = USART_ReceiveData(USART1pos);
+
 		switch(uart232_var.uart_status)
 		{
 			case UartOK:									//开始接收
@@ -386,7 +386,6 @@ uint8_t response[] =   {0x5A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x
 uint8_t irq_flag;
 uint8_t ack_buff[] = {0xAA,0xBB,0xCC,0xDD,0xEE,0xFF};
 
-
 void RFIRQ_EXTI_IRQHandler(void)
 {
 	//uint8_t	i;
@@ -426,6 +425,7 @@ void RFIRQ_EXTI_IRQHandler(void)
 					//irq_debug("irq_debug，重复收到数据,包号: %02X  \n",nrf_communication.receive_buf[0]);
 //					dtq_to_jsq_sequence = nrf_communication.receive_buf[0];			//更新接收包号		
 					my_nrf_transmit_start(ack_buff,6,NRF_DATA_IS_ACK);
+					
 				}
 				else													//有效数据，返回ACK
 				{
@@ -436,7 +436,7 @@ void RFIRQ_EXTI_IRQHandler(void)
 //					}irq_debug("\r\n");
 					rf_var.rx_len = nrf_communication.receive_buf[6];
 					memcpy(rf_var.rx_buf, nrf_communication.receive_buf+10, rf_var.rx_len);	//有效数据复制到rf_var.rx_buf
-					
+					rf_var.flag_rx_ok = true;
 					dtq_to_jsq_sequence = nrf_communication.receive_buf[0];				//更新接收包号
 					my_nrf_transmit_start(ack_buff,6,NRF_DATA_IS_ACK);		//回复ACK
 					my_nrf_receive_success_handler();						//用户接收到数据处理函数
@@ -447,6 +447,50 @@ void RFIRQ_EXTI_IRQHandler(void)
 		{;}
 	}
 	ledToggle(LBLUE);
+}
+
+
+//软件模拟ACK通信，处理定时器
+void TIM3_IRQHandler(void)   //TIM3中断
+{
+	if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET)  //检查TIM3更新中断发生与否
+	{
+		TIM_ClearITPendingBit(TIM3, TIM_IT_Update  );  //清除TIMx更新中断标志 
+		//irq_debug("定时器3中断  ");
+		
+		nrf_communication.number_of_retransmits++;
+		if( true == nrf_communication.transmit_ing_flag )		//正在传输
+		{
+			if( true == nrf_communication.transmit_ok_flag ) 	//收到有效ACK,发送成功
+			{
+				my_nrf_transmit_tx_success_handler();			//用户发送成功处理函数		
+				nrf_communication.transmit_ing_flag = false;	
+				nrf_communication.transmit_ok_flag = true;			
+				nrf_communication.number_of_retransmits = 0;	
+				TIM_Cmd(TIM3, DISABLE); 						//停止定时器
+				//irq_debug("irq_debug:transmit succeed,sequence:	%02X \r\n",jsq_to_dtq_sequence);
+			}
+			else if( nrf_communication.number_of_retransmits > NRF_MAX_NUMBER_OF_RETRANSMITS )	//达到最大重发次数，发送失败
+			{
+				my_nrf_transmit_tx_failed_handler();			//用户发送失败处理函数
+				nrf_communication.transmit_ing_flag = false;	
+				nrf_communication.transmit_ok_flag = false;			
+				nrf_communication.number_of_retransmits = 0;	
+				TIM_Cmd(TIM3, DISABLE); 						
+				//irq_debug("irq_debug:transmit  failure,sequence: %02X \r\n",jsq_to_dtq_sequence);
+			}
+			else
+			{
+				uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
+			}
+		}
+		else	//定时器第一次发送数据							
+		{
+			nrf_communication.transmit_ing_flag = true;	
+			nrf_communication.transmit_ok_flag = false;		
+			uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
+		}
+	}
 }
 /**
   * @}
