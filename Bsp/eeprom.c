@@ -268,6 +268,9 @@ uint16_t Fee_Init(void)
        }
 		}
 		return FlashStatus;
+		
+		/* lock the Flash Program Erase controller */
+		FLASH_Lock();
 }
 
 /**
@@ -285,7 +288,10 @@ uint16_t EE_ReadVariable(uint16_t VirtAddress, uint16_t* Data)
   uint16_t ValidPage = 0;
   uint16_t AddressValue = 0, ReadStatus = 1;
   uint32_t Address = 0, PageStartAddress = 0;
-
+	
+	/* Unlock the Flash Program Erase controller */
+	FLASH_Unlock();
+	
   /* Get active Page for read operation */
   ValidPage = EE_FindValidPage(READ_FROM_VALID_PAGE, VirtAddress);
 
@@ -324,7 +330,10 @@ uint16_t EE_ReadVariable(uint16_t VirtAddress, uint16_t* Data)
       Address = Address - 4;
     }
   }
-
+	
+	/* Lock the Flash Program Erase controller */
+	FLASH_Lock();
+	
   /* Return ReadStatus value: (0: variable exist, 1: variable doesn't exist) */
   return ReadStatus;
 }
@@ -342,7 +351,10 @@ uint16_t EE_ReadVariable(uint16_t VirtAddress, uint16_t* Data)
 uint16_t EE_WriteVariable(uint16_t VirtAddress, uint16_t Data)
 {
   uint16_t Status = 0;
-
+	
+	/* Unlock the Flash Program Erase controller */
+	FLASH_Unlock();
+	
   /* Write the variable virtual address and value in the EEPROM */
   Status = EE_VerifyPageFullWriteVariable(VirtAddress, Data);
 
@@ -352,7 +364,10 @@ uint16_t EE_WriteVariable(uint16_t VirtAddress, uint16_t Data)
     /* Perform Page transfer */
     Status = EE_PageTransfer(VirtAddress, Data);
   }
-
+	
+	/* lock the Flash Program Erase controller */
+	FLASH_Lock();
+	
   /* Return last operation status */
   return Status;
 }

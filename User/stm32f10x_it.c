@@ -388,18 +388,16 @@ uint8_t ack_buff[] = {0xAA,0xBB,0xCC,0xDD,0xEE,0xFF};
 
 void RFIRQ_EXTI_IRQHandler(void)
 {
-	//uint8_t	i;
-
 	if(EXTI_GetITStatus(EXTI_LINE_RFIRQ) != RESET)
 	{
 		EXTI_ClearITPendingBit(EXTI_LINE_RFIRQ);
 		
 		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_communication.receive_len, nrf_communication.receive_buf);		//读取数据
 		
-		if(( nrf_communication.dtq_uid[0] == nrf_communication.receive_buf[1])&&
-			(nrf_communication.dtq_uid[1] == nrf_communication.receive_buf[2])&&
-			(nrf_communication.dtq_uid[2] == nrf_communication.receive_buf[3])&&
-			(nrf_communication.dtq_uid[3] == nrf_communication.receive_buf[4]))			//白名单匹配
+		if((nrf_communication.dtq_uid[0] == nrf_communication.receive_buf[1])&&
+			 (nrf_communication.dtq_uid[1] == nrf_communication.receive_buf[2])&&
+			 (nrf_communication.dtq_uid[2] == nrf_communication.receive_buf[3])&&
+			 (nrf_communication.dtq_uid[3] == nrf_communication.receive_buf[4]))			//白名单匹配
 		{		
 			if(nrf_communication.receive_buf[5] == NRF_DATA_IS_ACK)						//收到的是ACK
 			{

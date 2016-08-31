@@ -51,14 +51,19 @@ bool uidcmp(uint8_t *uid1, uint8_t *uid2)
   Return:
   Others:None
 ******************************************************************************/
-void clear_white_list_tx_flag(void)
+void clear_white_list(void)
 {
 	uint16_t i;
-	for(i=0; i < (MAX_WHITE_LEN*4); i++)
+		
+	white_len = get_len_of_white_list();
+	
+	for(i=0; i < (white_len*4); i++)
 	{
-		//white_list[i].tx_flag = false;
 		EE_WriteVariable(i, 0xFF);
 	}
+	
+	white_len = 0;
+	store_len_to_fee(white_len);
 }
 
 /******************************************************************************
@@ -218,14 +223,14 @@ void store_len_to_fee(uint8_t len)
 }
 
 /******************************************************************************
-  Function:insert_uid_to_white_list
+  Function:add_uid_to_white_list
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-bool insert_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
+bool add_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
 {
 	uint8_t i;
 	uint8_t temuid[4];

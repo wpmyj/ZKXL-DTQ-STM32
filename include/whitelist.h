@@ -38,10 +38,11 @@ void add_index_of_uid( uint8_t index, uint8_t  uid[4] );
 
 bool initialize_white_list( void );
 bool uidcmp(uint8_t *uid1, uint8_t *uid2);
-bool insert_uid_to_white_list(uint8_t *g_uid, uint8_t *position);
-void clear_white_list_tx_flag(void);
+bool add_uid_to_white_list(uint8_t *g_uid, uint8_t *position);
+void clear_white_list(void);
 bool delete_uid_from_white_list(uint8_t *g_uid);
 
 void store_len_to_fee(uint8_t len);
 uint8_t get_len_of_white_list(void);
+
 #endif // __WHITE_LIST_H_
