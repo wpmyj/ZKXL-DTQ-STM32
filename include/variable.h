@@ -117,19 +117,19 @@ typedef struct
 	uint8_t 				uart_rx_timeout;					//中断串口接收超时计数器
 
 	
-	uint8_t 				HEADER;								//中断串口接收帧头
+	uint8_t 				HEADER;						  //中断串口接收帧头
 	uint8_t 				TYPE;								//中断串口接收包类型
-	uint8_t                 SIGN[4];                            //中断串口接收活动标识
+	uint8_t         SIGN[4];            //中断串口接收活动标识
 	uint8_t 				LEN;								//中断串口接收数据长度
-	uint8_t 				DATA[UART_NBUF];					//中断串口接收数据
+	uint8_t 				DATA[UART_NBUF];		//中断串口接收数据
 	uint8_t 				XOR;								//中断串口接收异或
 	uint8_t 				END;								//中断串口接收帧尾
 	
 	uint8_t	 				uart_rx_cnt;			  			//中断串口接收计数器
 	uint8_t					uart_rx_buf[UART_NBUF + 5];			//中断串口接收缓存	
 	
-	bool 					flag_tx_ok[2];		  				//中断串口接收完成标志
-	bool 					flag_txing[2];		   				//中断串口正在发送标志
+	bool 					  flag_tx_ok[2];		  				//中断串口接收完成标志
+	bool 					  flag_txing[2];		   				//中断串口正在发送标志
 	uint8_t 				uart_tx_length[2];					//中断串口发送长度	
 	uint8_t 				uart_tx_cnt;			  			//中断串口发送计数器
 	uint8_t					uart_tx_buf[2][UART_NBUF + 5];		//中断串口发送缓存 ,两组缓冲区，轮流发送 
@@ -164,14 +164,6 @@ typedef struct
 	uint8_t 						second;
 }time_t;
 
-typedef struct
-{
-	bool 							  state;						//uid有效标志
-	bool	 						  tx_flag;					//已下发标志	
-	uint8_t 						count;						//收到空包计数
-	uint8_t							number;						//配对序号
-	uint8_t 						uid[4];						//UID
-}white_list_t;
 
 typedef union
 {
@@ -246,12 +238,7 @@ typedef struct
 	uint8_t							Xor;							//数据段校验值
 }answer_setting_parameter_t;
 
-extern white_list_t					white_list[MAX_WHITE_LEN];		// 白名单列表
-extern uint8_t						white_len;						// 白名单长度
-extern Switch_State					white_on_off;					// 白名单开关
-extern Switch_State					attendance_on_off;				// 考勤开关 
-extern Switch_State					match_on_off;					// 配对开关 
-extern uint16_t						match_number;					// 配对序号
+
 
 extern uint8_t 						NDEF_DataWrite[];
 extern uint8_t 						NDEF_DataRead[];
@@ -271,9 +258,6 @@ extern RF_TypeDef 					rf_var;							// 2.4G数据包缓冲
 extern uint16_t						delay_nms;						// 中断延时变量
 extern uint32_t 					timer_1ms;
 extern time_t						time;							//保持当前时间
-
-extern uint8_t						uid_len;
-extern uint8_t 						g_cSNR[];                    	//M1卡序列号
 
 extern bool							flag_upload_uid_once;			//是否单次上传卡号标志
 extern uint8_t						ReadNDEF_Step;					// 读取NDEF文件的步骤
@@ -296,11 +280,7 @@ extern uint8_t 						g_cardType[];					//返回卡类型
 extern uint8_t 						respon[];
 extern uint8_t 						g_cCid;
 
-extern uint32_t                     MCUID[4];
-extern uint8_t                     jsq_uid[8];
-extern uint8_t                     software[3];
-extern uint8_t 					   hardware[30];
-extern uint8_t 					   company[16];
+
 #endif //_VARIABLE_H_
 /**
   * @}

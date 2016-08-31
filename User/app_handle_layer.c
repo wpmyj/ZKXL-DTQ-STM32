@@ -10,14 +10,14 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "whitelist.h"
 
 /* Private variables ---------------------------------------------------------*/
-uint8_t   uid_p;
 uint8_t		Buf_CtrPosToApp[UART_NBUF];		// pos下发指令缓冲
 uint8_t		Buf_AppToCtrPos[UART_NBUF];		// 应用层上报指令缓冲区
 uint16_t	Length_CtrPosToApp;				    // pos下发指令长度
 uint16_t	Length_AppToCtrPos;				    // 应用层上报指令长度
-
+uint8_t   whitelist_print_index = 0;
 
 /* Private functions ---------------------------------------------------------*/
 uint8_t FindICCard(void);
@@ -36,49 +36,41 @@ void App_returnAttendanceSwitchState(Switch_State SWS);
 void App_returnMatchSwitchState(Switch_State SWS);
 void App_returnErr(uint8_t cmd_type, uint8_t err_type);
 
+void App_serial_transport_to_nrf51822(void);
+void App_return_data_to_clickers(void);
+void App_return_data_to_topic(void);
+uint8_t App_return_whitelist_data(uint8_t index);
 
-
-
-void App_send_data_to_clickers(void);
-
-
-void app_cmd_process(void)
+void App_cmd_process(void)
 {
 	uint8_t temp_count = 0,i;
-
+	uint8_t tempuid[4];
+	uint8_t whitelist_status = 0;
+	
 	switch(flag_App_or_Ctr)
 	{	
 		/* send topic's data to clickers */
 		case 0x01:	
 				{			
-						App_send_data_to_clickers();
+						App_serial_transport_to_nrf51822();
+						//App_return_data_to_clickers();
 						flag_App_or_Ctr = 0x00;
 				}
 				break;
     
 		/* send clickers's data to topic */
 		case 0x02:		   
-		    Length_AppToCtrPos = rf_var.rx_len+0x09;  
-		    Buf_AppToCtrPos[0] = 0x5C;
-				Buf_AppToCtrPos[1] = 0x10;
-		    Buf_AppToCtrPos[2] = sign_buffer[0];
-		    Buf_AppToCtrPos[3] = sign_buffer[1];
-		    Buf_AppToCtrPos[4] = sign_buffer[2];
-		    Buf_AppToCtrPos[5] = sign_buffer[3];
-		    Buf_AppToCtrPos[6] =rf_var.rx_len+0x00;
-		    for (temp_count=0;temp_count<rf_var.rx_len+1;temp_count++)
-		    {
-					Buf_AppToCtrPos[temp_count+7]=rf_var.rx_buf[temp_count];		
-		    }
-	      Buf_AppToCtrPos[rf_var.rx_len+7] = XOR_Cal(&Buf_AppToCtrPos[1], rf_var.rx_len+7);		
-		    Buf_AppToCtrPos[rf_var.rx_len+8] = 0xCA;
-				memset(rf_var.rx_buf, 0x00, rf_var.rx_len);
-				rf_var.rx_len = 0x00;
-				flag_App_or_Ctr = 0x00;
-				App_to_CtrPosReq =true;				
-			break;
+				{
+						App_return_data_to_topic();
+						memset(rf_var.rx_buf, 0x00, rf_var.rx_len);
+						rf_var.rx_len = 0x00;
+						flag_App_or_Ctr = 0x00;
+						App_to_CtrPosReq =true;	
+				}			
+				break;
 				
-		case 0x03:		//上传下发成功信息
+		/* 上传下发成功信息 */	
+		case 0x03:		
 				Length_AppToCtrPos = 0x00;
 				Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x5C;
 				Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x11;
@@ -94,6 +86,7 @@ void app_cmd_process(void)
 				App_to_CtrPosReq =true;
 				flag_App_or_Ctr = 0x00;
 			break;	
+		
 		case 0x04:		//停止下发指令
 				rf_var.flag_txing = false;
 				memset(rf_var.tx_buf, 0x00, rf_var.tx_len);
@@ -117,7 +110,9 @@ void app_cmd_process(void)
 			
 				flag_App_or_Ctr = 0x00;
 			break;	
-		case 0x11:		//添加白名单
+		
+		/* 添加白名单 */
+		case 0x11:		
 				while(temp_count != Buf_CtrPosToApp[0])
 				{
 					if(insert_uid_to_white_list(&Buf_CtrPosToApp[4*temp_count + 1], &uid_p))
@@ -137,7 +132,8 @@ void app_cmd_process(void)
 				flag_App_or_Ctr = 0x00;
 			break;
 		
-		case 0x12:		//删除白名单
+		/* 删除白名单 */
+		case 0x12:		
 				while(temp_count != Buf_CtrPosToApp[0])
 				{
 					if(delete_uid_from_white_list(&Buf_CtrPosToApp[4*temp_count + 1]))
@@ -201,28 +197,23 @@ void app_cmd_process(void)
 			flag_App_or_Ctr = 0x00;
 		break;
 		
-		case 0x1a:      //打印当前白名单			
-		    Length_AppToCtrPos = 4*white_len+10;  
-		    Buf_AppToCtrPos[0] = 0x5C;
-		    Buf_AppToCtrPos[1] = 0x2B;
-		    Buf_AppToCtrPos[2] = sign_buffer[0];
-		    Buf_AppToCtrPos[3] = sign_buffer[1];
-		    Buf_AppToCtrPos[4] = sign_buffer[2];
-		    Buf_AppToCtrPos[5] = sign_buffer[3];
-		    Buf_AppToCtrPos[6] = 4*white_len+1;
-		    Buf_AppToCtrPos[7] = white_len;
-		    for(temp_count=7,uid_p=0;(temp_count<4*white_len)&&(uid_p<white_len);temp_count=temp_count+4,uid_p++)
-		    {
-		        Buf_AppToCtrPos[temp_count+1]=white_list[uid_p].uid[0];
-		        Buf_AppToCtrPos[temp_count+2]=white_list[uid_p].uid[1];
-		        Buf_AppToCtrPos[temp_count+3]=white_list[uid_p].uid[2];
-		        Buf_AppToCtrPos[temp_count+4]=white_list[uid_p].uid[3];
-		    }
-		    Buf_AppToCtrPos[4*white_len+8] = XOR_Cal(&Buf_AppToCtrPos[1], white_len+3);
-		    Buf_AppToCtrPos[4*white_len+9] = 0xCA;
-		    flag_App_or_Ctr = 0x00;
-		    App_to_CtrPosReq =true;
-		break;
+		/* 打印当前白名单 */
+		case 0x1a:      
+				{		
+						whitelist_print_index = 
+					         App_return_whitelist_data( whitelist_print_index );
+						if( whitelist_print_index < white_len )
+						{
+							flag_App_or_Ctr = 0x1a;
+						}
+						else
+						{
+							flag_App_or_Ctr = 0x00;
+							whitelist_print_index = 0;
+						}
+						App_to_CtrPosReq =true;
+				}
+				break;
 				
 		case 0x1b:      //打印设备信息			
 		    Length_AppToCtrPos = 0x27;  
@@ -290,7 +281,7 @@ void app_cmd_process(void)
 	}
 }
 
-void app_check_rf_flg(void)
+void App_check_rf_flg(void)
 {
 	if(rf_var.flag_tx_ok)
 	{
@@ -304,104 +295,6 @@ void app_check_rf_flg(void)
 	}	
 }
 
-bool uidcmp(uint8_t *uid1, uint8_t *uid2)
-{
-	if((uid1[0] == uid2[0])&&(uid1[1] == uid2[1])&&(uid1[2] == uid2[2])&&(uid1[3] == uid2[3]))
-		return true;
-	else
-		return false;
-}
-
-bool insert_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
-{
-	uint8_t i;
-	if(white_len == MAX_WHITE_LEN)						//如果白名单已满，直接返回失败
-		return false;
-	
-	for(i=0; i < MAX_WHITE_LEN; i++)
-	{
-		if((white_list[i].state == 1)&&uidcmp(white_list[i].uid, g_uid))	//如果白名单中已经存在该UID
-			return false;
-	}
-	
-	if(white_len >= MAX_WHITE_LEN)						//如果白名单已经达到最长度，无法再添加uid
-	{
-		white_len = MAX_WHITE_LEN;
-		return false;
-	}
-	else if(white_list[white_len].state == 0)			//如果UID在白名单中连续存放，则直接在最末尾存放新的uid
-	{
-		memcpy(white_list[white_len].uid, g_uid, 4);	// 加入UID
-		white_list[white_len].state = 0x01;				// 状态置1
-		*position = white_len;							// 获取位置索引
-	}
-	else												//如果不连续存放，则查找空位，然后存放
-	{
-		for(i=0; i < MAX_WHITE_LEN; i++)
-		{
-			if(white_list[i].state == 0)				//如果找到一个空位，则存放进去
-			{
-				memcpy(white_list[i].uid, g_uid, 4);	// 加入UID
-				white_list[i].state = 0x01;				// 状态置1
-				*position = i;							// 获取位置索引
-			}
-		}
-	}
-	white_len ++;
-	return true;
-}
-
-bool search_uid_in_white_list(uint8_t *g_uid , uint8_t *position)
-{
-	uint8_t i;
-	if(white_len == 0)
-		return false;				//白名单为空，直接返回失败
-	for(i=0; i < MAX_WHITE_LEN; i++)
-	{
-		if((white_list[i].state == 1)&&uidcmp(white_list[i].uid, g_uid))	//如果白名单中已经存在该UID
-		{
-			white_list[i].count ++;  
-			*position = i;
-			return true;
-		}
-	}
-	return false;
-}
-
-void clear_white_list_tx_flag(void)
-{
-	uint8_t i;
-	for(i=0; i < MAX_WHITE_LEN; i++)
-	{
-		white_list[i].tx_flag = false;
-	}
-}
-
-bool delete_uid_from_white_list(uint8_t *g_uid)
-{
-	uint8_t i;
-	if(white_len == 0)
-		return false;				//白名单为空，直接返回失败
-	for(i=0; i < MAX_WHITE_LEN; i++)
-	{
-		if((white_list[i].state == 1)&&uidcmp(white_list[i].uid, g_uid))	//如果白名单中已经存在该UID
-		{
-			memset(white_list[i].uid, 0, 4);
-			white_list[i].state = 0x00;
-			white_len --;
-			return true;
-		}
-	}
-	return false;
-}
-
-bool initialize_white_list( void )
-{
-	memset(white_list, 0x00, MAX_WHITE_LEN*sizeof(white_list_t));
-	white_len = 0x00;
-	white_on_off = OFF;
-	return true;
-}
 
 void App_returnInsertState(uint8_t sw1, uint8_t sw2)
 {
@@ -541,9 +434,9 @@ void Buzze_Control(void)
 void app_handle_layer(void)
 {
 
-	app_check_rf_flg();
+	App_check_rf_flg();
 	
-	app_cmd_process();
+	App_cmd_process();
 	
 	if((delay_nms == 0)&&((attendance_on_off == ON) || match_on_off == ON))
 	{
@@ -552,9 +445,9 @@ void app_handle_layer(void)
 		{
 			if(match_on_off)						//如果是配对开启
 			{
-				if(insert_uid_to_white_list(&g_cSNR[4], &uid_p))
+				if(search_uid_in_white_list(&g_cSNR[4], &uid_p))
 				{
-					white_list[uid_p].number = match_number++;
+					
 					Buf_AppToCtrPos[0] = 0x5C;
 					Buf_AppToCtrPos[1] = 0x29;
 				  Buf_AppToCtrPos[2] = sign_buffer[0];
@@ -563,12 +456,12 @@ void app_handle_layer(void)
 				  Buf_AppToCtrPos[5] = sign_buffer[3];
 					Buf_AppToCtrPos[6] = 0x05;
 					memcpy(&Buf_AppToCtrPos[7], &g_cSNR[4],4);
-					Buf_AppToCtrPos[11] = white_list[uid_p].number;
+					Buf_AppToCtrPos[11] = uid_p;
 					Buf_AppToCtrPos[12] = XOR_Cal(&Buf_AppToCtrPos[1],11);
 					Buf_AppToCtrPos[13] = 0xCA;
 					Length_AppToCtrPos = 14;
 				}
-				else if(search_uid_in_white_list(&g_cSNR[4], &uid_p))
+				else if(insert_uid_to_white_list(&g_cSNR[4], &uid_p))
 				{
 					Buf_AppToCtrPos[0] = 0x5C;
 					Buf_AppToCtrPos[1] = 0x29;
@@ -578,7 +471,7 @@ void app_handle_layer(void)
 					Buf_AppToCtrPos[5] = sign_buffer[3];					
 					Buf_AppToCtrPos[6] = 0x05;
 					memcpy(&Buf_AppToCtrPos[7], &g_cSNR[4],4);
-					Buf_AppToCtrPos[11] = white_list[uid_p].number;
+					Buf_AppToCtrPos[11] = uid_p;
 					Buf_AppToCtrPos[12] = XOR_Cal(&Buf_AppToCtrPos[1],11);
 					Buf_AppToCtrPos[13] = 0xCA;
 					Length_AppToCtrPos = 14;
@@ -617,18 +510,54 @@ void app_handle_layer(void)
 	Buzze_Control();	// 等待蜂鸣器关闭
 }
 
+void App_serial_transport_to_nrf51822(void)
+{
+//	uint8_t j = 0;
+//	static uint32_t i = 0;
+
+	  memcpy(Buf_AppToCtrPos, Buf_CtrPosToApp, Length_CtrPosToApp);
+		Length_AppToCtrPos = Length_CtrPosToApp;
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = XOR_Cal(&Buf_AppToCtrPos[1], Length_CtrPosToApp);
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = 0xCA;
+	
+	  memcpy(rf_var.tx_buf, Buf_AppToCtrPos, Length_AppToCtrPos);
+		rf_var.tx_len = Length_AppToCtrPos;
+		rf_var.flag_txing = true;
+		clear_white_list_tx_flag();
+	
+		App_to_CtrPosReq =true;
+	
+	  /* 有数据下发且未曾下发过 */
+		if(rf_var.flag_txing)	
+		{
+			my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL);
+			
+//			for(j=0;j<rf_var.tx_len;j++)
+//			{
+//				printf(" %2x ",rf_var.tx_buf[j]);
+//				if((j+1)%10 == 0)
+//					printf("\r\n");
+//			}
+//			printf("\r\n");
+//			printf("Sent Data test num = %d! \r\n",i++);
+			
+			rf_var.flag_tx_ok = true;
+		}
+}
+
+
 /******************************************************************************
-  Function:app_send_data_to_clickers
+  Function:App_return_data_to_clickers
   Description:
        上位机发送的数据发送给答题器
   Input:None
   Return:
   Others:None
 ******************************************************************************/
-void App_send_data_to_clickers(void)
+void App_return_data_to_clickers(void)
 {
-//	   uint8_t j = 0;
-//	   static uint32_t i = 0;
+//	uint8_t j = 0;
+//	static uint32_t i = 0;
 	  memcpy(rf_var.tx_buf, Buf_CtrPosToApp, Length_CtrPosToApp);
 		rf_var.tx_len = Length_CtrPosToApp;
 		rf_var.flag_txing = true;
@@ -647,6 +576,7 @@ void App_send_data_to_clickers(void)
 		Buf_AppToCtrPos[Length_AppToCtrPos++] = white_len;
 		Buf_AppToCtrPos[Length_AppToCtrPos++] = XOR_Cal(&Buf_AppToCtrPos[1], 9);
 		Buf_AppToCtrPos[Length_AppToCtrPos++] = 0xCA;
+	
 		App_to_CtrPosReq =true;
 	  /* 有数据下发且未曾下发过 */
 		if(rf_var.flag_txing)	
@@ -660,11 +590,82 @@ void App_send_data_to_clickers(void)
 //					printf("\r\n");
 //			}
 //			printf("\r\n");
-
 //			printf("Sent Data test num = %d! \r\n",i++);
 			
 			rf_var.flag_tx_ok = true;
 		}
 }
+
+/******************************************************************************
+  Function:App_return_data_to_topic
+  Description:
+  Input:None
+  Return:
+  Others:None
+******************************************************************************/
+void App_return_data_to_topic(void)
+{
+	uint8_t temp_count = 0;
+	Length_AppToCtrPos = rf_var.rx_len+0x09;  
+	Buf_AppToCtrPos[0] = 0x5C;
+	Buf_AppToCtrPos[1] = 0x10;
+	Buf_AppToCtrPos[2] = sign_buffer[0];
+	Buf_AppToCtrPos[3] = sign_buffer[1];
+	Buf_AppToCtrPos[4] = sign_buffer[2];
+	Buf_AppToCtrPos[5] = sign_buffer[3];
+	Buf_AppToCtrPos[6] =rf_var.rx_len+0x00;
+	for (temp_count=0;temp_count<rf_var.rx_len+1;temp_count++)
+	{
+		Buf_AppToCtrPos[temp_count+7]=rf_var.rx_buf[temp_count];		
+	}
+	Buf_AppToCtrPos[rf_var.rx_len+7] = XOR_Cal(&Buf_AppToCtrPos[1], rf_var.rx_len+7);		
+	Buf_AppToCtrPos[rf_var.rx_len+8] = 0xCA;
+}
+
+/******************************************************************************
+  Function:App_return_whitelist_data
+  Description:
+		打印白名单信息
+  Input :
+		index：打印白名单的起始位置
+  Return:
+    uid_p:输出的白名单最后的位置
+  Others:None
+******************************************************************************/
+uint8_t App_return_whitelist_data(uint8_t index)
+{
+	uint8_t temp_count = 0;
+	uint8_t uid_p = index;
+	uint8_t tempuid[4];
+	
+	Buf_AppToCtrPos[0] = 0x5C;
+	Buf_AppToCtrPos[1] = 0x2B;
+	Buf_AppToCtrPos[2] = sign_buffer[0];
+	Buf_AppToCtrPos[3] = sign_buffer[1];
+	Buf_AppToCtrPos[4] = sign_buffer[2];
+	Buf_AppToCtrPos[5] = sign_buffer[3];
+	
+	for(temp_count=7;(temp_count<UART_NBUF-6)&&(uid_p<white_len);
+	    temp_count=temp_count+4)
+	{
+		get_index_of_uid(uid_p,tempuid);
+		Buf_AppToCtrPos[temp_count+1]=tempuid[0];
+		Buf_AppToCtrPos[temp_count+2]=tempuid[1];
+		Buf_AppToCtrPos[temp_count+3]=tempuid[2];
+		Buf_AppToCtrPos[temp_count+4]=tempuid[3];
+		uid_p++;
+	}
+	
+	Buf_AppToCtrPos[6] = (uid_p-index)*4+1;
+	Buf_AppToCtrPos[7] = uid_p;
+	
+	Buf_AppToCtrPos[(uid_p-index)*4+8] = XOR_Cal(&Buf_AppToCtrPos[1], (uid_p-index)*4+7);
+	Buf_AppToCtrPos[(uid_p-index)*4+9] = 0xCA;
+	
+	Length_AppToCtrPos = (uid_p-index)*4+10;
+	
+	return uid_p;
+}
+
 
 /**************************************END OF FILE****************************/

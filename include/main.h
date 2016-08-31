@@ -30,6 +30,7 @@
 #include "gpio.h"
 #include "version.h"
 #include "nrf.h"
+#include "whitelist.h"
 
 #endif //_MAIN_H_
 /**
