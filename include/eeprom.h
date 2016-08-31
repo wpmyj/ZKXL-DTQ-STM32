@@ -35,7 +35,7 @@
 #endif
 
 /* EEPROM start address in Flash */
-#define EEPROM_START_ADDRESS    ((uint32_t)0x08010000) /* EEPROM emulation start address:
+#define EEPROM_START_ADDRESS    ((uint32_t)0x08018000) /* EEPROM emulation start address:
                                                   after 64KByte of used Flash memory */
 
 /* Pages 0 and 1 base and end addresses */
@@ -67,7 +67,7 @@
 
 #define FEE_NUM_OF_VAR          ((uint8_t)(40*2))         /* ??Page??????40????? 40*4 = 80*2 ?80??? */
 #define FEE_VIRTUAL_START_ADDR  ((uint16_t)0x1000)          /* ??????????? */
-#define FEE_PAGENUM             ((uint16_t)(2 * (480/FEE_NUM_OF_VAR+1)))  /* ?120??????Page?*/
+#define FEE_PAGENUM             ((uint16_t)(2 * (481/FEE_NUM_OF_VAR+1)))  /* ?120??????Page?*/
 #define FEE_FLASH_PAGE_SIZE     ((uint16_t)128)             /* ????Page?????????128(????128,?????255) */
 #define FEE_PAGE_NUM_OF_STU     ((uint8_t)40)             /* ??Page??????40????? 40*4 = 80*2 ?80??? */
 

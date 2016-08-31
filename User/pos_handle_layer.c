@@ -45,8 +45,8 @@ static void serial_transmission_to_nrf51822(void);
 void pos_handle_layer(void)
 {
 	send_to_pos();
-	//receive_from_pos();
-	serial_transmission_to_nrf51822();
+	receive_from_pos();
+	//serial_transmission_to_nrf51822();
 }
 
 static void send_to_pos(void)
@@ -61,6 +61,7 @@ static void send_to_pos(void)
 		App_to_CtrPosReq = false;
 	}
 }
+
 //	uint8_t 				HEADER;						  //中断串口接收帧头
 //	uint8_t 				TYPE;								//中断串口接收包类型
 //	uint8_t         SIGN[4];            //中断串口接收活动标识
@@ -96,12 +97,12 @@ static void serial_transmission_to_nrf51822(void)
 		return;
 	}
 	
-	if((uart232_var.flag_uart_rx_ok) && ( flag_App_or_Ctr == 0))				    //串口接收到pos指令完成且系统空闲
+	if((uart232_var.flag_uart_rx_ok) && ( flag_App_or_Ctr == 0))				  //串口接收到pos指令完成且系统空闲
 	{	
 		Length_CtrPosToApp = uart232_var.LEN+7;							                //获取数据长度
 		memcpy(Buf_CtrPosToApp+7, uart232_var.DATA, uart232_var.LEN);		    //获取数据内容
 		flag_App_or_Ctr = 0x01;	
-		hal_uart_clr_rx();														//清除接收数据
+		hal_uart_clr_rx();														                      //清除接收数据
 		return ;
 	}
 	
