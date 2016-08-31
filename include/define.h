@@ -40,8 +40,6 @@
 #define UartEND 								(7)									//´®¿Ú½ÓÊÕÖ¡Ö¡Î²
 
 
-#define MAX_WHITE_LEN						(120)
-
 #define TX_ADR_WIDTH 						(5)
 #define RX_ADR_WIDTH 						(5)
 #define RF_CHANNEL_NRF1					(30)

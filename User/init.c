@@ -43,6 +43,10 @@ void Platform_Init(void)
 	/* 接收器重发定时器，因为答题器返回ACK随机延时0~255ms，所以这个值要大于255ms	*/
 	TIM3_Int_Init(NRF_RETRANSMIT_DELAY,64000);
 	
+	
+	/* eeprom init */
+	Fee_Init();
+	
 	GPIOInit_MFRC500();
 	temp = PcdReset();															//复位并初始化RC500
 	

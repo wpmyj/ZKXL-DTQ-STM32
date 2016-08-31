@@ -9,6 +9,11 @@
 #define SUB_VERSION_1         0x00
 #define SUB_VERSION_2         0x03
 
+extern uint32_t            MCUID[4];
+extern uint8_t             jsq_uid[8];
+extern const uint8_t       software[3];
+extern const uint8_t 		   hardware[30];
+extern const uint8_t 			 company[16];
 /* Private functions ---------------------------------------------------------*/
 void get_mcu_id(void);
 

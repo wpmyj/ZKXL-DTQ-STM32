@@ -9,12 +9,6 @@
   */
   
 #include "main.h"
-white_list_t			white_list[MAX_WHITE_LEN];		// 白名单列表
-uint8_t						white_len;						        // 白名单长度
-Switch_State			white_on_off;					        // 白名单开关 
-Switch_State			attendance_on_off;		        // 考勤开关 
-Switch_State			match_on_off;					        // 配对开关 
-uint16_t					match_number = 1;			  	    // 配对序号
 
 uint8_t 					NDEF_DataWrite[30] = {0x00, 0x00, 0x0f, 0x0e, 0x0d, 0x0c, 0x0b, 0x0a, 0x09, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x00};
 uint8_t 					NDEF_DataRead[0xFF] = {0x00};
@@ -34,8 +28,7 @@ uint16_t					delay_nms = 0;					// 中断延时变量
 uint32_t 					timer_1ms = 0;					// 喂狗定时器
 time_t						time;							// RTC结构体
 
-uint8_t						uid_len = 0;					// M1卡序列号长度
-uint8_t 					g_cSNR[10];						// M1卡序列号
+
 
 bool						flag_upload_uid_once = false;	// 是否单次上传卡号标志
 uint8_t						ReadNDEF_Step = 0;				// 读取NDEF文件的步骤
