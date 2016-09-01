@@ -321,13 +321,13 @@ void USART1pos_IRQHandler(void)
 							uart232_var.flag_uart_rx_xor_err = 1;
 							uart232_var.uart_status = UartOK;
 						}
-						else														//若校验通过，则接收数据OK可用
+						else														    //若校验通过，则接收数据OK可用
 						{
-							uart232_var.flag_uart_rx_ok = 1;                       //中断串口接收完成标志
+							uart232_var.flag_uart_rx_ok = 1;  //中断串口接收完成标志
 							uart232_var.uart_status = UartOK;                       
 						}
 					}
-					else															//若接收数据不等于需接收长度，清除之前接收buf	
+					else															    //若接收数据不等于需接收长度，清除之前接收buf	
 					{
 						uart232_var.flag_uart_rx_length_err = 1;
 						uart232_var.uart_status = UartOK;
@@ -388,16 +388,23 @@ uint8_t ack_buff[] = {0xAA,0xBB,0xCC,0xDD,0xEE,0xFF};
 
 void RFIRQ_EXTI_IRQHandler(void)
 {
+	bool    Is_whitelist_uid = false;
+	uint8_t uidpos = 0;
+	
 	if(EXTI_GetITStatus(EXTI_LINE_RFIRQ) != RESET)
 	{
 		EXTI_ClearITPendingBit(EXTI_LINE_RFIRQ);
 		
 		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_communication.receive_len, nrf_communication.receive_buf);		//读取数据
 		
-		if((nrf_communication.dtq_uid[0] == nrf_communication.receive_buf[1])&&
-			 (nrf_communication.dtq_uid[1] == nrf_communication.receive_buf[2])&&
-			 (nrf_communication.dtq_uid[2] == nrf_communication.receive_buf[3])&&
-			 (nrf_communication.dtq_uid[3] == nrf_communication.receive_buf[4]))			//白名单匹配
+		printf("UID = %2x %2x %2x %2x \r\n",
+		       *(nrf_communication.receive_buf+1),*(nrf_communication.receive_buf+2),
+		       *(nrf_communication.receive_buf+2),*(nrf_communication.receive_buf+3));
+		
+		//Is_whitelist_uid = search_uid_in_white_list(nrf_communication.receive_buf+1,&uidpos);
+		Is_whitelist_uid = true;
+		
+		if(Is_whitelist_uid)			//白名单匹配
 		{		
 			if(nrf_communication.receive_buf[5] == NRF_DATA_IS_ACK)						//收到的是ACK
 			{
