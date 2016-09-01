@@ -137,7 +137,7 @@
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>BIN\UL2CM3.DLL</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -376,6 +376,11 @@
           <GroupName>Start</GroupName>
           <Files>
             <File>
+              <FileName>system_stm32f10x.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.c</FilePath>
+            </File>
+            <File>
               <FileName>startup_stm32f10x_md.s</FileName>
               <FileType>2</FileType>
               <FilePath>..\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\startup\arm\startup_stm32f10x_md.s</FilePath>
@@ -530,6 +535,16 @@
               <FileType>5</FileType>
               <FilePath>..\include\nrf.h</FilePath>
             </File>
+            <File>
+              <FileName>whitelist.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\whitelist.h</FilePath>
+            </File>
+            <File>
+              <FileName>pos_handle_layer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\pos_handle_layer.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -611,16 +626,6 @@
               <FilePath>..\User\nrf_config_and_handler.c</FilePath>
             </File>
             <File>
-              <FileName>rf_handle_layer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\rf_handle_layer.c</FilePath>
-            </File>
-            <File>
-              <FileName>system_stm32f10x.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.c</FilePath>
-            </File>
-            <File>
               <FileName>stm32f10x_it.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\stm32f10x_it.c</FilePath>
@@ -639,6 +644,11 @@
               <FileName>version.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\version.c</FilePath>
+            </File>
+            <File>
+              <FileName>whitelist.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\whitelist.c</FilePath>
             </File>
           </Files>
         </Group>
