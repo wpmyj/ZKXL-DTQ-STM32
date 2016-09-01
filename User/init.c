@@ -44,8 +44,9 @@ void Platform_Init(void)
 	TIM3_Int_Init(NRF_RETRANSMIT_DELAY,64000);
 	
 	
-	/* eeprom init */
+	/* eeprom init and white_list init*/
 	Fee_Init();
+	initialize_white_list();
 	
 	GPIOInit_MFRC500();
 	temp = PcdReset();															//复位并初始化RC500

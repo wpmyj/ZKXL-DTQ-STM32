@@ -554,11 +554,11 @@ void App_serial_transport_to_nrf51822(void)
 void App_return_data_to_clickers(void)
 {
 	  uint8_t uidpos = 0;
-		//bool    Is_whitelist_uid = false;
+		bool    Is_whitelist_uid = false;
 	
-		//Is_whitelist_uid = search_uid_in_white_list(sign_buffer,&uidpos);
-	
-	  //if(Is_whitelist_uid)
+		Is_whitelist_uid = search_uid_in_white_list(sign_buffer,&uidpos);
+
+	  if(Is_whitelist_uid)
 		{
 				memcpy(rf_var.tx_buf, Buf_CtrPosToApp, Length_CtrPosToApp);
 				rf_var.tx_len = Length_CtrPosToApp;
@@ -585,10 +585,10 @@ void App_return_data_to_clickers(void)
 					rf_var.flag_tx_ok = true;
 				}
 		}
-	//else
-		//{
-		//	printf(" The Clickers not register! \r\n ");
-		//}
+		else
+		{
+			  printf("Download:The Clickers not register! \r\n ");
+		}
 		
 }
 
@@ -601,21 +601,33 @@ void App_return_data_to_clickers(void)
 ******************************************************************************/
 void App_return_data_to_topic(void)
 {
-	uint8_t temp_count = 0;
-	Length_AppToCtrPos = rf_var.rx_len+0x09;  
-	Buf_AppToCtrPos[0] = 0x5C;
-	Buf_AppToCtrPos[1] = 0x10;
-	Buf_AppToCtrPos[2] = sign_buffer[0];
-	Buf_AppToCtrPos[3] = sign_buffer[1];
-	Buf_AppToCtrPos[4] = sign_buffer[2];
-	Buf_AppToCtrPos[5] = sign_buffer[3];
-	Buf_AppToCtrPos[6] =rf_var.rx_len+0x00;
-	for (temp_count=0;temp_count<rf_var.rx_len+1;temp_count++)
-	{
-		Buf_AppToCtrPos[temp_count+7]=rf_var.rx_buf[temp_count];		
-	}
-	Buf_AppToCtrPos[rf_var.rx_len+7] = XOR_Cal(&Buf_AppToCtrPos[1], rf_var.rx_len+7);		
-	Buf_AppToCtrPos[rf_var.rx_len+8] = 0xCA;
+		uint8_t temp_count = 0;
+		uint8_t uidpos = 0;
+		bool    Is_whitelist_uid = false;
+		
+		Is_whitelist_uid = search_uid_in_white_list(sign_buffer,&uidpos);
+		
+		if(Is_whitelist_uid)
+		{
+				Length_AppToCtrPos = rf_var.rx_len+0x09;  
+				Buf_AppToCtrPos[0] = 0x5C;
+				Buf_AppToCtrPos[1] = 0x10;
+				Buf_AppToCtrPos[2] = sign_buffer[0];
+				Buf_AppToCtrPos[3] = sign_buffer[1];
+				Buf_AppToCtrPos[4] = sign_buffer[2];
+				Buf_AppToCtrPos[5] = sign_buffer[3];
+				Buf_AppToCtrPos[6] =rf_var.rx_len+0x00;
+				for (temp_count=0;temp_count<rf_var.rx_len+1;temp_count++)
+				{
+					Buf_AppToCtrPos[temp_count+7]=rf_var.rx_buf[temp_count];		
+				}
+				Buf_AppToCtrPos[rf_var.rx_len+7] = XOR_Cal(&Buf_AppToCtrPos[1], rf_var.rx_len+7);		
+				Buf_AppToCtrPos[rf_var.rx_len+8] = 0xCA;
+		}
+		else
+		{
+			printf("Update:The Clickers not register! \r\n ");
+		}
 }
 
 /******************************************************************************
