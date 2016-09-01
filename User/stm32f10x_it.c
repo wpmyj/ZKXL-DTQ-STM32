@@ -32,8 +32,6 @@ static uint8_t  temp_sign_len   = 0;
 static uint32_t uart_rx_timeout = 0;
 static bool     flag_uart_rxing = false;
 
-	
-
 bool 		flag_tx_ok[2];		  				//中断串口接收完成标志
 bool 		flag_txing[2];		   				//中断串口正在发送标志
 uint8_t uart_tx_length[2];					//中断串口发送长度	
@@ -335,12 +333,12 @@ void USART1pos_IRQHandler(void)
 							/* 清除 uart_irq_revice_massage 接收信息 */
 							uart_clear_rx_message(&uart_irq_revice_massage);    
 						}
-						else if(uart_irq_revice_massage.LEN > 0)		   				//  DATA不为空
+						else if(uart_irq_revice_massage.LEN > 0)	//  DATA不为空
 						{
 							uart_status = UartDATA;
 							uart_rx_cnt = 0;
 						}
-						else												//  DATA为空
+						else//  DATA为空
 						{
 							uart_status = UartXOR;
 						}
@@ -350,8 +348,8 @@ void USART1pos_IRQHandler(void)
 			case UartDATA:
 					{
 						  uart_irq_revice_massage.DATA[uart_rx_cnt++] = uart_temp;
-						
-						  if(uart_rx_cnt == uart_irq_revice_massage.LEN)							//数据接收完成
+						  /* 数据接收完成 */
+						  if(uart_rx_cnt == uart_irq_revice_massage.LEN)			
 							    uart_status = UartXOR;
 					}
 					break;
@@ -372,7 +370,7 @@ void USART1pos_IRQHandler(void)
 							uart_irq_revice_massage.END = uart_temp;
 							
 							if( uart_irq_revice_massage.XOR == UartMessageXor)
-							{   //若校验通过，则接收数据OK可用
+							{   /* 若校验通过，则接收数据OK可用 */
 								  serial_ringbuffer_write_data(&uart_irq_revice_massage);
 								  uart_status = UartHEADER;
 								  uart_clear_rx_message(&uart_irq_revice_massage);
@@ -398,7 +396,7 @@ void USART1pos_IRQHandler(void)
    
 	if(USART_GetITStatus(USART1pos, USART_IT_TXE) != RESET)
   	{   
-	    // Write one byte to the transmit data register 	    
+	    /* Write one byte to the transmit data register */     
 	    if(uart232_var.uart_tx_length[uart_tx_i])			//长度不为0继续发送
 	    {
 			USART_SendData(USART1pos, uart232_var.uart_tx_buf[uart_tx_i][uart232_var.uart_tx_cnt++]);

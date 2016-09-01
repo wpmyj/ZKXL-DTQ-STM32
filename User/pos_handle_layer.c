@@ -96,7 +96,7 @@ static void receive_from_pos(void)
 {
 	Uart_MessageTypeDef CurrentProcessMessage;
 	
-	if(BUFFEREMPTY == GetBufferStatus())
+	if(BUFFEREMPTY == buffer_get_buffer_status())
 		return;
 	else
 		serial_ringbuffer_read_data(&CurrentProcessMessage);
