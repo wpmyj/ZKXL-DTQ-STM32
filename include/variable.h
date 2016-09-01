@@ -99,53 +99,16 @@ typedef enum
 	HAL_NRF_0DBM            /**< Output power set to 0dBm   */
 }hal_nrf_output_power_t;
 
-typedef struct
-{
-
-	bool 					flag_uart_rxing;		  			//中断串口正在接收标志
-	bool 					flag_uart_rx_ok;		  			//中断串口接收完成标志
-	
-	bool 					flag_uart_rx_xor_err;				//中断串口接收XOR出错标志
-	bool 					flag_uart_rx_length_err;			//中断串口接收长度出错标志
-	
-	uint8_t 				uart_status;						//中断接收数据步骤变量
-	uint8_t 				uart_temp;							//中断接收数据临时变量
-	uint8_t 				temp_uid_len;						//中断接收数据命令变量	
-	uint8_t					temp_data_len;						//中断接收DATA部分临时长度变量	
-	uint8_t                 temp_sign_len;                      //中断接收SIGN部分临时长度变量
-	
-	uint8_t 				uart_rx_timeout;					//中断串口接收超时计数器
-
-	
-	uint8_t 				HEADER;						  //中断串口接收帧头
-	uint8_t 				TYPE;								//中断串口接收包类型
-	uint8_t         SIGN[4];            //中断串口接收活动标识
-	uint8_t 				LEN;								//中断串口接收数据长度
-	uint8_t 				DATA[UART_NBUF];		//中断串口接收数据
-	uint8_t 				XOR;								//中断串口接收异或
-	uint8_t 				END;								//中断串口接收帧尾
-	
-	uint8_t	 				uart_rx_cnt;			  			//中断串口接收计数器
-	uint8_t					uart_rx_buf[UART_NBUF + 5];			//中断串口接收缓存	
-	
-	bool 					  flag_tx_ok[2];		  				//中断串口接收完成标志
-	bool 					  flag_txing[2];		   				//中断串口正在发送标志
-	uint8_t 				uart_tx_length[2];					//中断串口发送长度	
-	uint8_t 				uart_tx_cnt;			  			//中断串口发送计数器
-	uint8_t					uart_tx_buf[2][UART_NBUF + 5];		//中断串口发送缓存 ,两组缓冲区，轮流发送 
-
-}Uart_TypeDef;
-
 typedef struct 
 {	
 	bool 					flag_txing;		   					//2.4G下发数据标志
 	bool 					flag_rx_ok;		  					//2.4G接收到新数据包
 	bool 					flag_tx_ok;		  					//2.4G接收到新数据包
 	
-	uint8_t 				tx_len;			  					//2.4G发送长度
-	uint8_t	 				rx_len;			  					//2.4G接收长度
-	uint8_t					tx_buf[RF_NBUF];					//2.4G发送缓存  
-	uint8_t					rx_buf[RF_NBUF];					//2.4G接收缓存
+	uint8_t 			tx_len;			  					//2.4G发送长度
+	uint8_t	 			rx_len;			  					//2.4G接收长度
+	uint8_t				tx_buf[RF_NBUF];					//2.4G发送缓存  
+	uint8_t				rx_buf[RF_NBUF];					//2.4G接收缓存
 }RF_TypeDef;
 
 typedef struct 
@@ -243,7 +206,7 @@ typedef struct
 extern uint8_t 						NDEF_DataWrite[];
 extern uint8_t 						NDEF_DataRead[];
 
-extern bool 						gbf_hse_setup_fail;				//外部16M晶振起振标志
+extern bool 						  gbf_hse_setup_fail;				//外部16M晶振起振标志
 extern uint8_t 						time_for_buzzer_on;				//多长时间之后开始响
 extern uint16_t 					time_for_buzzer_off;			//响了多长时间之后关
 
@@ -251,10 +214,9 @@ extern answer_setting_parameter_t	answer_setting;					// 答题器的设置参数
 extern nrf_parameter_t				nrf_parameter;
 
 
-extern uint8_t                      sign_buffer[];
+//extern uint8_t            sign_buffer[];
 extern uint8_t						uart_tx_i;						//串口发送缓冲索引
-extern Uart_TypeDef 				uart232_var;
-extern RF_TypeDef 					rf_var;							// 2.4G数据包缓冲
+extern RF_TypeDef 				rf_var;							// 2.4G数据包缓冲
 extern uint16_t						delay_nms;						// 中断延时变量
 extern uint32_t 					timer_1ms;
 extern time_t						time;							//保持当前时间

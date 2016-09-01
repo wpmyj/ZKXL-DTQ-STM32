@@ -12,11 +12,12 @@
 #define __RINGBUFFER_H_
 
 #include "stm32f10x.h"
+#include "pos_handle_layer.h"
 
 /* Private define ------------------------------------------------------------*/
 /* Set parameter of budffer */
-#define SPIRINGBUFFERSIZE    10
-#define PACKETSIZE           250
+#define SERIALRINGBUFFERSIZE 10
+#define PACKETSIZE           (236+8)
 
 /* buffer status  */
 #define BUFFEREMPTY          1
@@ -34,7 +35,7 @@
 uint8_t GetBufferStatus(void);
 uint8_t GetBufferReadIndex(void);
 uint8_t GetBufferWriteIndex(void);
-void RingBufferWriteData(uint8_t data[]);
-void RingbufferReadData(uint8_t data[]);
+void serial_ringbuffer_write_data(Uart_MessageTypeDef *data);
+void serial_ringbuffer_read_data(Uart_MessageTypeDef *data);
 
 #endif

@@ -19,7 +19,6 @@ uint8_t 	        g_cSNR[10];						        // M1ø®–Ú¡–∫≈
 ******************************************************************************/
 bool initialize_white_list( void )
 {
-	uint16_t index;
 	
 	white_len = get_len_of_white_list();
 	white_on_off = OFF;

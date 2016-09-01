@@ -7,11 +7,10 @@
   * @brief   	ringbuffer
   ******************************************************************************
   */
-	
 #include "ringbuffer.h"
 
 /* Private variables ---------------------------------------------------------*/
-static uint8_t spiringbuffer[SPIRINGBUFFERSIZE][PACKETSIZE];
+static Uart_MessageTypeDef serialringbuffer[SERIALRINGBUFFERSIZE];
 static uint8_t readindex = 0;
 static uint8_t writeindex = 0;
 static uint8_t ringbufferstatus = BUFFEREMPTY;
@@ -151,7 +150,7 @@ static void WriteChangeBufferSattus(void)
 static void UpdateBufferWriteIndex( void )
 {
 	writeindex++;
-	if(writeindex>=SPIRINGBUFFERSIZE)
+	if( writeindex >= SERIALRINGBUFFERSIZE )
 		writeindex = 0;
 }
 
@@ -166,7 +165,7 @@ static void UpdateBufferWriteIndex( void )
 static void UpdateBufferReadIndex( void )
 {
 	readindex++;
-	if(readindex>=SPIRINGBUFFERSIZE)
+	if( readindex >= SERIALRINGBUFFERSIZE )
 		readindex = 0;
 }
 
@@ -180,69 +179,67 @@ static void UpdateBufferReadIndex( void )
 ******************************************************************************/
 static void ClearBufferElement(uint8_t index)
 {
-	uint8_t *pdata;
 	uint8_t i;
+	uint8_t *pdata = (uint8_t*)(serialringbuffer+index);
 	
-	pdata = spiringbuffer[index];
-
 	for(i=0;i<PACKETSIZE;i++)
 	{
-		*(pdata) = 0;
+		*pdata = 0;
 		pdata++;
 	}
 }
 
+
+
 /******************************************************************************
-  Function:RingBufferWriteData
+  Function:serial_ringbuffer_write_data
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-void RingBufferWriteData(uint8_t data[])
+void serial_ringbuffer_write_data(Uart_MessageTypeDef *data)
 {
-	uint8_t *pdata;
 	uint8_t i;
 	uint8_t bufferindex;
+	uint8_t *pdata = (uint8_t *)data;
 	
-	pdata = data;
 	bufferindex = GetBufferWriteIndex();
 	
 	for(i=0;i<PACKETSIZE;i++)
 	{
-		spiringbuffer[bufferindex][i] = *(pdata);
+		*((uint8_t*)(serialringbuffer+bufferindex)+i) = *pdata;
 		pdata++;
 	}
-	
+
 	UpdateBufferWriteIndex();
 	
 	WriteChangeBufferSattus();
 }
 
 /******************************************************************************
-  Function:RingbufferReadData
+  Function:serial_ringbuffer_read_data
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-void RingbufferReadData(uint8_t data[])
+void serial_ringbuffer_read_data(Uart_MessageTypeDef *data)
 {
-		uint8_t *pdata;
 		uint8_t i;
 		uint8_t bufferindex;
-
-		pdata = data;
+	  uint8_t *pdata = (uint8_t *)data;
+	
 		bufferindex = GetBufferReadIndex();
 	
 		for(i=0;i<PACKETSIZE;i++)
 		{
-			*(pdata) = spiringbuffer[bufferindex][i];
+			*pdata = *((uint8_t*)(serialringbuffer+bufferindex)+i);
 			pdata++;
 		}
-		
+
 		ClearBufferElement(bufferindex);
 		
 		UpdateBufferReadIndex();

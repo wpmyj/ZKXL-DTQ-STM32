@@ -31,6 +31,8 @@
 #include "version.h"
 #include "nrf.h"
 #include "whitelist.h"
+#include "pos_handle_layer.h"
+#include "ringbuffer.h"
 
 #endif //_MAIN_H_
 /**
