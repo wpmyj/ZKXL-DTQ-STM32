@@ -14,12 +14,13 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-uint8_t		Buf_CtrPosToApp[UART_NBUF];		// pos下发指令缓冲
-uint8_t		Buf_AppToCtrPos[UART_NBUF];		// 应用层上报指令缓冲区
+extern	uint8_t   sign_buffer[4];
+				uint8_t		Buf_CtrPosToApp[UART_NBUF];		// pos下发指令缓冲
+				uint8_t		Buf_AppToCtrPos[UART_NBUF];		// 应用层上报指令缓冲区
 
-uint16_t	Length_CtrPosToApp;				    // pos下发指令长度
-uint16_t	Length_AppToCtrPos;				    // 应用层上报指令长度
-uint8_t   whitelist_print_index = 0;
+				uint16_t	Length_CtrPosToApp;				    // pos下发指令长度
+				uint16_t	Length_AppToCtrPos;				    // 应用层上报指令长度
+				uint8_t   whitelist_print_index = 0;
 
 /* Private functions ---------------------------------------------------------*/
 uint8_t FindICCard(void);
@@ -602,32 +603,22 @@ void App_return_data_to_clickers(void)
 void App_return_data_to_topic(void)
 {
 		uint8_t temp_count = 0;
-		uint8_t uidpos = 0;
-		bool    Is_whitelist_uid = false;
-		
-		Is_whitelist_uid = search_uid_in_white_list(sign_buffer,&uidpos);
-		
-		if(Is_whitelist_uid)
+	
+		Length_AppToCtrPos = rf_var.rx_len+0x09;  
+		Buf_AppToCtrPos[0] = 0x5C;
+		Buf_AppToCtrPos[1] = 0x10;
+		Buf_AppToCtrPos[2] = sign_buffer[0];
+		Buf_AppToCtrPos[3] = sign_buffer[1];
+		Buf_AppToCtrPos[4] = sign_buffer[2];
+		Buf_AppToCtrPos[5] = sign_buffer[3];
+		Buf_AppToCtrPos[6] =rf_var.rx_len+0x00;
+		for (temp_count=0;temp_count<rf_var.rx_len+1;temp_count++)
 		{
-				Length_AppToCtrPos = rf_var.rx_len+0x09;  
-				Buf_AppToCtrPos[0] = 0x5C;
-				Buf_AppToCtrPos[1] = 0x10;
-				Buf_AppToCtrPos[2] = sign_buffer[0];
-				Buf_AppToCtrPos[3] = sign_buffer[1];
-				Buf_AppToCtrPos[4] = sign_buffer[2];
-				Buf_AppToCtrPos[5] = sign_buffer[3];
-				Buf_AppToCtrPos[6] =rf_var.rx_len+0x00;
-				for (temp_count=0;temp_count<rf_var.rx_len+1;temp_count++)
-				{
-					Buf_AppToCtrPos[temp_count+7]=rf_var.rx_buf[temp_count];		
-				}
-				Buf_AppToCtrPos[rf_var.rx_len+7] = XOR_Cal(&Buf_AppToCtrPos[1], rf_var.rx_len+7);		
-				Buf_AppToCtrPos[rf_var.rx_len+8] = 0xCA;
+			Buf_AppToCtrPos[temp_count+7]=rf_var.rx_buf[temp_count];		
 		}
-		else
-		{
-			printf("Update:The Clickers not register! \r\n ");
-		}
+		Buf_AppToCtrPos[rf_var.rx_len+7] = XOR_Cal(&Buf_AppToCtrPos[1], rf_var.rx_len+7);		
+		Buf_AppToCtrPos[rf_var.rx_len+8] = 0xCA;
+
 }
 
 /******************************************************************************

@@ -22,11 +22,28 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "delay.h"
-#include "nrf.h"
+
+Uart_MessageTypeDef uart_irq_revice_massage;
+Uart_TxDataTypeDef  uart232_var;
+
+static uint8_t  uart_status     = UartHEADER;
+static uint8_t	uart_rx_cnt     = 0;			  			//中断串口接收计数器
+static uint8_t  temp_sign_len   = 0;
+static uint32_t uart_rx_timeout = 0;
+static bool     flag_uart_rxing = false;
+
+	
+
+bool 		flag_tx_ok[2];		  				//中断串口接收完成标志
+bool 		flag_txing[2];		   				//中断串口正在发送标志
+uint8_t uart_tx_length[2];					//中断串口发送长度	
+uint8_t uart_tx_cnt;			  			//中断串口发送计数器
+uint8_t	uart_tx_buf[2][UART_NBUF + 5];		//中断串口发送缓存 ,两组缓冲区，轮流发送 
+
 extern nrf_communication_t			nrf_communication;
 extern uint8_t 					dtq_to_jsq_sequence;
 extern uint8_t 					jsq_to_dtq_sequence;
+
 /** @addtogroup STM32F10x_StdPeriph_Examples
   * @{
   */
@@ -158,6 +175,33 @@ void PendSV_Handler(void)
 {
 }
 
+
+void uart_clear_rx_message( Uart_MessageTypeDef *Message )
+{
+	uint8_t i;
+	uint8_t *pdata = (uint8_t*)(Message);
+	
+	for(i=0;i<=PACKETSIZE;i++)
+	{
+		*pdata = 0;
+		pdata++;
+	}
+	flag_uart_rxing = false;
+}
+
+
+/*********************************************************************************
+* 功	能：void hal_uart_clr_tx(uint8_t tx_index)
+* 输    入: NULL
+* 返	回：NULL
+* 备	注：清零发送相关变量
+*********************************************************************************/
+void hal_uart_clr_tx(uint8_t tx_index)
+{	
+	uart232_var.flag_txing[tx_index] = false;		//发送结束
+	memset(uart232_var.uart_tx_buf[tx_index], 0x00,  uart232_var.uart_tx_cnt);
+	uart232_var.uart_tx_cnt = 0x00;
+}
 /**
   * @brief  This function handles SysTick Handler.
   * @param  None
@@ -167,13 +211,13 @@ void SysTick_Handler(void)
 {
 	TimingDelay_Decrement();
 	
-	if(uart232_var.flag_uart_rxing)												//串口接收超时计数器
+	if(flag_uart_rxing)												//串口接收超时计数器
 	{
-		uart232_var.uart_rx_timeout++;
-		if(uart232_var.uart_rx_timeout>5)										//5msc超时后重新开始接收
+		uart_rx_timeout++;
+		if(uart_rx_timeout>5)										//5msc超时后重新开始接收
 		{
-			hal_uart_clr_rx();
-			uart232_var.uart_status = UartHEADER;
+			uart_clear_rx_message(&uart_irq_revice_massage);
+			uart_status = UartHEADER;
 		}
 	}
 	
@@ -228,6 +272,7 @@ void SysTick_Handler(void)
 /*  file (startup_stm32f10x_xx.s).                                            */
 /******************************************************************************/
 
+
 /**
   * @brief  This function handles External lines 15 to 10 interrupt request.
   * @param  None
@@ -235,6 +280,8 @@ void SysTick_Handler(void)
   */
 void USART1pos_IRQHandler(void)
 {
+	uint8_t uart_temp = 0;
+	
 	if(USART_GetITStatus(USART1pos, USART_IT_PE) != RESET)
 	{
 		// Enable SC_USART RXNE Interrupt (until receiving the corrupted byte) 
@@ -245,105 +292,108 @@ void USART1pos_IRQHandler(void)
   
 	if(USART_GetITStatus(USART1pos, USART_IT_RXNE) != RESET)
 	{
-	  uart232_var.uart_temp = USART_ReceiveData(USART1pos);
+	  uart_temp = USART_ReceiveData(USART1pos);
 
-		switch(uart232_var.uart_status)
+		switch(uart_status)
 		{
-			case UartOK:									//开始接收
-				if(uart232_var.flag_uart_rx_ok || uart232_var.flag_txing[uart_tx_i])
-				{	break;	}	 							//若当前命令没被取走或没有发送完成，将不再收取数据
 			case UartHEADER:
-				if(UART_SOF == uart232_var.uart_temp)		//如果命令头为0x5C则开始接收，否则不接收							
+				if(UART_SOF == uart_temp)		//如果命令头为0x5C则开始接收，否则不接收							
 				{
-					uart232_var.flag_uart_rxing = 1;
-					uart232_var.HEADER = uart232_var.uart_temp;
-					uart232_var.uart_rx_buf[uart232_var.uart_rx_cnt++] = uart232_var.uart_temp;
-					uart232_var.uart_rx_timeout = 0;			
-					uart232_var.uart_status =  UartTYPE;
+					uart_irq_revice_massage.HEADER = uart_temp;		
+					uart_status =  UartTYPE;
+					flag_uart_rxing = true;
 				}
 				break;
+				
 			case UartTYPE:
-				uart232_var.TYPE = uart232_var.uart_temp;
-				uart232_var.uart_rx_buf[uart232_var.uart_rx_cnt++] = uart232_var.uart_temp;
-				uart232_var.uart_rx_timeout = 0;
-				uart232_var.uart_status = UartSIGN; 
+				{
+					uart_irq_revice_massage.TYPE = uart_temp;
+					uart_status = UartSIGN; 
+					temp_sign_len = 0;
+				}
 				break;	
+				
 			case UartSIGN:
-				uart232_var.SIGN[uart232_var.temp_sign_len++] = uart232_var.uart_temp;
-				uart232_var.uart_rx_buf[uart232_var.uart_rx_cnt++] = uart232_var.uart_temp;
-			    uart232_var.uart_rx_timeout = 0;
-			    if(uart232_var.temp_sign_len==4)
-				 { 
-				   uart232_var.uart_status = UartLEN;
-				 }
-				 memcpy(&sign_buffer[0],&uart232_var.SIGN[0] , 4);
-				break;
+					{
+					    uart_irq_revice_massage.SIGN[temp_sign_len++] = uart_temp;
+							if( temp_sign_len == 4 )
+						  { 
+							    uart_status = UartLEN;
+						  }
+						  //memcpy(&sign_buffer[0],&uart_irq_revice_massage.SIGN[0] , 4);
+					}
+					break;
+				 
 			case UartLEN:
-				uart232_var.LEN = uart232_var.uart_temp;
-				uart232_var.uart_rx_buf[uart232_var.uart_rx_cnt++] = uart232_var.uart_temp;
-				if(uart232_var.LEN > UART_NBUF)  					//  若数据长度大于32
-				{
-					uart232_var.flag_uart_rx_length_err = 1;		//  命令数据长度不对
-					uart232_var.uart_status =  UartHEADER;
-				}
-				else if(uart232_var.LEN > 0)		   				//  DATA不为空
-				{
-					uart232_var.uart_status = UartDATA;
-				}
-				else												//  DATA为空
-				{
-					uart232_var.uart_status = UartXOR;
-				}
-				uart232_var.uart_rx_timeout = 0;
-				break;
+					{
+						uart_irq_revice_massage.LEN = uart_temp;
+						
+						/*  若数据长度大于 236 */
+						if(uart_irq_revice_massage.LEN > UART_NBUF)  					
+						{
+							uart_status =  UartHEADER;
+							/* 清除 uart_irq_revice_massage 接收信息 */
+							uart_clear_rx_message(&uart_irq_revice_massage);    
+						}
+						else if(uart_irq_revice_massage.LEN > 0)		   				//  DATA不为空
+						{
+							uart_status = UartDATA;
+							uart_rx_cnt = 0;
+						}
+						else												//  DATA为空
+						{
+							uart_status = UartXOR;
+						}
+					}
+					break;
+					
 			case UartDATA:
-				uart232_var.DATA[uart232_var.temp_data_len++] = uart232_var.uart_temp;
-				uart232_var.uart_rx_buf[uart232_var.uart_rx_cnt++] = uart232_var.uart_temp;
-				uart232_var.uart_rx_timeout = 0;
-				if(uart232_var.temp_data_len == uart232_var.LEN)							//数据接收完成
-					uart232_var.uart_status = UartXOR;
-				break;
+					{
+						  uart_irq_revice_massage.DATA[uart_rx_cnt++] = uart_temp;
+						
+						  if(uart_rx_cnt == uart_irq_revice_massage.LEN)							//数据接收完成
+							    uart_status = UartXOR;
+					}
+					break;
+					
 			case UartXOR:
-				uart232_var.XOR = uart232_var.uart_temp;
-				uart232_var.uart_rx_buf[uart232_var.uart_rx_cnt++] = uart232_var.uart_temp;
-				uart232_var.uart_rx_timeout = 0;
-				uart232_var.uart_status = UartEND;
-				break;
+					{
+						  uart_irq_revice_massage.XOR = uart_temp;
+						  uart_status = UartEND;
+					}
+				  break;
+					
 			case UartEND:
-				if(UART_EOF == uart232_var.uart_temp)
-				{
-					uart232_var.END = uart232_var.uart_temp;
-					uart232_var.uart_rx_buf[uart232_var.uart_rx_cnt++] = uart232_var.uart_temp;
-					if((uart232_var.uart_rx_cnt == (uart232_var.LEN + 9))||(uart232_var.uart_rx_cnt == (uart232_var.LEN + 14)))	//若接收数据等于需接收长度（有疑问）
 					{
-						if( uart232_var.XOR != XOR_Cal(&uart232_var.uart_rx_buf[1], uart232_var.uart_rx_cnt - 3))//  xor校验未通过
+						if(UART_EOF == uart_temp)
 						{
-							uart232_var.flag_uart_rx_xor_err = 1;
-							uart232_var.uart_status = UartOK;
+							uint8_t UartMessageXor = XOR_Cal((uint8_t *)(&uart_irq_revice_massage.TYPE), 
+							            uart_irq_revice_massage.LEN + 6 );
+							uart_irq_revice_massage.END = uart_temp;
+							
+							if( uart_irq_revice_massage.XOR == UartMessageXor)
+							{   //若校验通过，则接收数据OK可用
+								  serial_ringbuffer_write_data(&uart_irq_revice_massage);
+								  uart_status = UartHEADER;
+								  uart_clear_rx_message(&uart_irq_revice_massage);
+							}
+							else														    
+							{
+								uart_clear_rx_message(&uart_irq_revice_massage);                       
+							}
 						}
-						else														    //若校验通过，则接收数据OK可用
+						else
 						{
-							uart232_var.flag_uart_rx_ok = 1;  //中断串口接收完成标志
-							uart232_var.uart_status = UartOK;                       
+							uart_status = UartHEADER;
+							uart_clear_rx_message(&uart_irq_revice_massage);                                                 
 						}
 					}
-					else															    //若接收数据不等于需接收长度，清除之前接收buf	
-					{
-						uart232_var.flag_uart_rx_length_err = 1;
-						uart232_var.uart_status = UartOK;
-					}
-				}
-				else
-				{
-					uart232_var.uart_status = UartHEADER;
-					hal_uart_clr_rx();                                               //清除所有接收相关的变量
-				}
-				uart232_var.flag_uart_rxing = 0;                                     //中断串口正在接收标志
-				uart232_var.uart_rx_timeout = 0;	                                 //中断串口接收超时计数器
-				break;
+				  break;
+					
 			default:
 				break;
 		}
+		uart_rx_timeout = 0;
 	}
    
 	if(USART_GetITStatus(USART1pos, USART_IT_TXE) != RESET)
@@ -397,7 +447,7 @@ void RFIRQ_EXTI_IRQHandler(void)
 		
 		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_communication.receive_len, nrf_communication.receive_buf);		//读取数据
 		
-		printf("UID = %2x %2x %2x %2x \r\n",
+		printf("UID = %2x%2x%2x%2x \r\n",
 		       *(nrf_communication.receive_buf+1),*(nrf_communication.receive_buf+2),
 		       *(nrf_communication.receive_buf+2),*(nrf_communication.receive_buf+3));
 		
@@ -448,8 +498,10 @@ void RFIRQ_EXTI_IRQHandler(void)
 				}	
 			}
 		}
-		else														//白名单不匹配，滤掉
-		{;}
+		else //白名单不匹配，滤掉
+		{
+		  printf("Update:The Clickers not register! \r\n ");
+		}
 	}
 	ledToggle(LBLUE);
 }

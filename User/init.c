@@ -10,9 +10,6 @@
   
 #include "main.h"
 #include "mcu_config.h"
-#include "version.h"
-#include "gpio.h"
-#include "nrf.h"
 
 /*******************************************************************************
   * @brief  硬件平台初始化
@@ -34,13 +31,14 @@ void Platform_Init(void)
 	GpioInit();
 	
 	Usart1_Init();
+	UartSendBuffferInit();
 	GPIOInit_SE2431L();
 	
 	/* initialize the spi interface with nrf51822 */
 	nrf51822_spi_init();	
 	nrf51822_parameters_init();
 
-	/* 接收器重发定时器，因为答题器返回ACK随机延时0~255ms，所以这个值要大于255ms	*/
+	/* 接收器重发定时,返回ACK随机延时0~255ms，所以这个值要大于255ms	*/
 	TIM3_Int_Init(NRF_RETRANSMIT_DELAY,64000);
 	
 	
@@ -48,15 +46,17 @@ void Platform_Init(void)
 	Fee_Init();
 	initialize_white_list();
 	
+	/* 复位并初始化RC500 */
 	GPIOInit_MFRC500();
-	temp = PcdReset();															//复位并初始化RC500
+	temp = PcdReset();															
 	
 	/* enable all IRQ */
 	ENABLE_ALL_IRQ();
 	
-//BEEP_EN();																	    //蜂鸣器声音提示初始化完毕
-	ledOn(LGREEN);																  //led提示初始化完毕
-	ledOn(LBLUE);																    //led提示初始化完毕
+	/* led 、蜂鸣器声音提示初始化完毕 */
+//BEEP_EN();																	    
+	ledOn(LGREEN);																 
+	ledOn(LBLUE);																    
 	DelayMs(200);
 //BEEP_DISEN();
 	ledOff(LGREEN);
@@ -77,7 +77,8 @@ void Platform_Init(void)
 	}
 	else
 	{
-		PcdAntennaOff();													 	  //初始化后关闭天线
+		/* 初始化后关闭天线 */
+		PcdAntennaOff();
 		DebugLog("[%s]:MFRC 500 reset ok\r\n",__func__);
 	}
 #ifdef ENABLE_WATCHDOG
@@ -137,9 +138,6 @@ void Usart1_Init(void)
 	
 	/* Enable the USART1 */
 	USART_Cmd(USART1pos, ENABLE);
-	
-	uart232_var.flag_tx_ok[0] = true;
-	uart232_var.flag_tx_ok[1] = true;
 }
 
 /****************************************************************************

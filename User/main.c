@@ -10,17 +10,14 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "eeprom.h"
-#include "nrf.h"
- 
-extern void pos_handle_layer(void);
+
 extern void app_handle_layer(void);
 extern void rc500_handle_layer(void);
 
 /* Private functions ---------------------------------------------------------*/
 static void Fee_Test(void);
-static void nrf51822_spi_test(void);
-void RF_Test(void);
+static void nrf51822_spi_send_test(void);
+static void nrf51822_spi_revice_test(void);
 
 /******************************************************************************
   Function:main
@@ -37,8 +34,8 @@ int main(void)
 
 	/* System function test start-----------------------------------------------*/
 	// Fee_Test();
-	// nrf51822_spi_test();
-	RF_Test();
+	// nrf51822_spi_send_test();
+	// nrf51822_spi_revice_test();
 	
 	/* System function test end ------------------------------------------------*/
 	
@@ -46,26 +43,22 @@ int main(void)
 	{	
 	  pos_handle_layer();
 	  app_handle_layer();
-
+		
 //  rc500_handle_layer();		
 	}	
 }
-
-static uint8_t blank_packet[]={0x5A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xCA };			//收到答题器空包包，回一个空包
-static uint8_t response[] =   {0x5A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0xCA };		//收到答题器数据包，回确认包
-static uint8_t irq_flag;
-static uint8_t ack_buff[] = {0xAA,0xBB,0xCC,0xDD,0xEE,0xFF};
 
 
 /******************************************************************************
   Function:nrf51822_spi_test
   Description:
+		发送数据到答题器测试函数
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-static void nrf51822_spi_test(void)
+static void nrf51822_spi_send_test(void)
 {
     static uint32_t i = 0;
     uint8_t j = 0;
@@ -89,6 +82,7 @@ static void nrf51822_spi_test(void)
 /******************************************************************************
   Function:Fee_Test
   Description:
+		Flash 模拟 EEPROM 测试函数
   Input:None
   Output:
   Return:
@@ -113,7 +107,7 @@ static void Fee_Test(void)
 	
 	while(1)
 	{
-	  /* --- Store successively many values of the three variables in the EEPROM ---*/
+	  /* --- Store many values in the EEPROM ---*/
 		for (VarAddr = TEST_START_NUM; VarAddr <= TEST_END_NUM; VarAddr++)
 		{
 			if(VarAddr == TEST_END_NUM)
@@ -133,7 +127,8 @@ static void Fee_Test(void)
 			DelayMs(100);
 
 			EE_ReadVariable(VarAddr, &ReadData);
-			printf("FEE read data address  = %4x Write value = %4x Read Value = %4x\r\n",VarAddr,WriteNum,ReadData);
+			printf("FEE read data address  = %4x Write value = %4x Read Value = %4x\r\n",
+			        VarAddr,WriteNum,ReadData);
 			TestNum++;
 			if(ReadData == WriteNum)
 			{
@@ -144,28 +139,32 @@ static void Fee_Test(void)
 				TestErrNum++;
 			}
 			if(TestNum == 3154-255)
-				printf("FEE Test Num = %5d write and read data Ok = %4d Error = %4d \r\n\r\n",TestNum,TestOkNum,TestErrNum);
+				printf("FEE Test Num = %5d write and read data Ok = %4d Error = %4d \r\n\r\n",
+			          TestNum,TestOkNum,TestErrNum);
 				
 			if(TestNum == 3154)
-				printf("FEE Test Num = %5d write and read data Ok = %4d Error = %4d \r\n\r\n",TestNum,TestOkNum,TestErrNum);
+				printf("FEE Test Num = %5d write and read data Ok = %4d Error = %4d \r\n\r\n",
+			          TestNum,TestOkNum,TestErrNum);
 				
 			if(TestNum%20 == 0 )
 			{
-				printf("FEE Test Num = %5d write and read data Ok = %4d Error = %4d \r\n\r\n",TestNum,TestOkNum,TestErrNum);
+				printf("FEE Test Num = %5d write and read data Ok = %4d Error = %4d \r\n\r\n",
+				        TestNum,TestOkNum,TestErrNum);
 			}
 		}
 	}	
 }
 
 /******************************************************************************
-  Function:RF_Test
+  Function:nrf51822_spi_revice_test
   Description:
+		接收答题器数据测试函数
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-void RF_Test(void)
+static void nrf51822_spi_revice_test(void)
 {
 	uint16_t temp_len = 0;
 	datiqi_type_t recv_package;
@@ -305,7 +304,7 @@ void RF_Test(void)
 			}
 			DebugLog("===========================================================================\r\n");
 			
-			hal_uart_clr_rx();
+			//hal_uart_clr_rx();
 			rf_var.flag_rx_ok = 0;
 			memset(rf_var.rx_buf, 0, rf_var.rx_len);
 			rf_var.rx_len = 0;
@@ -315,8 +314,3 @@ void RF_Test(void)
 
 
 /**************************************END OF FILE****************************/
-
-
-
-
-
