@@ -10,70 +10,115 @@
 #include "ringbuffer.h"
 
 /* Private variables ---------------------------------------------------------*/
-static Uart_MessageTypeDef serialringbuffer[SERIALRINGBUFFERSIZE];
-static uint8_t readindex = 0;
-static uint8_t writeindex = 0;
-static uint8_t ringbufferstatus = BUFFEREMPTY;
+static uint8_t  UartReviceBuffer[BUFFERSIZE];
+static uint16_t UartReceiveBufferTop = 0;
+static uint16_t UartReceiveBufferTottom = 0;
+static uint32_t UartReceiveReadIndex = 0;
+static uint32_t UartReceiveWriteIndex = 0;
+static uint8_t  UartReceiveBufferStatus = BUFFEREMPTY;
+
+static uint8_t  UartSendBuffer[BUFFERSIZE];
+static uint16_t UartSendBufferTop = 0;
+static uint16_t UartSendBufferTottom = 0;
+static uint32_t UartSendReadIndex = 0;
+static uint32_t UartSendWriteIndex = 0;
+static uint8_t  UartSendBufferStatus = BUFFEREMPTY;
 
 /* Private functions ---------------------------------------------------------*/
-static void ReadChangeBufferSattus(void) ;
-static void WriteChangeBufferSattus(void) ;
-static void UpdateBufferWriteIndex( void );
-static void UpdateBufferReadIndex( void );
-static void ClearBufferElement(uint8_t index);
+static void    buffer_read_change_status(void) ;
+static void    buffer_write_change_status(void) ;
+static void    buffer_update_write_index( uint8_t Len );
+static void    buffer_update_read_index( uint8_t Len );
+static void    buffer_clear_element(void);
+static uint8_t buffer_get_data_from_buffer(uint16_t index);
+static void    buffer_store_data_to_buffer(uint16_t index,uint8_t data);
 
 /******************************************************************************
-  Function:GetBufferStatus
+  Function:buffer_get_buffer_status
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-uint8_t GetBufferStatus(void)
+uint8_t buffer_get_buffer_status(void)
 {
-	return ringbufferstatus;
+	return UartReceiveBufferStatus;
 }
 
 /******************************************************************************
-  Function:GetBufferReadIndex
+  Function:buffer_get_read_index
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-uint8_t GetBufferReadIndex(void)
+uint32_t buffer_get_read_index(void)
 {
-	return readindex;
+	return UartReceiveReadIndex;
 }
 
 /******************************************************************************
-  Function:GetBufferWriteIndex
+  Function:GetBufferUartReceiveWriteIndex
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-uint8_t GetBufferWriteIndex(void)
+uint32_t buffer_get_write_index(void)
 {
-	return writeindex;
+	return UartReceiveWriteIndex;
 }
 
 /******************************************************************************
-  Function:ReadChangeBufferSattus
+  Function:buffer_get_data_from_buffer
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-static void ReadChangeBufferSattus(void) 
+uint8_t buffer_get_data_from_buffer(uint16_t index)
+{
+	if( index < BUFFERSIZE )
+		return UartReviceBuffer[index];
+	else
+		return 
+			UartReviceBuffer[index-BUFFERSIZE];
+}
+
+/******************************************************************************
+  Function:buffer_store_data_to_buffer
+  Description:
+  Input:None
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void buffer_store_data_to_buffer(uint16_t index,uint8_t data)
+{
+	if( index < BUFFERSIZE )
+		UartReviceBuffer[index] = data;
+	else 
+		UartReviceBuffer[index-BUFFERSIZE] = data;
+}
+
+
+/******************************************************************************
+  Function:buffer_read_change_status
+  Description:
+  Input:None
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+static void buffer_read_change_status(void) 
 {
 	uint8_t bufferstatus = 0;
 	
-	bufferstatus = GetBufferStatus();
+	bufferstatus = buffer_get_buffer_status();
 
 	switch(bufferstatus)
 	{
@@ -82,16 +127,16 @@ static void ReadChangeBufferSattus(void)
 		
 		case BUFFERUSEING:
 			{
-				if(readindex == writeindex)
-					ringbufferstatus = BUFFEREMPTY;
+				if(UartReceiveReadIndex == UartReceiveWriteIndex)
+					UartReceiveBufferStatus = BUFFEREMPTY;
 				else
-					ringbufferstatus = BUFFERUSEING;
+					UartReceiveBufferStatus = BUFFERUSEING;
 			}
 			break;
 			
 		case BUFFERFULL:
 			{
-					ringbufferstatus = BUFFERUSEING;
+					UartReceiveBufferStatus = BUFFERUSEING;
 			}
 			break;
 			
@@ -101,33 +146,33 @@ static void ReadChangeBufferSattus(void)
 }
 
 /******************************************************************************
-  Function:WriteChangeBufferSattus
+  Function:buffer_write_change_status
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-static void WriteChangeBufferSattus(void) 
+static void buffer_write_change_status(void) 
 {
 	uint8_t bufferstatus = 0;
 	
-	bufferstatus = GetBufferStatus();
+	bufferstatus = buffer_get_buffer_status();
 	
 	switch(bufferstatus)
 	{
 		case BUFFEREMPTY:
 			{
-					ringbufferstatus = BUFFERUSEING;
+					UartReceiveBufferStatus = BUFFERUSEING;
 			}
 			break;
 		
 		case BUFFERUSEING:
 			{
-				if(writeindex == readindex)
-					ringbufferstatus = BUFFERFULL;
+				if(UartReceiveWriteIndex == UartReceiveReadIndex)
+					UartReceiveBufferStatus = BUFFERFULL;
 				else
-					ringbufferstatus = BUFFERUSEING;
+					UartReceiveBufferStatus = BUFFERUSEING;
 			}
 			break;
 			
@@ -137,59 +182,69 @@ static void WriteChangeBufferSattus(void)
 		default:
 			break;
 	}
+}
+/******************************************************************************
+  Function:buffer_update_write_index
+  Description:
+  Input:None
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+static void buffer_update_write_index( uint8_t Len )
+{ 
+    uint16_t tmp = 0;
 	
-}
-/******************************************************************************
-  Function:UpdateBufferWriteIndex
-  Description:
-  Input:None
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-static void UpdateBufferWriteIndex( void )
-{
-	writeindex++;
-	if( writeindex >= SERIALRINGBUFFERSIZE )
-		writeindex = 0;
+	  tmp = UartReceiveBufferTop + Len;
+	  
+	if(tmp > BUFFERSIZE)
+		UartReceiveBufferTop = tmp - BUFFERSIZE;
+	else
+		UartReceiveBufferTop = tmp;
+
+	UartReceiveWriteIndex++;
 }
 
 /******************************************************************************
-  Function:UpdateBufferReadIndex
+  Function:buffer_update_read_index
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-static void UpdateBufferReadIndex( void )
+static void buffer_update_read_index( uint8_t Len )
 {
-	readindex++;
-	if( readindex >= SERIALRINGBUFFERSIZE )
-		readindex = 0;
+    uint16_t tmp = 0;
+	
+	  tmp = UartReceiveBufferTottom + Len;
+	  
+	  if(tmp > BUFFERSIZE)
+		  UartReceiveBufferTottom = tmp - BUFFERSIZE;
+	  else
+		  UartReceiveBufferTottom = tmp;
+	
+	  UartReceiveReadIndex++;
 }
 
 /******************************************************************************
-  Function:ClearBufferElement
+  Function:buffer_clear_element
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-static void ClearBufferElement(uint8_t index)
+static void buffer_clear_element(void)
 {
 	uint8_t i;
-	uint8_t *pdata = (uint8_t*)(serialringbuffer+index);
+	uint8_t MessageLen = buffer_get_data_from_buffer(UartReceiveBufferTottom+6) + 9;
 	
-	for(i=0;i<PACKETSIZE;i++)
+	for(i=0;i<MessageLen;i++)
 	{
-		*pdata = 0;
-		pdata++;
+		buffer_store_data_to_buffer(UartReceiveBufferTottom+i,0);
 	}
 }
-
-
 
 /******************************************************************************
   Function:serial_ringbuffer_write_data
@@ -202,20 +257,21 @@ static void ClearBufferElement(uint8_t index)
 void serial_ringbuffer_write_data(Uart_MessageTypeDef *data)
 {
 	uint8_t i;
-	uint8_t bufferindex;
 	uint8_t *pdata = (uint8_t *)data;
+	uint8_t MessageLen = *(pdata+6) + 6;
 	
-	bufferindex = GetBufferWriteIndex();
-	
-	for(i=0;i<PACKETSIZE;i++)
+	for(i=0;i<MessageLen;i++)
 	{
-		*((uint8_t*)(serialringbuffer+bufferindex)+i) = *pdata;
+		buffer_store_data_to_buffer(UartReceiveBufferTop+i,*pdata);
 		pdata++;
 	}
-
-	UpdateBufferWriteIndex();
 	
-	WriteChangeBufferSattus();
+	buffer_store_data_to_buffer(UartReceiveBufferTop+i+1,data->XOR);
+	buffer_store_data_to_buffer(UartReceiveBufferTop+i+2,data->END);
+	
+	buffer_update_write_index(MessageLen+3);
+	
+	buffer_write_change_status();
 }
 
 /******************************************************************************
@@ -229,20 +285,22 @@ void serial_ringbuffer_write_data(Uart_MessageTypeDef *data)
 void serial_ringbuffer_read_data(Uart_MessageTypeDef *data)
 {
 		uint8_t i;
-		uint8_t bufferindex;
 	  uint8_t *pdata = (uint8_t *)data;
 	
-		bufferindex = GetBufferReadIndex();
-	
-		for(i=0;i<PACKETSIZE;i++)
+	  uint8_t MessageLen = buffer_get_data_from_buffer(UartReceiveBufferTottom+6) + 7;
+		
+		for(i=0;i<MessageLen;i++)
 		{
-			*pdata = *((uint8_t*)(serialringbuffer+bufferindex)+i);
+			*pdata = buffer_get_data_from_buffer(UartReceiveBufferTottom+i);
 			pdata++;
 		}
-
-		ClearBufferElement(bufferindex);
 		
-		UpdateBufferReadIndex();
+		data->XOR = buffer_get_data_from_buffer(UartReceiveBufferTottom+i+1);
+		data->END = buffer_get_data_from_buffer(UartReceiveBufferTottom+i+2);
 		
-		ReadChangeBufferSattus();
+		buffer_clear_element();
+		
+		buffer_update_read_index(MessageLen+2);
+		
+		buffer_read_change_status();
 }

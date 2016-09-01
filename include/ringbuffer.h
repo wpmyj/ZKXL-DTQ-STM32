@@ -16,8 +16,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* Set parameter of budffer */
-#define SERIALRINGBUFFERSIZE 10
 #define PACKETSIZE           (236+8)
+
+#define BUFFERSIZE           512
 
 /* buffer status  */
 #define BUFFEREMPTY          1
@@ -32,9 +33,7 @@
 #define OPENIRQ()            __set_PRIMASK(0)
 
 /* Private functions ---------------------------------------------------------*/
-uint8_t GetBufferStatus(void);
-uint8_t GetBufferReadIndex(void);
-uint8_t GetBufferWriteIndex(void);
+uint8_t buffer_get_buffer_status(void);
 void serial_ringbuffer_write_data(Uart_MessageTypeDef *data);
 void serial_ringbuffer_read_data(Uart_MessageTypeDef *data);
 
