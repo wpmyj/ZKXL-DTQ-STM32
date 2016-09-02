@@ -19,8 +19,6 @@ uint16_t 					time_for_buzzer_off = 0;		  // 响了多长时间之后关
 
 nrf_parameter_t	  nrf_parameter;					      // 2.4G初始化参数
 
-uint8_t						uart_tx_i = 0;					      // 串口发送缓冲索引
-
 RF_TypeDef 				rf_var;							          // 2.4G数据包缓冲
 
 uint16_t					delay_nms = 0;					      // 中断延时变量

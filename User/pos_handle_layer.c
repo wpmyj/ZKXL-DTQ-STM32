@@ -20,6 +20,9 @@
 extern Uart_TxDataTypeDef  uart232_var;
        uint8_t             flag_App_or_Ctr = APP_CTR_IDLE;		 
 	     uint8_t             sign_buffer[4];
+			 
+extern Uart_MessageTypeDef uart_irq_send_massage;
+extern uint8_t uart_tx_status;
 
 /* Private functions ---------------------------------------------------------*/
 static void send_to_pos(void);
@@ -35,71 +38,22 @@ void pos_handle_layer(void)
 
 static void send_to_pos(void)
 {	
-	if(App_to_CtrPosReq)
+	if( uart_tx_status == 0)
 	{
-#ifdef ENABLE_DEBUG_LOG
-		app_debuglog_dump(Buf_AppToCtrPos, Length_AppToCtrPos);
-#else		
-		CtrUartSendTask(Buf_AppToCtrPos, Length_AppToCtrPos);
-#endif //ENABLE_DEBUG_LOG	
-		App_to_CtrPosReq = false;
-	}
+		/* enable interrupt Start send data*/
+		USART_ITConfig(USART1pos, USART_IT_TXE, ENABLE);
+	
+  }
 }
-
-//	uint8_t 				HEADER;						  //中断串口接收帧头
-//	uint8_t 				TYPE;								//中断串口接收包类型
-//	uint8_t         SIGN[4];            //中断串口接收活动标识
-//	uint8_t 				LEN;								//中断串口接收数据长度
-//	uint8_t 				DATA[UART_NBUF];		//中断串口接收数据
-//	uint8_t 				XOR;								//中断串口接收异或
-//	uint8_t 				END;								//中断串口接收帧尾
-//static void serial_transmission_to_nrf51822(void)
-//{
-//	Buf_CtrPosToApp[0] = uart232_var.HEADER;
-//	Buf_CtrPosToApp[1] = uart232_var.TYPE;
-//	
-//	Buf_CtrPosToApp[2] = uart232_var.SIGN[0];
-//	Buf_CtrPosToApp[3] = uart232_var.SIGN[1];
-//	Buf_CtrPosToApp[4] = uart232_var.SIGN[2];
-//	Buf_CtrPosToApp[5] = uart232_var.SIGN[3];
-//	
-//	Buf_CtrPosToApp[6] = uart232_var.LEN;
-//	
-//	if(uart232_var.flag_uart_rx_xor_err)
-//	{
-//		uart232_var.flag_uart_rx_xor_err = false;
-//		flag_App_or_Ctr = APP_CTR_UPATE_PAIR_DATA;												//xor出错
-//		hal_uart_clr_rx();
-//		return;
-//	}
-//	
-//	if(uart232_var.flag_uart_rx_length_err)
-//	{
-//		uart232_var.flag_uart_rx_length_err = false;
-//		flag_App_or_Ctr = APP_CTR_DATALEN_ERR;												//长度出错
-//		hal_uart_clr_rx();
-//		return;
-//	}
-//	
-//	if((uart232_var.flag_uart_rx_ok) && ( flag_App_or_Ctr == 0))				  //串口接收到pos指令完成且系统空闲
-//	{	
-//		Length_CtrPosToApp = uart232_var.LEN+7;							                //获取数据长度
-//		memcpy(Buf_CtrPosToApp+7, uart232_var.DATA, uart232_var.LEN);		    //获取数据内容
-//		flag_App_or_Ctr = 0x01;	
-//		hal_uart_clr_rx();														                      //清除接收数据
-//		return ;
-//	}
-//	
-//}
 
 static void receive_from_pos(void)
 {
 	Uart_MessageTypeDef CurrentProcessMessage;
 	
-	if(BUFFEREMPTY == buffer_get_buffer_status())
+	if(BUFFEREMPTY == buffer_get_buffer_status(REVICE_RINGBUFFER))
 		return;
 	else
-		serial_ringbuffer_read_data(&CurrentProcessMessage);
+		serial_ringbuffer_read_data(REVICE_RINGBUFFER, &CurrentProcessMessage);
 	
 	memcpy(sign_buffer,CurrentProcessMessage.SIGN,4);
 	
@@ -233,69 +187,6 @@ static void receive_from_pos(void)
 		}
 	}	
 }
-
-/*********************************************************************************
-* 功	能：void UartSendBuffferInit(void)
-* 输  入: NULL
-* 返	回：NULL
-* 备	注：NULL
-*********************************************************************************/
-void UartSendBuffferInit(void)
-{
-	uart232_var.flag_tx_ok[0] = true;
-	uart232_var.flag_tx_ok[1] = true;
-}
-
-/*********************************************************************************
-* 功	能：void CtrUartSendTask(uint8_t *ptr,uint8_t len)
-* 输    入: ptr		发送缓冲区
-* 			len		发送长度
-* 返	回：NULL
-* 备	注：NULL
-*********************************************************************************/
-void CtrUartSendTask(uint8_t *ptr,uint8_t len)
-{
-	uint8_t temp_state = 0;
-	if(len > 0)
-	{
-		if(uart232_var.flag_tx_ok[0] && uart232_var.flag_tx_ok[1])
-		{
-			temp_state = 1;					//当前系统空闲
-		}
-		
-		if(uart232_var.flag_tx_ok[uart_tx_i])		//如果当前缓冲区空闲，则将数据放入当前缓冲区，否则，放入另外一个
-		{
-			memcpy(uart232_var.uart_tx_buf[uart_tx_i], ptr, len);
-			uart232_var.uart_tx_length[uart_tx_i] = len;
-			uart232_var.flag_txing[uart_tx_i] = true;
-			uart232_var.flag_tx_ok[uart_tx_i] = false;
-		}
-		else										//如果第二缓冲区有数据，直接覆盖
-		{
-			uart232_var.flag_txing[1 - uart_tx_i] = false;
-			memcpy(uart232_var.uart_tx_buf[1 - uart_tx_i], ptr, len);
-			uart232_var.uart_tx_length[1 - uart_tx_i] = len;
-			uart232_var.flag_txing[1 - uart_tx_i] = true;
-			uart232_var.flag_tx_ok[1 - uart_tx_i] = false;
-		}
-		
-		if(temp_state)
-		{
-			uart232_var.uart_tx_cnt = 0;
-			//Write one byte to the transmit data register
-			USART_SendData(USART1pos, uart232_var.uart_tx_buf[uart_tx_i][uart232_var.uart_tx_cnt++]);
-			uart232_var.uart_tx_length[uart_tx_i]--;
-			USART_ITConfig(USART1pos, USART_IT_TXE, ENABLE);
-		}
-	}
-	
-//	for(temp_state=0;temp_state<4;temp_state++)
-//  {
-//		sign_buffer[temp_state]=0;
-//  }	 
-}
-
-
 
 void app_debuglog_dump(uint8_t * p_buffer, uint32_t len)
 {
