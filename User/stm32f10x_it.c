@@ -23,28 +23,231 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
+/* uart global variables */
+// revice part
 Uart_MessageTypeDef uart_irq_revice_massage;
-static uint8_t  uart_status     = UartHEADER;
-static uint8_t	uart_rx_cnt     = 0;			  			//中断串口接收计数器
-static uint8_t  temp_sign_len   = 0;
 static uint32_t uart_rx_timeout = 0;
 static bool     flag_uart_rxing = false;
+static uint8_t  uart_status     = UartHEADER;
 
+// send part
 Uart_MessageTypeDef uart_irq_send_massage;
-uint8_t uart_tx_status   = 0;
-static uint8_t uart_tx_cnt      = 0;
-uint8_t *pdata; 
+uint8_t uart_tx_status      = 0;
 
-
-//bool 		flag_tx_ok[2];		  				//中断串口接收完成标志
-//bool 		flag_txing[2];		   				//中断串口正在发送标志
-//uint8_t uart_tx_length[2];					//中断串口发送长度	
-//uint8_t uart_tx_cnt;			  			//中断串口发送计数器
-//uint8_t	uart_tx_buf[2][UART_NBUF + 5];		//中断串口发送缓存 ,两组缓冲区，轮流发送 
-
+/* uart global variables */
 extern nrf_communication_t			nrf_communication;
 extern uint8_t 					dtq_to_jsq_sequence;
 extern uint8_t 					jsq_to_dtq_sequence;
+
+/******************************************************************************
+  Function:uart_clear_message
+  Description:
+		清除Message中的信息
+  Input :
+		Message: 协议Message的指针
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void uart_clear_message( Uart_MessageTypeDef *Message )
+{
+	uint8_t i;
+	uint8_t *pdata = (uint8_t*)(Message);
+
+	for(i=0;i<PACKETSIZE;i++)
+	{
+		*pdata = 0;
+		pdata++;
+	}
+}
+
+/******************************************************************************
+  Function:uart_revice_data_state_mechine
+  Description:
+		串口数据接收函数，提取有效数据存入缓存
+  Input:None
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void uart_revice_data_state_mechine( uint8_t data )
+{
+	static uint8_t	uart_rx_cnt     = 0;			  		
+	static uint8_t  temp_sign_len   = 0;
+	
+	switch(uart_status)
+		{
+			case UartHEADER:
+				{
+					if(UART_SOF == data)		//如果命令头为0x5C则开始接收，否则不接收							
+					{
+						uart_irq_revice_massage.HEADER = data;		
+						uart_status =  UartTYPE;
+						flag_uart_rxing = true;
+					}
+				}
+				break;
+				
+			case UartTYPE:
+				{
+					uart_irq_revice_massage.TYPE = data;
+					uart_status = UartSIGN; 
+					temp_sign_len = 0;
+				}
+				break;	
+				
+			case UartSIGN:
+				{
+						uart_irq_revice_massage.SIGN[temp_sign_len++] = data;
+						if( temp_sign_len == 4 )
+						{ 
+								uart_status = UartLEN;
+						}
+				}
+				break;
+				 
+			case UartLEN:
+				{
+					uart_irq_revice_massage.LEN = data;
+					
+					/*  若数据长度大于 236 */
+					if(uart_irq_revice_massage.LEN > UART_NBUF)  					
+					{
+						uart_status =  UartHEADER;
+						/* 清除 uart_irq_revice_massage 接收信息 */
+						uart_clear_message(&uart_irq_revice_massage); 
+						flag_uart_rxing = false;
+					}
+					else if(uart_irq_revice_massage.LEN > 0)	//  DATA不为空
+					{
+						uart_status = UartDATA;
+						uart_rx_cnt = 0;
+					}
+					else//  DATA为空
+					{
+						uart_status = UartXOR;
+					}
+				}
+				break;
+					
+			case UartDATA:
+				{
+						uart_irq_revice_massage.DATA[uart_rx_cnt++] = data;
+						/* 数据接收完成 */
+						if(uart_rx_cnt == uart_irq_revice_massage.LEN)			
+								uart_status = UartXOR;
+				}
+				break;
+					
+			case UartXOR:
+				{
+						uart_irq_revice_massage.XOR = data;
+						uart_status = UartEND;
+				}
+				break;
+					
+			case UartEND:
+				{
+					if(UART_EOF == data)
+					{
+						uint8_t UartMessageXor = XOR_Cal((uint8_t *)(&uart_irq_revice_massage.TYPE), 
+												uart_irq_revice_massage.LEN + 6 );
+						uart_irq_revice_massage.END = data;
+						
+						if( uart_irq_revice_massage.XOR == UartMessageXor)
+						{   /* 若校验通过，则接收数据OK可用 */
+								serial_ringbuffer_write_data(REVICE_RINGBUFFER,&uart_irq_revice_massage);
+							  flag_uart_rxing = false;
+								uart_status = UartHEADER;
+								uart_clear_message(&uart_irq_revice_massage);
+						}
+						else														    
+						{
+							uart_clear_message(&uart_irq_revice_massage);                       
+						}
+					}
+					else
+					{
+						uart_status = UartHEADER;
+						uart_clear_message(&uart_irq_revice_massage);  
+						flag_uart_rxing = false;
+					}
+				}
+				break;
+					
+			default:
+				break;
+		}
+}
+
+/******************************************************************************
+  Function:uart_send_data_state_machine
+  Description:
+		串口数发送函数，从缓存中提取数据发送到上位机
+  Input :
+		status: uart tx status
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void uart_send_data_state_machine( void )
+{
+	static uint8_t uart_tx_cnt  = 0;
+	static uint8_t *pdata;
+	
+	switch( uart_tx_status )		
+	{
+		case 0:
+			{
+					if(BUFFEREMPTY == buffer_get_buffer_status(SEND_RINGBUFFER))
+					{
+						USART_ITConfig(USART1pos,USART_IT_TXE,DISABLE);
+						return;
+					}
+					else
+					{
+						serial_ringbuffer_read_data(SEND_RINGBUFFER, &uart_irq_send_massage);
+						pdata = (uint8_t *)(&uart_irq_send_massage);
+						uart_tx_status = 1;
+						uart_tx_cnt = *(pdata+6) + 7;
+						uart_tx_status = 1;
+					}
+			}
+			break;
+			
+		case 1:
+			{
+				USART_SendData(USART1pos,*pdata);
+				uart_tx_cnt--;
+				pdata++;
+				if( uart_tx_cnt == 0 )
+				{
+					pdata = &(uart_irq_send_massage.XOR);
+					uart_tx_cnt = 2;
+					uart_tx_status = 2;
+				}
+			}
+			break;
+			
+		case 2:
+			{
+				USART_SendData(USART1pos,*pdata);
+				uart_tx_cnt--;
+				pdata++;
+				if( uart_tx_cnt == 0 )
+				{
+					uart_clear_message(&uart_irq_send_massage);
+					uart_tx_status = 0;
+				}
+			}
+			break;
+			
+		default:
+			break;
+	}
+}
+
+
 
 /** @addtogroup STM32F10x_StdPeriph_Examples
   * @{
@@ -177,21 +380,6 @@ void PendSV_Handler(void)
 {
 }
 
-
-void uart_clear_message( Uart_MessageTypeDef *Message )
-{
-	uint8_t i;
-	uint8_t *pdata = (uint8_t*)(Message);
-	
-	for(i=0;i<=PACKETSIZE;i++)
-	{
-		*pdata = 0;
-		pdata++;
-	}
-	flag_uart_rxing = false;
-}
-
-
 /**
   * @brief  This function handles SysTick Handler.
   * @param  None
@@ -207,6 +395,7 @@ void SysTick_Handler(void)
 		if(uart_rx_timeout>5)										//5msc超时后重新开始接收
 		{
 			uart_clear_message(&uart_irq_revice_massage);
+			flag_uart_rxing = false;
 			uart_status = UartHEADER;
 		}
 	}
@@ -232,11 +421,6 @@ void SysTick_Handler(void)
 				}
 			}
 		}
-//		printf("[RTC]: RTC time - %02d:%02d:%02d\r\n", time.hour, time.minute, time.second);
-//		SPI_Init_NRF2();
-//		nrf24InitConf_NRF2();
-//		ledToggle(LGREEN);
-//		printf("nrf2 reset\r\n");
 	}
 	
 	if(time_for_buzzer_on > 1)									//蜂鸣器开关延时时间
@@ -281,165 +465,19 @@ void USART1pos_IRQHandler(void)
 	if(USART_GetITStatus(USART1pos, USART_IT_RXNE) != RESET)
 	{
 	  uart_temp = USART_ReceiveData(USART1pos);
-
-		switch(uart_status)
-		{
-			case UartHEADER:
-				if(UART_SOF == uart_temp)		//如果命令头为0x5C则开始接收，否则不接收							
-				{
-					uart_irq_revice_massage.HEADER = uart_temp;		
-					uart_status =  UartTYPE;
-					flag_uart_rxing = true;
-				}
-				break;
-				
-			case UartTYPE:
-				{
-					uart_irq_revice_massage.TYPE = uart_temp;
-					uart_status = UartSIGN; 
-					temp_sign_len = 0;
-				}
-				break;	
-				
-			case UartSIGN:
-					{
-					    uart_irq_revice_massage.SIGN[temp_sign_len++] = uart_temp;
-							if( temp_sign_len == 4 )
-						  { 
-							    uart_status = UartLEN;
-						  }
-					}
-					break;
-				 
-			case UartLEN:
-					{
-						uart_irq_revice_massage.LEN = uart_temp;
-						
-						/*  若数据长度大于 236 */
-						if(uart_irq_revice_massage.LEN > UART_NBUF)  					
-						{
-							uart_status =  UartHEADER;
-							/* 清除 uart_irq_revice_massage 接收信息 */
-							uart_clear_message(&uart_irq_revice_massage);    
-						}
-						else if(uart_irq_revice_massage.LEN > 0)	//  DATA不为空
-						{
-							uart_status = UartDATA;
-							uart_rx_cnt = 0;
-						}
-						else//  DATA为空
-						{
-							uart_status = UartXOR;
-						}
-					}
-					break;
-					
-			case UartDATA:
-					{
-						  uart_irq_revice_massage.DATA[uart_rx_cnt++] = uart_temp;
-						  /* 数据接收完成 */
-						  if(uart_rx_cnt == uart_irq_revice_massage.LEN)			
-							    uart_status = UartXOR;
-					}
-					break;
-					
-			case UartXOR:
-					{
-						  uart_irq_revice_massage.XOR = uart_temp;
-						  uart_status = UartEND;
-					}
-				  break;
-					
-			case UartEND:
-					{
-						if(UART_EOF == uart_temp)
-						{
-							uint8_t UartMessageXor = XOR_Cal((uint8_t *)(&uart_irq_revice_massage.TYPE), 
-							            uart_irq_revice_massage.LEN + 6 );
-							uart_irq_revice_massage.END = uart_temp;
-							
-							if( uart_irq_revice_massage.XOR == UartMessageXor)
-							{   /* 若校验通过，则接收数据OK可用 */
-								  serial_ringbuffer_write_data(REVICE_RINGBUFFER,&uart_irq_revice_massage);
-								  uart_status = UartHEADER;
-								  uart_clear_message(&uart_irq_revice_massage);
-							}
-							else														    
-							{
-								uart_clear_message(&uart_irq_revice_massage);                       
-							}
-						}
-						else
-						{
-							uart_status = UartHEADER;
-							uart_clear_message(&uart_irq_revice_massage);                                                 
-						}
-					}
-				  break;
-					
-			default:
-				break;
-		}
+		
+		/* store it to uart_irq_revice_massage */
+		uart_revice_data_state_mechine( uart_temp );
+		
 		uart_rx_timeout = 0;
 	}
    
 	
-	
 	if(USART_GetITStatus(USART1pos, USART_IT_TXE) != RESET)
   {  
-    switch(uart_tx_status)		
-		{
-			case 0:
-				{
-						if(BUFFEREMPTY == buffer_get_buffer_status(SEND_RINGBUFFER))
-						{
-							USART_ITConfig(USART1pos,USART_IT_TXE,DISABLE);
-							return;
-						}
-						else
-						{
-							serial_ringbuffer_read_data(SEND_RINGBUFFER, &uart_irq_send_massage);
-							pdata = (uint8_t *)(&uart_irq_send_massage);
-							uart_tx_status = 1;
-							uart_tx_cnt = *(pdata+6) + 7;
-							uart_tx_status = 1;
-						}
-				}
-				break;
-				
-			case 1:
-				{
-					USART_SendData(USART1pos,*pdata);
-					uart_tx_cnt--;
-					pdata++;
-					if( uart_tx_cnt == 0 )
-					{
-						pdata = &(uart_irq_send_massage.XOR);
-						uart_tx_cnt = 2;
-						uart_tx_status = 2;
-					}
-				}
-				break;
-				
-			case 2:
-				{
-					USART_SendData(USART1pos,*pdata);
-					uart_tx_cnt--;
-					pdata++;
-					if( uart_tx_cnt == 0 )
-					{
-						uart_tx_status = 0;
-					}
-				}
-				break;
-				
-			default:
-				break;
-		}
+    uart_send_data_state_machine( );
 	}
 }
-
-
 
 bool search_uid_in_white_list(uint8_t *g_uid , uint8_t *position);
 

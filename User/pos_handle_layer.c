@@ -15,15 +15,12 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-/* Private variables ---------------------------------------------------------*/
-
-extern Uart_TxDataTypeDef  uart232_var;
-       uint8_t             flag_App_or_Ctr = APP_CTR_IDLE;		 
-	     uint8_t             sign_buffer[4];
-			 
+/* Private variables ---------------------------------------------------------*/	 
 extern Uart_MessageTypeDef uart_irq_send_massage;
 extern uint8_t uart_tx_status;
-
+       uint8_t flag_App_or_Ctr = APP_CTR_IDLE;		 
+	     uint8_t sign_buffer[4];
+			 
 /* Private functions ---------------------------------------------------------*/
 static void send_to_pos(void);
 static void receive_from_pos(void);
