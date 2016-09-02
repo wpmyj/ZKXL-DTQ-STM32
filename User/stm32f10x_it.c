@@ -497,13 +497,8 @@ void RFIRQ_EXTI_IRQHandler(void)
 		
 		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_communication.receive_len, nrf_communication.receive_buf);		//读取数据
 		
-		printf("UID = %2x%2x%2x%2x \r\n",
-		       *(nrf_communication.receive_buf+1),*(nrf_communication.receive_buf+2),
-		       *(nrf_communication.receive_buf+2),*(nrf_communication.receive_buf+3));
-		
-		//Is_whitelist_uid = search_uid_in_white_list(nrf_communication.receive_buf+1,&uidpos);
-		Is_whitelist_uid = true;
-		
+		Is_whitelist_uid = search_uid_in_white_list(nrf_communication.receive_buf+1,&uidpos);
+
 		if(Is_whitelist_uid)			//白名单匹配
 		{		
 			if(nrf_communication.receive_buf[5] == NRF_DATA_IS_ACK)						//收到的是ACK
@@ -550,6 +545,9 @@ void RFIRQ_EXTI_IRQHandler(void)
 		}
 		else //白名单不匹配，滤掉
 		{
+			printf("UID = %2x%2x%2x%2x \r\n",
+		       *(nrf_communication.receive_buf+1),*(nrf_communication.receive_buf+2),
+		       *(nrf_communication.receive_buf+2),*(nrf_communication.receive_buf+3));
 		  printf("Update:The Clickers not register! \r\n ");
 		}
 	}

@@ -15,11 +15,11 @@
 /* Private variables ---------------------------------------------------------*/
 
 extern	uint8_t   sign_buffer[4];
-				uint8_t		Buf_CtrPosToApp[UART_NBUF];		// pos下发指令缓冲
-				uint8_t		Buf_AppToCtrPos[UART_NBUF];		// 应用层上报指令缓冲区
+				uint8_t		Buf_CtrPosToApp[UART_NBUF+9];		// pos下发指令缓冲
+				uint8_t		Buf_AppToCtrPos[UART_NBUF+9];		// 应用层上报指令缓冲区
 
-				uint16_t	Length_CtrPosToApp;				    // pos下发指令长度
-				uint16_t	Length_AppToCtrPos;				    // 应用层上报指令长度
+				uint16_t	Length_CtrPosToApp;				      // pos下发指令长度
+				uint16_t	Length_AppToCtrPos;				      // 应用层上报指令长度
 				uint8_t   whitelist_print_index = 0;
 
 /* Private functions ---------------------------------------------------------*/
@@ -537,8 +537,6 @@ void Buzze_Control(void)
 	}
 }
 
-
-
 /******************************************************************************
   Function:App_serial_transport_to_nrf51822
   Description:
@@ -557,7 +555,6 @@ void App_serial_transport_to_nrf51822(void)
 	  memcpy(rf_var.tx_buf, Buf_AppToCtrPos, Length_AppToCtrPos);
 		rf_var.tx_len = Length_AppToCtrPos;
 		rf_var.flag_txing = true;
-//		clear_white_list_tx_flag();
 	
 		App_to_CtrPosReq =true;
 	
@@ -627,6 +624,9 @@ void App_return_data_to_clickers(void)
 		}
 		else
 		{
+				printf("UID = %2x%2x%2x%2x \r\n",
+		       *(sign_buffer+1),*(sign_buffer+2),
+		       *(sign_buffer+2),*(sign_buffer+3));
 			  printf("Download:The Clickers not register! \r\n ");
 		}
 }
