@@ -551,11 +551,6 @@
           <GroupName>Bsp</GroupName>
           <Files>
             <File>
-              <FileName>hal_uart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Bsp\hal_uart.c</FilePath>
-            </File>
-            <File>
               <FileName>m24sr_cmd.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Bsp\m24sr_cmd.c</FilePath>
