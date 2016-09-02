@@ -1,13 +1,12 @@
 /**
   ******************************************************************************
-  * @file   	ringbuffer.c
+  * @file   	version.c
   * @author  	sam.wu
   * @version 	V1.0.0.0
   * @date   	2016.8.26
-  * @brief   	ringbuffer
+  * @brief   	version infomation
   ******************************************************************************
   */
-	
 #include "version.h"
 
 /* Private variables ---------------------------------------------------------*/
@@ -28,20 +27,23 @@ const uint8_t company[16] = {
 		0xb,0x9,0xc,0x9,0xb,0x7,0xd,0xd
 };
 
-uint32_t  MCUID[4];
-uint8_t   jsq_uid[8];
+uint8_t  jsq_uid[8];
 
 /*******************************************************************************
   * @brief  Get stm32 MCU.
   * @param  None
   * @retval None
 *******************************************************************************/
-void get_mcu_id(void)
+void get_mcu_uid(void)
 {
-	MCUID[0]=*(unsigned int*)(0x1FFFF7E8);
-	MCUID[1]=*(unsigned int*)(0x1FFFF7EC);
-	MCUID[2]=*(unsigned int*)(0x1FFFF7F0);
-	MCUID[3]=MCUID[0]+MCUID[1]+MCUID[2];
+	uint32_t MCUID[4];
+	
+	MCUID[0] = *(volatile uint32_t *)(0x1FFFF7E8);
+	MCUID[1] = *(volatile uint32_t *)(0x1FFFF7EC);
+	MCUID[2] = *(volatile uint32_t *)(0x1FFFF7F0);
+	
+	MCUID[3] = MCUID[0] + MCUID[1] + MCUID[2];
+	
 	jsq_uid[7]=(uint8_t)(MCUID[3]>>0)&0x0f;
 	jsq_uid[6]=(uint8_t)(MCUID[3]>>4)&0x0f; 
 	jsq_uid[5]=(uint8_t)(MCUID[3]>>8)&0x0f;

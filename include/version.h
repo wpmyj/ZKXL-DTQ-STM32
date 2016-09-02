@@ -5,16 +5,15 @@
 
 /* Private define ------------------------------------------------------------*/
 /* Software version */
-#define MAIN_VERSION          0x01
+#define MAIN_VERSION          0x02
 #define SUB_VERSION_1         0x00
-#define SUB_VERSION_2         0x03
+#define SUB_VERSION_2         0x00
 
-extern uint32_t            MCUID[4];
 extern uint8_t             jsq_uid[8];
 extern const uint8_t       software[3];
 extern const uint8_t 		   hardware[30];
 extern const uint8_t 			 company[16];
 /* Private functions ---------------------------------------------------------*/
-void get_mcu_id(void);
+void get_mcu_uid(void);
 
 #endif

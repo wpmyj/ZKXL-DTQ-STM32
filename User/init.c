@@ -62,7 +62,7 @@ void Platform_Init(void)
 	ledOff(LBLUE);
 		
 	/* get mcu uuid */
-	get_mcu_id();
+	get_mcu_uid();
 	
 	DebugLog("\r\n===========================================================================\r\n");
 	DebugLog("[%s]:System clock freq is %dMHz\r\n",__func__, SystemCoreClock / 1000000);
