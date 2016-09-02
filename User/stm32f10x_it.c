@@ -24,19 +24,23 @@
 #include "main.h"
 
 Uart_MessageTypeDef uart_irq_revice_massage;
-Uart_TxDataTypeDef  uart232_var;
-
 static uint8_t  uart_status     = UartHEADER;
 static uint8_t	uart_rx_cnt     = 0;			  			//中断串口接收计数器
 static uint8_t  temp_sign_len   = 0;
 static uint32_t uart_rx_timeout = 0;
 static bool     flag_uart_rxing = false;
 
-bool 		flag_tx_ok[2];		  				//中断串口接收完成标志
-bool 		flag_txing[2];		   				//中断串口正在发送标志
-uint8_t uart_tx_length[2];					//中断串口发送长度	
-uint8_t uart_tx_cnt;			  			//中断串口发送计数器
-uint8_t	uart_tx_buf[2][UART_NBUF + 5];		//中断串口发送缓存 ,两组缓冲区，轮流发送 
+Uart_MessageTypeDef uart_irq_send_massage;
+uint8_t uart_tx_status   = 0;
+static uint8_t uart_tx_cnt      = 0;
+uint8_t *pdata; 
+
+
+//bool 		flag_tx_ok[2];		  				//中断串口接收完成标志
+//bool 		flag_txing[2];		   				//中断串口正在发送标志
+//uint8_t uart_tx_length[2];					//中断串口发送长度	
+//uint8_t uart_tx_cnt;			  			//中断串口发送计数器
+//uint8_t	uart_tx_buf[2][UART_NBUF + 5];		//中断串口发送缓存 ,两组缓冲区，轮流发送 
 
 extern nrf_communication_t			nrf_communication;
 extern uint8_t 					dtq_to_jsq_sequence;
@@ -174,7 +178,7 @@ void PendSV_Handler(void)
 }
 
 
-void uart_clear_rx_message( Uart_MessageTypeDef *Message )
+void uart_clear_message( Uart_MessageTypeDef *Message )
 {
 	uint8_t i;
 	uint8_t *pdata = (uint8_t*)(Message);
@@ -188,18 +192,6 @@ void uart_clear_rx_message( Uart_MessageTypeDef *Message )
 }
 
 
-/*********************************************************************************
-* 功	能：void hal_uart_clr_tx(uint8_t tx_index)
-* 输    入: NULL
-* 返	回：NULL
-* 备	注：清零发送相关变量
-*********************************************************************************/
-void hal_uart_clr_tx(uint8_t tx_index)
-{	
-	uart232_var.flag_txing[tx_index] = false;		//发送结束
-	memset(uart232_var.uart_tx_buf[tx_index], 0x00,  uart232_var.uart_tx_cnt);
-	uart232_var.uart_tx_cnt = 0x00;
-}
 /**
   * @brief  This function handles SysTick Handler.
   * @param  None
@@ -214,7 +206,7 @@ void SysTick_Handler(void)
 		uart_rx_timeout++;
 		if(uart_rx_timeout>5)										//5msc超时后重新开始接收
 		{
-			uart_clear_rx_message(&uart_irq_revice_massage);
+			uart_clear_message(&uart_irq_revice_massage);
 			uart_status = UartHEADER;
 		}
 	}
@@ -269,8 +261,6 @@ void SysTick_Handler(void)
 /*  available peripheral interrupt handler's name please refer to the startup */
 /*  file (startup_stm32f10x_xx.s).                                            */
 /******************************************************************************/
-
-
 /**
   * @brief  This function handles External lines 15 to 10 interrupt request.
   * @param  None
@@ -318,7 +308,6 @@ void USART1pos_IRQHandler(void)
 						  { 
 							    uart_status = UartLEN;
 						  }
-						  //memcpy(&sign_buffer[0],&uart_irq_revice_massage.SIGN[0] , 4);
 					}
 					break;
 				 
@@ -331,7 +320,7 @@ void USART1pos_IRQHandler(void)
 						{
 							uart_status =  UartHEADER;
 							/* 清除 uart_irq_revice_massage 接收信息 */
-							uart_clear_rx_message(&uart_irq_revice_massage);    
+							uart_clear_message(&uart_irq_revice_massage);    
 						}
 						else if(uart_irq_revice_massage.LEN > 0)	//  DATA不为空
 						{
@@ -371,19 +360,19 @@ void USART1pos_IRQHandler(void)
 							
 							if( uart_irq_revice_massage.XOR == UartMessageXor)
 							{   /* 若校验通过，则接收数据OK可用 */
-								  serial_ringbuffer_write_data(&uart_irq_revice_massage);
+								  serial_ringbuffer_write_data(REVICE_RINGBUFFER,&uart_irq_revice_massage);
 								  uart_status = UartHEADER;
-								  uart_clear_rx_message(&uart_irq_revice_massage);
+								  uart_clear_message(&uart_irq_revice_massage);
 							}
 							else														    
 							{
-								uart_clear_rx_message(&uart_irq_revice_massage);                       
+								uart_clear_message(&uart_irq_revice_massage);                       
 							}
 						}
 						else
 						{
 							uart_status = UartHEADER;
-							uart_clear_rx_message(&uart_irq_revice_massage);                                                 
+							uart_clear_message(&uart_irq_revice_massage);                                                 
 						}
 					}
 				  break;
@@ -394,38 +383,63 @@ void USART1pos_IRQHandler(void)
 		uart_rx_timeout = 0;
 	}
    
+	
+	
 	if(USART_GetITStatus(USART1pos, USART_IT_TXE) != RESET)
-  	{   
-	    /* Write one byte to the transmit data register */     
-	    if(uart232_var.uart_tx_length[uart_tx_i])			//长度不为0继续发送
-	    {
-			USART_SendData(USART1pos, uart232_var.uart_tx_buf[uart_tx_i][uart232_var.uart_tx_cnt++]);
-			uart232_var.uart_tx_length[uart_tx_i]--;
-	    }
-	    else
+  {  
+    switch(uart_tx_status)		
 		{
-			uart232_var.flag_tx_ok[uart_tx_i] = true;		//发送完成
-			hal_uart_clr_tx(uart_tx_i);						//清空当前发送缓冲区
-			
-			if(uart232_var.flag_txing[0])					//如果第一组缓冲区需要发送
-			{
-				uart_tx_i = 0;
-				USART_SendData(USART1pos, uart232_var.uart_tx_buf[uart_tx_i][uart232_var.uart_tx_cnt++]);
-				uart232_var.uart_tx_length[uart_tx_i]--;
-			}
-			else if(uart232_var.flag_txing[1])				//如果第二组缓冲区需要发送
-			{
-				uart_tx_i = 1;
-				USART_SendData(USART1pos, uart232_var.uart_tx_buf[uart_tx_i][uart232_var.uart_tx_cnt++]);
-				uart232_var.uart_tx_length[uart_tx_i]--;
-			}
-			else											//都不需要发送
-			{	
-				USART_ITConfig(USART1pos,USART_IT_TXE,DISABLE);
-			}
+			case 0:
+				{
+						if(BUFFEREMPTY == buffer_get_buffer_status(SEND_RINGBUFFER))
+						{
+							USART_ITConfig(USART1pos,USART_IT_TXE,DISABLE);
+							return;
+						}
+						else
+						{
+							serial_ringbuffer_read_data(SEND_RINGBUFFER, &uart_irq_send_massage);
+							pdata = (uint8_t *)(&uart_irq_send_massage);
+							uart_tx_status = 1;
+							uart_tx_cnt = *(pdata+6) + 7;
+							uart_tx_status = 1;
+						}
+				}
+				break;
+				
+			case 1:
+				{
+					USART_SendData(USART1pos,*pdata);
+					uart_tx_cnt--;
+					pdata++;
+					if( uart_tx_cnt == 0 )
+					{
+						pdata = &(uart_irq_send_massage.XOR);
+						uart_tx_cnt = 2;
+						uart_tx_status = 2;
+					}
+				}
+				break;
+				
+			case 2:
+				{
+					USART_SendData(USART1pos,*pdata);
+					uart_tx_cnt--;
+					pdata++;
+					if( uart_tx_cnt == 0 )
+					{
+						uart_tx_status = 0;
+					}
+				}
+				break;
+				
+			default:
+				break;
 		}
 	}
 }
+
+
 
 bool search_uid_in_white_list(uint8_t *g_uid , uint8_t *position);
 

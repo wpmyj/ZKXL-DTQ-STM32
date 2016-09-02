@@ -62,14 +62,14 @@ void    App_card_process(void);
 ******************************************************************************/
 void app_handle_layer(void)
 {
-  /* nrf51822 Communication processing process */
-	App_rf_check_process();
-	
-	/* serial cmd processing process */
-	App_seirial_cmd_process();
-	
-	/* MI Card processing process */
-	App_card_process();
+		/* nrf51822 Communication processing process */
+		App_rf_check_process();
+		
+		/* serial cmd processing process */
+		App_seirial_cmd_process();
+		
+		/* MI Card processing process */
+		App_card_process();
 }
 
 /******************************************************************************
@@ -276,6 +276,20 @@ void App_seirial_cmd_process(void)
 				flag_App_or_Ctr = 0x00;
 		break;			
 	}
+	
+	/* 将处理结果存入缓存区 */
+	if(App_to_CtrPosReq)
+	{		
+		if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
+		{
+			printf("Serial Send Buffer is full! \r\n");
+		}
+		else
+		{
+			serial_ringbuffer_write_data1(SEND_RINGBUFFER,Buf_AppToCtrPos);
+			App_to_CtrPosReq = false;
+		}
+	}
 }
 
 /******************************************************************************
@@ -355,6 +369,19 @@ void App_card_process(void)
 			
 			//不重复寻卡
 			PcdHalt();
+		}
+	}
+	
+	if( App_to_CtrPosReq )
+	{
+		if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
+		{
+			printf("Serial Send Buffer is full! \r\n");
+		}
+		else
+		{
+			serial_ringbuffer_write_data1(SEND_RINGBUFFER,Buf_AppToCtrPos);
+			App_to_CtrPosReq = false;
 		}
 	}
 	Buzze_Control();	// 等待蜂鸣器关闭
@@ -578,6 +605,18 @@ void App_return_data_to_clickers(void)
 			
 				App_to_CtrPosReq =true;
 			
+				if(App_to_CtrPosReq)
+				{
+					if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
+					{
+						printf("Serial Send Buffer is full! \r\n");
+					}
+					else
+					{
+						serial_ringbuffer_write_data1(SEND_RINGBUFFER,Buf_AppToCtrPos);
+						App_to_CtrPosReq = false;
+					}
+				}	
 				/* 有数据下发且未曾下发过 */
 				if(rf_var.flag_txing)	
 				{
@@ -590,7 +629,6 @@ void App_return_data_to_clickers(void)
 		{
 			  printf("Download:The Clickers not register! \r\n ");
 		}
-		
 }
 
 /******************************************************************************
@@ -618,7 +656,6 @@ void App_return_data_to_topic(void)
 		}
 		Buf_AppToCtrPos[rf_var.rx_len+7] = XOR_Cal(&Buf_AppToCtrPos[1], rf_var.rx_len+7);		
 		Buf_AppToCtrPos[rf_var.rx_len+8] = 0xCA;
-
 }
 
 /******************************************************************************

@@ -16,8 +16,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* Set parameter of budffer */
-#define PACKETSIZE           (236+8)
+#define REVICE_RINGBUFFER    0
+#define SEND_RINGBUFFER      1
 
+#define PACKETSIZE           (236+8)
 #define BUFFERSIZE           512
 
 /* buffer status  */
@@ -33,8 +35,9 @@
 #define OPENIRQ()            __set_PRIMASK(0)
 
 /* Private functions ---------------------------------------------------------*/
-uint8_t buffer_get_buffer_status(void);
-void serial_ringbuffer_write_data(Uart_MessageTypeDef *data);
-void serial_ringbuffer_read_data(Uart_MessageTypeDef *data);
+uint8_t buffer_get_buffer_status( uint8_t revice_or_send_buffer );
+void serial_ringbuffer_write_data( uint8_t revice_or_send_buffer, Uart_MessageTypeDef *data );
+void serial_ringbuffer_read_data( uint8_t revice_or_send_buffer, Uart_MessageTypeDef *data );
+void serial_ringbuffer_write_data1(uint8_t revice_or_send_buffer, uint8_t *data);
 
 #endif

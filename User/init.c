@@ -31,7 +31,6 @@ void Platform_Init(void)
 	GpioInit();
 	
 	Usart1_Init();
-	UartSendBuffferInit();
 	GPIOInit_SE2431L();
 	
 	/* initialize the spi interface with nrf51822 */
