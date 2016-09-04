@@ -13,7 +13,9 @@
 /* Defines ------------------------------------------------------------------*/
 
 #define ENABLE_WATCHDOG					(1)
-#define ENABLE_DEBUG_LOG				(1)
+//#define ENABLE_DEBUG_LOG			(0)
+//#define ENABLE_RF_DATA_SHOW   (0)
+
 
 #define DISABLE_ALL_IRQ()  			__set_PRIMASK(1);
 #define ENABLE_ALL_IRQ()   			__set_PRIMASK(0);
@@ -26,8 +28,8 @@
 #define DebugLog(...)
 #endif
 /* Uart Message configuration */
-#define UART_NBUF								          (236)
-#define RF_NBUF									          UART_NBUF
+#define UART_NBUF								(240)
+#define RF_NBUF									(UART_NBUF)
 
 #define TX_ADR_WIDTH 						(5)
 #define RX_ADR_WIDTH 						(5)

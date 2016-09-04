@@ -35,12 +35,45 @@ void pos_handle_layer(void)
 
 static void send_to_pos(void)
 {	
+#ifdef ENABLE_DEBUG_LOG	
+	uint8_t *pdata;
+	uint8_t i,uart_tx_cnt = 0;
+	
+	if(BUFFEREMPTY == buffer_get_buffer_status(SEND_RINGBUFFER))
+	{
+		USART_ITConfig(USART1pos,USART_IT_TXE,DISABLE);
+		return;
+	}
+	else
+	{
+		serial_ringbuffer_read_data(SEND_RINGBUFFER, &uart_irq_send_massage);
+		
+		pdata = (uint8_t *)(&uart_irq_send_massage);
+		uart_tx_status = 1;
+		uart_tx_cnt = *(pdata+6) + 7;
+		
+		for(i=0;i<uart_tx_cnt;i++)
+		{
+			printf(" %2X",*pdata);
+			pdata++;
+			
+			if((i+1)%20 == 0)
+				printf(" \r\n");
+		}
+		
+		printf(" %2X",uart_irq_send_massage.XOR);
+		printf(" %2X",uart_irq_send_massage.END);
+		
+		printf(" \r\n");
+		
+	}
+#else
 	if( uart_tx_status == 0)
 	{
 		/* enable interrupt Start send data*/
 		USART_ITConfig(USART1pos, USART_IT_TXE, ENABLE);
-	
   }
+#endif //ENABLE_DEBUG_LOG
 }
 
 static void receive_from_pos(void)

@@ -35,10 +35,10 @@ Uart_MessageTypeDef uart_irq_send_massage;
 uint8_t uart_tx_status      = 0;
 
 /* uart global variables */
-extern nrf_communication_t			nrf_communication;
-extern uint8_t 					dtq_to_jsq_sequence;
-extern uint8_t 					jsq_to_dtq_sequence;
-
+extern nrf_communication_t	nrf_communication;
+extern uint8_t 					    dtq_to_jsq_sequence;
+extern uint8_t 			        jsq_to_dtq_sequence;
+extern uint8_t              sign_buffer[4];
 /******************************************************************************
   Function:uart_clear_message
   Description:
@@ -500,7 +500,10 @@ void RFIRQ_EXTI_IRQHandler(void)
 		Is_whitelist_uid = search_uid_in_white_list(nrf_communication.receive_buf+1,&uidpos);
 
 		if(Is_whitelist_uid)			//白名单匹配
-		{		
+		{	
+			/* get uid */
+			memcpy(sign_buffer,nrf_communication.receive_buf+1,4);			
+			
 			if(nrf_communication.receive_buf[5] == NRF_DATA_IS_ACK)						//收到的是ACK
 			{
 				if(nrf_communication.receive_buf[0] == jsq_to_dtq_sequence)				//返回ACK的包号和上次发送的是否相同

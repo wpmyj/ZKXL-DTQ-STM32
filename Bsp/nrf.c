@@ -225,16 +225,18 @@ void my_nrf_transmit_tx_failed_handler(void)
 ******************************************************************************/
 void my_nrf_receive_success_handler(void)
 {
-//	uint8_t i;
-//	nrf_debug("nrf_debug，收到答题器下发有效数据。打印如下：\r\n");
-//	for(i = 0; i < rf_var.rx_len; i++)		
-//	{
-//		nrf_debug("%02X ", rf_var.rx_buf[i]);
-//		if((i+1)%10 == 0)
-//			nrf_debug("\r\n");
-//	}
-//	nrf_debug("\r\n");
+#ifdef ENABLE_RF_DATA_SHOW
+	uint8_t i;
+	nrf_debug("nrf_debug，收到答题器下发有效数据。打印如下：\r\n");
+	for(i = 0; i < rf_var.rx_len; i++)		
+	{
+		nrf_debug("%02X ", rf_var.rx_buf[i]);
+		if((i+1)%20 == 0)
+			nrf_debug("\r\n");
+	}
+	nrf_debug("\r\n");
 	
+#endif	
 }
 
 /**************************************END OF FILE****************************/
