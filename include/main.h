@@ -24,6 +24,7 @@
 #include "stm32f10x_it.h"
 #include "mfrc500.h"
 #include "m24sr_cmd.h"
+#include "define.h"
 
 #include "delay.h"
 #include "eeprom.h"

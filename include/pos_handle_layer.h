@@ -23,8 +23,7 @@
 #define APP_CTR_UNKNOWN                   0xFF // 0xff: 未能识别的帧
 
 /* Uart Message configuration */
-#define UART_NBUF								          (236)
-#define RF_NBUF									          UART_NBUF
+
 
 /* Uart Message frame header and tail */
 #define UART_SOF								          (0x5C)							//帧头

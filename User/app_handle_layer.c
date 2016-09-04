@@ -15,8 +15,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 extern	uint8_t   sign_buffer[4];
-				uint8_t		Buf_CtrPosToApp[UART_NBUF+9];		// pos下发指令缓冲
-				uint8_t		Buf_AppToCtrPos[UART_NBUF+9];		// 应用层上报指令缓冲区
+				uint8_t		Buf_CtrPosToApp[250];		// pos下发指令缓冲
+				uint8_t		Buf_AppToCtrPos[250];		// 应用层上报指令缓冲区
 
 				uint16_t	Length_CtrPosToApp;				      // pos下发指令长度
 				uint16_t	Length_AppToCtrPos;				      // 应用层上报指令长度
@@ -282,7 +282,7 @@ void App_seirial_cmd_process(void)
 	{		
 		if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
 		{
-			printf("Serial Send Buffer is full! \r\n");
+			DebugLog("Serial Send Buffer is full! \r\n");
 		}
 		else
 		{
@@ -376,7 +376,7 @@ void App_card_process(void)
 	{
 		if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
 		{
-			printf("Serial Send Buffer is full! \r\n");
+			DebugLog("Serial Send Buffer is full! \r\n");
 		}
 		else
 		{
@@ -606,7 +606,7 @@ void App_return_data_to_clickers(void)
 				{
 					if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
 					{
-						printf("Serial Send Buffer is full! \r\n");
+						DebugLog("Serial Send Buffer is full! \r\n");
 					}
 					else
 					{
@@ -624,10 +624,10 @@ void App_return_data_to_clickers(void)
 		}
 		else
 		{
-				printf("UID = %2x%2x%2x%2x \r\n",
+				DebugLog("UID = %2x%2x%2x%2x \r\n",
 		       *(sign_buffer+1),*(sign_buffer+2),
 		       *(sign_buffer+2),*(sign_buffer+3));
-			  printf("Download:The Clickers not register! \r\n ");
+			  DebugLog("Download:The Clickers not register! \r\n ");
 		}
 }
 
@@ -642,17 +642,23 @@ void App_return_data_to_topic(void)
 {
 		uint8_t temp_count = 0;
 	
-		Length_AppToCtrPos = rf_var.rx_len+0x09;  
+		Length_AppToCtrPos = rf_var.rx_len+0x07;  
 		Buf_AppToCtrPos[0] = 0x5C;
 		Buf_AppToCtrPos[1] = 0x10;
 		Buf_AppToCtrPos[2] = sign_buffer[0];
 		Buf_AppToCtrPos[3] = sign_buffer[1];
 		Buf_AppToCtrPos[4] = sign_buffer[2];
 		Buf_AppToCtrPos[5] = sign_buffer[3];
-		Buf_AppToCtrPos[6] =rf_var.rx_len+0x00;
+		Buf_AppToCtrPos[6] = rf_var.rx_len;
+
 		for (temp_count=0;temp_count<rf_var.rx_len+1;temp_count++)
 		{
-			Buf_AppToCtrPos[temp_count+7]=rf_var.rx_buf[temp_count];		
+			Buf_AppToCtrPos[temp_count+7]=rf_var.rx_buf[temp_count];
+#ifdef ENABLE_RF_DATA_SHOW
+			printf("%2X ",rf_var.rx_buf[temp_count]);
+			if((temp_count+1)%20 == 0 )
+				printf("\r\n");			
+#endif
 		}
 		Buf_AppToCtrPos[rf_var.rx_len+7] = XOR_Cal(&Buf_AppToCtrPos[1], rf_var.rx_len+7);		
 		Buf_AppToCtrPos[rf_var.rx_len+8] = 0xCA;
