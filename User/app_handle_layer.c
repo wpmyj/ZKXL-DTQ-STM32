@@ -579,55 +579,42 @@ void App_serial_transport_to_nrf51822(void)
 void App_return_data_to_clickers(void)
 {
 	  uint8_t uidpos = 0;
-		bool    Is_whitelist_uid = false;
-	
-		Is_whitelist_uid = search_uid_in_white_list(sign_buffer,&uidpos);
 
-	  if(Is_whitelist_uid)
+		memcpy(rf_var.tx_buf, Buf_CtrPosToApp, Length_CtrPosToApp);
+		rf_var.tx_len = Length_CtrPosToApp;
+		rf_var.flag_txing = true;
+
+		Length_AppToCtrPos = 0x00;
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x5C;
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x10;
+		add_sign_to_buffer(&Length_AppToCtrPos,sign_buffer);
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x03;
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x00;
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = white_on_off;
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = white_len;
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = XOR_Cal(&Buf_AppToCtrPos[1], 9);
+		Buf_AppToCtrPos[Length_AppToCtrPos++] = 0xCA;
+
+		App_to_CtrPosReq =true;
+
+		if(App_to_CtrPosReq)
 		{
-				memcpy(rf_var.tx_buf, Buf_CtrPosToApp, Length_CtrPosToApp);
-				rf_var.tx_len = Length_CtrPosToApp;
-				rf_var.flag_txing = true;
-			
-				Length_AppToCtrPos = 0x00;
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x5C;
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x10;
-				add_sign_to_buffer(&Length_AppToCtrPos,sign_buffer);
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x03;
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = 0x00;
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = white_on_off;
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = white_len;
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = XOR_Cal(&Buf_AppToCtrPos[1], 9);
-				Buf_AppToCtrPos[Length_AppToCtrPos++] = 0xCA;
-			
-				App_to_CtrPosReq =true;
-			
-				if(App_to_CtrPosReq)
-				{
-					if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
-					{
-						DebugLog("Serial Send Buffer is full! \r\n");
-					}
-					else
-					{
-						serial_ringbuffer_write_data1(SEND_RINGBUFFER,Buf_AppToCtrPos);
-						App_to_CtrPosReq = false;
-					}
-				}	
-				/* 有数据下发且未曾下发过 */
-				if(rf_var.flag_txing)	
-				{
-					my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL);
-				
-					rf_var.flag_tx_ok = true;
-				}
-		}
-		else
+			if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
+			{
+				DebugLog("Serial Send Buffer is full! \r\n");
+			}
+			else
+			{
+				serial_ringbuffer_write_data1(SEND_RINGBUFFER,Buf_AppToCtrPos);
+				App_to_CtrPosReq = false;
+			}
+		}	
+		/* 有数据下发且未曾下发过 */
+		if(rf_var.flag_txing)	
 		{
-				DebugLog("UID = %2x%2x%2x%2x \r\n",
-		       *(sign_buffer+1),*(sign_buffer+2),
-		       *(sign_buffer+2),*(sign_buffer+3));
-			  DebugLog("Download:The Clickers not register! \r\n ");
+			my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL);
+		
+			rf_var.flag_tx_ok = true;
 		}
 }
 

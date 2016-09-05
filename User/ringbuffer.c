@@ -257,7 +257,7 @@ void serial_ringbuffer_write_data(uint8_t revice_or_send_buffer, Uart_MessageTyp
 	uint8_t *pdata = (uint8_t *)data;
 	uint8_t MessageLen = *(pdata+6) + 6;
 	
-	for(i=0;i<MessageLen;i++)
+	for(i=0;i<=MessageLen;i++)
 	{
 		buffer_store_data_to_buffer(revice_or_send_buffer, 
 			UartBufferTop[revice_or_send_buffer]+i,*pdata);
@@ -265,10 +265,10 @@ void serial_ringbuffer_write_data(uint8_t revice_or_send_buffer, Uart_MessageTyp
 	}
 	
 	buffer_store_data_to_buffer(revice_or_send_buffer, 
-		UartBufferTop[revice_or_send_buffer]+i+1,data->XOR);
+		UartBufferTop[revice_or_send_buffer]+i+0,data->XOR);
 	
 	buffer_store_data_to_buffer(revice_or_send_buffer, 
-		UartBufferTop[revice_or_send_buffer]+i+2,data->END);
+		UartBufferTop[revice_or_send_buffer]+i+1,data->END);
 	
 	buffer_update_write_index( revice_or_send_buffer, MessageLen+3);
 	

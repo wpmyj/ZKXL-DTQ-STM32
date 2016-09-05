@@ -20,7 +20,7 @@
 #define SEND_RINGBUFFER      1
 
 #define PACKETSIZE           (UART_NBUF+9)
-#define BUFFERSIZE           (512)
+#define BUFFERSIZE           (1024)
 
 /* buffer status  */
 #define BUFFEREMPTY          1
