@@ -43,7 +43,9 @@ void Platform_Init(void)
 	
 	/* eeprom init and white_list init*/
 	Fee_Init();
-	initialize_white_list();
+	white_len = get_len_of_white_list();
+	white_on_off = OFF;
+	//initialize_white_list();
 	
 	/* 复位并初始化RC500 */
 	GPIOInit_MFRC500();
