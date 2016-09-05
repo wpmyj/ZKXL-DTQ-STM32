@@ -21,6 +21,9 @@ bool initialize_white_list( void )
 {
 	
 	white_len = get_len_of_white_list();
+	
+	clear_white_list();
+	
 	white_on_off = OFF;
 	
 	return true;
@@ -255,6 +258,7 @@ bool add_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
 	}
 	else //UID在白名单中连续存放，直接在最末尾存放新的uid
 	{
+		//printf("UID = %2x%2x%2x%2x \r\n",g_uid[0],g_uid[1],g_uid[2],g_uid[3]);
 		add_index_of_uid(white_len,g_uid);
 		*position = white_len;							 
 	}
