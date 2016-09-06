@@ -9,6 +9,7 @@ uint16_t					match_number = 1;			  	    // ≈‰∂‘–Ú∫≈
 uint8_t           uid_p;
 uint8_t		        uid_len = 0;					        // M1ø®–Ú¡–∫≈≥§∂»
 uint8_t 	        g_cSNR[10];						        // M1ø®–Ú¡–∫≈
+
 /******************************************************************************
   Function:initialize_white_list
   Description:
@@ -25,6 +26,7 @@ bool initialize_white_list( void )
 	clear_white_list();
 	
 	white_on_off = OFF;
+	store_switch_status_to_fee(white_on_off);
 	
 	return true;
 }
@@ -124,6 +126,7 @@ void add_index_of_uid( uint8_t index, uint8_t  uid[4] )
 	for(i=0;i<4;i++)
 	{
 		EE_WriteVariable(viraddr+i,uid[i]);
+		DelayMs(20);
 	}
 }
 
@@ -222,6 +225,36 @@ uint8_t get_len_of_white_list(void)
 void store_len_to_fee(uint8_t len)
 {
 	EE_WriteVariable(WHITE_LIST_LEN_POS_OF_FEE,len);
+}
+
+/******************************************************************************
+  Function:store_switch_status_to_fee
+  Description:
+  Input:None
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void store_switch_status_to_fee(uint8_t switch_status)
+{
+	EE_WriteVariable(WHITE_LIST_SW_POS_OF_FEE,switch_status);
+}
+
+/******************************************************************************
+  Function:get_switch_status_of_white_list
+  Description:
+  Input:None
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+uint8_t get_switch_status_of_white_list(void)
+{
+	uint16_t switch_status = 0;
+	
+	EE_ReadVariable(WHITE_LIST_SW_POS_OF_FEE,&switch_status);
+	
+	return (uint8_t)(switch_status&0xFF);
 }
 
 /******************************************************************************
