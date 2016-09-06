@@ -71,11 +71,13 @@
 #define FEE_FLASH_PAGE_SIZE     ((uint16_t)128)             /* ????Page?????????128(????128,?????255) */
 #define FEE_PAGE_NUM_OF_STU     ((uint8_t)40)             /* ??Page??????40????? 40*4 = 80*2 ?80??? */
 
+#define FEE_INIT_POWERUP        ((uint8_t)0x00)
+#define FEE_INIT_CLEAR          ((uint8_t)0x01)
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
-uint16_t Fee_Init(void);
+uint16_t Fee_Init(uint8_t InitMode);
 uint16_t EE_ReadVariable(uint16_t VirtAddress, uint16_t* Data);
 uint16_t EE_WriteVariable(uint16_t VirtAddress, uint16_t Data);
 

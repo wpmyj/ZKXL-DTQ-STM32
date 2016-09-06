@@ -250,7 +250,7 @@ uint16_t Fee_InitPage(uint32_t Page0Addr, uint32_t Page1Addr)
   return FLASH_COMPLETE;
 }
 
-uint16_t Fee_Init(void)
+uint16_t Fee_Init(uint8_t InitMode)
 {
     int8_t i;
 	  uint16_t  FlashStatus;
@@ -258,14 +258,38 @@ uint16_t Fee_Init(void)
 		/* Unlock the Flash Program Erase controller */
 		FLASH_Unlock();
 	
-	  for(i=0;i<FEE_PAGENUM;i=i+2)
+		if(InitMode == FEE_INIT_POWERUP)
 		{
-		   FlashStatus = Fee_InitPage(EEPROM_START_ADDRESS+i*PAGE_SIZE,EEPROM_START_ADDRESS+(i+1)*PAGE_SIZE); 
-			 /* If erase/program operation was failed, a Flash error code is returned */
-       if (FlashStatus != FLASH_COMPLETE)
-       {
+			for(i=0;i<FEE_PAGENUM;i=i+2)
+			{
+				 FlashStatus = Fee_InitPage(EEPROM_START_ADDRESS+i*PAGE_SIZE,EEPROM_START_ADDRESS+(i+1)*PAGE_SIZE); 
+				 /* If erase/program operation was failed, a Flash error code is returned */
+				 if (FlashStatus != FLASH_COMPLETE)
+				 {
+						return FlashStatus;
+				 }
+			}
+		}
+		else
+		{
+			for(i=0;i<FEE_PAGENUM;i=i+1)
+			{
+				 FlashStatus = FLASH_ErasePage(EEPROM_START_ADDRESS+i*PAGE_SIZE);
+				 /* If erase/program operation was failed, a Flash error code is returned */
+				 if (FlashStatus != FLASH_COMPLETE)
+				 {
+						return FlashStatus;
+				 }
+				 
+				/* Erase both Page0 and Page1 and set Page0 as valid page */
+        FlashStatus = EE_Format(EEPROM_START_ADDRESS+i*PAGE_SIZE);
+        /* If erase/program operation was failed, a Flash error code is returned */
+        if (FlashStatus != FLASH_COMPLETE)
+        {
           return FlashStatus;
-       }
+        }
+				 
+			}
 		}
 		return FlashStatus;
 		

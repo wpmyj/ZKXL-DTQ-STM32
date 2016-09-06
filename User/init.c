@@ -42,7 +42,7 @@ void Platform_Init(void)
 	
 	
 	/* eeprom init and white_list init*/
-	Fee_Init();
+	Fee_Init(FEE_INIT_POWERUP);
 	
 	white_len = get_len_of_white_list();
 	DebugLog("\r\n[%s]:White list len = %d \r\n",__func__, white_len);
