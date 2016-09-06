@@ -176,7 +176,6 @@ void App_seirial_cmd_process(void)
 		break;
 				
 		case 0x13:		//初始化白名单
-				initialize_white_list();
 				App_returnInitializeState();
 				flag_App_or_Ctr = 0x00;	
 		break;
@@ -210,7 +209,6 @@ void App_seirial_cmd_process(void)
 		case 0x18:		//开始配对
 			match_on_off = ON;
 			match_number = 1;
-			initialize_white_list();
 			App_returnMatchSwitchState(ON);
 			flag_App_or_Ctr = 0x00;
 		break;
@@ -459,7 +457,7 @@ void App_returnInitializeState(void)
 	Buf_AppToCtrPos[Length_AppToCtrPos ++] = 0x22;
 	add_sign_to_buffer(&Length_AppToCtrPos,sign_buffer);
 	Buf_AppToCtrPos[Length_AppToCtrPos ++] = 0x01;
-	Buf_AppToCtrPos[Length_AppToCtrPos ++] = 0x00;
+	Buf_AppToCtrPos[Length_AppToCtrPos ++] = initialize_white_list();
 	Buf_AppToCtrPos[Length_AppToCtrPos ++] = XOR_Cal(&Buf_AppToCtrPos[1],7);	//异或结果
 	Buf_AppToCtrPos[Length_AppToCtrPos ++] = 0xCA;
 	App_to_CtrPosReq = true;

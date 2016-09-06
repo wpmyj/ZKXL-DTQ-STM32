@@ -20,10 +20,15 @@ uint8_t 	        g_cSNR[10];						        // M1ø®–Ú¡–∫≈
 ******************************************************************************/
 bool initialize_white_list( void )
 {
+	uint16_t FlashStatus;
 	
 	white_len = get_len_of_white_list();
 	
-	clear_white_list();
+	FlashStatus = Fee_Init(FEE_INIT_CLEAR);
+	if (FlashStatus != FLASH_COMPLETE)
+	{
+		return false;
+	}
 	
 	white_on_off = OFF;
 	store_switch_status_to_fee(white_on_off);
@@ -45,29 +50,6 @@ bool uidcmp(uint8_t *uid1, uint8_t *uid2)
 		return true;
 	else
 		return false;
-}
-
-/******************************************************************************
-  Function:clear_white_list_tx_flag
-  Description:
-  Input:None
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-void clear_white_list(void)
-{
-	uint16_t i;
-		
-	white_len = get_len_of_white_list();
-	
-	for(i=0; i < (white_len*4); i++)
-	{
-		EE_WriteVariable(i, 0xFF);
-	}
-	
-	white_len = 0;
-	store_len_to_fee(white_len);
 }
 
 /******************************************************************************

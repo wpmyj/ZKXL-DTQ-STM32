@@ -102,7 +102,7 @@ static void Fee_Test(void)
 	uint16_t VarAddr = 0;
 
 	/* EEPROM Init */
-	Fee_Init();	
+	Fee_Init(FEE_INIT_POWERUP);	
 	
 	while(1)
 	{
