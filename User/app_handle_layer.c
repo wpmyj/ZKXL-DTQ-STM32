@@ -183,12 +183,14 @@ void App_seirial_cmd_process(void)
 		
 		case 0x14:		//开启白名单
 				white_on_off = ON;
+				store_switch_status_to_fee(white_on_off);
 				App_returnWhiteListSwitchState(ON);
 				flag_App_or_Ctr = 0x00;	
 		break;
 		
 		case 0x15:		//关闭白名单
 			white_on_off = OFF;
+			store_switch_status_to_fee(white_on_off);
 			App_returnWhiteListSwitchState(OFF);
 			flag_App_or_Ctr = 0x00;	
 		break;

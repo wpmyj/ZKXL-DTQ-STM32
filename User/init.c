@@ -43,9 +43,11 @@ void Platform_Init(void)
 	
 	/* eeprom init and white_list init*/
 	Fee_Init();
+	
 	white_len = get_len_of_white_list();
-	white_on_off = OFF;
-	//initialize_white_list();
+	DebugLog("\r\n[%s]:White list len = %d \r\n",__func__, white_len);
+	white_on_off = get_switch_status_of_white_list();
+	DebugLog("[%s]:White list switch status is %d \r\n",__func__, white_on_off);
 	
 	/* 复位并初始化RC500 */
 	GPIOInit_MFRC500();
@@ -66,7 +68,6 @@ void Platform_Init(void)
 	/* get mcu uuid */
 	get_mcu_uid();
 	
-	DebugLog("\r\n===========================================================================\r\n");
 	DebugLog("[%s]:System clock freq is %dMHz\r\n",__func__, SystemCoreClock / 1000000);
 	DebugLog("[%s]:UID is %X%X%X%X%X%X%X%X\r\n",__func__,
 	         jsq_uid[0],jsq_uid[1],jsq_uid[2],jsq_uid[3],
@@ -88,7 +89,6 @@ void Platform_Init(void)
 	DebugLog("[%s]:watchdog disable\r\n",__func__);	
 #endif //ENABLE_WATCHDOG
 	DebugLog("[%s]:All peripherals init ok\r\n",__func__);
-	DebugLog("===========================================================================\r\n");
 	
 }
 

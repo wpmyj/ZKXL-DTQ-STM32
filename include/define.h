@@ -13,7 +13,7 @@
 /* Defines ------------------------------------------------------------------*/
 
 #define ENABLE_WATCHDOG					(1)
-//#define ENABLE_DEBUG_LOG			(0)
+#define ENABLE_DEBUG_LOG			 
 //#define ENABLE_RF_DATA_SHOW   (0)
 
 
