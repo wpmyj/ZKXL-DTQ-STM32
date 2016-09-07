@@ -9,8 +9,16 @@
 #define WHITE_LIST_USE_TABLE_POS_OF_FEE   (483)
 
 
+#define OPERATION_NOUSE            (2)
 #define OPERATION_ERR              (1)
 #define OPERATION_SUCCESS          (0)
+
+
+#ifdef 	ENABLE_DEBUG_LOG
+#define WhiteListDebug								printf
+#else
+#define WhiteListDebug(...)
+#endif
 
 typedef enum 
 {
@@ -35,9 +43,10 @@ void add_index_of_uid( uint8_t index, uint8_t  uid[4] );
 
 bool initialize_white_list( void );
 bool uidcmp(uint8_t *uid1, uint8_t *uid2);
-bool add_uid_to_white_list(uint8_t *g_uid, uint8_t *position);
+uint8_t add_uid_to_white_list(uint8_t *g_uid, uint8_t *position);
 void clear_white_list(void);
 bool delete_uid_from_white_list(uint8_t *g_uid);
+bool search_uid_in_white_list(uint8_t *g_uid , uint8_t *position);
 
 bool store_len_to_fee(uint8_t len);
 uint8_t get_len_of_white_list(void);
