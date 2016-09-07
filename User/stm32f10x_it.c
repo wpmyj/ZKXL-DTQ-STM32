@@ -27,6 +27,7 @@
 // revice part
 Uart_MessageTypeDef uart_irq_revice_massage;
 static uint32_t uart_rx_timeout = 0;
+static uint32_t rf_tx_time_cnt = 0;
 static bool     flag_uart_rxing = false;
 static uint8_t  uart_status     = UartHEADER;
 
@@ -39,6 +40,28 @@ extern nrf_communication_t	nrf_communication;
 extern uint8_t 					    dtq_to_jsq_sequence;
 extern uint8_t 			        jsq_to_dtq_sequence;
 extern uint8_t              sign_buffer[4];
+
+/* rf systick data */
+uint8_t rf_systick_flag = 0;
+Uart_MessageTypeDef rf_systick_massage = {
+	0x5C,                 // HEADER
+	0x10,                 // TYPE
+	0x00,0x00,0x00,0x00,  // UID
+	0x0A,                 // LEN
+	
+	0x5A,                     // HEADER
+	0x00,0x00,0x00,0x00,      // ID
+	0x00,                     // RFU
+	0x17,                     // TYPE
+	0x00,                     // LEN
+	0x17,                     // XOR
+	0xCA,                     // END
+	
+	0x00,                 // XOR
+	0xCA                  // END
+	
+};
+	
 /******************************************************************************
   Function:uart_clear_message
   Description:
@@ -156,7 +179,14 @@ void uart_revice_data_state_mechine( uint8_t data )
 						
 						if( uart_irq_revice_massage.XOR == UartMessageXor)
 						{   /* 若校验通过，则接收数据OK可用 */
-								serial_ringbuffer_write_data(REVICE_RINGBUFFER,&uart_irq_revice_massage);
+								if(BUFFERFULL == buffer_get_buffer_status(REVICE_RINGBUFFER))
+								{
+									DebugLog("Serial Send Buffer is full! \r\n");
+								}
+								else
+								{
+									serial_ringbuffer_write_data(REVICE_RINGBUFFER,&uart_irq_revice_massage);
+								}	
 							  flag_uart_rxing = false;
 								uart_status = UartHEADER;
 								uart_clear_message(&uart_irq_revice_massage);
@@ -389,6 +419,26 @@ void SysTick_Handler(void)
 {
 	TimingDelay_Decrement();
 	
+	if(rf_systick_flag == 1)
+	{
+		rf_tx_time_cnt++;
+		
+		/* 3S 产生心跳包 同时计数器清零 */
+		if(rf_tx_time_cnt >= 3000)
+		{
+			if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
+			{
+				DebugLog("Serial Send Buffer is full! \r\n");
+			}
+			else
+			{
+				serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_systick_massage);
+			}
+			rf_systick_flag = 0;
+			rf_tx_time_cnt = 0;
+		}
+	}
+	
 	if(flag_uart_rxing)												//串口接收超时计数器
 	{
 		uart_rx_timeout++;
@@ -437,6 +487,8 @@ void SysTick_Handler(void)
 	{
 		delay_nms --;
 	}
+	
+	
 }
 
 /******************************************************************************/
@@ -512,6 +564,9 @@ void RFIRQ_EXTI_IRQHandler(void)
 		/* 白名单匹配 */
 		if(Is_whitelist_uid)			
 		{	
+			/* 打开心跳包发送开关 */
+			rf_systick_flag = 1;
+			
 			/* get uid */
 			memcpy(sign_buffer,nrf_communication.receive_buf+1,4);			
 			

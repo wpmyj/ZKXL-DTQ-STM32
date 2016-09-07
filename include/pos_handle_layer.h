@@ -65,7 +65,7 @@ typedef struct
 	uint8_t 				RFU;
 	uint8_t 				TYPE;		          
 	uint8_t 				LEN;								
-	uint8_t 				DATA[UART_NBUF];		
+	uint8_t 				DATA[UART_NBUF-10];		
 	uint8_t 				XOR;								
 	uint8_t 				END;								
 }Rf_MessageTypeDef;
