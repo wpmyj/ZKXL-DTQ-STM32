@@ -272,7 +272,7 @@ uint16_t Fee_Init(uint8_t InitMode)
 		}
 		else
 		{
-			for(i=0;i<FEE_PAGENUM;i=i+1)
+			for(i=0;i<FEE_PAGENUM;i=i+2)
 			{
 				 FlashStatus = FLASH_ErasePage(EEPROM_START_ADDRESS+i*PAGE_SIZE);
 				 /* If erase/program operation was failed, a Flash error code is returned */
@@ -294,7 +294,7 @@ uint16_t Fee_Init(uint8_t InitMode)
 		return FlashStatus;
 		
 		/* lock the Flash Program Erase controller */
-		FLASH_Lock();
+		//FLASH_Lock();
 }
 
 /**
@@ -312,9 +312,6 @@ uint16_t EE_ReadVariable(uint16_t VirtAddress, uint16_t* Data)
   uint16_t ValidPage = 0;
   uint16_t AddressValue = 0, ReadStatus = 1;
   uint32_t Address = 0, PageStartAddress = 0;
-	
-	/* Unlock the Flash Program Erase controller */
-	FLASH_Unlock();
 	
   /* Get active Page for read operation */
   ValidPage = EE_FindValidPage(READ_FROM_VALID_PAGE, VirtAddress);
@@ -354,10 +351,7 @@ uint16_t EE_ReadVariable(uint16_t VirtAddress, uint16_t* Data)
       Address = Address - 4;
     }
   }
-	
-	/* Lock the Flash Program Erase controller */
-	FLASH_Lock();
-	
+
   /* Return ReadStatus value: (0: variable exist, 1: variable doesn't exist) */
   return ReadStatus;
 }
@@ -376,9 +370,6 @@ uint16_t EE_WriteVariable(uint16_t VirtAddress, uint16_t Data)
 {
   uint16_t Status = 0;
 	
-	/* Unlock the Flash Program Erase controller */
-	FLASH_Unlock();
-	
   /* Write the variable virtual address and value in the EEPROM */
   Status = EE_VerifyPageFullWriteVariable(VirtAddress, Data);
 
@@ -388,9 +379,6 @@ uint16_t EE_WriteVariable(uint16_t VirtAddress, uint16_t Data)
     /* Perform Page transfer */
     Status = EE_PageTransfer(VirtAddress, Data);
   }
-	
-	/* lock the Flash Program Erase controller */
-	FLASH_Lock();
 	
   /* Return last operation status */
   return Status;
@@ -487,15 +475,7 @@ static uint16_t EE_FindValidPage(uint8_t Operation, uint16_t VirtAddress)
     case READ_FROM_VALID_PAGE:  /* ---- Read operation ---- */
       if (PageStatus0 == VALID_PAGE)
       {
-				/* Page1 receiving data */
-        if (PageStatus1 == RECEIVE_DATA)
-        {
-          return (ValidPage+1);         /* Page1 valid */
-        }
-        else
-        {
-          return ValidPage;         /* Page0 valid */
-        }
+		return ValidPage;         /* Page0 valid */
       }
       else if (PageStatus1 == VALID_PAGE)
       {
