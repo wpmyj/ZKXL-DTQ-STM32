@@ -355,8 +355,9 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 	rf_var.tx_len = RMessage->LEN;
 
 	/* 获取数据内容 */ 
-	memcpy(rf_var.tx_buf, (uint8_t *)RMessage, RMessage->LEN);
-
+	memcpy(rf_var.tx_buf, (uint8_t *)RMessage, RMessage->LEN+7);
+	memcpy(rf_var.tx_buf+RMessage->LEN+7,&(RMessage->XOR),2);
+	
 	/* 打开发送开关 */
 	rf_var.flag_txing = true;
 
