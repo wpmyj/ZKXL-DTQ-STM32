@@ -196,6 +196,9 @@ typedef struct
 	uint8_t 				xor;														//为所有数据异或结果
 } spi_cmd_type_t;
 
+
+
+
 /* Private functions ---------------------------------------------------------*/
 uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_data_len, uint8_t *rx_data);
 uint8_t uesb_nrf_write_tx_payload(const uint8_t *tx_pload, uint8_t length);

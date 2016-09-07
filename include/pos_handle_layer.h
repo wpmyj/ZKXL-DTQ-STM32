@@ -22,6 +22,9 @@
 #define APP_CTR_DATALEN_ERR               0xFE // 0xfe: 帧长度不合法
 #define APP_CTR_UNKNOWN                   0xFF // 0xff: 未能识别的帧
 
+
+void App_seirial_cmd_process(void);
+
 /* Uart Message configuration */
 
 
@@ -53,14 +56,16 @@ typedef struct
 
 typedef struct
 {
-	bool 					  flag_tx_ok[2];		  				//中断串口接收完成标志
-	bool 					  flag_txing[2];		   				//中断串口正在发送标志
-	uint8_t 				uart_tx_length[2];					//中断串口发送长度	
-	uint8_t 				uart_tx_cnt;			  			  //中断串口发送计数器
-	uint8_t					uart_tx_buf[2][UART_NBUF + 5];		//中断串口发送缓存 ,两组缓冲区，轮流发送 
+	uint8_t 				HEADER;						  
+	uint8_t 				ID;								  
+	uint8_t 				RFU;
+	uint8_t 				TYPE;		          
+	uint8_t 				LEN;								
+	uint8_t 				DATA[UART_NBUF];		
+	uint8_t 				XOR;								
+	uint8_t 				END;								
+}Rf_MessageTypeDef;
 
-}Uart_TxDataTypeDef;
 
-void UartSendBuffferInit(void);
-void pos_handle_layer(void);
+void serial_handle_layer(void);
 #endif // __POS_HANDLE_LAYER_H_
