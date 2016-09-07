@@ -10,6 +10,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stdlib.h"
 
 extern void app_handle_layer(void);
 extern void rc500_handle_layer(void);
@@ -18,6 +19,7 @@ extern void rc500_handle_layer(void);
 static void Fee_Test(void);
 static void nrf51822_spi_send_test(void);
 static void nrf51822_spi_revice_test(void);
+static void Whitelist_test( void );
 
 /******************************************************************************
   Function:main
@@ -36,16 +38,88 @@ int main(void)
 	// Fee_Test();
 	// nrf51822_spi_send_test();
 	// nrf51822_spi_revice_test();
+	// Whitelist_test();
 	
 	/* System function test end ------------------------------------------------*/
 	
 	while(1)
 	{	
-	  pos_handle_layer();
-	  app_handle_layer();
+		app_handle_layer();
+		
 		
 //  rc500_handle_layer();		
 	}	
+}
+
+/******************************************************************************
+  Function:Whitelist_test
+  Description:
+		发送数据到答题器测试函数
+  Input:None
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+static void Whitelist_test( void )
+{
+	uint8_t i,j;
+	uint8_t writeuid[4];
+	uint8_t readuid[4];
+	
+	uint8_t uidpos = 0;
+	uint8_t status =0;
+	static uint32_t storetestcntOk = 0, storetestcntErr = 0,storetestcnt = 0;
+	static uint32_t deletetestcntOk = 0,deletetestcntErr = 0,deletetestcnt =0 ;
+	
+	initialize_white_list();
+	
+	while(1)
+	{
+		uint8_t status = 0;
+		uint8_t pos = 0;
+		uint8_t uidvalue = 0;
+		
+		for(i=0;i<120;i++)
+		{ 
+			uidvalue = rand()/100;
+			writeuid[0] = uidvalue + 0;
+			writeuid[1] = uidvalue + 1;
+			writeuid[2] = uidvalue + 2;
+			writeuid[3] = uidvalue + 3;
+			
+			if(i == 64)
+				printf(" uidpos = 64");
+			
+			status = add_uid_to_white_list(writeuid,&uidpos);
+			DelayMs(20);
+			if(status == OPERATION_SUCCESS)
+			{
+				printf(" uidpos = %d Write UID = %2X%2X%2X%2X \r\n",uidpos,writeuid[0],writeuid[1],writeuid[2],writeuid[3]);
+				status = get_index_of_uid(uidpos,readuid);
+				if(status == OPERATION_SUCCESS)
+				{
+					printf(" uidpos = %d Read  UID = %2X%2X%2X%2X \r\n",uidpos,readuid[0],readuid[1],readuid[2],readuid[3]);
+		
+					status = uidcmp(writeuid,readuid);
+					if(status == OPERATION_SUCCESS)
+					{
+						storetestcntOk++;
+					}
+					else
+					{
+						storetestcntErr++;
+					}
+				}
+				
+				delete_uid_from_white_list(writeuid);
+				printf("the len of white list is %d \r\n",get_len_of_white_list());
+			}
+			storetestcnt++;
+			if(storetestcnt%20 == 0)
+					printf(" Store OK cnt = %d  Err cnt = %d\r\n",storetestcntOk,storetestcntErr);
+		}
+		
+	}
 }
 
 /******************************************************************************
@@ -126,8 +200,7 @@ static void Fee_Test(void)
 			DelayMs(100);
 
 			EE_ReadVariable(VarAddr, &ReadData);
-			printf("FEE read data address  = %4x Write value = %4x Read Value = %4x\r\n",
-			        VarAddr,WriteNum,ReadData);
+			
 			TestNum++;
 			if(ReadData == WriteNum)
 			{
@@ -137,15 +210,9 @@ static void Fee_Test(void)
 			{
 				TestErrNum++;
 			}
-			if(TestNum == 3154-255)
-				printf("FEE Test Num = %5d write and read data Ok = %4d Error = %4d \r\n\r\n",
-			          TestNum,TestOkNum,TestErrNum);
+
 				
-			if(TestNum == 3154)
-				printf("FEE Test Num = %5d write and read data Ok = %4d Error = %4d \r\n\r\n",
-			          TestNum,TestOkNum,TestErrNum);
-				
-			if(TestNum%20 == 0 )
+			if(TestNum%100 == 0 )
 			{
 				printf("FEE Test Num = %5d write and read data Ok = %4d Error = %4d \r\n\r\n",
 				        TestNum,TestOkNum,TestErrNum);

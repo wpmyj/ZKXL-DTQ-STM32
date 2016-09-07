@@ -44,10 +44,16 @@ void Platform_Init(void)
 	/* eeprom init and white_list init*/
 	Fee_Init(FEE_INIT_POWERUP);
 	
-	white_len = get_len_of_white_list();
+	{
+		uint16_t len = 0;
+		EE_ReadVariable(WHITE_LIST_LEN_POS_OF_FEE,&len);
+	  white_len =  (uint8_t)(len&0xFF); 
+	}
+	//white_len = get_len_of_white_list();
 	DebugLog("\r\n[%s]:White list len = %d \r\n",__func__, white_len);
 	white_on_off = get_switch_status_of_white_list();
 	DebugLog("[%s]:White list switch status is %d \r\n",__func__, white_on_off);
+	get_white_list_use_table();
 	
 	/* 复位并初始化RC500 */
 	GPIOInit_MFRC500();

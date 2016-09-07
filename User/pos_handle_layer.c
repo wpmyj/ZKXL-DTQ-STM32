@@ -18,22 +18,58 @@
 /* Private variables ---------------------------------------------------------*/	 
 extern Uart_MessageTypeDef uart_irq_send_massage;
 extern uint8_t uart_tx_status;
-       uint8_t flag_App_or_Ctr = APP_CTR_IDLE;		 
+       uint8_t serial_cmd = APP_CTR_IDLE;		 
 	     uint8_t sign_buffer[4];
+			 uint8_t whitelist_print_index = 0;
+			 
+uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];				 
+			 
 			 
 /* Private functions ---------------------------------------------------------*/
-static void send_to_pos(void);
-static void receive_from_pos(void);
+static void serial_send_data_to_pc(void);
+static void serial_cmd_process(void);
 //static void serial_transmission_to_nrf51822(void);
 
-void pos_handle_layer(void)
+void App_initialize_white_list( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_stop_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_open_or_close_white_list( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+uint8_t App_return_whitelist_data( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage, uint8_t index);
+void App_open_or_close_attendance( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_open_or_close_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err_type );
+void App_uart_message_copy( Uart_MessageTypeDef *SrcMessage, Uart_MessageTypeDef *DstMessage );
+	
+/******************************************************************************
+  Function:App_seirial_cmd_process
+  Description:
+		串口进程处理函数
+  Input :None
+  Return:None
+  Others:None
+******************************************************************************/
+void App_seirial_cmd_process(void)
 {
-	send_to_pos();
-	receive_from_pos();
+	/* send process data to pc */
+	serial_send_data_to_pc();
+	
+	/* serial cmd process */
+	serial_cmd_process();
+	
 	//serial_transmission_to_nrf51822();
 }
 
-static void send_to_pos(void)
+/******************************************************************************
+  Function:serial_send_data_to_pc
+  Description:
+		串口发送指令函数
+  Input :None
+  Return:None
+  Others:None
+******************************************************************************/
+static void serial_send_data_to_pc(void)
 {	
 #ifdef ENABLE_DEBUG_LOG	
 	uint8_t *pdata;
@@ -48,21 +84,26 @@ static void send_to_pos(void)
 	{
 		serial_ringbuffer_read_data(SEND_RINGBUFFER, &uart_irq_send_massage);
 		
-		pdata = (uint8_t *)(&uart_irq_send_massage);
-		uart_tx_status = 1;
-		uart_tx_cnt = *(pdata+6) + 7;
+		pdata = (uint8_t *)(uart_irq_send_massage.DATA);
+		uart_tx_cnt = uart_irq_send_massage.LEN;
 		
+		printf("message->header = %2X \r\n",uart_irq_send_massage.HEADER);
+		printf("message->type   = %2X \r\n",uart_irq_send_massage.TYPE);
+		printf("message->sign   = %X%X%X%X \r\n",
+				uart_irq_send_massage.SIGN[0],
+				uart_irq_send_massage.SIGN[1],
+				uart_irq_send_massage.SIGN[2],
+				uart_irq_send_massage.SIGN[3]);
+		printf("message->len    = %2d\r\n",uart_irq_send_massage.LEN);
+		printf("message->data   = ");
 		for(i=0;i<uart_tx_cnt;i++)
 		{
-			printf(" %2X",*pdata);
+			printf("%2X ",*pdata);
 			pdata++;
-			
-			if((i+1)%20 == 0)
-				printf(" \r\n");
 		}
-		
-		printf(" %2X",uart_irq_send_massage.XOR);
-		printf(" %2X",uart_irq_send_massage.END);
+		printf(" \r\n");
+		printf("message->xor    = %2X\r\n",uart_irq_send_massage.XOR);
+		printf("message->end    = %2X\r\n",uart_irq_send_massage.END);
 		
 		printf(" \r\n");
 		
@@ -76,145 +117,199 @@ static void send_to_pos(void)
 #endif //ENABLE_DEBUG_LOG
 }
 
-static void receive_from_pos(void)
+/******************************************************************************
+  Function:serial_cmd_process
+  Description:
+		串口指令处理进程
+  Input :None
+  Return:None
+  Others:None
+******************************************************************************/
+static void serial_cmd_process(void)
 {
-	Uart_MessageTypeDef CurrentProcessMessage;
-	
-	if(BUFFEREMPTY == buffer_get_buffer_status(REVICE_RINGBUFFER))
-		return;
-	else
-		serial_ringbuffer_read_data(REVICE_RINGBUFFER, &CurrentProcessMessage);
-	
-	memcpy(sign_buffer,CurrentProcessMessage.SIGN,4);
-	
-	Buf_CtrPosToApp[0] = CurrentProcessMessage.HEADER;
-	Buf_CtrPosToApp[1] = CurrentProcessMessage.TYPE;
+	Uart_MessageTypeDef ReviceMessage,SendMessage;
+	uint8_t buffer_status = 0;
 	
   /* 串口接收到pos指令完成且系统空闲 */
-	if( flag_App_or_Ctr == 0 )				    
+	if( serial_cmd == 0 )				    
 	{	
-		switch(CurrentProcessMessage.TYPE)
+		/* 获取接收缓存的状态 */
+		buffer_status = buffer_get_buffer_status(REVICE_RINGBUFFER);
+		
+		/* 根据状态决定是否读取缓存指令 */
+		if(BUFFEREMPTY == buffer_status)
+			return;
+		else
+			serial_ringbuffer_read_data(REVICE_RINGBUFFER, &ReviceMessage);
+	
+		switch(ReviceMessage.TYPE)
 		{
 			/* 下发给答题器 */
 			case 0x10:
 				{ 
-					/* 获取数据长度 */
-					Length_CtrPosToApp = CurrentProcessMessage.LEN;
-					
-					/* 获取数据内容 */ 
-					memcpy(Buf_CtrPosToApp, CurrentProcessMessage.DATA, CurrentProcessMessage.LEN);		 
-					flag_App_or_Ctr = 0x01;
+					memcpy(uart_rf_cmd_sign,ReviceMessage.SIGN,4);
+					App_send_data_to_clickers( &ReviceMessage, &SendMessage);
+					serial_cmd = 0x00;
 				}				
 				break;
 			
 			/* 停止下发数据 */	
-			case 0x12:   
-				if(CurrentProcessMessage.LEN != 0)
-				{
-					flag_App_or_Ctr = 0xfe;	
-					break;
+			case 0x12:
+				{ 				
+					if(ReviceMessage.LEN != 0)
+					{
+						serial_cmd = 0xfe;	
+					}
+					else
+					{
+						App_stop_send_data_to_clickers( &ReviceMessage, &SendMessage);
+						serial_cmd = 0x00;
+					}
 				}
-				flag_App_or_Ctr = 0x04;										
 				break;
 				
-			case 0x20:		//添加白名单
-				if(CurrentProcessMessage.LEN != 4*CurrentProcessMessage.DATA[0] + 1)
-				{
-					flag_App_or_Ctr = 0xfe;	
-					break;
-				}
-				Length_CtrPosToApp = CurrentProcessMessage.LEN;					//获取数据长度
-				memcpy(Buf_CtrPosToApp, CurrentProcessMessage.DATA, Length_CtrPosToApp);//获取数据内容
-				flag_App_or_Ctr = 0x11;											//透传给答题器的指令
+			/* 添加或者删除白名单 */
+			case 0x20:	
+			case 0x21:		
+				{				
+					if(ReviceMessage.LEN != 4*ReviceMessage.DATA[0] + 1)
+					{
+						serial_cmd = 0xfe;	
+					}
+					else
+					{
+						App_operate_uids_to_whitelist( &ReviceMessage, &SendMessage);
+						serial_cmd = 0x00;
+					}
+				}											
 				break;
 				
-			case 0x21:		//删除白名单
-				if(CurrentProcessMessage.LEN != 4*CurrentProcessMessage.DATA[0] + 1)
+			/* 初始化白名单 */
+			case 0x22:
 				{
-					flag_App_or_Ctr = 0xfe;	
-					break;
+					if(ReviceMessage.LEN != 0)
+					{
+						serial_cmd = 0xfe;	
+					}
+					else
+					{
+						App_initialize_white_list( &ReviceMessage, &SendMessage);
+						serial_cmd = 0x00;
+					}
 				}
-				Length_CtrPosToApp = CurrentProcessMessage.LEN;					//获取数据长度
-				memcpy(Buf_CtrPosToApp, CurrentProcessMessage.DATA, Length_CtrPosToApp);//获取数据内容
-				flag_App_or_Ctr = 0x12;											//透传给答题器的指令	
+				break;	
+			
+			/* 开启或者关闭白名单 */
+			case 0x23:
+			case 0x24:		
+				{
+					if(ReviceMessage.LEN != 0)
+					{
+						serial_cmd = 0xfe;	
+					}
+					else
+					{
+						App_open_or_close_white_list( &ReviceMessage, &SendMessage);
+						serial_cmd = 0x00;
+					}
+				}
+				break;	
+				
+			/* 开始或者关闭考勤 */
+			case 0x25:	
+			case 0x27:					
+				{
+					if(ReviceMessage.LEN != 0)
+					{
+						serial_cmd = 0xfe;	
+					}
+					else
+					{
+						memcpy(uart_card_cmd_sign,ReviceMessage.SIGN,4);
+						App_open_or_close_attendance( &ReviceMessage, &SendMessage);
+						serial_cmd = 0x00;
+					}						
+				}				
+				break;	
+				
+		  /* 开始或者关闭配对 */
+			case 0x28:	
+			case 0x2A:
+				{				
+					if(ReviceMessage.LEN != 0)
+					{
+						serial_cmd = 0xfe;	
+					}
+					else
+					{
+						memcpy(uart_card_cmd_sign,ReviceMessage.SIGN,4);
+						App_open_or_close_match( &ReviceMessage, &SendMessage);
+						serial_cmd = 0x00;
+					}
+				}				
+				break;		
+		
+			/* 打印当前白名单 */
+			case 0x2B:	
+				{
+					if(ReviceMessage.LEN != 0)
+					{
+						serial_cmd = 0xfe;	
+					}
+					else
+					{
+						whitelist_print_index = App_return_whitelist_data( 
+								&ReviceMessage, &SendMessage,whitelist_print_index );
+						if( whitelist_print_index < white_len )
+						{
+							serial_cmd = 0x2B;
+						}
+						else
+						{
+							serial_cmd = 0x00;
+							whitelist_print_index = 0;
+						}
+					}
+				}
+				break;	
+				
+			/* 获取设备信息 */	
+			case 0x2C:		
+				{
+					if(ReviceMessage.LEN != 0)
+					{
+						serial_cmd = 0xfe;	
+					}
+					else
+					{
+						App_return_device_info( &ReviceMessage, &SendMessage);
+						serial_cmd = 0x00;
+					}
+				}
+				break;
+		
+			case 0xfe:
+				{
+					App_returnErr(&SendMessage,0x00,0x00);
+					serial_cmd = 0x00;
+				}
 				break;
 				
-			case 0x22:		//初始化白名单
-				if(CurrentProcessMessage.LEN != 0)
-				{
-					flag_App_or_Ctr = 0xfe;	
-					break;
-				}
-				flag_App_or_Ctr = 0x13;											//透传给答题器的指令	
-				break;	
-			case 0x23:		//开启白名单
-				if(CurrentProcessMessage.LEN != 0)
-				{
-					flag_App_or_Ctr = 0xfe;	
-					break;
-				}
-				flag_App_or_Ctr = 0x14;											//透传给答题器的指令	
-				break;	
-			case 0x24:		//关闭白名单
-				if(CurrentProcessMessage.LEN != 0)
-				{
-					flag_App_or_Ctr = 0xfe;	
-					break;
-				}
-				flag_App_or_Ctr = 0x15;											//透传给答题器的指令	
-				break;	
-			case 0x25:		//开始考勤
-				if(CurrentProcessMessage.LEN != 0)
-				{
-					flag_App_or_Ctr = 0xfe;	
-					break;
-				}
-				flag_App_or_Ctr = 0x16;											//透传给答题器的指令	
-				break;	
-			case 0x27:		//停止考勤
-				if(CurrentProcessMessage.LEN != 0)
-				{
-					flag_App_or_Ctr = 0xfe;	
-					break;
-				}
-				flag_App_or_Ctr = 0x17;											//透传给答题器的指令	
-				break;	
-			case 0x28:		//开始配对
-				if(CurrentProcessMessage.LEN != 0)
-				{
-					flag_App_or_Ctr = 0xfe;	
-					break;
-				}
-				flag_App_or_Ctr = 0x18;											//透传给答题器的指令	
-				break;	
-			case 0x2A:		//停止配对
-				if(CurrentProcessMessage.LEN != 0)
-				{
-					flag_App_or_Ctr = 0xfe;	
-					break;
-				}
-				flag_App_or_Ctr = 0x19;											//透传给答题器的指令	
-				break;	
-			case 0x2B:		//打印当前白名单
-				if(CurrentProcessMessage.LEN != 0)
-				{
-					flag_App_or_Ctr = 0xfe;	
-					break;
-				}
-				flag_App_or_Ctr = 0x1a;											//透传给答题器的指令	
-				break;	
-			case 0x2C:		//获取设备信息
-				if(CurrentProcessMessage.LEN != 0)
-				{
-					flag_App_or_Ctr = 0xfe;	
-					break;
-				}
-				flag_App_or_Ctr = 0x1b;											//透传给答题器的指令	
-				break;					
-			default:		//无法识别的指令
-				flag_App_or_Ctr = 0xff;	
+			/* 无法识别的指令 */
+			default:	
+				serial_cmd = 0xff;	
 				break;
 		}
+		
+		/* 执行完的指令存入发送缓存 */
+		if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
+		{
+			DebugLog("Serial Send Buffer is full! \r\n");
+		}
+		else
+		{
+			serial_ringbuffer_write_data(SEND_RINGBUFFER,&SendMessage);
+		}	
 	}	
 }
 
@@ -239,8 +334,428 @@ void app_debuglog_dump_no_space(uint8_t * p_buffer, uint32_t len)
     }
     DebugLog("\r\n");
 }
-/**
-  * @}
-  */
+
+
+/******************************************************************************
+  Function:App_send_data_to_clickers
+  Description:
+		将指令发送到答题器
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	uint16_t i = 0;
+	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
+	
+	/* 获取数据长度 */
+	rf_var.tx_len = RMessage->LEN;
+
+	/* 获取数据内容 */ 
+	memcpy(rf_var.tx_buf, (uint8_t *)RMessage, RMessage->LEN);
+
+	/* 打开发送开关 */
+	rf_var.flag_txing = true;
+
+	SMessage->HEADER = 0x5C;
+	SMessage->TYPE = RMessage->TYPE;
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+
+	SMessage->LEN = 0x03;
+
+	*( pdata + ( i++ ) ) = 0x00;
+	*( pdata + ( i++ ) ) = white_on_off;
+	*( pdata + ( i++ ) ) = white_len;
+
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
+
+	/* 有数据下发且未曾下发过 */
+	if(rf_var.flag_txing)	
+	{
+		my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL);
+	
+		rf_var.flag_tx_ok = true;
+	}
+}
+
+/******************************************************************************
+  Function:App_initialize_white_list
+  Description:
+	  初始化白名单
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_initialize_white_list( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
+	uint8_t i = 0;
+	uint8_t whitelist_init_status = 0;
+
+	whitelist_init_status = initialize_white_list();
+
+	SMessage->HEADER = 0x5C;
+	SMessage->TYPE = 0x22;
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+
+	SMessage->LEN = 0x01;
+
+	if(whitelist_init_status == 0x01)
+	{
+		*( pdata + ( i++ ) ) = 0;
+		App_to_CtrPosReq = true;
+	}
+	else
+	{
+		*( pdata + ( i++ ) ) = 1;
+		App_to_CtrPosReq = false;
+	}
+
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
+		
+}
+
+/******************************************************************************
+  Function:App_open_or_close_white_list
+  Description:
+	  初始化白名单
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_open_or_close_white_list( Uart_MessageTypeDef *RMessage, 
+				Uart_MessageTypeDef *SMessage )
+{
+	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
+	uint8_t i = 0;
+	bool openstatus = false;
+
+	SMessage->HEADER = 0x5C;
+	
+	if(RMessage->TYPE == 0x23)
+		white_on_off = ON;
+	else
+		white_on_off = OFF;
+	
+	SMessage->TYPE = RMessage->TYPE;
+	
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+	
+	SMessage->LEN = 0x01;
+	
+	openstatus = store_switch_status_to_fee(white_on_off);
+	
+	if(openstatus == true)
+	{
+		*( pdata + ( i++ ) ) = 0;
+	}
+	else
+	{
+		*( pdata + ( i++ ) ) = 1;
+	}
+	
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
+	
+}
+
+/******************************************************************************
+  Function:App_send_data_to_clickers
+  Description:
+		将指令发送到答题器
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_stop_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	uint16_t i = 0;
+	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
+
+	rf_var.flag_txing = false;
+	memset(rf_var.tx_buf, 0x00, rf_var.tx_len);
+	rf_var.tx_len = 0x00;
+
+	SMessage->HEADER = 0x5C;
+	SMessage->TYPE = 0x11;
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+
+	SMessage->LEN = 0x03;
+
+	*( pdata + ( i++ ) ) = 0x00;
+	*( pdata + ( i++ ) ) = white_on_off;
+	*( pdata + ( i++ ) ) = white_len;
+
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
+}
+
+
+/******************************************************************************
+  Function:App_operate_uids_to_whitelist
+  Description:
+		添加UID到白名单
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	/* 获取需要添加的UID的个数:最大为10*/
+	uint8_t UidNum = RMessage->DATA[0];
+	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
+	uint8_t TemUid[4];
+	uint8_t i = 0,j,uidpos;
+	uint8_t UidAddStatus;
+	
+	SMessage->HEADER = 0x5C;
+
+	SMessage->TYPE = RMessage->TYPE;
+	
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+	
+	SMessage->LEN = UidNum + 2;
+
+	*( pdata + ( i++ ) ) = UidNum;
+	
+	for(j = 0; j < UidNum; j++)
+	{
+		TemUid[0] = RMessage->DATA[1+j*4];
+		TemUid[1] = RMessage->DATA[2+j*4];
+		TemUid[2] = RMessage->DATA[3+j*4];
+		TemUid[3] = RMessage->DATA[4+j*4];
+		
+		if(RMessage->TYPE == 0x20)
+			UidAddStatus = add_uid_to_white_list(TemUid,&uidpos);
+		
+		if(RMessage->TYPE == 0x21)
+			UidAddStatus = delete_uid_from_white_list(TemUid);
+		
+		if(UidAddStatus == OPERATION_ERR)
+		{
+			*( pdata + ( i++ ) ) = 1; // fail
+		}
+		else
+		{
+			*( pdata + ( i++ ) ) = 0; // success
+		}
+	}
+	
+	*( pdata + ( i++ ) ) = white_len;
+	
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
+
+}
+
+/******************************************************************************
+  Function:App_return_whitelist_data
+  Description:
+		打印白名单信息
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+		index：打印白名单的起始位置
+  Return:
+    uid_p:输出的白名单最后的位置
+  Others:None
+******************************************************************************/
+uint8_t App_return_whitelist_data( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage, uint8_t index)
+{
+	uint8_t i = 0;
+	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
+	uint8_t uid_p = index;
+	uint8_t tempuid[4] = {0,0,0,0};
+	
+	SMessage->HEADER = 0x5C;
+
+	SMessage->TYPE = RMessage->TYPE;
+	
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+	
+	pdata++;
+	white_len = get_len_of_white_list();
+	
+	for(i=0;(i<UART_NBUF-6)&&(uid_p<white_len);i=i+4)
+	{
+		get_index_of_uid(uid_p,tempuid);
+
+		*pdata++ = tempuid[0]; 
+		*pdata++ = tempuid[1]; 
+		*pdata++ = tempuid[2]; 
+		*pdata++ = tempuid[3]; 
+		uid_p++;
+	}
+	SMessage->DATA[0] = uid_p;
+	SMessage->LEN = (uid_p-index)*4+1;
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
+	
+	return uid_p;
+}
+
+/******************************************************************************
+  Function:App_open_or_close_attendance
+  Description:
+		开启或者关闭考勤
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_open_or_close_attendance( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	uint8_t i = 0;
+
+	SMessage->HEADER = 0x5C;
+	
+	if(RMessage->TYPE == 0x25)
+	{
+		attendance_on_off = ON;
+	}
+	else
+	{
+		attendance_on_off = OFF;
+	}
+	
+	SMessage->TYPE = RMessage->TYPE;
+		
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+	
+	SMessage->LEN = 0x00;
+	
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
+
+}
+
+
+/******************************************************************************
+  Function:App_open_or_close_match
+  Description:
+		开启或者关闭配对
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_open_or_close_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	uint8_t i = 0;
+	
+	SMessage->HEADER = 0x5C;
+	
+	if(RMessage->TYPE == 0x28)
+	{
+		match_on_off = ON;
+		match_number = 1;
+	}
+	else
+	{
+		match_on_off = OFF;
+	}
+	
+	SMessage->TYPE = RMessage->TYPE;
+	
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+	
+	SMessage->LEN = 0x00;
+	
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
+}
+
+/******************************************************************************
+  Function:App_return_device_info
+  Description:
+		打印设备信息
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{	
+	uint8_t temp_count = 0,i = 0,j=0;
+	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
+
+	SMessage->HEADER = 0x5C;
+	
+	if(RMessage->TYPE == 0x28)
+	{
+		match_on_off = ON;
+		match_number = 1;
+	}
+	else
+	{
+		match_on_off = OFF;
+	}
+	
+	SMessage->TYPE = RMessage->TYPE;
+	
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+	
+	
+	
+	for(temp_count=0,i=0;(temp_count<4)&&(i<8);temp_count++,i=i+2)
+	{
+			*( pdata + ( j++ ) )=(jsq_uid[i]<<4|jsq_uid[i+1]);
+	}
+
+	for(temp_count=0;temp_count<3;temp_count++)
+	{
+			*( pdata + ( j++ ) )=software[temp_count];
+	}
+
+	for(temp_count=0,i=0;(temp_count<15)&&(i<30);temp_count++,i=i+2)
+	{
+			*( pdata + ( j++ ) )=(hardware[i]<<4)|(hardware[i+1]);
+	}
+
+	for(temp_count=0,i=0;(temp_count<8)&&(i<16);temp_count++,i=i+2)
+	{
+			*( pdata + ( j++ ) )=(company[i]<<4)|(company[i+1]);
+	}
+	
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), j+6);
+	SMessage->END = 0xCA;
+	
+}
+
+/******************************************************************************
+  Function:App_returnErr
+  Description:
+		打印设备信息
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err_type )
+{
+
+
+}
+
+
+
+
 /**************************************END OF FILE****************************/
 

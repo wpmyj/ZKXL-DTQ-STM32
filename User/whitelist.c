@@ -403,12 +403,12 @@ bool delete_uid_from_white_list(uint8_t *g_uid)
 	
 	if(status == OPERATION_ERR)
 	{
-		printf("<%s> The UID is not in white list \r\n",__func__);
+		WhiteListDebug("<%s> The UID is not in white list \r\n",__func__);
 		return OPERATION_ERR;
 	}
 	else
 	{
-		printf("<%s> The UID is in white list pos = %d\r\n",__func__,pos);
+		WhiteListDebug("<%s> The UID is in white list pos = %d\r\n",__func__,pos);
 		clear_index_of_uid(pos);
 	}
 	
@@ -423,7 +423,7 @@ bool delete_uid_from_white_list(uint8_t *g_uid)
   Return:
   Others:None
 ******************************************************************************/
-bool add_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
+uint8_t add_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
 {
 	uint8_t status = true;
 	
@@ -431,8 +431,8 @@ bool add_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
 	status = search_uid_in_white_list( g_uid, position );
 	if(status == OPERATION_SUCCESS)
 	{
-		printf("<%s>The UID is in white list pos = %d\r\n",__func__,*position);
-		return OPERATION_SUCCESS;
+		WhiteListDebug("<%s>The UID is in white list pos = %d\r\n",__func__,*position);
+		return OPERATION_NOUSE;
 	}
 	else
 	{
@@ -440,7 +440,7 @@ bool add_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
 	
 		if(status == OPERATION_ERR)
 		{
-			printf("<%s> The white list is full \r\n",__func__);
+			WhiteListDebug("<%s> The white list is full \r\n",__func__);
 			return OPERATION_ERR;
 		}
 		else
