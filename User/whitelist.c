@@ -233,8 +233,6 @@ uint8_t get_len_of_white_list(void)
 		}
 	}
 
-	//EE_ReadVariable(WHITE_LIST_LEN_POS_OF_FEE,&len);
-	
 	return (uint8_t)(len&0xFF);
 }
 
@@ -393,8 +391,6 @@ bool search_uid_in_white_list(uint8_t *g_uid , uint8_t *position)
 ******************************************************************************/
 bool delete_uid_from_white_list(uint8_t *g_uid)
 {
-	uint8_t j;
-	uint8_t temuid[4];
 	uint8_t pos;
 	uint8_t status = true;
 
