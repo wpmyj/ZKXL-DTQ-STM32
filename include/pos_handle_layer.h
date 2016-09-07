@@ -61,7 +61,7 @@ typedef struct
 typedef struct
 {
 	uint8_t 				HEADER;						  
-	uint8_t 				ID;								  
+	uint8_t 				ID[4];								  
 	uint8_t 				RFU;
 	uint8_t 				TYPE;		          
 	uint8_t 				LEN;								

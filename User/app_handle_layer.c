@@ -50,6 +50,7 @@ void app_handle_layer(void)
 void App_rf_check_process(void)
 {
 	Uart_MessageTypeDef rf_message;
+	Rf_MessageTypeDef   *message;
 	uint8_t i = 0 ;
 	
 	if(rf_var.flag_rx_ok == true)
@@ -59,9 +60,11 @@ void App_rf_check_process(void)
 		
 		memcpy(rf_message.SIGN,uart_rf_cmd_sign,4);
 		
-		rf_message.LEN = rf_var.rx_len;
+		message = (Rf_MessageTypeDef *)rf_message.DATA;
+		
+		rf_message.LEN = message->LEN + 10;
 
-		for (i=0;i<rf_var.rx_len+1;i++)
+		for (i=0;i<rf_message.LEN;i++)
 		{
 			rf_message.DATA[i]=rf_var.rx_buf[i];
 	#ifdef ENABLE_RF_DATA_SHOW
