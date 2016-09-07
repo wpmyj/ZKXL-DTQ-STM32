@@ -3,9 +3,14 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-#define MAX_WHITE_LEN						   (120)
-#define WHITE_LIST_LEN_POS_OF_FEE  (481)
-#define WHITE_LIST_SW_POS_OF_FEE   (482)
+#define MAX_WHITE_LEN						          (120)
+#define WHITE_LIST_LEN_POS_OF_FEE         (481)
+#define WHITE_LIST_SW_POS_OF_FEE          (482)
+#define WHITE_LIST_USE_TABLE_POS_OF_FEE   (483)
+
+
+#define OPERATION_ERR              (1)
+#define OPERATION_SUCCESS          (0)
 
 typedef enum 
 {
@@ -24,7 +29,7 @@ extern uint8_t		        uid_len;					    // M1卡序列号长度
 extern uint8_t 	          g_cSNR[10];						// M1卡序列号
 
 
-void get_index_of_uid( uint8_t index, uint8_t  uid[4] );
+bool get_index_of_uid( uint8_t index, uint8_t  uid[4] );
 void clear_index_of_uid(uint8_t index);
 void add_index_of_uid( uint8_t index, uint8_t  uid[4] );
 
@@ -34,8 +39,15 @@ bool add_uid_to_white_list(uint8_t *g_uid, uint8_t *position);
 void clear_white_list(void);
 bool delete_uid_from_white_list(uint8_t *g_uid);
 
-void    store_len_to_fee(uint8_t len);
+bool store_len_to_fee(uint8_t len);
 uint8_t get_len_of_white_list(void);
-void    store_switch_status_to_fee(uint8_t switch_status);
+bool store_switch_status_to_fee(uint8_t switch_status);
 uint8_t get_switch_status_of_white_list(void);
+void get_white_list_use_table(void);
+void flash_white_list_use_table(void);
+void get_white_list_use_table(void);
+void set_index_of_white_list_pos( uint8_t index );
+void clear_index_of_white_list_pos( uint8_t index );
+bool get_nouse_pos_of_white_list( uint8_t *pos);
+
 #endif // __WHITE_LIST_H_
