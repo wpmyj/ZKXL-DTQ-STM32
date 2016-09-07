@@ -43,13 +43,8 @@ void Platform_Init(void)
 	
 	/* eeprom init and white_list init*/
 	Fee_Init(FEE_INIT_POWERUP);
-	
-	{
-		uint16_t len = 0;
-		EE_ReadVariable(WHITE_LIST_LEN_POS_OF_FEE,&len);
-	  white_len =  (uint8_t)(len&0xFF); 
-	}
-	//white_len = get_len_of_white_list();
+	get_white_list_use_table();
+	white_len = get_len_of_white_list();
 	DebugLog("\r\n[%s]:White list len = %d \r\n",__func__, white_len);
 	white_on_off = get_switch_status_of_white_list();
 	DebugLog("[%s]:White list switch status is %d \r\n",__func__, white_on_off);
@@ -73,6 +68,10 @@ void Platform_Init(void)
 		
 	/* get mcu uuid */
 	get_mcu_uid();
+	
+	/* 配对是存入接收器器UID到答题器 */
+	NDEF_DataWrite[1] = 0x04;
+	memcpy((NDEF_DataWrite+2),jsq_uid,4);
 	
 	DebugLog("[%s]:System clock freq is %dMHz\r\n",__func__, SystemCoreClock / 1000000);
 	DebugLog("[%s]:UID is %X%X%X%X%X%X%X%X\r\n",__func__,

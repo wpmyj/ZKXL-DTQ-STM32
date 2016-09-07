@@ -17,7 +17,8 @@ extern uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];
 
 void App_rf_check_process(void);
 void App_card_process(void);
-
+void Buzze_Control(void);
+	
 /******************************************************************************
   Function:app_handle_layer
   Description:
@@ -100,5 +101,83 @@ void App_rf_check_process(void)
 ******************************************************************************/
 void App_card_process(void)
 { 
+	Uart_MessageTypeDef card_message;
+	uint8_t is_white_list_uid = 0,uid_p = 0;
 	
+	if((delay_nms == 0)&&((attendance_on_off == ON) || match_on_off == ON))
+	{
+		delay_nms = 200;
+		if(FindICCard() == MI_OK)
+		{
+			/* 处理数据 */
+			if(attendance_on_off)						
+			{
+				is_white_list_uid = add_uid_to_white_list(g_cSNR,&uid_p);
+				if(is_white_list_uid == OPERATION_SUCCESS)
+				{
+          // OK
+				}
+				else
+				{
+					// Err 0x29 E3
+				}
+			}
+			else
+			{
+
+			}
+			
+			/* 封装协议  */
+			{
+				card_message.HEADER = 0x5C;
+				card_message.TYPE   = 0x29;
+				memcpy(card_message.SIGN,uart_card_cmd_sign,4);
+				card_message.LEN    = 0x04;
+				memcpy(card_message.DATA,g_cSNR,4);
+				card_message.XOR = XOR_Cal(&card_message.TYPE,10);
+				card_message.END  = 0xCA;
+			}
+			
+			/* 缓存数据 */
+			{
+				/* 执行完的指令存入发送缓存 */
+				if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
+				{
+					DebugLog("Serial Send Buffer is full! \r\n");
+				}
+				else
+				{
+					serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
+				}	
+			}
+			//蜂鸣器响300ms
+			time_for_buzzer_on = 10;
+			time_for_buzzer_off = 300;
+		}
+		
+		//写入配对时将UID传给答题器
+		write_RF_config();
+		
+		//不重复寻卡
+		PcdHalt();
+	}
+	Buzze_Control();	
+}
+
+/*******************************************************************************
+  * @brief  Initialize the Gpio port for system
+  * @param  None
+  * @retval None
+*******************************************************************************/
+void Buzze_Control(void)
+{
+	if(time_for_buzzer_on == 1)
+	{
+		BEEP_EN();
+		time_for_buzzer_on = 0;
+	}
+	if(time_for_buzzer_off == 0)
+	{
+		BEEP_DISEN();
+	}
 }
