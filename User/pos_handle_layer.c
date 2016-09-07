@@ -18,7 +18,9 @@
 /* Private variables ---------------------------------------------------------*/	 
 extern Uart_MessageTypeDef uart_irq_send_massage;
 extern uint8_t uart_tx_status;
-       uint8_t serial_cmd_status = APP_CTR_IDLE;		 
+       uint8_t serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;	
+			 uint8_t serial_cmd_type = 0;
+			 uint8_t err_cmd_type = 0;
 	     uint8_t sign_buffer[4];
 			 uint8_t whitelist_print_index = 0;
 			 
@@ -129,10 +131,9 @@ static void serial_cmd_process(void)
 {
 	Uart_MessageTypeDef ReviceMessage,SendMessage;
 	uint8_t buffer_status = 0;
-	uint8_t cmd_type = 0;
-	
+
   /* 系统空闲提取缓存指令 */
-	if( serial_cmd_status == APP_CTR_IDLE )				    
+	if( serial_cmd_status == APP_SERIAL_CMD_STATUS_IDLE )				    
 	{	
 		/* 获取接收缓存的状态 */
 		buffer_status = buffer_get_buffer_status(REVICE_RINGBUFFER);
@@ -143,179 +144,214 @@ static void serial_cmd_process(void)
 		else
 		{
 			serial_ringbuffer_read_data(REVICE_RINGBUFFER, &ReviceMessage);
-			cmd_type = ReviceMessage.TYPE;
+			serial_cmd_type = ReviceMessage.TYPE;
+			serial_cmd_status = APP_SERIAL_CMD_STATUS_WORK;
 		}
 	}
 	
-	/* 解析指令 */
-	switch(cmd_type)
+	/* 系统不空闲解析指令，生产返回信息 */
+	if( serial_cmd_status != APP_SERIAL_CMD_STATUS_IDLE )
 	{
-		/* 下发给答题器 */
-		case 0x10:
-			{ 
-				memcpy(uart_rf_cmd_sign,ReviceMessage.SIGN,4);
-				App_send_data_to_clickers( &ReviceMessage, &SendMessage);
-				serial_cmd_status = APP_CTR_IDLE;
-			}				
-			break;
-		
-		/* 停止下发数据 */	
-		case 0x12:
-			{ 				
-				if(ReviceMessage.LEN != 0)
-				{
-					serial_cmd_status = APP_CTR_DATALEN_ERR;	
-				}
-				else
-				{
-					App_stop_send_data_to_clickers( &ReviceMessage, &SendMessage);
-					serial_cmd_status = APP_CTR_IDLE;
-				}
-			}
-			break;
+		/* 解析指令 */
+		switch(serial_cmd_type)
+		{
+			/* 下发给答题器 */
+			case 0x10:
+				{ 
+					memcpy(uart_rf_cmd_sign,ReviceMessage.SIGN,4);
+					App_send_data_to_clickers( &ReviceMessage, &SendMessage);
+					serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+				}				
+				break;
 			
-		/* 添加或者删除白名单 */
-		case 0x20:	
-		case 0x21:		
-			{				
-				if(ReviceMessage.LEN != 4*ReviceMessage.DATA[0] + 1)
-				{
-					serial_cmd_status = APP_CTR_DATALEN_ERR;	
-				}
-				else
-				{
-					App_operate_uids_to_whitelist( &ReviceMessage, &SendMessage);
-					serial_cmd_status = APP_CTR_IDLE;
-				}
-			}											
-			break;
-			
-		/* 初始化白名单 */
-		case 0x22:
-			{
-				if(ReviceMessage.LEN != 0)
-				{
-					serial_cmd_status = APP_CTR_DATALEN_ERR;	
-				}
-				else
-				{
-					App_initialize_white_list( &ReviceMessage, &SendMessage);
-					serial_cmd_status = APP_CTR_IDLE;
-				}
-			}
-			break;	
-		
-		/* 开启或者关闭白名单 */
-		case 0x23:
-		case 0x24:		
-			{
-				if(ReviceMessage.LEN != 0)
-				{
-					serial_cmd_status = APP_CTR_DATALEN_ERR;	
-				}
-				else
-				{
-					App_open_or_close_white_list( &ReviceMessage, &SendMessage);
-					serial_cmd_status = APP_CTR_IDLE;
-				}
-			}
-			break;	
-			
-		/* 开始或者关闭考勤 */
-		case 0x25:	
-		case 0x27:					
-			{
-				if(ReviceMessage.LEN != 0)
-				{
-					serial_cmd_status = APP_CTR_DATALEN_ERR;	
-				}
-				else
-				{
-					memcpy(uart_card_cmd_sign,ReviceMessage.SIGN,4);
-					App_open_or_close_attendance( &ReviceMessage, &SendMessage);
-					serial_cmd_status = APP_CTR_IDLE;
-				}						
-			}				
-			break;	
-			
-		/* 开始或者关闭配对 */
-		case 0x28:	
-		case 0x2A:
-			{				
-				if(ReviceMessage.LEN != 0)
-				{
-					serial_cmd_status = APP_CTR_DATALEN_ERR;	
-				}
-				else
-				{
-					memcpy(uart_card_cmd_sign,ReviceMessage.SIGN,4);
-					App_open_or_close_match( &ReviceMessage, &SendMessage);
-					serial_cmd_status = APP_CTR_IDLE;
-				}
-			}				
-			break;		
-	
-		/* 打印当前白名单 */
-		case 0x2B:	
-			{
-				if(ReviceMessage.LEN != 0)
-				{
-					serial_cmd_status = APP_CTR_DATALEN_ERR;	
-				}
-				else
-				{
-					whitelist_print_index = App_return_whitelist_data( 
-							&ReviceMessage, &SendMessage,whitelist_print_index );
-					if( whitelist_print_index < white_len )
+			/* 停止下发数据 */	
+			case 0x12:
+				{ 				
+					if(ReviceMessage.LEN != 0)
 					{
-						serial_cmd_status = 0x2B;
+						err_cmd_type = serial_cmd_type;	
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;					
 					}
 					else
 					{
-						serial_cmd_status = APP_CTR_IDLE;
-						whitelist_print_index = 0;
+						App_stop_send_data_to_clickers( &ReviceMessage, &SendMessage);
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 					}
 				}
-			}
-			break;	
-			
-		/* 获取设备信息 */	
-		case 0x2C:		
-			{
-				if(ReviceMessage.LEN != 0)
+				break;
+				
+			/* 添加或者删除白名单 */
+			case 0x20:	
+			case 0x21:		
+				{				
+					if(ReviceMessage.LEN != 4*ReviceMessage.DATA[0] + 1)
+					{
+						err_cmd_type = serial_cmd_type;	
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;	 
+					}
+					else
+					{
+						App_operate_uids_to_whitelist( &ReviceMessage, &SendMessage);
+						serial_cmd_status = APP_CTR_IDLE;
+					}
+				}											
+				break;
+				
+			/* 初始化白名单 */
+			case 0x22:
 				{
-					serial_cmd_status = APP_CTR_DATALEN_ERR;	
+					if(ReviceMessage.LEN != 0)
+					{
+						err_cmd_type = serial_cmd_type;	
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;						
+					}
+					else
+					{
+						App_initialize_white_list( &ReviceMessage, &SendMessage);
+						serial_cmd_status = APP_CTR_IDLE;
+					}
 				}
-				else
+				break;	
+			
+			/* 开启或者关闭白名单 */
+			case 0x23:
+			case 0x24:		
 				{
-					App_return_device_info( &ReviceMessage, &SendMessage);
+					if(ReviceMessage.LEN != 0)
+					{
+						err_cmd_type = serial_cmd_type;	
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;							
+					}
+					else
+					{
+						App_open_or_close_white_list( &ReviceMessage, &SendMessage);
+						serial_cmd_status = APP_CTR_IDLE;
+					}
+				}
+				break;	
+				
+			/* 开始或者关闭考勤 */
+			case 0x25:	
+			case 0x27:					
+				{
+					if(ReviceMessage.LEN != 0)
+					{
+						err_cmd_type = serial_cmd_type;	
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;	
+					}
+					else
+					{
+						memcpy(uart_card_cmd_sign,ReviceMessage.SIGN,4);
+						App_open_or_close_attendance( &ReviceMessage, &SendMessage);
+						serial_cmd_status = APP_CTR_IDLE;
+					}						
+				}				
+				break;	
+				
+			/* 开始或者关闭配对 */
+			case 0x28:	
+			case 0x2A:
+				{				
+					if(ReviceMessage.LEN != 0)
+					{
+						err_cmd_type = serial_cmd_type;	
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;	
+					}
+					else
+					{
+						memcpy(uart_card_cmd_sign,ReviceMessage.SIGN,4);
+						App_open_or_close_match( &ReviceMessage, &SendMessage);
+						serial_cmd_status = APP_CTR_IDLE;
+					}
+				}				
+				break;		
+		
+			/* 打印当前白名单 */
+			case 0x2B:	
+				{
+					if(ReviceMessage.LEN != 0)
+					{
+						err_cmd_type = serial_cmd_type;	
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;	
+					}
+					else
+					{
+						whitelist_print_index = App_return_whitelist_data( 
+								&ReviceMessage, &SendMessage,whitelist_print_index );
+						if( whitelist_print_index < white_len )
+						{
+							serial_cmd_type = 0x2B;
+							serial_cmd_status = APP_SERIAL_CMD_STATUS_WORK;
+						}
+						else
+						{
+							serial_cmd_status = APP_CTR_IDLE;
+							whitelist_print_index = 0;
+						}
+					}
+				}
+				break;	
+				
+			/* 获取设备信息 */	
+			case 0x2C:		
+				{
+					if(ReviceMessage.LEN != 0)
+					{
+						err_cmd_type = serial_cmd_type;	
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;						
+					}
+					else
+					{
+						App_return_device_info( &ReviceMessage, &SendMessage);
+						serial_cmd_status = APP_CTR_IDLE;
+					}
+				}
+				break;
+		
+			case APP_CTR_DATALEN_ERR:
+				{
+					App_returnErr(&SendMessage,err_cmd_type,APP_CTR_DATALEN_ERR);
 					serial_cmd_status = APP_CTR_IDLE;
 				}
-			}
-			break;
-	
-		case APP_CTR_DATALEN_ERR:
+				break;
+				
+			case APP_CTR_UNKNOWN:
 			{
-				App_returnErr(&SendMessage,0x00,0x00);
+				App_returnErr(&SendMessage,err_cmd_type,APP_CTR_UNKNOWN);
 				serial_cmd_status = APP_CTR_IDLE;
 			}
-			break;
-			
-		/* 无法识别的指令 */
-		default:	
-			serial_cmd_status = 0xff;	
-			break;
+				break;
+			/* 无法识别的指令 */
+			default:	
+				{
+					serial_cmd_type = 0xff;	
+					err_cmd_type = serial_cmd_type;	
+					serial_cmd_status = APP_CTR_IDLE;
+				}
+				break;
+		}
 	}
-		
-	/* 执行完的指令存入发送缓存 */
-	if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
+	
+	/* 执行完的指令存入发送缓存:指令没有出错 */
+	if(serial_cmd_status != APP_SERIAL_CMD_STATUS_ERR)
 	{
-		DebugLog("Serial Send Buffer is full! \r\n");
+		if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
+		{
+			DebugLog("Serial Send Buffer is full! \r\n");
+		}
+		else
+		{
+			serial_ringbuffer_write_data(SEND_RINGBUFFER,&SendMessage);
+		}		
 	}
-	else
-	{
-		serial_ringbuffer_write_data(SEND_RINGBUFFER,&SendMessage);
-	}		
 }
 
 void app_debuglog_dump(uint8_t * p_buffer, uint32_t len)
@@ -756,8 +792,12 @@ void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef 
 ******************************************************************************/
 void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err_type )
 {
-
-
+	
+	SMessage->HEADER = 0x5C;
+	
+	SMessage->TYPE   = cmd_type;
+	
+	SMessage->END = 0xCA;
 }
 
 
