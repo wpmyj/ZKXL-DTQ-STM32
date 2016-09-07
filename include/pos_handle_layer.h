@@ -22,6 +22,10 @@
 #define APP_CTR_DATALEN_ERR               0xFE // 0xfe: 帧长度不合法
 #define APP_CTR_UNKNOWN                   0xFF // 0xff: 未能识别的帧
 
+#define APP_SERIAL_CMD_STATUS_IDLE        0x00
+#define APP_SERIAL_CMD_STATUS_WORK        0x01
+#define APP_SERIAL_CMD_STATUS_ERR         0x02
+
 
 void App_seirial_cmd_process(void);
 
