@@ -11,6 +11,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #define RC500_DATIQI_FUNCHTION	(1)
+
+extern uint8_t serial_cmd ;	
+			 
 static void sendtoRC500(void);
 void ComPcdFindCard(void);
 void ComPcdAntenna(void);  
@@ -195,56 +198,56 @@ static void sendtoRC500(void)
 				memset(g_cardType, 0, BUF_LEN);
 				PcdRATS(respon, &len);
 				memcpy(g_cardType, respon, len);
-				flag_App_or_Ctr = 0xee;	
+				serial_cmd = 0xee;	
 			break;
 
 			case 0x71:		// Protocol and Parameter Selection
 				memset(g_cardType, 0, BUF_LEN);
 				PcdPPS(respon, &len);
 				memcpy(g_cardType, respon, len);
-				flag_App_or_Ctr = 0xee;	
+				serial_cmd = 0xee;	
 			break;
 
 			case 0x72:		// 选择M24SR应用
 				memset(g_cardType, 0, BUF_LEN);
 				PcdSelectApplication(respon, &len);
 				memcpy(g_cardType, respon, len);
-				flag_App_or_Ctr = 0xee;
+				serial_cmd = 0xee;
 			break;	
 
 			case 0x73:		// 选择CC文件
 				memset(g_cardType, 0, BUF_LEN);
 				PcdSelectCCfile(respon, &len);
 				memcpy(g_cardType, respon, len);
-				flag_App_or_Ctr = 0xee;	
+				serial_cmd = 0xee;	
 			break;
 
 			case 0x74:		// 读取CC文件长度
 				memset(g_cardType, 0, BUF_LEN);
 				PcdReadCCfileLength(respon, &len);
 				memcpy(g_cardType, respon, len);
-				flag_App_or_Ctr = 0xee;	
+				serial_cmd = 0xee;	
 			break;
 
 			case 0x75:		// 读取指定长度CC文件
 				memset(g_cardType, 0, BUF_LEN);
 				PcdReadCCfile(0x0002, 0x0d, respon, &len);
 				memcpy(g_cardType, respon, len);
-				flag_App_or_Ctr = 0xee;	
+				serial_cmd = 0xee;	
 			break;
 
 			case 0x76:		// 选择NDEF文件
 				memset(g_cardType, 0, BUF_LEN);
 				PcdSelectNDEFfile(respon, &len);
 				memcpy(g_cardType, respon, len);
-				flag_App_or_Ctr = 0xee;	
+				serial_cmd = 0xee;	
 			break;
 
 			case 0x77:		// 读取NDEF文件长度
 				memset(g_cardType, 0, BUF_LEN);
 				PcdReadNDEFfileLength(respon, &len);
 				memcpy(g_cardType, respon, len);
-				flag_App_or_Ctr = 0xee;	
+				serial_cmd = 0xee;	
 			break;
 
 			case 0x78:		// 读取指定长度NDEF文件
@@ -253,49 +256,49 @@ static void sendtoRC500(void)
 				tmp_read_len = ((uint16_t)respon[1] << 8) | (respon[2]);
 				PcdReadNDEFfile(0x0000, tmp_read_len + 2, respon, &len);
 				memcpy(g_cardType, respon, len);
-				flag_App_or_Ctr = 0xee;	
+				serial_cmd = 0xee;	
 			break;
 
 			case 0x79:		// 选择系统文件
 				memset(g_cardType, 0, BUF_LEN);
 				PcdSelectSystemfile(respon, &len);
 				memcpy(g_cardType, respon, len);
-				flag_App_or_Ctr = 0xee;	
+				serial_cmd = 0xee;	
 			break;
 
 			case 0x7a:		// 读取系统文件长度
 				memset(g_cardType, 0, BUF_LEN);
 				PcdReadSystemfileLength(respon, &len);
 				memcpy(g_cardType, respon, len);
-				flag_App_or_Ctr = 0xee;	
+				serial_cmd = 0xee;	
 			break;
 	
 			case 0x7b:		// 读取指定长度系统文件
 				memset(g_cardType, 0, BUF_LEN);
 				PcdReadSystemfile(0x0000, 10, respon, &len);
 				memcpy(g_cardType, respon, len);
-				flag_App_or_Ctr = 0xee;	
+				serial_cmd = 0xee;	
 			break;
 
 			case 0x7c:		//  读卡器发送中断
 				memset(g_cardType, 0, BUF_LEN);
 				PcdSendInterrupt(respon, &len);
 				memcpy(g_cardType, respon, len);
-				flag_App_or_Ctr = 0xee;	
+				serial_cmd = 0xee;	
 			break;					 
 
 			case 0x7d:		// 写数据到NDEF文件
 				memset(g_cardType, 0, BUF_LEN);
 				PcdWriteNDEFfile(0x0000, 0x02, NDEF_DataWrite, respon, &len);
 				memcpy(g_cardType, respon, len);
-				flag_App_or_Ctr = 0xee;	
+				serial_cmd = 0xee;	
 			break;
 			
 			case 0x7e:		//去除选择
 				memset(g_cardType, 0, BUF_LEN);
 				PcdDeselect(respon, &len);
 				memcpy(g_cardType, respon, len);
-				flag_App_or_Ctr = 0xee;	
+				serial_cmd = 0xee;	
 			break;
 ////////////////////////////////////   NFC相关命令  ////////////////////////////////////////////////					 
 			default:
@@ -533,7 +536,7 @@ void ComPcdFindCard(void)
 				break;
 				
 			case 0x07:	//寻卡成功
-				flag_App_or_Ctr = 0x09;							//寻卡成功
+				serial_cmd = 0x09;							//寻卡成功
 				if(flag_upload_uid_once)						//如果置位单次上传卡号标志，则让卡休眠，卡号只上传一次
 				{
 					flag_upload_uid_once = false;
@@ -891,7 +894,7 @@ void ComCL_Deselect()
 /////////////////////////////////////////////////////////////////////
 void AnswerCommandOk(void)
 {
-	if(flag_App_or_Ctr == 0)
+	if(serial_cmd == 0)
 	{
 		Buf_CtrRC500ToApp[0] = 0x00;
 		Buf_CtrRC500ToApp[1] = 0x00;
@@ -899,7 +902,7 @@ void AnswerCommandOk(void)
 		Buf_CtrRC500ToApp[3] = Buf_AppToCtrRC500[3];
 		Buf_CtrRC500ToApp[4] = 0x00;	 //成功标志位
 		Buf_CtrRC500ToApp[5] = XOR_Cal(&Buf_CtrRC500ToApp[0],5);
-		flag_App_or_Ctr = 0x05;	
+		serial_cmd = 0x05;	
 		Length_CtrRC500ToApp = 6;	
 	}	
 }
@@ -911,7 +914,7 @@ void AnswerCommandOk(void)
 /////////////////////////////////////////////////////////////////////
 void AnswerOk(uint8_t *answerdata, unsigned int answerlen)
 {
-	if(flag_App_or_Ctr == 0)
+	if(serial_cmd == 0)
 	{
 		Buf_CtrRC500ToApp[0] = 0x00;
 		Buf_CtrRC500ToApp[1] = 0x00;
@@ -920,7 +923,7 @@ void AnswerOk(uint8_t *answerdata, unsigned int answerlen)
 		Buf_CtrRC500ToApp[4] = 0x00;	 //成功标志位
 		memcpy(&Buf_CtrRC500ToApp[5], answerdata, answerlen);
 		Buf_CtrRC500ToApp[Buf_CtrRC500ToApp[2]+1]= XOR_Cal(&Buf_CtrRC500ToApp[0],answerlen+5);
-		flag_App_or_Ctr = 0x05;  
+		serial_cmd = 0x05;  
 		Length_CtrRC500ToApp = answerlen + 6; 	
 //		memcpy(&Buf_CtrRC500return[0],answerdata,answernum);	
 	}
@@ -931,7 +934,7 @@ void AnswerOk(uint8_t *answerdata, unsigned int answerlen)
 /////////////////////////////////////////////////////////////////////
 void AnswerErr(int faultcode)
 {
-	if(flag_App_or_Ctr == 0)
+	if(serial_cmd == 0)
 	{
 		Buf_CtrRC500ToApp[0] = 0x00;
 		Buf_CtrRC500ToApp[1] = 0x00;
@@ -939,7 +942,7 @@ void AnswerErr(int faultcode)
 		Buf_CtrRC500ToApp[3] = Buf_AppToCtrRC500[3];
 		Buf_CtrRC500ToApp[4] = faultcode  ;	 //错误代码
 		Buf_CtrRC500ToApp[5] = XOR_Cal(&Buf_CtrRC500ToApp[0],5);
-		flag_App_or_Ctr = 0x05;	
+		serial_cmd = 0x05;	
 		Length_CtrRC500ToApp = 6; 		
 	}
 }
