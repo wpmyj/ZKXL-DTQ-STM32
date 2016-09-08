@@ -58,7 +58,9 @@ void set_index_of_white_list_pos( uint8_t index )
 	                               (uint16_t)((uint16_t)1<<pos2)) & 0x7FFF;
 	
 	flash_white_list_use_table();
-	white_len++;
+	
+	if(white_len<120)
+		white_len++;
 }
 
 /******************************************************************************
@@ -78,6 +80,9 @@ void clear_index_of_white_list_pos( uint8_t index )
                 	               ~(uint16_t)((uint16_t)1<<pos2);
 	
 	flash_white_list_use_table();
+	
+	if(white_len>0)
+		white_len--;
 }
 
 /******************************************************************************
