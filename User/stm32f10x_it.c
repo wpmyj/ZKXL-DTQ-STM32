@@ -540,7 +540,7 @@ uint8_t ack_buff[] = {0xAA,0xBB,0xCC,0xDD,0xEE,0xFF};
 
 void RFIRQ_EXTI_IRQHandler(void)
 {
-	bool    Is_whitelist_uid = false;
+	bool    Is_whitelist_uid = OPERATION_ERR;
 	uint8_t uidpos = 0;
 	
 	if(EXTI_GetITStatus(EXTI_LINE_RFIRQ) != RESET)
@@ -553,7 +553,7 @@ void RFIRQ_EXTI_IRQHandler(void)
 		if(white_on_off == OFF)
 		{
 			/* 白名单关闭数据透传 */
-			Is_whitelist_uid = true;
+			Is_whitelist_uid = OPERATION_SUCCESS;
 		}
 		else
 		{
@@ -562,7 +562,7 @@ void RFIRQ_EXTI_IRQHandler(void)
 		}
 		
 		/* 白名单匹配 */
-		if(Is_whitelist_uid)			
+		if(Is_whitelist_uid == OPERATION_SUCCESS)			
 		{	
 			/* 打开心跳包发送开关 */
 			// rf_systick_flag = 1;
