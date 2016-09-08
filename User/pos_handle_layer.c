@@ -447,15 +447,13 @@ void App_initialize_white_list( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 
 	SMessage->LEN = 0x01;
 
-	if(whitelist_init_status == 0x01)
+	if(whitelist_init_status == OPERATION_SUCCESS)
 	{
 		*( pdata + ( i++ ) ) = 0;
-		App_to_CtrPosReq = true;
 	}
 	else
 	{
 		*( pdata + ( i++ ) ) = 1;
-		App_to_CtrPosReq = false;
 	}
 
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
