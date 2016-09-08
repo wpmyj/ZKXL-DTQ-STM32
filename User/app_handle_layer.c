@@ -14,6 +14,7 @@
 #include "rc500_handle_layer.h"
 
 extern uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];		
+extern uint8_t card_cmd_type ;
 
 void App_rf_check_process(void);
 void App_card_process(void);
@@ -115,7 +116,7 @@ void App_card_process(void)
 			if(attendance_on_off)						
 			{
 				is_white_list_uid = add_uid_to_white_list(g_cSNR,&uid_p);
-				if(is_white_list_uid == OPERATION_SUCCESS)
+				if(is_white_list_uid != OPERATION_ERR)
 				{
           // OK
 					cmd_process_status = 1;
@@ -137,12 +138,18 @@ void App_card_process(void)
 				/* ·â×°Ð­Òé  */
 				{
 					card_message.HEADER = 0x5C;
-					card_message.TYPE   = 0x29;
+					switch(card_cmd_type)
+					{
+						case 0x25: card_message.TYPE   = 0x26; break;
+						case 0x28: card_message.TYPE   = 0x29; break;
+						default:                               break;
+					}
 					memcpy(card_message.SIGN,uart_card_cmd_sign,4);
 					card_message.LEN    = 0x04;
 					memcpy(card_message.DATA,g_cSNR,4);
 					card_message.XOR = XOR_Cal(&card_message.TYPE,10);
 					card_message.END  = 0xCA;
+					card_cmd_type = 0x00;
 				}
 			}
 			
