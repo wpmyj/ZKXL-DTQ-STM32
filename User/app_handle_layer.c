@@ -50,7 +50,6 @@ void app_handle_layer(void)
 void App_rf_check_process(void)
 {
 	Uart_MessageTypeDef rf_message;
-	Rf_MessageTypeDef   *message;
 	uint8_t i = 0 ;
 	
 	if(rf_var.flag_rx_ok == true)
@@ -60,9 +59,8 @@ void App_rf_check_process(void)
 		
 		memcpy(rf_message.SIGN,uart_rf_cmd_sign,4);
 		
-		message = (Rf_MessageTypeDef *)rf_message.DATA;
-		
-		rf_message.LEN = message->LEN + 10;
+		/* 获取消息的有效长度 */
+		rf_message.LEN = rf_var.rx_buf[7] + 10;
 
 		for (i=0;i<rf_message.LEN;i++)
 		{
