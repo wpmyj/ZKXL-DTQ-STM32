@@ -393,7 +393,7 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
 	
 	/* 获取数据长度 */
-	rf_var.tx_len = RMessage->LEN;
+	rf_var.tx_len = RMessage->LEN+9;
 
 	/* 获取数据内容 */ 
 	memcpy(rf_var.tx_buf, (uint8_t *)RMessage, RMessage->LEN+7);
