@@ -800,11 +800,17 @@ void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err
 	
 	SMessage->HEADER = 0x5C;
 	SMessage->TYPE   = cmd_type;
-
+	
+	memset(SMessage->SIGN, 0xFF, 4);
+	
+	SMessage->LEN = 2;
+	
+	/* ²Ù×÷Ê§°Ü */
 	*( pdata + ( i++ ) ) = 0x01;
+	/* ´íÎóÀàÐÍ */
 	*( pdata + ( i++ ) ) = err_type;
 	
-	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+2);
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;
 }
 
