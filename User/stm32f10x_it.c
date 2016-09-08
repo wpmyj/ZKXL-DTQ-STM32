@@ -30,6 +30,7 @@ static uint32_t uart_rx_timeout = 0;
 static uint32_t rf_tx_time_cnt = 0;
 static bool     flag_uart_rxing = false;
 static uint8_t  uart_status     = UartHEADER;
+//static uint8_t  clickers_uid[4];
 
 // send part
 Uart_MessageTypeDef uart_irq_send_massage;
@@ -42,7 +43,9 @@ extern uint8_t 			        jsq_to_dtq_sequence;
 extern uint8_t              sign_buffer[4];
 
 /* rf systick data */
-uint8_t rf_systick_flag = 0;
+uint8_t rf_systick_status = 0; // 0 = IDLE
+uint8_t rf_clickers_sign[4];
+
 Uart_MessageTypeDef rf_systick_massage = {
 	0x5C,                 // HEADER
 	0x10,                 // TYPE
@@ -54,11 +57,8 @@ Uart_MessageTypeDef rf_systick_massage = {
 	0x00,                     // RFU
 	0x17,                     // TYPE
 	0x00,                     // LEN
-	0x17,                     // XOR
+	0x00,                     // XOR
 	0xCA,                     // END
-	
-	0x00,                 // XOR
-	0xCA                  // END
 	
 };
 	
@@ -419,22 +419,14 @@ void SysTick_Handler(void)
 {
 	TimingDelay_Decrement();
 	
-	if(rf_systick_flag == 1)
+	if(rf_systick_status == 1)
 	{
 		rf_tx_time_cnt++;
 		
-		/* 3S 产生心跳包 同时计数器清零 */
-		if(rf_tx_time_cnt >= 3000)
+		/* 10S 产生心跳包 同时计数器清零 */
+		if(rf_tx_time_cnt >= 10000)
 		{
-			if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
-			{
-				DebugLog("Serial Send Buffer is full! \r\n");
-			}
-			else
-			{
-				serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_systick_massage);
-			}
-			rf_systick_flag = 0;
+			rf_systick_status = 2;
 			rf_tx_time_cnt = 0;
 		}
 	}
@@ -549,25 +541,50 @@ void RFIRQ_EXTI_IRQHandler(void)
 		
 		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_communication.receive_len, nrf_communication.receive_buf);		//读取数据
 		
+		/* 白名单开启，检测是否为白名单的内容 */
+		Is_whitelist_uid = search_uid_in_white_list(nrf_communication.receive_buf+1,&uidpos);
+				
+		if(Is_whitelist_uid == OPERATION_SUCCESS)		
+		{
+			if(rf_systick_status == 0)
+			{
+				/* 打开心跳包发送开关 */
+				rf_systick_status = 1;
+				memcpy(rf_clickers_sign,nrf_communication.receive_buf+1,4);
+			}
+			
+			if(rf_systick_status == 3)
+			{
+				/* 填充心跳包 */
+				memcpy(rf_systick_massage.DATA+1,rf_clickers_sign,4);
+				rf_systick_massage.DATA[8] =  XOR_Cal(rf_systick_massage.DATA+1, 7);
+				rf_systick_massage.XOR =  XOR_Cal((uint8_t *)(&(rf_systick_massage.TYPE)), rf_systick_massage.LEN+6);
+				rf_systick_massage.END = 0xCA;
+				
+				/* 上传在线状态 */
+				if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
+				{
+					DebugLog("Serial Send Buffer is full! \r\n");
+				}
+				else
+				{
+					serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_systick_massage);
+				}
+				
+				rf_systick_status = 1;
+			}
+		}
+		
 		/* 白名单是否关闭 */
 		if(white_on_off == OFF)
 		{
 			/* 白名单关闭数据透传 */
 			Is_whitelist_uid = OPERATION_SUCCESS;
 		}
-		else
-		{
-			/* 白名单开启，检测是否为白名单的内容 */
-			Is_whitelist_uid = search_uid_in_white_list(nrf_communication.receive_buf+1,&uidpos);
-		}
 		
 		/* 白名单匹配 */
 		if(Is_whitelist_uid == OPERATION_SUCCESS)			
 		{	
-			/* 打开心跳包发送开关 */
-			// rf_systick_flag = 1;
-			rf_systick_flag = 0;
-			
 			/* get uid */
 			memcpy(sign_buffer,nrf_communication.receive_buf+1,4);			
 			

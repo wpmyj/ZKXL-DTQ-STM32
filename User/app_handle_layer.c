@@ -16,6 +16,10 @@
 extern uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];		
 extern uint8_t card_cmd_type ;
 
+extern uint8_t rf_systick_status;
+extern uint8_t rf_clickers_sign[4];
+
+void App_clickers_systick_process(void);
 void App_rf_check_process(void);
 void App_card_process(void);
 void Buzze_Control(void);
@@ -38,6 +42,62 @@ void app_handle_layer(void)
 		
 		/* MI Card processing process */
 		App_card_process();
+	
+		/*clickers systick process */
+		App_clickers_systick_process();
+	
+}
+
+/******************************************************************************
+  Function:App_rf_check_process
+  Description:
+		App RF 射频轮询处理函数
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void App_clickers_systick_process(void)
+{
+	Uart_MessageTypeDef ReviceMessage;
+	uint8_t buffer_status = 0;
+	
+	/* 5s 时间到 发送新的心跳包到答题器 */
+	if(rf_systick_status == 2)
+	{
+		ReviceMessage.HEADER = 0x5C;
+		ReviceMessage.TYPE   = 0x10;
+		memset(ReviceMessage.SIGN,0x00,4);
+		ReviceMessage.LEN = 0x10;
+		
+		ReviceMessage.DATA[0] = 0x5A;
+		ReviceMessage.DATA[1] = rf_clickers_sign[0];
+		ReviceMessage.DATA[2] = rf_clickers_sign[1];
+		ReviceMessage.DATA[3] = rf_clickers_sign[2];
+ 		ReviceMessage.DATA[4] = rf_clickers_sign[3];
+		ReviceMessage.DATA[5] = 0x00;
+		ReviceMessage.DATA[6] = 0x17;
+		ReviceMessage.DATA[7] = 0x00;
+		ReviceMessage.DATA[8] = XOR_Cal(ReviceMessage.DATA+1, 7);
+		ReviceMessage.DATA[9] = 0xCA;
+		
+		ReviceMessage.XOR = XOR_Cal((uint8_t *)(&(ReviceMessage.TYPE)), 9+6);	
+		ReviceMessage.XOR = 0xCA;
+		
+		/* 获取接收缓存的状态 */
+		buffer_status = buffer_get_buffer_status(REVICE_RINGBUFFER);
+		
+		/* 根据状态决定是否读取缓存指令 */
+		if(BUFFERFULL == buffer_status)
+		{
+			DebugLog("Serial Send Buffer is full! \r\n");
+		}
+		else
+		{
+			serial_ringbuffer_write_data(REVICE_RINGBUFFER,&ReviceMessage);
+			rf_systick_status = 3;
+		}	
+		
+	}
 }
 
 /******************************************************************************
@@ -115,11 +175,14 @@ void App_card_process(void)
 			/* 处理数据 */
 			if(attendance_on_off)						
 			{
-				is_white_list_uid = add_uid_to_white_list(g_cSNR,&uid_p);
+				is_white_list_uid = add_uid_to_white_list(g_cSNR+4,&uid_p);
+
 				if(is_white_list_uid != OPERATION_ERR)
 				{
           // OK
 					cmd_process_status = 1;
+					rf_systick_status = 1;
+					memcpy(rf_clickers_sign,g_cSNR+4,4);
 				}
 				else
 				{
@@ -146,7 +209,7 @@ void App_card_process(void)
 					}
 					memcpy(card_message.SIGN,uart_card_cmd_sign,4);
 					card_message.LEN    = 0x04;
-					memcpy(card_message.DATA,g_cSNR,4);
+					memcpy(card_message.DATA,g_cSNR+4,4);
 					card_message.XOR = XOR_Cal(&card_message.TYPE,10);
 					card_message.END  = 0xCA;
 					card_cmd_type = 0x00;

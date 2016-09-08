@@ -96,7 +96,7 @@ static void serial_send_data_to_pc(void)
 				uart_irq_send_massage.SIGN[1],
 				uart_irq_send_massage.SIGN[2],
 				uart_irq_send_massage.SIGN[3]);
-		printf("message->len    = %2d\r\n",uart_irq_send_massage.LEN);
+		printf("message->len    = %2X\r\n",uart_irq_send_massage.LEN);
 		printf("message->data   = ");
 		for(i=0;i<uart_tx_cnt;i++)
 		{
@@ -282,6 +282,7 @@ static void serial_cmd_process(void)
 				}
 				break;	
 				
+				
 			/* 获取设备信息 */	
 			case 0x2C:		
 				{
@@ -298,7 +299,14 @@ static void serial_cmd_process(void)
 					}
 				}
 				break;
-		
+			
+			/* 返回心跳在线状态 */
+			case 0x2D:
+				{
+					
+				}
+				break;
+				
 			case APP_CTR_DATALEN_ERR:
 				{
 					App_returnErr(&SendMessage,err_cmd_type,APP_CTR_DATALEN_ERR);
@@ -307,11 +315,12 @@ static void serial_cmd_process(void)
 				break;
 				
 			case APP_CTR_UNKNOWN:
-			{
-				App_returnErr(&SendMessage,err_cmd_type,APP_CTR_UNKNOWN);
-				serial_cmd_status = APP_CTR_IDLE;
-			}
+				{
+					App_returnErr(&SendMessage,err_cmd_type,APP_CTR_UNKNOWN);
+					serial_cmd_status = APP_CTR_IDLE;
+				}
 				break;
+			
 			/* 无法识别的指令 */
 			default:	
 				{
