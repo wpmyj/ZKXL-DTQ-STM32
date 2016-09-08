@@ -653,7 +653,7 @@ void App_open_or_close_attendance_match( Uart_MessageTypeDef *RMessage, Uart_Mes
 		case 0x25: attendance_on_off = ON;  break;
 		case 0x27: attendance_on_off = OFF; break;
 		case 0x28: match_on_off = ON;       break;
-		case 0x29: match_on_off = OFF;      break;
+		case 0x2A: match_on_off = OFF;      break;
 		default:                            break;
 	}
 	
