@@ -33,6 +33,13 @@ void Platform_Init(void)
 	Usart1_Init();
 	GPIOInit_SE2431L();
 	
+	/* get mcu uuid */
+	get_mcu_uid();
+	
+	/* 配对是存入接收器器UID到答题器 */
+	NDEF_DataWrite[1] = 0x04;
+	memcpy((NDEF_DataWrite+2),jsq_uid,4);
+	
 	/* initialize the spi interface with nrf51822 */
 	nrf51822_spi_init();	
 	nrf51822_parameters_init();
@@ -66,12 +73,12 @@ void Platform_Init(void)
 	ledOff(LGREEN);
 	ledOff(LBLUE);
 		
-	/* get mcu uuid */
-	get_mcu_uid();
-	
-	/* 配对是存入接收器器UID到答题器 */
-	NDEF_DataWrite[1] = 0x04;
-	memcpy((NDEF_DataWrite+2),jsq_uid,4);
+//	/* get mcu uuid */
+//	get_mcu_uid();
+//	
+//	/* 配对是存入接收器器UID到答题器 */
+//	NDEF_DataWrite[1] = 0x04;
+//	memcpy((NDEF_DataWrite+2),jsq_uid,4);
 	
 	DebugLog("[%s]:System clock freq is %dMHz\r\n",__func__, SystemCoreClock / 1000000);
 	DebugLog("[%s]:UID is %X%X%X%X%X%X%X%X\r\n",__func__,

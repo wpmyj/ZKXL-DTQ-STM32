@@ -279,10 +279,10 @@ void nrf51822_parameters_init(void)
 	nrf_communication.dtq_uid[2] = 0x63;
 	nrf_communication.dtq_uid[3] = 0x64;
 	
-	nrf_communication.jsq_uid[0] = 0x21;
-	nrf_communication.jsq_uid[1] = 0x22;
-	nrf_communication.jsq_uid[2] = 0x23;
-	nrf_communication.jsq_uid[3] = 0x24;
+	nrf_communication.jsq_uid[0] = jsq_uid[0];
+	nrf_communication.jsq_uid[1] = jsq_uid[1];
+	nrf_communication.jsq_uid[2] = jsq_uid[2];
+	nrf_communication.jsq_uid[3] = jsq_uid[3];
 	
 	//返回ACK结构体，固定参数定义，
 	nrf_communication.software_ack_len = NRF_TOTAL_DATA_LEN;	
