@@ -565,7 +565,8 @@ void RFIRQ_EXTI_IRQHandler(void)
 		if(Is_whitelist_uid)			
 		{	
 			/* 打开心跳包发送开关 */
-			rf_systick_flag = 1;
+			// rf_systick_flag = 1;
+			rf_systick_flag = 0;
 			
 			/* get uid */
 			memcpy(sign_buffer,nrf_communication.receive_buf+1,4);			
