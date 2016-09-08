@@ -11,7 +11,7 @@
 #include "main.h"
 #include "nrf.h"
 
-#define NRF_DEBUG
+
 
 #ifdef NRF_DEBUG
 #define nrf_debug  printf   
