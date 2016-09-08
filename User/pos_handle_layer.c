@@ -23,6 +23,7 @@ extern uint8_t uart_tx_status;
 			 uint8_t err_cmd_type = 0;
 	     uint8_t sign_buffer[4];
 			 uint8_t whitelist_print_index = 0;
+			 uint8_t card_cmd_type = 0;
 			 
 uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];				 
 			 
@@ -38,8 +39,7 @@ void App_stop_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_Message
 void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_open_or_close_white_list( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 uint8_t App_return_whitelist_data( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage, uint8_t index);
-void App_open_or_close_attendance( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
-void App_open_or_close_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_open_or_close_attendance_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err_type );
 void App_uart_message_copy( Uart_MessageTypeDef *SrcMessage, Uart_MessageTypeDef *DstMessage );
@@ -234,26 +234,9 @@ static void serial_cmd_process(void)
 				}
 				break;	
 				
-			/* 开始或者关闭考勤 */
+			/* 开始或者关闭考勤,开始或者关闭配对 */
 			case 0x25:	
 			case 0x27:					
-				{
-					if(ReviceMessage.LEN != 0)
-					{
-						err_cmd_type = serial_cmd_type;	
-						serial_cmd_type = APP_CTR_DATALEN_ERR;
-						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;	
-					}
-					else
-					{
-						memcpy(uart_card_cmd_sign,ReviceMessage.SIGN,4);
-						App_open_or_close_attendance( &ReviceMessage, &SendMessage);
-						serial_cmd_status = APP_CTR_IDLE;
-					}						
-				}				
-				break;	
-				
-			/* 开始或者关闭配对 */
 			case 0x28:	
 			case 0x2A:
 				{				
@@ -266,7 +249,7 @@ static void serial_cmd_process(void)
 					else
 					{
 						memcpy(uart_card_cmd_sign,ReviceMessage.SIGN,4);
-						App_open_or_close_match( &ReviceMessage, &SendMessage);
+						App_open_or_close_attendance_match( &ReviceMessage, &SendMessage);
 						serial_cmd_status = APP_CTR_IDLE;
 					}
 				}				
@@ -493,7 +476,7 @@ void App_open_or_close_white_list( Uart_MessageTypeDef *RMessage,
 	
 	openstatus = store_switch_status_to_fee(white_on_off);
 	
-	if(openstatus == true)
+	if(openstatus == OPERATION_SUCCESS)
 	{
 		*( pdata + ( i++ ) ) = 0;
 	}
@@ -659,64 +642,28 @@ uint8_t App_return_whitelist_data( Uart_MessageTypeDef *RMessage, Uart_MessageTy
   Return:
   Others:None
 ******************************************************************************/
-void App_open_or_close_attendance( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+void App_open_or_close_attendance_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
 {
 	uint8_t i = 0;
 
 	SMessage->HEADER = 0x5C;
 	
-	if(RMessage->TYPE == 0x25)
+	switch(RMessage->TYPE)
 	{
-		attendance_on_off = ON;
-	}
-	else
-	{
-		attendance_on_off = OFF;
+		case 0x25: attendance_on_off = ON;  break;
+		case 0x27: attendance_on_off = OFF; break;
+		case 0x28: match_on_off = ON;       break;
+		case 0x29: match_on_off = OFF;      break;
+		default:                            break;
 	}
 	
+	card_cmd_type = RMessage->TYPE;
 	SMessage->TYPE = RMessage->TYPE;
 		
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
 	
-	SMessage->LEN = 0x00;
-	
-	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
-	SMessage->END = 0xCA;
-
-}
-
-
-/******************************************************************************
-  Function:App_open_or_close_match
-  Description:
-		开启或者关闭配对
-  Input :
-		RMessage:串口接收指令的消息指针
-		SMessage:串口发送指令的消息指针
-  Return:
-  Others:None
-******************************************************************************/
-void App_open_or_close_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
-{
-	uint8_t i = 0;
-	
-	SMessage->HEADER = 0x5C;
-	
-	if(RMessage->TYPE == 0x28)
-	{
-		match_on_off = ON;
-		match_number = 1;
-	}
-	else
-	{
-		match_on_off = OFF;
-	}
-	
-	SMessage->TYPE = RMessage->TYPE;
-	
-	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
-	
-	SMessage->LEN = 0x00;
+	SMessage->LEN = 0x01;
+	SMessage->DATA[i++] = 0;
 	
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;
@@ -775,6 +722,7 @@ void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef 
 			*( pdata + ( j++ ) )=(company[i]<<4)|(company[i+1]);
 	}
 	
+	SMessage->LEN = j;
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), j+6);
 	SMessage->END = 0xCA;
 	
