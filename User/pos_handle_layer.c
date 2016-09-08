@@ -392,12 +392,11 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 	uint16_t i = 0;
 	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
 	
-	/* 获取数据长度 */
-	rf_var.tx_len = RMessage->LEN+9;
-
-	/* 获取数据内容 */ 
-	memcpy(rf_var.tx_buf, (uint8_t *)RMessage, RMessage->LEN+7);
-	memcpy(rf_var.tx_buf+RMessage->LEN+7,&(RMessage->XOR),2);
+	/* 获取:包封装的答题器->数据长度 */
+	rf_var.tx_len = RMessage->LEN;
+	
+	/* 获取：包封装的答题器->数据内容 */ 
+	memcpy(rf_var.tx_buf, (uint8_t *)(RMessage->DATA), RMessage->LEN);
 	
 	/* 打开发送开关 */
 	rf_var.flag_txing = true;
