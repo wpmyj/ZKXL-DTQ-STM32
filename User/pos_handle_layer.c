@@ -560,8 +560,10 @@ void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageT
 	uint8_t UidNum = RMessage->DATA[0];
 	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
 	uint8_t TemUid[4];
-	uint8_t i = 0,j,uidpos;
-	uint8_t UidAddStatus;
+	uint8_t i = 0,j = 0,k = 0,uidpos;
+	uint8_t opestatus = 0;
+	uint8_t NewUidNum = 0;
+	uint8_t UidAddStatus = 0xFF;
 	
 	SMessage->HEADER = 0x5C;
 
@@ -569,10 +571,8 @@ void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageT
 	
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
 	
-	SMessage->LEN = UidNum + 2;
+	SMessage->LEN = 3;
 
-	*( pdata + ( i++ ) ) = UidNum;
-	
 	for(j = 0; j < UidNum; j++)
 	{
 		TemUid[0] = RMessage->DATA[1+j*4];
@@ -581,21 +581,24 @@ void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageT
 		TemUid[3] = RMessage->DATA[4+j*4];
 		
 		if(RMessage->TYPE == 0x20)
-			UidAddStatus = add_uid_to_white_list(TemUid,&uidpos);
+			opestatus = add_uid_to_white_list(TemUid,&uidpos);
 		
 		if(RMessage->TYPE == 0x21)
-			UidAddStatus = delete_uid_from_white_list(TemUid);
+			opestatus = delete_uid_from_white_list(TemUid);
 		
-		if(UidAddStatus == OPERATION_ERR)
+		if(opestatus == OPERATION_ERR)
 		{
-			*( pdata + ( i++ ) ) = 1; // fail
+			UidAddStatus |= 1<<(k++); // fail
 		}
 		else
 		{
-			*( pdata + ( i++ ) ) = 0; // success
+			UidAddStatus &= ~1<<(k++); // success
+			NewUidNum++;
 		}
 	}
 	
+	*( pdata + ( i++ ) ) = NewUidNum;
+	*( pdata + ( i++ ) ) = UidAddStatus;
 	*( pdata + ( i++ ) ) = white_len;
 	
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
