@@ -792,11 +792,16 @@ void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef 
 ******************************************************************************/
 void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err_type )
 {
+	uint8_t i = 0;
+	uint8_t *pdata = (uint8_t *)(SMessage->SIGN);
 	
 	SMessage->HEADER = 0x5C;
-	
 	SMessage->TYPE   = cmd_type;
+
+	*( pdata + ( i++ ) ) = 0x01;
+	*( pdata + ( i++ ) ) = err_type;
 	
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+2);
 	SMessage->END = 0xCA;
 }
 

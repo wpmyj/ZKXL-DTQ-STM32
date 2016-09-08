@@ -72,4 +72,5 @@ typedef struct
 
 
 void serial_handle_layer(void);
+void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err_type );
 #endif // __POS_HANDLE_LAYER_H_

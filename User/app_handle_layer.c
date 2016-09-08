@@ -104,6 +104,7 @@ void App_card_process(void)
 { 
 	Uart_MessageTypeDef card_message;
 	uint8_t is_white_list_uid = 0,uid_p = 0;
+	uint8_t cmd_process_status = 0;
 	
 	if((delay_nms == 0)&&((attendance_on_off == ON) || match_on_off == ON))
 	{
@@ -117,26 +118,32 @@ void App_card_process(void)
 				if(is_white_list_uid == OPERATION_SUCCESS)
 				{
           // OK
+					cmd_process_status = 1;
 				}
 				else
 				{
 					// Err 0x29 E3
+					cmd_process_status = 0;
+					App_returnErr(&card_message,0x29,0xE3);
 				}
 			}
 			else
 			{
-
+				cmd_process_status = 1;
 			}
 			
-			/* 封装协议  */
+			if(cmd_process_status == 1)
 			{
-				card_message.HEADER = 0x5C;
-				card_message.TYPE   = 0x29;
-				memcpy(card_message.SIGN,uart_card_cmd_sign,4);
-				card_message.LEN    = 0x04;
-				memcpy(card_message.DATA,g_cSNR,4);
-				card_message.XOR = XOR_Cal(&card_message.TYPE,10);
-				card_message.END  = 0xCA;
+				/* 封装协议  */
+				{
+					card_message.HEADER = 0x5C;
+					card_message.TYPE   = 0x29;
+					memcpy(card_message.SIGN,uart_card_cmd_sign,4);
+					card_message.LEN    = 0x04;
+					memcpy(card_message.DATA,g_cSNR,4);
+					card_message.XOR = XOR_Cal(&card_message.TYPE,10);
+					card_message.END  = 0xCA;
+				}
 			}
 			
 			/* 缓存数据 */
@@ -154,13 +161,14 @@ void App_card_process(void)
 			//蜂鸣器响300ms
 			time_for_buzzer_on = 10;
 			time_for_buzzer_off = 300;
+			
+			//写入配对时将UID传给答题器
+			write_RF_config();
+			
+			//不重复寻卡
+			PcdHalt();
 		}
-		
-		//写入配对时将UID传给答题器
-		write_RF_config();
-		
-		//不重复寻卡
-		PcdHalt();
+	
 	}
 	Buzze_Control();	
 }
