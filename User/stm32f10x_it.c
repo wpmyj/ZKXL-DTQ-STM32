@@ -55,7 +55,7 @@ Uart_MessageTypeDef rf_systick_massage = {
 	0x5A,                     // HEADER
 	0x00,0x00,0x00,0x00,      // ID
 	0x00,                     // RFU
-	0x17,                     // TYPE
+	0x15,                     // TYPE
 	0x00,                     // LEN
 	0x00,                     // XOR
 	0xCA,                     // END
