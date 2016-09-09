@@ -67,7 +67,7 @@ void App_clickers_systick_process(void)
 		ReviceMessage.HEADER = 0x5C;
 		ReviceMessage.TYPE   = 0x10;
 		memset(ReviceMessage.SIGN,0x00,4);
-		ReviceMessage.LEN = 0x10;
+		ReviceMessage.LEN = 0x0A;
 		
 		ReviceMessage.DATA[0] = 0x5A;
 		ReviceMessage.DATA[1] = rf_clickers_sign[0];
@@ -75,7 +75,7 @@ void App_clickers_systick_process(void)
 		ReviceMessage.DATA[3] = rf_clickers_sign[2];
  		ReviceMessage.DATA[4] = rf_clickers_sign[3];
 		ReviceMessage.DATA[5] = 0x00;
-		ReviceMessage.DATA[6] = 0x17;
+		ReviceMessage.DATA[6] = 0x15;
 		ReviceMessage.DATA[7] = 0x00;
 		ReviceMessage.DATA[8] = XOR_Cal(ReviceMessage.DATA+1, 7);
 		ReviceMessage.DATA[9] = 0xCA;
