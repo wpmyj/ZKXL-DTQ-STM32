@@ -187,7 +187,7 @@ void App_card_process(void)
 				else
 				{
 					// Err 0x29 E3
-					cmd_process_status = 0;
+					cmd_process_status = 1;
 					App_returnErr(&card_message,0x29,0xE3);
 				}
 			}
@@ -214,10 +214,7 @@ void App_card_process(void)
 					card_message.END  = 0xCA;
 					card_cmd_type = 0x00;
 				}
-			}
-			
-			/* 缓存数据 */
-			{
+		
 				/* 执行完的指令存入发送缓存 */
 				if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
 				{
