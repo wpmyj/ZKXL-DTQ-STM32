@@ -10,6 +10,7 @@ uint8_t           uid_p;
 uint8_t		        uid_len = 0;					        // M1卡序列号长度
 uint8_t 	        g_cSNR[10];						        // M1卡序列号
 uint16_t          white_list_use_table[8] = {0,0,0,0,0,0,0,0};
+uint8_t           rf_current_uid_index = 0;
 
 /******************************************************************************
   Function:flash_white_list_use_table
@@ -453,5 +454,39 @@ uint8_t add_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
 	}
 }
 
-
-
+/******************************************************************************
+  Function:get_next_uid_of_white_list
+  Description:
+  Input:None
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+bool get_next_uid_of_white_list(uint8_t uid[])
+{
+	uint8_t i;
+	
+	/* 向后查找下一个UID */
+	for(i=rf_current_uid_index;i<MAX_WHITE_LEN;i++)
+	{
+		if(get_index_of_white_list_pos_status(i) == 1)
+		{
+			get_index_of_uid(i,uid);
+			rf_current_uid_index = i+1;
+			return OPERATION_SUCCESS;
+		}
+	}
+	
+	/* 向前查找下一个UID */
+	for(i=0;i<rf_current_uid_index;i++)
+	{
+		if(get_index_of_white_list_pos_status(i) == 1)
+		{
+			get_index_of_uid(i,uid);
+			rf_current_uid_index = i+1;
+			return OPERATION_SUCCESS;
+		}
+	}
+	
+	return OPERATION_ERR;
+}

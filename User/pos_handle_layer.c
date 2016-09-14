@@ -519,7 +519,7 @@ void App_stop_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_Message
 	rf_var.tx_len = 0x00;
 
 	SMessage->HEADER = 0x5C;
-	SMessage->TYPE = 0x11;
+	SMessage->TYPE = RMessage->TYPE;
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
 
 	SMessage->LEN = 0x03;

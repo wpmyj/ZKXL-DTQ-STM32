@@ -26,6 +26,8 @@
 #define APP_SERIAL_CMD_STATUS_WORK        0x01
 #define APP_SERIAL_CMD_STATUS_ERR         0x02
 
+#define START_SEND_DATA                   0
+#define STOP_SEND_DATA                    1
 
 void App_seirial_cmd_process(void);
 
