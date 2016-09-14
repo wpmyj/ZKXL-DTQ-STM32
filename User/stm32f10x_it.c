@@ -43,7 +43,7 @@ extern uint8_t 			        jsq_to_dtq_sequence;
 extern uint8_t              sign_buffer[4];
 
 /* rf systick data */
-uint8_t rf_systick_status = 0; // 0 = IDLE
+volatile uint8_t rf_systick_status = 0; // 0 = IDLE
 uint8_t rf_clickers_sign[4];
 
 Uart_MessageTypeDef rf_systick_massage = {
@@ -61,7 +61,36 @@ Uart_MessageTypeDef rf_systick_massage = {
 	0xCA,                     // END
 	
 };
-	
+
+/******************************************************************************
+  Function:rf_change_systick_status
+  Description:
+		修改systick的状态
+  Input :
+		rf_status: systick的新状态
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void rf_change_systick_status(uint8_t rf_status)
+{
+	rf_systick_status = rf_status;
+	printf("<%s> rf_systick_status = %d \r\n",__func__,rf_systick_status);
+}
+
+/******************************************************************************
+  Function:rf_get_systick_status
+  Description:
+		获取systick的状态
+  Input :
+  Output:systick的新状态
+  Return:
+  Others:None
+******************************************************************************/
+uint8_t rf_get_systick_status(void)
+{
+	return rf_systick_status ;
+}
 /******************************************************************************
   Function:uart_clear_message
   Description:
@@ -426,7 +455,7 @@ void SysTick_Handler(void)
 		/* 10S 产生心跳包 同时计数器清零 */
 		if(rf_tx_time_cnt >= 10000)
 		{
-			rf_systick_status = 2;
+			rf_change_systick_status(2);
 			rf_tx_time_cnt = 0;
 		}
 	}
@@ -546,14 +575,17 @@ void RFIRQ_EXTI_IRQHandler(void)
 				
 		if(Is_whitelist_uid == OPERATION_SUCCESS)		
 		{
-			if(rf_systick_status == 0)
+			uint8_t systick_current_status = 0;
+	
+			/* 获取当前的systick的状态 */
+			systick_current_status = rf_get_systick_status();
+			if(systick_current_status == 1)
 			{
 				/* 打开心跳包发送开关 */
-				rf_systick_status = 1;
 				memcpy(rf_clickers_sign,nrf_communication.receive_buf+1,4);
 			}
 			
-			if(rf_systick_status == 3)
+			if(systick_current_status == 3)
 			{
 				/* 填充心跳包 */
 				memcpy(rf_systick_massage.DATA+1,rf_clickers_sign,4);
@@ -571,7 +603,7 @@ void RFIRQ_EXTI_IRQHandler(void)
 					serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_systick_massage);
 				}
 				
-				rf_systick_status = 1;
+				rf_change_systick_status(1);
 			}
 		}
 		

@@ -16,8 +16,10 @@
 extern uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];		
 extern uint8_t card_cmd_type ;
 
-extern uint8_t rf_systick_status;
 extern uint8_t rf_clickers_sign[4];
+
+extern uint8_t rf_get_systick_status(void);
+extern void rf_change_systick_status(uint8_t rf_status);
 
 void App_clickers_systick_process(void);
 void App_rf_check_process(void);
@@ -60,9 +62,13 @@ void App_clickers_systick_process(void)
 {
 	Uart_MessageTypeDef ReviceMessage;
 	uint8_t buffer_status = 0;
+	uint8_t systick_current_status = 0;
+	
+	/* 获取当前的systick的状态 */
+	systick_current_status = rf_get_systick_status();
 	
 	/* 5s 时间到 发送新的心跳包到答题器 */
-	if(rf_systick_status == 2)
+	if(systick_current_status == 2)
 	{
 		ReviceMessage.HEADER = 0x5C;
 		ReviceMessage.TYPE   = 0x10;
@@ -94,7 +100,7 @@ void App_clickers_systick_process(void)
 		else
 		{
 			serial_ringbuffer_write_data(REVICE_RINGBUFFER,&ReviceMessage);
-			rf_systick_status = 3;
+			rf_change_systick_status(3);
 		}	
 		
 	}
@@ -181,7 +187,7 @@ void App_card_process(void)
 				{
           // OK
 					cmd_process_status = 1;
-					rf_systick_status = 1;
+					rf_change_systick_status(1);
 					memcpy(rf_clickers_sign,g_cSNR+4,4);
 				}
 				else
@@ -236,7 +242,7 @@ void App_card_process(void)
 			PcdHalt();
 		}
 	}	
-	Buzze_Control();
+//	Buzze_Control();
 }
 
 /*******************************************************************************

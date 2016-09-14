@@ -68,32 +68,32 @@ void rc500_handle_layer(void)
 }
 void write_RF_config(void)
 {
-	uint8_t NDEF_Data[BUF_LEN] = {0};
-	uint16_t NDEF_Len;
+//	uint8_t NDEF_Data[BUF_LEN] = {0};
+//	uint16_t NDEF_Len;
 	
-	//if( FindICCard() == MI_OK)		//寻卡成功
-	{
-		DebugLog("[FindICCard]:UID is ");
-		app_debuglog_dump(g_cSNR, 8);
+//	if( FindICCard() == MI_OK)		//寻卡成功
+//	{
+		//DebugLog("[FindICCard]:UID is ");
+		//app_debuglog_dump(g_cSNR, 8);
 
 		if(SelectApplication() == MI_OK)		//选择应用
 		{
-			DebugLog("[WriteNDEFfile]:nrf_parameter is ");
-			app_debuglog_dump((uint8_t *)&answer_setting,sizeof(answer_setting));
-			if(WriteNDEFfile((uint8_t *)&answer_setting) == MI_OK)		//写入NDEF文件
+			//DebugLog("[WriteNDEFfile]:nrf_parameter is ");
+			//app_debuglog_dump((uint8_t *)&NDEF_DataWrite,sizeof(answer_setting));
+			if(WriteNDEFfile((uint8_t *)&NDEF_DataWrite) == MI_OK)		//写入NDEF文件
 			{
 				//time_for_buzzer_on = 10;
 				//time_for_buzzer_off = 300;
-				if(ReadNDEFfile(NDEF_Data, &NDEF_Len) == MI_OK)			//读出验证
+				if(ReadNDEFfile(NDEF_DataWrite, &NDEF_Len) == MI_OK)			//读出验证
 				{
 					DebugLog("[ReadNDEFfile]:NDEF_Data is ");
-					app_debuglog_dump(NDEF_Data, NDEF_Len);
+					app_debuglog_dump(NDEF_DataWrite, NDEF_Len);
 				}
 			}
 			Deselect();	//去除选择
 			PcdHalt();
 		}
-	}
+//	}
 }
 
 static void sendtoRC500(void)
