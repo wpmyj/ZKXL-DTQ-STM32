@@ -552,7 +552,7 @@ void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageT
 	uint8_t i = 0,j = 0,k = 0,uidpos;
 	uint8_t opestatus = 0;
 	uint8_t NewUidNum = 0;
-	uint8_t UidAddStatus = 0xFF;
+	uint8_t UidAddStatus[8] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 	
 	SMessage->HEADER = 0x5C;
 
@@ -560,7 +560,7 @@ void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageT
 	
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
 	
-	SMessage->LEN = 3;
+	SMessage->LEN = 10;
 
 	for(j = 0; j < UidNum; j++)
 	{
@@ -577,17 +577,22 @@ void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageT
 		
 		if(opestatus == OPERATION_ERR)
 		{
-			UidAddStatus |= 1<<(k++); // fail
+			UidAddStatus[UidNum/8] |= 1<<(k++); // fail
 		}
 		else
 		{
-			UidAddStatus &= ~1<<(k++); // success
+			UidAddStatus[UidNum/8] &= ~1<<(k++); // success
 			NewUidNum++;
 		}
 	}
 	
 	*( pdata + ( i++ ) ) = NewUidNum;
-	*( pdata + ( i++ ) ) = UidAddStatus;
+	
+	for(j=0;j<8;j++)
+	{
+		*( pdata + ( i++ ) ) = UidAddStatus[j];
+	}
+	
 	*( pdata + ( i++ ) ) = white_len;
 	
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
