@@ -425,6 +425,7 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 		my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL);
 	
 		rf_var.flag_tx_ok = true;
+		rf_change_systick_status(1);
 	}
 }
 
