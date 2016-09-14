@@ -43,7 +43,8 @@ void App_open_or_close_attendance_match( Uart_MessageTypeDef *RMessage, Uart_Mes
 void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err_type );
 void App_uart_message_copy( Uart_MessageTypeDef *SrcMessage, Uart_MessageTypeDef *DstMessage );
-	
+void App_return_systick( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+
 /******************************************************************************
   Function:App_seirial_cmd_process
   Description:
@@ -303,9 +304,19 @@ static void serial_cmd_process(void)
 				break;
 			
 			/* 返回心跳在线状态 */
-			case 0x2D:
+			case 0x2E:
 				{
-					
+					if(ReviceMessage.LEN != 0)
+					{
+						err_cmd_type = serial_cmd_type;	
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;						
+					}
+					else
+					{
+						App_return_systick( &ReviceMessage, &SendMessage);
+						serial_cmd_status = APP_CTR_IDLE;
+					}
 				}
 				break;
 				
@@ -742,6 +753,38 @@ void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef 
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), j+6);
 	SMessage->END = 0xCA;
 	
+}
+
+/******************************************************************************
+  Function:App_return_device_info
+  Description:
+		打印设备信息
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_return_systick( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	uint8_t i = 0;
+
+	SMessage->HEADER = 0x5C;
+	
+	card_cmd_type = RMessage->TYPE;
+	SMessage->TYPE = RMessage->TYPE;
+		
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+	
+	SMessage->LEN = 0x04;
+	
+	SMessage->DATA[i++] = (jsq_uid[1]&0x0F)|((jsq_uid[0]<<4)&0xF0);
+	SMessage->DATA[i++] = (jsq_uid[3]&0x0F)|((jsq_uid[2]<<4)&0xF0);
+	SMessage->DATA[i++] = (jsq_uid[5]&0x0F)|((jsq_uid[4]<<4)&0xF0);
+	SMessage->DATA[i++] = (jsq_uid[7]&0x0F)|((jsq_uid[6]<<4)&0xF0);
+	
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
 }
 
 /******************************************************************************
