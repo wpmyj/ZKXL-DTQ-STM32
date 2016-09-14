@@ -28,6 +28,8 @@
 Uart_MessageTypeDef uart_irq_revice_massage;
 static uint32_t uart_rx_timeout = 0;
 static uint32_t rf_tx_time_cnt = 0;
+static uint32_t rf_tx_timeout_cnt = 0;
+	
 static bool     flag_uart_rxing = false;
 static uint8_t  uart_status     = UartHEADER;
 //static uint8_t  clickers_uid[4];
@@ -44,24 +46,6 @@ extern uint8_t              sign_buffer[4];
 
 /* rf systick data */
 volatile uint8_t rf_systick_status = 0; // 0 = IDLE
-uint8_t rf_clickers_sign[4];
-
-Uart_MessageTypeDef rf_systick_massage = {
-	0x5C,                 // HEADER
-	0x10,                 // TYPE
-	0x00,0x00,0x00,0x00,  // UID
-	0x0A,                 // LEN
-	
-	0x5A,                     // HEADER
-	0x00,0x00,0x00,0x00,      // ID
-	0x00,                     // RFU
-	0x15,                     // TYPE
-	0x00,                     // LEN
-	0x00,                     // XOR
-	0xCA,                     // END
-	
-};
-
 /******************************************************************************
   Function:rf_change_systick_status
   Description:
@@ -460,6 +444,17 @@ void SysTick_Handler(void)
 		}
 	}
 	
+	if(rf_systick_status == 3)
+	{
+		rf_tx_timeout_cnt++;
+		/* 4S 结束在线状态统计，清零超时基数器 */
+		if(rf_tx_timeout_cnt >= 4000)
+		{
+			rf_change_systick_status(4);
+			rf_tx_timeout_cnt = 0;
+		}
+	}
+	
 	if(flag_uart_rxing)												//串口接收超时计数器
 	{
 		uart_rx_timeout++;
@@ -579,32 +574,12 @@ void RFIRQ_EXTI_IRQHandler(void)
 	
 			/* 获取当前的systick的状态 */
 			systick_current_status = rf_get_systick_status();
-			
-			if(systick_current_status != 3)
-			{
-				/* 打开心跳包发送开关 */
-				rf_change_systick_status(1);
-			}
-			
+				
 			if(systick_current_status == 3)
 			{
-				/* 填充心跳包 */
-				memcpy(rf_systick_massage.DATA+1,rf_clickers_sign,4);
-				rf_systick_massage.DATA[8] =  XOR_Cal(rf_systick_massage.DATA+1, 7);
-				rf_systick_massage.XOR =  XOR_Cal((uint8_t *)(&(rf_systick_massage.TYPE)), rf_systick_massage.LEN+6);
-				rf_systick_massage.END = 0xCA;
-				
-				/* 上传在线状态 */
-				if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
-				{
-					DebugLog("Serial Send Buffer is full! \r\n");
-				}
-				else
-				{
-					serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_systick_massage);
-				}
-				
-				rf_change_systick_status(1);
+				//memcpy(rf_back_sign,nrf_communication.receive_buf+1,4);
+				//printf("IRQ UID = %2X%2X%2X%2X \r\n",rf_back_sign[0],rf_back_sign[1],rf_back_sign[2],rf_back_sign[3]);
+				set_index_of_white_list_pos(1,uidpos);
 			}
 		}
 		

@@ -9,9 +9,28 @@ uint16_t					match_number = 1;			  	    // 配对序号
 uint8_t           uid_p;
 uint8_t		        uid_len = 0;					        // M1卡序列号长度
 uint8_t 	        g_cSNR[10];						        // M1卡序列号
-uint16_t          white_list_use_table[8] = {0,0,0,0,0,0,0,0};
+uint16_t          white_list_use_onlne_table[2][8] = {{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0}};
 uint8_t           rf_current_uid_index = 0;
 
+	
+/******************************************************************************
+  Function:clear_white_list_online_table
+  Description:
+  Input:None
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void clear_white_list_online_table(void)
+{
+	uint8_t i;
+	for(i=0;i<8;i++)
+	{
+		white_list_use_onlne_table[1][i] = 0x00;
+	}
+	
+}
+	
 /******************************************************************************
   Function:flash_white_list_use_table
   Description:
@@ -24,7 +43,7 @@ void flash_white_list_use_table(void)
 {
 	uint8_t i;
 	for(i=0;i<8;i++)
-		 EE_WriteVariable(WHITE_LIST_USE_TABLE_POS_OF_FEE+i,white_list_use_table[i]);
+		 EE_WriteVariable(WHITE_LIST_USE_TABLE_POS_OF_FEE+i,white_list_use_onlne_table[0][i]);
 }
 
 /******************************************************************************
@@ -39,7 +58,7 @@ void get_white_list_use_table(void)
 {
 	uint8_t i;
 	for(i=0;i<8;i++)
-		 EE_ReadVariable(WHITE_LIST_USE_TABLE_POS_OF_FEE+i,&white_list_use_table[i]);
+		 EE_ReadVariable(WHITE_LIST_USE_TABLE_POS_OF_FEE+i,&white_list_use_onlne_table[0][i]);
 }
 
 /******************************************************************************
@@ -50,18 +69,20 @@ void get_white_list_use_table(void)
   Return:
   Others:None
 ******************************************************************************/
-void set_index_of_white_list_pos( uint8_t index )
+void set_index_of_white_list_pos( uint8_t use_or_online, uint8_t index )
 {
 	uint8_t pos1 = index / 15 ;
 	uint8_t pos2 = index % 15 ;
 	
-	white_list_use_table[pos1] = (white_list_use_table[pos1] | 
+	white_list_use_onlne_table[use_or_online][pos1] = (white_list_use_onlne_table[use_or_online][pos1] | 
 	                               (uint16_t)((uint16_t)1<<pos2)) & 0x7FFF;
 	
-	flash_white_list_use_table();
-	
-	if(white_len<120)
-		white_len++;
+	if(use_or_online == 0)
+	{
+		flash_white_list_use_table();
+		if(white_len<120)
+			white_len++;
+	}
 }
 
 /******************************************************************************
@@ -72,18 +93,20 @@ void set_index_of_white_list_pos( uint8_t index )
   Return:
   Others:None
 ******************************************************************************/
-void clear_index_of_white_list_pos( uint8_t index )
+void clear_index_of_white_list_pos( uint8_t use_or_online, uint8_t index )
 {
 	uint8_t pos1 = index / 15 ;
 	uint8_t pos2 = index % 15 ;
 	
-	white_list_use_table[pos1] = white_list_use_table[pos1] &
+	white_list_use_onlne_table[use_or_online][pos1] = white_list_use_onlne_table[use_or_online][pos1] &
                 	               ~(uint16_t)((uint16_t)1<<pos2);
-	
-	flash_white_list_use_table();
-	
-	if(white_len>0)
-		white_len--;
+
+	if( use_or_online ==0 )
+	{
+		flash_white_list_use_table();
+		if(white_len>0)
+			white_len--;
+	}
 }
 
 /******************************************************************************
@@ -94,12 +117,12 @@ void clear_index_of_white_list_pos( uint8_t index )
   Return:
   Others:None
 ******************************************************************************/
-bool get_index_of_white_list_pos_status( uint8_t index )
+bool get_index_of_white_list_pos_status( uint8_t use_or_online, uint8_t index )
 {
 	uint8_t pos1 = index / 15 ;
 	uint8_t pos2 = index % 15 ;
 	
-	uint16_t status = white_list_use_table[pos1] &
+	uint16_t status = white_list_use_onlne_table[use_or_online][pos1] &
                 	               (uint16_t)((uint16_t)(1<<pos2));
 	
 	if(status & 0x7FFF)
@@ -123,7 +146,7 @@ bool get_nouse_pos_of_white_list( uint8_t *pos)
 	
 	for(i=0;i<MAX_WHITE_LEN;i++)
 	{
-		if(get_index_of_white_list_pos_status(i) == false)
+		if(get_index_of_white_list_pos_status(0,i) == false)
 		{
 			*pos = i;
 			return OPERATION_SUCCESS;
@@ -164,7 +187,7 @@ bool get_index_of_uid( uint8_t index, uint8_t  uid[4] )
 	uint8_t  is_pos_use = 0;
 	
 	/* 获取使用表的第i位的状态 */
-	is_pos_use = get_index_of_white_list_pos_status(index);
+	is_pos_use = get_index_of_white_list_pos_status(0,index);
 	
 	if(is_pos_use == 1)
 	{
@@ -191,7 +214,7 @@ bool get_index_of_uid( uint8_t index, uint8_t  uid[4] )
 ******************************************************************************/
 void clear_index_of_uid(uint8_t index)
 {
-	clear_index_of_white_list_pos(index);
+	clear_index_of_white_list_pos(0,index);
 }
 
 /******************************************************************************
@@ -211,7 +234,7 @@ void add_index_of_uid( uint8_t index, uint8_t  uid[4] )
 	{
 		EE_WriteVariable(viraddr+i,uid[i]);
 	}
-	set_index_of_white_list_pos(index);
+	set_index_of_white_list_pos(0,index);
 }
 /******************************************************************************
   Function:get_len_of_white_list
@@ -230,7 +253,7 @@ uint8_t get_len_of_white_list(void)
 	for(i=0; i < MAX_WHITE_LEN; i++)
 	{
 		/* 获取使用表的第i位的状态 */
-		is_pos_use = get_index_of_white_list_pos_status(i);
+		is_pos_use = get_index_of_white_list_pos_status(0,i);
 		
 		/* 如果使用的话，开始匹配 */
 		if( is_pos_use == 1 )
@@ -260,7 +283,7 @@ bool store_len_to_fee(uint8_t len)
 	for(i=0; i < MAX_WHITE_LEN; i++)
 	{
 		/* 获取使用表的第i位的状态 */
-		is_pos_use = get_index_of_white_list_pos_status(i);
+		is_pos_use = get_index_of_white_list_pos_status(0,i);
 		
 		/* 如果使用的话，开始匹配 */
 		if( is_pos_use == 1 )
@@ -344,7 +367,7 @@ bool initialize_white_list( void )
 	
 	/* 清除状态使用表 */
 	for(i=0;i<8;i++)
-		white_list_use_table[i] = 0;
+		white_list_use_onlne_table[0][i] = 0;
 	flash_white_list_use_table();
 	
 	return OPERATION_SUCCESS;
@@ -368,7 +391,7 @@ bool search_uid_in_white_list(uint8_t *g_uid , uint8_t *position)
 	for(i=0; i < MAX_WHITE_LEN; i++)
 	{
 		/* 获取使用表的第i位的状态 */
-		is_pos_use = get_index_of_white_list_pos_status(i);
+		is_pos_use = get_index_of_white_list_pos_status(0,i);
 		
 		/* 如果使用的话，开始匹配 */
 		if( is_pos_use == 1 )
@@ -469,7 +492,7 @@ bool get_next_uid_of_white_list(uint8_t uid[])
 	/* 向后查找下一个UID */
 	for(i=rf_current_uid_index;i<MAX_WHITE_LEN;i++)
 	{
-		if(get_index_of_white_list_pos_status(i) == 1)
+		if(get_index_of_white_list_pos_status(0,i) == 1)
 		{
 			get_index_of_uid(i,uid);
 			rf_current_uid_index = i+1;
@@ -480,7 +503,7 @@ bool get_next_uid_of_white_list(uint8_t uid[])
 	/* 向前查找下一个UID */
 	for(i=0;i<rf_current_uid_index;i++)
 	{
-		if(get_index_of_white_list_pos_status(i) == 1)
+		if(get_index_of_white_list_pos_status(0,i) == 1)
 		{
 			get_index_of_uid(i,uid);
 			rf_current_uid_index = i+1;

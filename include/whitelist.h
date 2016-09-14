@@ -55,8 +55,10 @@ uint8_t get_switch_status_of_white_list(void);
 void get_white_list_use_table(void);
 void flash_white_list_use_table(void);
 void get_white_list_use_table(void);
-void set_index_of_white_list_pos( uint8_t index );
-void clear_index_of_white_list_pos( uint8_t index );
+void set_index_of_white_list_pos( uint8_t use_or_online, uint8_t index );
+void clear_index_of_white_list_pos( uint8_t use_or_online, uint8_t index );
 bool get_nouse_pos_of_white_list( uint8_t *pos);
 bool get_next_uid_of_white_list(uint8_t uid[]);
+void clear_white_list_online_table(void);
+bool get_index_of_white_list_pos_status( uint8_t use_or_online, uint8_t index );
 #endif // __WHITE_LIST_H_
