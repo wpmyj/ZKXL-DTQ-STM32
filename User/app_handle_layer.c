@@ -16,10 +16,20 @@
 extern uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];		
 extern uint8_t card_cmd_type ;
 
-extern uint8_t rf_clickers_sign[4];
-
-extern uint8_t rf_get_systick_status(void);
-extern void rf_change_systick_status(uint8_t rf_status);
+uint8_t rf_clickers_sign[4];
+uint8_t rf_outline_index = 0;
+extern uint8_t rf_back_sign[4];
+Uart_MessageTypeDef rf_systick_massage = {
+	0x5C,                 // HEADER
+	0x2D,                 // TYPE
+	0x00,0x00,0x00,0x00,  // UID
+	0x00,                 // LEN
+	
+	0x00,0x00,0x00,0x00,      // ID
+	
+	0x00,                 // XOR
+	0xCA,                 // END
+};
 
 void App_clickers_systick_process(void);
 void App_rf_check_process(void);
@@ -51,6 +61,48 @@ void app_handle_layer(void)
 }
 
 /******************************************************************************
+  Function:checkout_outline_uid
+  Description:
+		提取不在线状态的答题器UID
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+bool checkout_outline_uid(uint8_t *puid,uint8_t *len)
+{
+	uint8_t i;
+	uint8_t is_use_pos = 0,is_online_pos = 0;
+	
+	for(i=rf_outline_index;(i<120)&&(*len<240);i++)
+	{
+		is_use_pos = get_index_of_white_list_pos_status(0,i);
+		if(is_use_pos == 1)
+		{
+			is_online_pos = get_index_of_white_list_pos_status(1,i);
+			if(is_online_pos == 0)
+			{
+				get_index_of_uid(i,puid);
+				puid = puid+4;
+				*len = *len + 4;
+			}
+		}
+	}
+	
+	if(i==120)
+	{
+		rf_outline_index = 0;
+		return 0;
+	}
+	else
+	{
+		rf_outline_index = i;
+		return 1;
+
+	}
+	
+}
+
+/******************************************************************************
   Function:App_rf_check_process
   Description:
 		App RF 射频轮询处理函数
@@ -63,12 +115,11 @@ void App_clickers_systick_process(void)
 	Uart_MessageTypeDef ReviceMessage;
 	uint8_t buffer_status = 0;
 	uint8_t systick_current_status = 0;
-	uint8_t tempuid[4];
 	
 	/* 获取当前的systick的状态 */
 	systick_current_status = rf_get_systick_status();
 	
-	/* 5s 时间到 发送新的心跳包到答题器 */
+	/* 10s 时间到 发送新的心跳包到答题器 */
 	if(systick_current_status == 2)
 	{
 		
@@ -104,9 +155,37 @@ void App_clickers_systick_process(void)
 		else
 		{
 			serial_ringbuffer_write_data(REVICE_RINGBUFFER,&ReviceMessage);
+			clear_white_list_online_table();
 			rf_change_systick_status(3);
 		}	
 		
+	}
+	
+	/* 发送数据之后 */
+	if(systick_current_status == 4)
+	{
+		/* 填充心跳包 */
+		uint8_t Is_over = 0;
+		Is_over = checkout_outline_uid(rf_systick_massage.DATA,&(rf_systick_massage.LEN));
+		rf_systick_massage.XOR =  XOR_Cal((uint8_t *)(&(rf_systick_massage.TYPE)), rf_systick_massage.LEN+6);
+		rf_systick_massage.END = 0xCA;
+		
+		/* 上传在线状态 */
+		if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
+		{
+			DebugLog("Serial Send Buffer is full! \r\n");
+		}
+		else
+		{
+			serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_systick_massage);
+		}
+		rf_systick_massage.LEN = 0;
+		
+		if(Is_over == 0)
+		{
+			rf_change_systick_status(1);
+		}
+
 	}
 }
 
@@ -222,7 +301,6 @@ void App_card_process(void)
 					memcpy(card_message.DATA,g_cSNR+4,4);
 					card_message.XOR = XOR_Cal(&card_message.TYPE,10);
 					card_message.END  = 0xCA;
-					card_cmd_type = 0x00;
 				}
 		
 				/* 执行完的指令存入发送缓存 */
