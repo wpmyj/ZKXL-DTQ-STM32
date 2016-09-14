@@ -210,6 +210,8 @@ static void serial_cmd_process(void)
 					}
 					else
 					{
+						/* 延迟：防止第一次的第一条指令为初始化时，后面的指令接收不完全 */
+						DelayMs(100);
 						App_initialize_white_list( &ReviceMessage, &SendMessage);
 						serial_cmd_status = APP_CTR_IDLE;
 					}
