@@ -205,6 +205,7 @@ typedef struct
 
 extern uint8_t 						NDEF_DataWrite[];
 extern uint8_t 						NDEF_DataRead[];
+extern uint16_t						NDEF_Len;
 
 extern bool 						  gbf_hse_setup_fail;				//外部16M晶振起振标志
 extern uint8_t 						time_for_buzzer_on;				//多长时间之后开始响
