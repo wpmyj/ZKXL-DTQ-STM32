@@ -16,7 +16,6 @@
 extern uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];		
 extern uint8_t card_cmd_type ;
 
-uint8_t rf_clickers_sign[4];
 uint8_t rf_outline_index = 0;
 extern uint8_t rf_back_sign[4];
 Uart_MessageTypeDef rf_systick_massage = {
@@ -115,6 +114,7 @@ void App_clickers_systick_process(void)
 	Uart_MessageTypeDef ReviceMessage;
 	uint8_t buffer_status = 0;
 	uint8_t systick_current_status = 0;
+	uint8_t rf_clickers_sign[4];
 	
 	/* 获取当前的systick的状态 */
 	systick_current_status = rf_get_systick_status();
@@ -271,7 +271,6 @@ void App_card_process(void)
           // OK
 					cmd_process_status = 1;
 					rf_change_systick_status(1);
-					memcpy(rf_clickers_sign,g_cSNR+4,4);
 				}
 				else
 				{
