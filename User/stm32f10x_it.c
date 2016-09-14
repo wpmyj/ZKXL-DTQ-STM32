@@ -432,25 +432,25 @@ void SysTick_Handler(void)
 {
 	TimingDelay_Decrement();
 	
-	if(rf_systick_status == 1)
+	if(rf_systick_status == 3)
 	{
 		rf_tx_time_cnt++;
 		
 		/* 10S 产生心跳包 同时计数器清零 */
 		if(rf_tx_time_cnt >= 10000)
 		{
-			rf_change_systick_status(2);
+			rf_change_systick_status(4);
 			rf_tx_time_cnt = 0;
 		}
 	}
 	
-	if(rf_systick_status == 3)
+	if(rf_systick_status == 1)
 	{
 		rf_tx_timeout_cnt++;
 		/* 4S 结束在线状态统计，清零超时基数器 */
 		if(rf_tx_timeout_cnt >= 4000)
 		{
-			rf_change_systick_status(4);
+			rf_change_systick_status(2);
 			rf_tx_timeout_cnt = 0;
 		}
 	}
@@ -575,7 +575,7 @@ void RFIRQ_EXTI_IRQHandler(void)
 			/* 获取当前的systick的状态 */
 			systick_current_status = rf_get_systick_status();
 				
-			if(systick_current_status == 3)
+			if(systick_current_status == 1)
 			{
 				//memcpy(rf_back_sign,nrf_communication.receive_buf+1,4);
 				//printf("IRQ UID = %2X%2X%2X%2X \r\n",rf_back_sign[0],rf_back_sign[1],rf_back_sign[2],rf_back_sign[3]);

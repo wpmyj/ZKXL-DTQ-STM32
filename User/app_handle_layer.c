@@ -120,7 +120,7 @@ void App_clickers_systick_process(void)
 	systick_current_status = rf_get_systick_status();
 	
 	/* 10s 时间到 发送新的心跳包到答题器 */
-	if(systick_current_status == 2)
+	if(systick_current_status == 4)
 	{
 		
 		get_next_uid_of_white_list(rf_clickers_sign);
@@ -156,13 +156,12 @@ void App_clickers_systick_process(void)
 		{
 			serial_ringbuffer_write_data(REVICE_RINGBUFFER,&ReviceMessage);
 			clear_white_list_online_table();
-			rf_change_systick_status(3);
+			rf_change_systick_status(1);
 		}	
-		
 	}
 	
 	/* 发送数据之后 */
-	if(systick_current_status == 4)
+	if(systick_current_status == 2)
 	{
 		/* 填充心跳包 */
 		uint8_t Is_over = 0;
@@ -183,7 +182,7 @@ void App_clickers_systick_process(void)
 		
 		if(Is_over == 0)
 		{
-			rf_change_systick_status(1);
+			rf_change_systick_status(3);
 		}
 
 	}
@@ -270,7 +269,6 @@ void App_card_process(void)
 				{
           // OK
 					cmd_process_status = 1;
-					rf_change_systick_status(1);
 				}
 				else
 				{
