@@ -63,6 +63,7 @@ void App_clickers_systick_process(void)
 	Uart_MessageTypeDef ReviceMessage;
 	uint8_t buffer_status = 0;
 	uint8_t systick_current_status = 0;
+	uint8_t tempuid[4];
 	
 	/* 获取当前的systick的状态 */
 	systick_current_status = rf_get_systick_status();
@@ -70,6 +71,9 @@ void App_clickers_systick_process(void)
 	/* 5s 时间到 发送新的心跳包到答题器 */
 	if(systick_current_status == 2)
 	{
+		
+		get_next_uid_of_white_list(rf_clickers_sign);
+		
 		ReviceMessage.HEADER = 0x5C;
 		ReviceMessage.TYPE   = 0x10;
 		memset(ReviceMessage.SIGN,0x00,4);

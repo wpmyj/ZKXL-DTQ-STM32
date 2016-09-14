@@ -579,10 +579,11 @@ void RFIRQ_EXTI_IRQHandler(void)
 	
 			/* 获取当前的systick的状态 */
 			systick_current_status = rf_get_systick_status();
-			if(systick_current_status == 1)
+			
+			if(systick_current_status != 3)
 			{
 				/* 打开心跳包发送开关 */
-				memcpy(rf_clickers_sign,nrf_communication.receive_buf+1,4);
+				rf_change_systick_status(1);
 			}
 			
 			if(systick_current_status == 3)

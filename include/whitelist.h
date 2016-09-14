@@ -58,5 +58,5 @@ void get_white_list_use_table(void);
 void set_index_of_white_list_pos( uint8_t index );
 void clear_index_of_white_list_pos( uint8_t index );
 bool get_nouse_pos_of_white_list( uint8_t *pos);
-
+bool get_next_uid_of_white_list(uint8_t uid[]);
 #endif // __WHITE_LIST_H_
