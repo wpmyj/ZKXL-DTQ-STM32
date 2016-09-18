@@ -59,7 +59,7 @@ volatile uint8_t rf_systick_status = 0; // 0 = IDLE
 void rf_change_systick_status(uint8_t rf_status)
 {
 	rf_systick_status = rf_status;
-	printf("<%s> rf_systick_status = %d \r\n",__func__,rf_systick_status);
+	DebugLog("<%s> rf_systick_status = %d \r\n",__func__,rf_systick_status);
 }
 
 /******************************************************************************
@@ -436,8 +436,8 @@ void SysTick_Handler(void)
 	{
 		rf_tx_time_cnt++;
 		
-		/* 10S 产生心跳包 同时计数器清零 */
-		if(rf_tx_time_cnt >= 10000)
+		/* 5S 产生心跳包 同时计数器清零 */
+		if(rf_tx_time_cnt >= 5000)
 		{
 			rf_change_systick_status(4);
 			rf_tx_time_cnt = 0;
@@ -447,8 +447,8 @@ void SysTick_Handler(void)
 	if(rf_systick_status == 1)
 	{
 		rf_tx_timeout_cnt++;
-		/* 4S 结束在线状态统计，清零超时基数器 */
-		if(rf_tx_timeout_cnt >= 4000)
+		/* 1S 结束在线状态统计，清零超时基数器 */
+		if(rf_tx_timeout_cnt >= 1000)
 		{
 			rf_change_systick_status(2);
 			rf_tx_timeout_cnt = 0;
