@@ -46,8 +46,7 @@ void Platform_Init(void)
 
 	/* 接收器重发定时,返回ACK随机延时0~255ms，所以这个值要大于255ms	*/
 	TIM3_Int_Init(NRF_RETRANSMIT_DELAY,64000);
-	
-	
+
 	/* eeprom init and white_list init*/
 	Fee_Init(FEE_INIT_POWERUP);
 	get_white_list_use_table();
@@ -65,21 +64,14 @@ void Platform_Init(void)
 	ENABLE_ALL_IRQ();
 	
 	/* led 、蜂鸣器声音提示初始化完毕 */
-//BEEP_EN();																	    
+	BEEP_EN();																	    
 	ledOn(LGREEN);																 
 	ledOn(LBLUE);																    
 	DelayMs(200);
-//BEEP_DISEN();
+	BEEP_DISEN();
 	ledOff(LGREEN);
 	ledOff(LBLUE);
-		
-//	/* get mcu uuid */
-//	get_mcu_uid();
-//	
-//	/* 配对是存入接收器器UID到答题器 */
-//	NDEF_DataWrite[1] = 0x04;
-//	memcpy((NDEF_DataWrite+2),jsq_uid,4);
-	
+
 	DebugLog("[%s]:System clock freq is %dMHz\r\n",__func__, SystemCoreClock / 1000000);
 	DebugLog("[%s]:UID is %X%X%X%X%X%X%X%X\r\n",__func__,
 	         jsq_uid[0],jsq_uid[1],jsq_uid[2],jsq_uid[3],

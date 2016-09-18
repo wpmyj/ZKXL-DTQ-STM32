@@ -78,7 +78,7 @@ bool checkout_outline_uid(uint8_t *puid,uint8_t *len)
 		if(is_use_pos == 1)
 		{
 			is_online_pos = get_index_of_white_list_pos_status(1,i);
-			if(is_online_pos == 0)
+			if(is_online_pos == 1)
 			{
 				get_index_of_uid(i,puid);
 				puid = puid+4;
@@ -324,7 +324,7 @@ void App_card_process(void)
 			PcdHalt();
 		}
 	}	
-//	Buzze_Control();
+	Buzze_Control();
 }
 
 /*******************************************************************************
