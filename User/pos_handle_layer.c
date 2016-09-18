@@ -591,11 +591,11 @@ void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageT
 		
 		if(opestatus == OPERATION_ERR)
 		{
-			UidAddStatus[UidNum/8] |= 1<<((k++)%8); // fail
+			UidAddStatus[j/8] |= 1<<((k++)%8); // fail
 		}
 		else
 		{
-			UidAddStatus[UidNum/8] &= ~1<<((k++)%8); // success
+			UidAddStatus[j/8] &= ~1<<((k++)%8); // success
 			NewUidNum++;
 		}
 	}
