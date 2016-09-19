@@ -286,7 +286,46 @@ void uart_send_data_state_machine( void )
 	}
 }
 
-
+/******************************************************************************
+  Function:App_rf_check_process
+  Description:
+		App RF 消息缓存处理函数
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void rf_move_data_to_buffer(nrf_communication_t *Message)
+{
+	Uart_MessageTypeDef rf_message;
+	uint8_t i = 0 ;
+	
+	rf_message.HEADER = 0x5C;
+	rf_message.TYPE = 0x10;
+	
+	memcpy(rf_message.SIGN,nrf_communication.receive_buf+1,4);
+	
+	/* 获取消息的有效长度 */
+	rf_message.LEN = Message->receive_buf[17]+10;
+	
+	for (i=0;i<rf_message.LEN;i++)
+	{
+		rf_message.DATA[i]=Message->receive_buf[i+10];
+#ifdef ENABLE_RF_DATA_SHOW
+		printf("%2X ",Message->receive_buf[i+10]);
+		if((i+1)%20 == 0 )
+			printf("\r\n");			
+#endif
+	}
+	
+	rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.TYPE)), i+6);		
+	rf_message.END = 0xCA;
+	
+	/* 存入缓存 */
+	if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+	{
+		serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
+	}	
+}
 
 /** @addtogroup STM32F10x_StdPeriph_Examples
   * @{
@@ -602,7 +641,6 @@ void RFIRQ_EXTI_IRQHandler(void)
 //					{
 //						irq_debug("%02X ", nrf_communication.receive_buf[i]);
 //					}irq_debug("\r\n");
-
 				}
 				else
 				{
@@ -620,17 +658,20 @@ void RFIRQ_EXTI_IRQHandler(void)
 				}
 				else													//有效数据，返回ACK
 				{
-					//irq_debug("irq_debug，首次收到数据,包号: %02X  \n",nrf_communication.receive_buf[0]);
-//					for(i = 0; i < nrf_communication.receive_len; i++)
+//					printf("irq_debug，首次收到数据,包号: %02X  \r\n",nrf_communication.receive_buf[0]);
+//					for(i = 1; i < nrf_communication.receive_len; i++)
 //					{
-//						irq_debug("%02X ", nrf_communication.receive_buf[i]);
-//					}irq_debug("\r\n");
-					rf_var.rx_len = nrf_communication.receive_buf[6];
-					memcpy(rf_var.rx_buf, nrf_communication.receive_buf+10, rf_var.rx_len);	//有效数据复制到rf_var.rx_buf
-					rf_var.flag_rx_ok = true;
-					dtq_to_jsq_sequence = nrf_communication.receive_buf[0];				//更新接收包号
-					my_nrf_transmit_start(ack_buff,6,NRF_DATA_IS_ACK);		//回复ACK
-					my_nrf_receive_success_handler();						//用户接收到数据处理函数
+//						printf("%02X ", nrf_communication.receive_buf[i]);
+//					}
+//					printf("\r\n");		
+					/* 有效数据复制到缓存 */
+					rf_move_data_to_buffer(&nrf_communication);
+					/* 更新接收包号 */
+					dtq_to_jsq_sequence = nrf_communication.receive_buf[0];				
+					/* 回复ACK */
+					my_nrf_transmit_start(ack_buff,6,NRF_DATA_IS_ACK);
+					/* 用户接收到数据处理函数 */
+					my_nrf_receive_success_handler();		
 				}	
 			}
 		}

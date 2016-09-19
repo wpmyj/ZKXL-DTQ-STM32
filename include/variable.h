@@ -102,13 +102,10 @@ typedef enum
 typedef struct 
 {	
 	bool 					flag_txing;		   					//2.4G下发数据标志
-	bool 					flag_rx_ok;		  					//2.4G接收到新数据包
 	bool 					flag_tx_ok;		  					//2.4G接收到新数据包
 	
 	uint8_t 			tx_len;			  					//2.4G发送长度
-	uint8_t	 			rx_len;			  					//2.4G接收长度
 	uint8_t				tx_buf[RF_NBUF];					//2.4G发送缓存  
-	uint8_t				rx_buf[RF_NBUF];					//2.4G接收缓存
 }RF_TypeDef;
 
 typedef struct 
@@ -214,9 +211,6 @@ extern uint16_t 					time_for_buzzer_off;			//响了多长时间之后关
 extern answer_setting_parameter_t	answer_setting;					// 答题器的设置参数
 extern nrf_parameter_t				nrf_parameter;
 
-
-//extern uint8_t            sign_buffer[];
-extern uint8_t						uart_tx_i;						//串口发送缓冲索引
 extern RF_TypeDef 				rf_var;							// 2.4G数据包缓冲
 extern uint16_t						delay_nms;						// 中断延时变量
 extern uint32_t 					timer_1ms;
