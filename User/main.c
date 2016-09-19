@@ -20,7 +20,7 @@ static void Fee_Test(void);
 static void nrf51822_spi_send_test(void);
 static void nrf51822_spi_revice_test(void);
 static void Whitelist_test( void );
-
+static void Ringbuffer_test(void);
 /******************************************************************************
   Function:main
   Description:
@@ -39,16 +39,67 @@ int main(void)
 	// nrf51822_spi_send_test();
 	// nrf51822_spi_revice_test();
 	// Whitelist_test();
-	
+	// Ringbuffer_test();
 	/* System function test end ------------------------------------------------*/
 	
 	while(1)
 	{	
 		app_handle_layer();
-		
-		
+		printf("Uart revice Buffer status = %d uasge rate = %d \r\n",buffer_get_buffer_status(0),serial_ringbuffer_get_usage_rate(0));
+		printf("Uart send   Buffer status = %d uasge rate = %d \r\n",buffer_get_buffer_status(1),serial_ringbuffer_get_usage_rate(1));
 //  rc500_handle_layer();		
 	}	
+}
+
+/******************************************************************************
+  Function:Ringbuffer_test
+  Description:
+		»º³åÇø²âÊÔº¯Êý
+  Input:None
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void Ringbuffer_test(void)
+{
+	Uart_MessageTypeDef uart_test_message;
+	uint16_t i = 0;
+	
+	uart_test_message.HEADER = 0x5C;
+	uart_test_message.TYPE = 0X25;
+	memset(uart_test_message.SIGN,0,4);
+	uart_test_message.LEN = 0x00;
+	uart_test_message.XOR = 0x5C;
+	uart_test_message.END = 0xCA;
+	
+	while(1)
+	{
+		for(i=0;i<20;i++)
+		{
+			if(BUFFERFULL == buffer_get_buffer_status(REVICE_RINGBUFFER))
+			{
+				printf("Serial revice Buffer is full! \r\n");
+			}
+			else
+			{
+				serial_ringbuffer_write_data(REVICE_RINGBUFFER,&uart_test_message);
+			}	
+			printf("Uart revice Buffer status = %d uasge rate = %d \r\n",buffer_get_buffer_status(0),serial_ringbuffer_get_usage_rate(0));
+		}
+		
+		for(i=0;i<10;i++)
+		{
+			if(BUFFEREMPTY == buffer_get_buffer_status(REVICE_RINGBUFFER))
+			{
+				printf("Serial revice Buffer is empty! \r\n");
+			}
+			else
+			{
+				serial_ringbuffer_read_data(REVICE_RINGBUFFER,&uart_test_message);
+			}	
+			printf("Uart revice Buffer status = %d uasge rate = %d \r\n",buffer_get_buffer_status(0),serial_ringbuffer_get_usage_rate(0));
+		}
+	}
 }
 
 /******************************************************************************
