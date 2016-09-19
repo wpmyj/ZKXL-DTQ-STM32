@@ -40,6 +40,7 @@ int main(void)
 	// nrf51822_spi_revice_test();
 	// Whitelist_test();
 	// Ringbuffer_test();
+	
 	/* System function test end ------------------------------------------------*/
 	
 	while(1)
@@ -76,26 +77,18 @@ void Ringbuffer_test(void)
 	
 	while(1)
 	{
-		for(i=0;i<20;i++)
+		for(i=0;i<300;i++)
 		{
-			if(BUFFERFULL == buffer_get_buffer_status(REVICE_RINGBUFFER))
-			{
-				printf("Serial revice Buffer is full! \r\n");
-			}
-			else
+			if(BUFFERFULL != buffer_get_buffer_status(REVICE_RINGBUFFER))
 			{
 				serial_ringbuffer_write_data(REVICE_RINGBUFFER,&uart_test_message);
 			}	
 			printf("Uart revice Buffer status = %d uasge rate = %d \r\n",buffer_get_buffer_status(0),serial_ringbuffer_get_usage_rate(0));
 		}
 		
-		for(i=0;i<10;i++)
+		for(i=0;i<300;i++)
 		{
-			if(BUFFEREMPTY == buffer_get_buffer_status(REVICE_RINGBUFFER))
-			{
-				printf("Serial revice Buffer is empty! \r\n");
-			}
-			else
+			if(BUFFEREMPTY != buffer_get_buffer_status(REVICE_RINGBUFFER))
 			{
 				serial_ringbuffer_read_data(REVICE_RINGBUFFER,&uart_test_message);
 			}	
