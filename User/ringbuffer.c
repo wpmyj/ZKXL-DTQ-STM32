@@ -16,12 +16,9 @@ const uint32_t  BufferSize[2] = {REVICEBUFFERSIZE,SENDBUFFERSIZE};
 static uint8_t *pUartBuffer[2] = {UartReviceBuffer,UartSendBuffer};
 static uint16_t UartBufferTop[2]    = { 0, 0 };
 static uint16_t UartBufferBottom[2] = { 0, 0 };
-static uint32_t UartReadIndex[2]    = { 0, 0 };
-static uint32_t UartWriteIndex[2]   = { 0, 0 };
 static uint32_t UartBufferSize[2]   = { 0, 0 };
 static uint8_t  UartBufferStatus[2] = { BUFFEREMPTY, BUFFEREMPTY};
 
-	
 /* Private functions ---------------------------------------------------------*/
 static void    buffer_read_change_status( uint8_t revice_or_send_buffer) ;
 static void    buffer_write_change_status( uint8_t revice_or_send_buffer) ;
@@ -42,32 +39,6 @@ static void    buffer_store_data_to_buffer(uint8_t revice_or_send_buffer, uint16
 uint8_t buffer_get_buffer_status( uint8_t revice_or_send_buffer )
 {
 		return UartBufferStatus[revice_or_send_buffer];
-}
-
-/******************************************************************************
-  Function:buffer_get_read_index
-  Description:
-  Input:None
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-uint32_t buffer_get_read_index( uint8_t revice_or_send_buffer )
-{
-		return UartReadIndex[revice_or_send_buffer];
-}
-
-/******************************************************************************
-  Function:GetBufferUartWriteIndex[0]
-  Description:
-  Input:None
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-uint32_t buffer_get_write_index( uint8_t revice_or_send_buffer )
-{
-		return UartWriteIndex[revice_or_send_buffer];
 }
 
 /******************************************************************************
@@ -201,8 +172,6 @@ static void buffer_update_write_index( uint8_t revice_or_send_buffer, uint8_t Le
 		UartBufferTop[revice_or_send_buffer] = tmp - BufferSize[revice_or_send_buffer];
 	else
 		UartBufferTop[revice_or_send_buffer] = tmp;
-
-	UartWriteIndex[revice_or_send_buffer]++;
 }
 
 /******************************************************************************
@@ -225,8 +194,6 @@ static void buffer_update_read_index( uint8_t revice_or_send_buffer, uint8_t Len
 		UartBufferBottom[revice_or_send_buffer] = tmp - BufferSize[revice_or_send_buffer];
 	else
 		UartBufferBottom[revice_or_send_buffer] = tmp;
-
-	UartReadIndex[revice_or_send_buffer]++;
 }
 
 /******************************************************************************
