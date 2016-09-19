@@ -45,9 +45,6 @@ void Buzze_Control(void);
 ******************************************************************************/
 void app_handle_layer(void)
 {
-		/* nrf51822 Communication processing process */
-		App_rf_check_process();
-		
 		/* serial cmd processing process */
 		App_seirial_cmd_process();
 		
@@ -177,55 +174,6 @@ void App_clickers_systick_process(void)
 			rf_change_systick_status(3);
 		}
 
-	}
-}
-
-/******************************************************************************
-  Function:App_rf_check_process
-  Description:
-		App RF 射频轮询处理函数
-  Input :
-  Return:
-  Others:None
-******************************************************************************/
-void App_rf_check_process(void)
-{
-	Uart_MessageTypeDef rf_message;
-	uint8_t i = 0 ;
-	
-	if(rf_var.flag_rx_ok == true)
-	{
-		rf_message.HEADER = 0x5C;
-		rf_message.TYPE = 0x10;
-		
-		memcpy(rf_message.SIGN,uart_rf_cmd_sign,4);
-		
-		/* 获取消息的有效长度 */
-		rf_message.LEN = rf_var.rx_buf[7] + 10;
-
-		for (i=0;i<rf_message.LEN;i++)
-		{
-			rf_message.DATA[i]=rf_var.rx_buf[i];
-	#ifdef ENABLE_RF_DATA_SHOW
-			printf("%2X ",rf_var.rx_buf[i]);
-			if((i+1)%20 == 0 )
-				printf("\r\n");			
-	#endif
-		}
-		
-		rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.TYPE)), i+6);		
-		rf_message.END = 0xCA;
-		
-		/* 清空接收缓存 */
-		memset(rf_var.rx_buf, 0x00, rf_var.rx_len);
-		rf_var.rx_len = 0x00;
-		rf_var.flag_rx_ok = false;
-		
-		/* 执行完的指令存入发送缓存 */
-		if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
-		{
-			serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
-		}	
 	}
 }
 
