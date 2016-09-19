@@ -192,11 +192,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 						
 						if( uart_irq_revice_massage.XOR == UartMessageXor)
 						{   /* 若校验通过，则接收数据OK可用 */
-								if(BUFFERFULL == buffer_get_buffer_status(REVICE_RINGBUFFER))
-								{
-									DebugLog("Serial Send Buffer is full! \r\n");
-								}
-								else
+								if(BUFFERFULL != buffer_get_buffer_status(REVICE_RINGBUFFER))
 								{
 									serial_ringbuffer_write_data(REVICE_RINGBUFFER,&uart_irq_revice_massage);
 								}	

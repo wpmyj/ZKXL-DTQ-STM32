@@ -148,11 +148,7 @@ void App_clickers_systick_process(void)
 		buffer_status = buffer_get_buffer_status(REVICE_RINGBUFFER);
 		
 		/* 根据状态决定是否读取缓存指令 */
-		if(BUFFERFULL == buffer_status)
-		{
-			DebugLog("Serial Send Buffer is full! \r\n");
-		}
-		else
+		if(BUFFERFULL != buffer_status)
 		{
 			serial_ringbuffer_write_data(REVICE_RINGBUFFER,&ReviceMessage);
 			clear_white_list_online_table();
@@ -170,11 +166,7 @@ void App_clickers_systick_process(void)
 		rf_systick_massage.END = 0xCA;
 		
 		/* 上传在线状态 */
-		if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
-		{
-			DebugLog("Serial Send Buffer is full! \r\n");
-		}
-		else
+		if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 		{
 			serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_systick_massage);
 		}
@@ -230,11 +222,7 @@ void App_rf_check_process(void)
 		rf_var.flag_rx_ok = false;
 		
 		/* 执行完的指令存入发送缓存 */
-		if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
-		{
-			DebugLog("Serial Send Buffer is full! \r\n");
-		}
-		else
+		if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 		{
 			serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
 		}	
@@ -304,11 +292,7 @@ void App_card_process(void)
 			if(cmd_process_status != 0)
 			{
 				/* 执行完的指令存入发送缓存 */
-				if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
-				{
-					DebugLog("Serial Send Buffer is full! \r\n");
-				}
-				else
+				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 				{
 					serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
 				}	
