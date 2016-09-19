@@ -32,7 +32,6 @@ static uint32_t rf_tx_timeout_cnt = 0;
 	
 static bool     flag_uart_rxing = false;
 static uint8_t  uart_status     = UartHEADER;
-//static uint8_t  clickers_uid[4];
 
 // send part
 Uart_MessageTypeDef uart_irq_send_massage;
@@ -310,11 +309,6 @@ void rf_move_data_to_buffer(nrf_communication_t *Message)
 	for (i=0;i<rf_message.LEN;i++)
 	{
 		rf_message.DATA[i]=Message->receive_buf[i+10];
-#ifdef ENABLE_RF_DATA_SHOW
-		printf("%2X ",Message->receive_buf[i+10]);
-		if((i+1)%20 == 0 )
-			printf("\r\n");			
-#endif
 	}
 	
 	rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.TYPE)), i+6);		

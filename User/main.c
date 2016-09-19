@@ -46,6 +46,7 @@ int main(void)
 	while(1)
 	{	
 		app_handle_layer();
+		
 		if(serial_ringbuffer_get_usage_rate(0) !=0 )
 		{
 			printf("Uart revice Buffer status = %d uasge rate = %d \r\n",
