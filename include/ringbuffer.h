@@ -40,9 +40,9 @@
 #define OPENIRQ()            __set_PRIMASK(0)
 
 /* Private functions ---------------------------------------------------------*/
-uint8_t buffer_get_buffer_status( uint8_t revice_or_send_buffer );
-void serial_ringbuffer_write_data( uint8_t revice_or_send_buffer, Uart_MessageTypeDef *data );
-void serial_ringbuffer_read_data( uint8_t revice_or_send_buffer, Uart_MessageTypeDef *data );
-void serial_ringbuffer_write_data1(uint8_t revice_or_send_buffer, uint8_t *data);
-uint8_t serial_ringbuffer_get_usage_rate(uint8_t revice_or_send_buffer);
+uint8_t buffer_get_buffer_status( uint8_t sel_buffer );
+void serial_ringbuffer_write_data( uint8_t sel_buffer, Uart_MessageTypeDef *data );
+void serial_ringbuffer_read_data( uint8_t sel_buffer, Uart_MessageTypeDef *data );
+void serial_ringbuffer_write_data1(uint8_t sel_buffer, uint8_t *data);
+uint8_t serial_ringbuffer_get_usage_rate(uint8_t sel_buffer);
 #endif

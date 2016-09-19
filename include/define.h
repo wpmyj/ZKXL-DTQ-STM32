@@ -31,12 +31,6 @@
 #define UART_NBUF								(240)
 #define RF_NBUF									(UART_NBUF)
 
-#define TX_ADR_WIDTH 						(5)
-#define RX_ADR_WIDTH 						(5)
-#define RF_CHANNEL_NRF1					(30)
-#define RF_CHANNEL_NRF2					(8)
-
-//#define TX_MODE
 
 #endif //_DEFINE_H_
 /**
