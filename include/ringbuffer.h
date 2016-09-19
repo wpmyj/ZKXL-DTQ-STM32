@@ -27,6 +27,10 @@
 #define BUFFERUSEING         2
 #define BUFFERFULL           3
 
+/* the threshold of buffer */
+#define USAGE_TATE_FULL      97
+#define USAGE_TATE_EREMPTY   0
+
 /* buffer operation */
 #define OPERATIONWRITE       1
 #define OPERATIONREAD        2
