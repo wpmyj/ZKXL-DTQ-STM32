@@ -10,8 +10,10 @@
 #include "ringbuffer.h"
 
 /* Private variables ---------------------------------------------------------*/
-
-static uint8_t  UartBuffer[2][BUFFERSIZE];
+static uint8_t  UartReviceBuffer[REVICEBUFFERSIZE];
+static uint8_t  UartSendBuffer[SENDBUFFERSIZE];
+const uint32_t  BufferSize[2] = {REVICEBUFFERSIZE,SENDBUFFERSIZE};
+static uint8_t *pUartBuffer[2] = {UartReviceBuffer,UartSendBuffer};
 static uint16_t UartBufferTop[2]    = { 0, 0 };
 static uint16_t UartBufferBottom[2] = { 0, 0 };
 static uint32_t UartReadIndex[2]    = { 0, 0 };
@@ -19,6 +21,7 @@ static uint32_t UartWriteIndex[2]   = { 0, 0 };
 static uint32_t UartBufferSize[2]   = { 0, 0 };
 static uint8_t  UartBufferStatus[2] = { BUFFEREMPTY, BUFFEREMPTY};
 
+	
 /* Private functions ---------------------------------------------------------*/
 static void    buffer_read_change_status( uint8_t revice_or_send_buffer) ;
 static void    buffer_write_change_status( uint8_t revice_or_send_buffer) ;
@@ -77,11 +80,11 @@ uint32_t buffer_get_write_index( uint8_t revice_or_send_buffer )
 ******************************************************************************/
 uint8_t buffer_get_data_from_buffer( uint8_t revice_or_send_buffer, uint16_t index )
 {
-	if( index < BUFFERSIZE )
-		return UartBuffer[revice_or_send_buffer][index];
+	if( index < BufferSize[revice_or_send_buffer] )
+		return pUartBuffer[revice_or_send_buffer][index];
 	else
 		return 
-			UartBuffer[revice_or_send_buffer][index-BUFFERSIZE];
+			pUartBuffer[revice_or_send_buffer][index-BufferSize[revice_or_send_buffer]];
 }
 
 /******************************************************************************
@@ -94,10 +97,10 @@ uint8_t buffer_get_data_from_buffer( uint8_t revice_or_send_buffer, uint16_t ind
 ******************************************************************************/
 void buffer_store_data_to_buffer( uint8_t revice_or_send_buffer, uint16_t index, uint8_t data)
 {
-	if( index < BUFFERSIZE )
-		UartBuffer[revice_or_send_buffer][index] = data;
+	if( index < BufferSize[revice_or_send_buffer] )
+		pUartBuffer[revice_or_send_buffer][index] = data;
 	else 
-		UartBuffer[revice_or_send_buffer][index-BUFFERSIZE] = data;
+		pUartBuffer[revice_or_send_buffer][index-BufferSize[revice_or_send_buffer]] = data;
 }
 
 
@@ -194,8 +197,8 @@ static void buffer_update_write_index( uint8_t revice_or_send_buffer, uint8_t Le
 	  
 	tmp = UartBufferTop[revice_or_send_buffer] + Len;
 	  
-	if(tmp > BUFFERSIZE)
-		UartBufferTop[revice_or_send_buffer] = tmp - BUFFERSIZE;
+	if(tmp > BufferSize[revice_or_send_buffer])
+		UartBufferTop[revice_or_send_buffer] = tmp - BufferSize[revice_or_send_buffer];
 	else
 		UartBufferTop[revice_or_send_buffer] = tmp;
 
@@ -218,8 +221,8 @@ static void buffer_update_read_index( uint8_t revice_or_send_buffer, uint8_t Len
 	  
 	tmp = UartBufferBottom[revice_or_send_buffer] + Len;
 	  
-	if(tmp > BUFFERSIZE)
-		UartBufferBottom[revice_or_send_buffer] = tmp - BUFFERSIZE;
+	if(tmp > BufferSize[revice_or_send_buffer])
+		UartBufferBottom[revice_or_send_buffer] = tmp - BufferSize[revice_or_send_buffer];
 	else
 		UartBufferBottom[revice_or_send_buffer] = tmp;
 
@@ -395,7 +398,7 @@ uint8_t serial_ringbuffer_get_usage_rate(uint8_t revice_or_send_buffer)
 {
 	uint8_t usage_rate = 0;
 	
-	usage_rate = UartBufferSize[revice_or_send_buffer]*100/BUFFERSIZE;
+	usage_rate = UartBufferSize[revice_or_send_buffer]*100/BufferSize[revice_or_send_buffer];
 	
 	return usage_rate;
 }
