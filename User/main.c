@@ -45,9 +45,11 @@ int main(void)
 	while(1)
 	{	
 		app_handle_layer();
-		printf("Uart revice Buffer status = %d uasge rate = %d \r\n",buffer_get_buffer_status(0),serial_ringbuffer_get_usage_rate(0));
-		printf("Uart send   Buffer status = %d uasge rate = %d \r\n",buffer_get_buffer_status(1),serial_ringbuffer_get_usage_rate(1));
-//  rc500_handle_layer();		
+		
+//	printf("Uart revice Buffer status = %d uasge rate = %d \r\n",
+//		  buffer_get_buffer_status(0),serial_ringbuffer_get_usage_rate(0));
+//	printf("Uart send   Buffer status = %d uasge rate = %d \r\n",
+//		  buffer_get_buffer_status(1),serial_ringbuffer_get_usage_rate(1));	
 	}	
 }
 

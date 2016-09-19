@@ -122,7 +122,7 @@ static void buffer_read_change_status( uint8_t revice_or_send_buffer)
 		
 		case BUFFERUSEING:
 			{
-				if(UartBufferSize[revice_or_send_buffer] <= 0)
+				if(serial_ringbuffer_get_usage_rate(revice_or_send_buffer) <= USAGE_TATE_EREMPTY)
 					UartBufferStatus[revice_or_send_buffer] = BUFFEREMPTY;
 				else
 					UartBufferStatus[revice_or_send_buffer] = BUFFERUSEING;
@@ -164,7 +164,7 @@ static void buffer_write_change_status( uint8_t revice_or_send_buffer)
 		
 		case BUFFERUSEING:
 			{
-				if(UartBufferSize[revice_or_send_buffer] >= BUFFERSIZE)
+				if(serial_ringbuffer_get_usage_rate(revice_or_send_buffer) >= USAGE_TATE_FULL)
 					UartBufferStatus[revice_or_send_buffer] = BUFFERFULL;
 				else
 					UartBufferStatus[revice_or_send_buffer] = BUFFERUSEING;
