@@ -13,9 +13,10 @@
 
 static uint8_t  UartBuffer[2][BUFFERSIZE];
 static uint16_t UartBufferTop[2]    = { 0, 0 };
-static uint16_t UartBufferTottom[2] = { 0, 0 };
+static uint16_t UartBufferBottom[2] = { 0, 0 };
 static uint32_t UartReadIndex[2]    = { 0, 0 };
 static uint32_t UartWriteIndex[2]   = { 0, 0 };
+static uint32_t UartBufferSize[2]   = { 0, 0 };
 static uint8_t  UartBufferStatus[2] = { BUFFEREMPTY, BUFFEREMPTY};
 
 /* Private functions ---------------------------------------------------------*/
@@ -121,7 +122,7 @@ static void buffer_read_change_status( uint8_t revice_or_send_buffer)
 		
 		case BUFFERUSEING:
 			{
-				if(UartReadIndex[revice_or_send_buffer] == UartWriteIndex[revice_or_send_buffer])
+				if(UartBufferSize[revice_or_send_buffer] <= 0)
 					UartBufferStatus[revice_or_send_buffer] = BUFFEREMPTY;
 				else
 					UartBufferStatus[revice_or_send_buffer] = BUFFERUSEING;
@@ -163,8 +164,7 @@ static void buffer_write_change_status( uint8_t revice_or_send_buffer)
 		
 		case BUFFERUSEING:
 			{
-				if(UartWriteIndex[revice_or_send_buffer] == 
-						UartReadIndex[revice_or_send_buffer])
+				if(UartBufferSize[revice_or_send_buffer] >= BUFFERSIZE)
 					UartBufferStatus[revice_or_send_buffer] = BUFFERFULL;
 				else
 					UartBufferStatus[revice_or_send_buffer] = BUFFERUSEING;
@@ -190,7 +190,9 @@ static void buffer_update_write_index( uint8_t revice_or_send_buffer, uint8_t Le
 { 
     uint16_t tmp = 0;
 	
-	  tmp = UartBufferTop[revice_or_send_buffer] + Len;
+	UartBufferSize[revice_or_send_buffer] += Len; 
+	  
+	tmp = UartBufferTop[revice_or_send_buffer] + Len;
 	  
 	if(tmp > BUFFERSIZE)
 		UartBufferTop[revice_or_send_buffer] = tmp - BUFFERSIZE;
@@ -210,16 +212,18 @@ static void buffer_update_write_index( uint8_t revice_or_send_buffer, uint8_t Le
 ******************************************************************************/
 static void buffer_update_read_index( uint8_t revice_or_send_buffer, uint8_t Len )
 {
-    uint16_t tmp = 0;
+  uint16_t tmp = 0;
 	
-	  tmp = UartBufferTottom[revice_or_send_buffer] + Len;
+	UartBufferSize[revice_or_send_buffer] -= Len;
 	  
-	  if(tmp > BUFFERSIZE)
-		  UartBufferTottom[revice_or_send_buffer] = tmp - BUFFERSIZE;
-	  else
-		  UartBufferTottom[revice_or_send_buffer] = tmp;
-	
-	  UartReadIndex[revice_or_send_buffer]++;
+	tmp = UartBufferBottom[revice_or_send_buffer] + Len;
+	  
+	if(tmp > BUFFERSIZE)
+		UartBufferBottom[revice_or_send_buffer] = tmp - BUFFERSIZE;
+	else
+		UartBufferBottom[revice_or_send_buffer] = tmp;
+
+	UartReadIndex[revice_or_send_buffer]++;
 }
 
 /******************************************************************************
@@ -234,12 +238,12 @@ static void buffer_clear_element( uint8_t revice_or_send_buffer )
 {
 	uint8_t i;
 	uint8_t MessageLen = buffer_get_data_from_buffer( revice_or_send_buffer,
-												UartBufferTottom[revice_or_send_buffer]+6 ) + 9;
+												UartBufferBottom[revice_or_send_buffer]+6 ) + 9;
 	
 	for(i=0;i<MessageLen;i++)
 	{
 		buffer_store_data_to_buffer(revice_or_send_buffer,
-				UartBufferTottom[revice_or_send_buffer]+i,0);
+				UartBufferBottom[revice_or_send_buffer]+i,0);
 	}
 }
 
@@ -320,24 +324,24 @@ void serial_ringbuffer_read_data( uint8_t revice_or_send_buffer, Uart_MessageTyp
 	  uint8_t *pdata = (uint8_t *)data;
 	
 	  uint8_t MessageLen = buffer_get_data_from_buffer( revice_or_send_buffer,
-														UartBufferTottom[revice_or_send_buffer]+6) + 7;
+														UartBufferBottom[revice_or_send_buffer]+6) + 6;
 		
-		for(i=0;i<MessageLen;i++)
+		for(i=0;i<=MessageLen;i++)
 		{
 			*pdata = buffer_get_data_from_buffer(revice_or_send_buffer, 
-									UartBufferTottom[revice_or_send_buffer]+i);
+									UartBufferBottom[revice_or_send_buffer]+i);
 			pdata++;
 		}
 		
 		data->XOR = buffer_get_data_from_buffer(revice_or_send_buffer, 
-										UartBufferTottom[revice_or_send_buffer]+i+0);
+										UartBufferBottom[revice_or_send_buffer]+i+0);
 		
 		data->END = buffer_get_data_from_buffer(revice_or_send_buffer, 
-										UartBufferTottom[revice_or_send_buffer]+i+1);
+										UartBufferBottom[revice_or_send_buffer]+i+1);
 		
 		buffer_clear_element(revice_or_send_buffer);
 		
-		buffer_update_read_index(revice_or_send_buffer, MessageLen+2);
+		buffer_update_read_index(revice_or_send_buffer, MessageLen+3);
 		
 		buffer_read_change_status(revice_or_send_buffer);
 }
@@ -356,25 +360,44 @@ void serial_ringbuffer_read_data1( uint8_t revice_or_send_buffer, uint8_t *data 
 	  uint8_t *pdata = (uint8_t *)data;
 	
 	  uint8_t MessageLen = buffer_get_data_from_buffer( revice_or_send_buffer,
-														UartBufferTottom[revice_or_send_buffer]+6) + 7;
+														UartBufferBottom[revice_or_send_buffer]+6) + 6;
 		
-		for(i=0;i<MessageLen;i++)
+		for(i=0;i<=MessageLen;i++)
 		{
 			*pdata = buffer_get_data_from_buffer(revice_or_send_buffer, 
-			             UartBufferTottom[revice_or_send_buffer]+i);
+			             UartBufferBottom[revice_or_send_buffer]+i);
 			pdata++;
 		}
 		
 		*pdata++ = buffer_get_data_from_buffer(revice_or_send_buffer, 
-		               UartBufferTottom[revice_or_send_buffer]+i+1);
+		               UartBufferBottom[revice_or_send_buffer]+i+0);
 		
 		*pdata++ = buffer_get_data_from_buffer(revice_or_send_buffer, 
-		                UartBufferTottom[revice_or_send_buffer]+i+2);
+		                UartBufferBottom[revice_or_send_buffer]+i+1);
 		
 		buffer_clear_element(revice_or_send_buffer);
 		
-		buffer_update_read_index(revice_or_send_buffer, MessageLen+2);
+		buffer_update_read_index(revice_or_send_buffer, MessageLen+3);
 		
 		buffer_read_change_status(revice_or_send_buffer);
 }
+
+
+/******************************************************************************
+  Function:serial_ringbuffer_read_data1
+  Description:
+  Input:None
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+uint8_t serial_ringbuffer_get_usage_rate(uint8_t revice_or_send_buffer)
+{
+	uint8_t usage_rate = 0;
+	
+	usage_rate = UartBufferSize[revice_or_send_buffer]*100/BUFFERSIZE;
+	
+	return usage_rate;
+}
+
 /**************************************END OF FILE****************************/
