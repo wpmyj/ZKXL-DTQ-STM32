@@ -29,7 +29,7 @@
 #define BUFFERFULL           3
 
 /* the threshold of buffer */
-#define USAGE_TATE_FULL      97
+#define USAGE_TATE_FULL      (100-256*100/REVICEBUFFERSIZE)
 #define USAGE_TATE_EREMPTY   0
 
 /* buffer operation */
