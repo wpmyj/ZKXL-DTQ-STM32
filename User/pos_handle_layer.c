@@ -112,11 +112,46 @@ static void serial_send_data_to_pc(void)
 		
 	}
 #else
+#ifdef ENABLE_OUTPUT_MODE_NORMOL
+	uint8_t *pdata;
+	uint8_t i,uart_tx_cnt = 0;
+	
+	if(BUFFEREMPTY == buffer_get_buffer_status(SEND_RINGBUFFER))
+	{
+		return;
+	}
+	else
+	{
+		serial_ringbuffer_read_data(SEND_RINGBUFFER, &uart_irq_send_massage);
+		
+		pdata = (uint8_t *)(uart_irq_send_massage.DATA);
+		uart_tx_cnt = uart_irq_send_massage.LEN;
+		
+		uart_send_char(uart_irq_send_massage.HEADER);
+		uart_send_char(uart_irq_send_massage.TYPE);
+		
+		uart_send_char(uart_irq_send_massage.SIGN[0]);
+		uart_send_char(uart_irq_send_massage.SIGN[1]);
+		uart_send_char(uart_irq_send_massage.SIGN[2]);
+		uart_send_char(uart_irq_send_massage.SIGN[3]);
+		
+		uart_send_char(uart_irq_send_massage.LEN);
+		
+		for(i=0;i<uart_tx_cnt;i++)
+		{
+			uart_send_char(*pdata);
+			pdata++;
+		}
+		uart_send_char(uart_irq_send_massage.XOR);
+		uart_send_char(uart_irq_send_massage.END);
+	}
+#else
 	if( uart_tx_status == 0)
 	{
 		/* enable interrupt Start send data*/
 		USART_ITConfig(USART1pos, USART_IT_TXE, ENABLE);
   }
+#endif
 #endif //ENABLE_DEBUG_LOG
 }
 

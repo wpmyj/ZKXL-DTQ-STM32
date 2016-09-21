@@ -194,6 +194,16 @@ void Usart2_Init(void)
 	USART_Cmd(USART2pos, ENABLE);
 }
 
+void uart_send_char( uint8_t ch )
+{
+	/* Write a character to the USART */
+	USART_SendData(USART1pos, (u8) ch);
+
+	/* Loop until the end of transmission */
+	while(!(USART_GetFlagStatus(USART1pos, USART_FLAG_TXE) == SET))
+	{
+	}
+}
 /*******************************************************************************
 * Function Name   : int fputc(int ch, FILE *f)
 * Description     : Retargets the C library printf function to the USART.printf÷ÿ∂®œÚ
