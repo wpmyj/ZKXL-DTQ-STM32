@@ -28,7 +28,7 @@ void SE2431L_LNA(void);
 void SE2431L_Bypass(void);
 void SE2431L_TX(void);
 void GPIOInit_MFRC500(void);
-
+void uart_send_char( uint8_t ch );
 
 
 
