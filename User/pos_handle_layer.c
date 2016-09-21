@@ -130,7 +130,7 @@ static void serial_send_data_to_pc(void)
 ******************************************************************************/
 static void serial_cmd_process(void)
 {
-	Uart_MessageTypeDef ReviceMessage,SendMessage;
+	static Uart_MessageTypeDef ReviceMessage,SendMessage;
 	uint8_t buffer_status = 0;
 
   /* 系统空闲提取缓存指令 */
