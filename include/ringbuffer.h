@@ -21,7 +21,7 @@
 
 #define PACKETSIZE           (UART_NBUF+9)
 #define REVICEBUFFERSIZE     (2048)
-#define SENDBUFFERSIZE       (256)
+#define SENDBUFFERSIZE       (2048)
 
 /* buffer status  */
 #define BUFFEREMPTY          1
