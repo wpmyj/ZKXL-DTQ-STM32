@@ -691,7 +691,7 @@ uint8_t App_return_whitelist_data( Uart_MessageTypeDef *RMessage, Uart_MessageTy
 	}
 	SMessage->DATA[0] = uid_p;
 	SMessage->LEN = (uid_p-index)*4+1;
-	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+7);
 	SMessage->END = 0xCA;
 	
 	return uid_p;
