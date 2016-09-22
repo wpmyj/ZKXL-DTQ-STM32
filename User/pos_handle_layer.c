@@ -376,7 +376,7 @@ static void serial_cmd_process(void)
 				{
 					serial_cmd_type = 0xff;	
 					err_cmd_type = serial_cmd_type;	
-					serial_cmd_status = APP_CTR_IDLE;
+					serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;
 				}
 				break;
 		}
