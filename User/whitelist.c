@@ -9,10 +9,14 @@ uint16_t					match_number = 1;			  	    // 配对序号
 uint8_t           uid_p;
 uint8_t		        uid_len = 0;					        // M1卡序列号长度
 uint8_t 	        g_cSNR[10];						        // M1卡序列号
-uint16_t          white_list_use_onlne_table[2][8] = {{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0}};
+uint16_t          white_list_use_onlne_table[3][8] =
+{	{0,0,0,0,0,0,0,0}, // UID 使用索引表
+	{0,0,0,0,0,0,0,0}, // UID 在线索引表
+	{0,0,0,0,0,0,0,0}  // UID 在线索暂存表
+};
 uint8_t           rf_current_uid_index = 0;
 
-	
+
 /******************************************************************************
   Function:clear_white_list_online_table
   Description:
@@ -26,9 +30,9 @@ void clear_white_list_online_table(void)
 	uint8_t i;
 	for(i=0;i<8;i++)
 	{
+		white_list_use_onlne_table[2][i] = white_list_use_onlne_table[1][i];
 		white_list_use_onlne_table[1][i] = 0x00;
 	}
-	
 }
 	
 /******************************************************************************

@@ -25,8 +25,11 @@ extern uint8_t uart_tx_status;
 			 uint8_t whitelist_print_index = 0;
 			 uint8_t card_cmd_type = 0;
 			 
-uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];				 
-			 
+uint8_t uart_rf_cmd_sign[4];
+uint8_t uart_card_cmd_sign[4];
+
+Uart_MessageTypeDef pc_subject_massage;
+static uint8_t pc_subject_status = 0;
 			 
 /* Private functions ---------------------------------------------------------*/
 static void serial_send_data_to_pc(void);
@@ -44,6 +47,37 @@ void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef 
 void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err_type );
 void App_uart_message_copy( Uart_MessageTypeDef *SrcMessage, Uart_MessageTypeDef *DstMessage );
 void App_return_systick( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+
+/******************************************************************************
+  Function:pc_subject_change_status
+  Description:
+		修改pc_subject_status的状态
+  Input :
+		pc_subject_status: pc_subject_status的新状态
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void pc_subject_change_status( uint8_t newstatus )
+{
+	pc_subject_status = newstatus;
+	DebugLog("<%s>pc_subject_status = %d\r\n",__func__,pc_subject_status);
+}
+
+/******************************************************************************
+  Function:get_pc_subject_status
+  Description:
+		修改pc_subject_status的状态
+  Input :
+		pc_subject_status: pc_subject_status的新状态
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+uint8_t get_pc_subject_status( void )
+{
+	return pc_subject_status;
+}
 
 /******************************************************************************
   Function:App_seirial_cmd_process
@@ -440,6 +474,28 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 	/* 获取：包封装的答题器->数据内容 */ 
 	memcpy(rf_var.tx_buf, (uint8_t *)(RMessage->DATA), RMessage->LEN);
 	
+
+	/* 获取下发数据: 决定是否暂存数据 */
+	switch( RMessage->DATA[6] )
+	{
+		case 0x10:
+		case 0x11:
+			{
+				/* 暂存题目 */
+				pc_subject_massage.HEADER = 0x5C;
+				pc_subject_massage.TYPE = RMessage->TYPE;
+				memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+				pc_subject_massage.LEN = RMessage->LEN;
+				memcpy( pc_subject_massage.DATA, (uint8_t *)(RMessage->DATA), RMessage->LEN );
+				pc_subject_massage.XOR = RMessage->XOR;
+				pc_subject_massage.XOR = 0xCA;
+				pc_subject_change_status(1);
+			}
+			break;
+
+		default: break;
+	}
+
 	/* 打开发送开关 */
 	rf_var.flag_txing = true;
 
