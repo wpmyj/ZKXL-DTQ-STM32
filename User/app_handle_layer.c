@@ -15,6 +15,7 @@
 
 extern uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];		
 extern uint8_t card_cmd_type ;
+extern Uart_MessageTypeDef pc_subject_massage;
 
 uint8_t rf_outline_index = 0;
 extern uint8_t rf_back_sign[4];
@@ -59,6 +60,30 @@ void app_handle_layer(void)
 /******************************************************************************
   Function:checkout_outline_uid
   Description:
+		检查是否有新的答题器上线
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+bool is_new_uid_online( void )
+{
+	uint8_t i;
+	uint8_t is_online_pos_new = 0,is_online_pos_old = 0;
+
+	for(i=0;i<120;i++)
+	{
+		is_online_pos_new = get_index_of_white_list_pos_status(1,i);
+		is_online_pos_old = get_index_of_white_list_pos_status(2,i);
+
+		if((is_online_pos_new == 1) && (is_online_pos_old == 0))
+			return 1;
+	}
+
+	return 0;
+}
+/******************************************************************************
+  Function:checkout_outline_uid
+  Description:
 		提取不在线状态的答题器UID
   Input :
   Return:
@@ -93,9 +118,7 @@ bool checkout_outline_uid(uint8_t *puid,uint8_t *len)
 	{
 		rf_outline_index = i;
 		return 1;
-
 	}
-	
 }
 
 /******************************************************************************
@@ -119,7 +142,6 @@ void App_clickers_systick_process(void)
 	/* 10s 时间到 发送新的心跳包到答题器 */
 	if(systick_current_status == 4)
 	{
-		
 		get_next_uid_of_white_list(rf_clickers_sign);
 		
 		ReviceMessage.HEADER = 0x5C;
@@ -144,13 +166,33 @@ void App_clickers_systick_process(void)
 		/* 获取接收缓存的状态 */
 		buffer_status = buffer_get_buffer_status(REVICE_RINGBUFFER);
 		
-		/* 根据状态决定是否读取缓存指令 */
-		if(BUFFERFULL != buffer_status)
+		if( get_pc_subject_status() == 1 )
 		{
-			serial_ringbuffer_write_data(REVICE_RINGBUFFER,&ReviceMessage);
-			clear_white_list_online_table();
-			rf_change_systick_status(1);
-		}	
+		  uint8_t is_new_uid = 0;
+
+		  /* 检查是否有新的答题器上线 */
+		  is_new_uid = is_new_uid_online();
+
+		  if( is_new_uid == 1)
+		  {
+		    DebugLog("\r\n<%s> discover new uid \r\n\r\n",__func__);
+		    if(BUFFERFULL != buffer_status)
+		    {
+		      serial_ringbuffer_write_data(REVICE_RINGBUFFER,&pc_subject_massage);
+		      clear_white_list_online_table();
+		    }
+		  }
+		  else
+		  {
+		    DebugLog("\r\n<%s> no new uid \r\n\r\n",__func__);
+		    /* 根据状态决定是否读取缓存指令 */
+		    if(BUFFERFULL != buffer_status)
+		    {
+		      serial_ringbuffer_write_data(REVICE_RINGBUFFER,&ReviceMessage);
+		      clear_white_list_online_table();
+		    }
+		  }
+		}
 	}
 	
 	/* 发送数据之后 */
@@ -173,7 +215,6 @@ void App_clickers_systick_process(void)
 		{
 			rf_change_systick_status(3);
 		}
-
 	}
 }
 
