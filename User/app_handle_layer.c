@@ -205,11 +205,14 @@ void App_clickers_systick_process(void)
 		rf_systick_massage.END = 0xCA;
 		
 		/* 上传在线状态 */
-		if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+		if(rf_systick_massage.LEN != 0)
 		{
-			serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_systick_massage);
+			if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+			{
+				serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_systick_massage);
+			}
+			rf_systick_massage.LEN = 0;
 		}
-		rf_systick_massage.LEN = 0;
 		
 		if(Is_over == 0)
 		{
