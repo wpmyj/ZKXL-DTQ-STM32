@@ -5,7 +5,6 @@
 /* Private define ------------------------------------------------------------*/
 
 /* Uart to App cmd */
-#define APP_CTR_IDLE                      0x00 // 0x00: idle
 #define APP_CTR_SENT_DATA_VIA_2_4G        0x01 // 0x01: 通过2.4G下发数据包处理
 #define APP_CTR_GET_DATA_VIA_2_4G         0x02 // 0x02: 通过2.4G接收过来的数据包处理
 #define APP_CTR_ADD_WHITE_LIST            0x11 // 0x11: 添加白名单
@@ -25,6 +24,7 @@
 #define APP_SERIAL_CMD_STATUS_IDLE        0x00
 #define APP_SERIAL_CMD_STATUS_WORK        0x01
 #define APP_SERIAL_CMD_STATUS_ERR         0x02
+#define APP_SERIAL_CMD_STATUS_IGNORE      0x03
 
 #define START_SEND_DATA                   0
 #define STOP_SEND_DATA                    1
