@@ -230,7 +230,10 @@ static void serial_cmd_process(void)
 				{ 
 					memcpy(uart_rf_cmd_sign,ReviceMessage.SIGN,4);
 					App_send_data_to_clickers( &ReviceMessage, &SendMessage);
-					serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+					if(ReviceMessage.DATA[6] == 0x15)
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IGNORE;
+					else
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 				}				
 				break;
 			
@@ -264,7 +267,7 @@ static void serial_cmd_process(void)
 					else
 					{
 						App_operate_uids_to_whitelist( &ReviceMessage, &SendMessage);
-						serial_cmd_status = APP_CTR_IDLE;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 					}
 				}											
 				break;
@@ -283,7 +286,7 @@ static void serial_cmd_process(void)
 						/* 延迟：防止第一次的第一条指令为初始化时，后面的指令接收不完全 */
 						DelayMs(100);
 						App_initialize_white_list( &ReviceMessage, &SendMessage);
-						serial_cmd_status = APP_CTR_IDLE;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 					}
 				}
 				break;	
@@ -301,7 +304,7 @@ static void serial_cmd_process(void)
 					else
 					{
 						App_open_or_close_white_list( &ReviceMessage, &SendMessage);
-						serial_cmd_status = APP_CTR_IDLE;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 					}
 				}
 				break;	
@@ -322,7 +325,7 @@ static void serial_cmd_process(void)
 					{
 						memcpy(uart_card_cmd_sign,ReviceMessage.SIGN,4);
 						App_open_or_close_attendance_match( &ReviceMessage, &SendMessage);
-						serial_cmd_status = APP_CTR_IDLE;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 					}
 				}				
 				break;		
@@ -349,7 +352,7 @@ static void serial_cmd_process(void)
 						}
 						else
 						{
-							serial_cmd_status = APP_CTR_IDLE;
+							serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 							whitelist_print_index = 0;
 						}
 					}
@@ -369,7 +372,7 @@ static void serial_cmd_process(void)
 					else
 					{
 						App_return_device_info( &ReviceMessage, &SendMessage);
-						serial_cmd_status = APP_CTR_IDLE;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 					}
 				}
 				break;
@@ -386,7 +389,7 @@ static void serial_cmd_process(void)
 					else
 					{
 						App_return_systick( &ReviceMessage, &SendMessage);
-						serial_cmd_status = APP_CTR_IDLE;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 					}
 				}
 				break;
@@ -394,14 +397,14 @@ static void serial_cmd_process(void)
 			case APP_CTR_DATALEN_ERR:
 				{
 					App_returnErr(&SendMessage,err_cmd_type,APP_CTR_DATALEN_ERR);
-					serial_cmd_status = APP_CTR_IDLE;
+					serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 				}
 				break;
 				
 			case APP_CTR_UNKNOWN:
 				{
 					App_returnErr(&SendMessage,err_cmd_type,APP_CTR_UNKNOWN);
-					serial_cmd_status = APP_CTR_IDLE;
+					serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 				}
 				break;
 			
@@ -419,6 +422,12 @@ static void serial_cmd_process(void)
 	/* 执行完的指令存入发送缓存:指令没有出错 */
 	if(serial_cmd_status != APP_SERIAL_CMD_STATUS_ERR)
 	{
+		if(serial_cmd_status == APP_SERIAL_CMD_STATUS_IGNORE)
+		{
+			serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+			return;
+		}
+
 		if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
 		{
 			DebugLog("Serial Send Buffer is full! \r\n");
