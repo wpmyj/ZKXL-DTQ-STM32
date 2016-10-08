@@ -242,8 +242,8 @@ static void serial_cmd_process(void)
 				{ 				
 					if(ReviceMessage.LEN != 0)
 					{
-						err_cmd_type = serial_cmd_type;	
 						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						err_cmd_type = serial_cmd_type;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;					
 					}
 					else
@@ -260,8 +260,8 @@ static void serial_cmd_process(void)
 				{				
 					if(ReviceMessage.LEN != 4*ReviceMessage.DATA[0] + 1)
 					{
-						err_cmd_type = serial_cmd_type;	
 						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						err_cmd_type = serial_cmd_type;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;	 
 					}
 					else
@@ -277,8 +277,8 @@ static void serial_cmd_process(void)
 				{
 					if(ReviceMessage.LEN != 0)
 					{
-						err_cmd_type = serial_cmd_type;	
 						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						err_cmd_type = serial_cmd_type;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;						
 					}
 					else
@@ -297,8 +297,8 @@ static void serial_cmd_process(void)
 				{
 					if(ReviceMessage.LEN != 0)
 					{
-						err_cmd_type = serial_cmd_type;	
 						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						err_cmd_type = serial_cmd_type;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;							
 					}
 					else
@@ -317,8 +317,8 @@ static void serial_cmd_process(void)
 				{				
 					if(ReviceMessage.LEN != 0)
 					{
-						err_cmd_type = serial_cmd_type;	
 						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						err_cmd_type = serial_cmd_type;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;	
 					}
 					else
@@ -335,8 +335,8 @@ static void serial_cmd_process(void)
 				{
 					if(ReviceMessage.LEN != 0)
 					{
-						err_cmd_type = serial_cmd_type;	
 						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						err_cmd_type = serial_cmd_type;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;	
 					}
 					else
@@ -365,8 +365,8 @@ static void serial_cmd_process(void)
 				{
 					if(ReviceMessage.LEN != 0)
 					{
-						err_cmd_type = serial_cmd_type;	
 						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						err_cmd_type = serial_cmd_type;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;						
 					}
 					else
@@ -382,8 +382,8 @@ static void serial_cmd_process(void)
 				{
 					if(ReviceMessage.LEN != 0)
 					{
-						err_cmd_type = serial_cmd_type;	
 						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						err_cmd_type = serial_cmd_type;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;						
 					}
 					else
