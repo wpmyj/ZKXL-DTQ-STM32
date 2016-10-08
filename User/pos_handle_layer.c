@@ -242,8 +242,8 @@ static void serial_cmd_process(void)
 				{ 				
 					if(ReviceMessage.LEN != 0)
 					{
-						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;					
 					}
 					else
@@ -260,8 +260,8 @@ static void serial_cmd_process(void)
 				{				
 					if(ReviceMessage.LEN != 4*ReviceMessage.DATA[0] + 1)
 					{
-						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;	 
 					}
 					else
@@ -277,8 +277,8 @@ static void serial_cmd_process(void)
 				{
 					if(ReviceMessage.LEN != 0)
 					{
-						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;						
 					}
 					else
@@ -297,8 +297,8 @@ static void serial_cmd_process(void)
 				{
 					if(ReviceMessage.LEN != 0)
 					{
-						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;							
 					}
 					else
@@ -317,8 +317,8 @@ static void serial_cmd_process(void)
 				{				
 					if(ReviceMessage.LEN != 0)
 					{
-						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;	
 					}
 					else
@@ -335,8 +335,8 @@ static void serial_cmd_process(void)
 				{
 					if(ReviceMessage.LEN != 0)
 					{
-						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;	
 					}
 					else
@@ -365,8 +365,8 @@ static void serial_cmd_process(void)
 				{
 					if(ReviceMessage.LEN != 0)
 					{
-						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;						
 					}
 					else
@@ -382,8 +382,8 @@ static void serial_cmd_process(void)
 				{
 					if(ReviceMessage.LEN != 0)
 					{
-						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;						
 					}
 					else
@@ -411,8 +411,8 @@ static void serial_cmd_process(void)
 			/* 无法识别的指令 */
 			default:	
 				{
-					serial_cmd_type = 0xff;	
-					err_cmd_type = serial_cmd_type;	
+					err_cmd_type = serial_cmd_type;
+					serial_cmd_type = 0xff;					
 					serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;
 				}
 				break;
@@ -906,7 +906,7 @@ void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err
 	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
 	
 	SMessage->HEADER = 0x5C;
-	SMessage->TYPE   = cmd_type;
+	SMessage->TYPE   = err_type;
 	
 	memset(SMessage->SIGN, 0xFF, 4);
 	
@@ -915,7 +915,7 @@ void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err
 	/* 操作失败 */
 	*( pdata + ( i++ ) ) = 0x01;
 	/* 错误类型 */
-	*( pdata + ( i++ ) ) = err_type;
+	*( pdata + ( i++ ) ) = cmd_type;
 	
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;

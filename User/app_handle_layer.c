@@ -254,7 +254,7 @@ void App_card_process(void)
 				{
 					// Err 0x29 E3
 					cmd_process_status = 2;
-					App_returnErr(&card_message,0x26,0xE3);
+					App_returnErr(&card_message,0x26,0xFD);
 				}
 			}
 			else
