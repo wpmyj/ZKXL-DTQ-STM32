@@ -68,7 +68,7 @@
 #define CE_HIGH_2() 	                GPIOC->BSRR = GPIO_Pin_4
 
 /* nrf configuration define---------------------------------------------------*/
-#define NRF_MAX_NUMBER_OF_RETRANSMITS		(10)				//最大重发次数
+#define NRF_MAX_NUMBER_OF_RETRANSMITS		(3)				//最大重发次数
 #define	NRF_RETRANSMIT_DELAY			      (280)				//重发延时 ms
 #define	NRF_ACK_PROTOCOL_LEN			      (10)				//自定义的软件模拟ACK协议数据长度
 #define	NRF_TOTAL_DATA_LEN				      (250)				//2.4G数据总长度	
