@@ -483,7 +483,6 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 	/* 获取：包封装的答题器->数据内容 */ 
 	memcpy(rf_var.tx_buf, (uint8_t *)(RMessage->DATA), RMessage->LEN);
 	
-
 	/* 获取下发数据: 决定是否暂存数据 */
 	switch( RMessage->DATA[6] )
 	{
