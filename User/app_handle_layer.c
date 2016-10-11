@@ -142,7 +142,7 @@ void App_clickers_systick_process(void)
 	/* 10s 时间到 发送新的心跳包到答题器 */
 	if(systick_current_status == 4)
 	{
-		get_next_uid_of_white_list(rf_clickers_sign);
+		get_next_uid_of_white_list(0,rf_clickers_sign);
 		
 		ReviceMessage.HEADER = 0x5C;
 		ReviceMessage.TYPE   = 0x10;

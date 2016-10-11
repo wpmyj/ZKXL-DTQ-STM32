@@ -13,6 +13,9 @@
 #define OPERATION_ERR              (1)
 #define OPERATION_SUCCESS          (0)
 
+#define UID_USE_TABLE                     (0)
+#define UID_ONLINE_TABLE                  (1)
+#define UID_ONLINE_TEMP_TABLE             (2)
 
 #ifdef 	ENABLE_DEBUG_LOG
 #define WhiteListDebug								printf
@@ -58,7 +61,7 @@ void get_white_list_use_table(void);
 void set_index_of_white_list_pos( uint8_t use_or_online, uint8_t index );
 void clear_index_of_white_list_pos( uint8_t use_or_online, uint8_t index );
 bool get_nouse_pos_of_white_list( uint8_t *pos);
-bool get_next_uid_of_white_list(uint8_t uid[]);
+bool get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[]);
 void clear_white_list_online_table(void);
 bool get_index_of_white_list_pos_status( uint8_t use_or_online, uint8_t index );
 void copy_online_to_store_table( void );
