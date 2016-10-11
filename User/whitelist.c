@@ -9,10 +9,13 @@ uint16_t					match_number = 1;			  	    // 配对序号
 uint8_t           uid_p;
 uint8_t		        uid_len = 0;					        // M1卡序列号长度
 uint8_t 	        g_cSNR[10];						        // M1卡序列号
-uint16_t          white_list_use_onlne_table[3][8] =
-{	{0,0,0,0,0,0,0,0}, // UID 使用索引表
+uint16_t          white_list_use_onlne_table[5][8] =
+{	
+	{0,0,0,0,0,0,0,0}, // UID 使用索引表
 	{0,0,0,0,0,0,0,0}, // UID 在线索引表
-	{0,0,0,0,0,0,0,0}  // UID 在线索暂存表
+	{0,0,0,0,0,0,0,0}, // UID 在线索暂存表
+	{0,0,0,0,0,0,0,0}, // UID 新增题目重发表
+	{0,0,0,0,0,0,0,0}  // UID 在线题目重发表
 };
 uint8_t           rf_current_uid_index = 0;
 
@@ -489,14 +492,14 @@ uint8_t add_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
   Return:
   Others:None
 ******************************************************************************/
-bool get_next_uid_of_white_list(uint8_t uid[])
+bool get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[])
 {
 	uint8_t i;
 	
 	/* 向后查找下一个UID */
 	for(i=rf_current_uid_index;i<MAX_WHITE_LEN;i++)
 	{
-		if(get_index_of_white_list_pos_status(0,i) == 1)
+		if(get_index_of_white_list_pos_status(sel_table,i) == 1)
 		{
 			get_index_of_uid(i,uid);
 			rf_current_uid_index = i+1;
@@ -507,7 +510,7 @@ bool get_next_uid_of_white_list(uint8_t uid[])
 	/* 向前查找下一个UID */
 	for(i=0;i<rf_current_uid_index;i++)
 	{
-		if(get_index_of_white_list_pos_status(0,i) == 1)
+		if(get_index_of_white_list_pos_status(sel_table,i) == 1)
 		{
 			get_index_of_uid(i,uid);
 			rf_current_uid_index = i+1;

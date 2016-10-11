@@ -41,6 +41,8 @@ uint8_t uart_tx_status      = 0;
 extern nrf_communication_t	nrf_communication;
 extern uint8_t 					    dtq_to_jsq_sequence;
 extern uint8_t 			        jsq_to_dtq_sequence;
+extern uint8_t 					    dtq_to_jsq_packnum;
+extern uint8_t 			        jsq_to_dtq_packnum;
 extern uint8_t              sign_buffer[4];
 
 /* rf systick data */
@@ -582,7 +584,6 @@ uint8_t irq_flag;
 
 void RFIRQ_EXTI_IRQHandler(void)
 {
-	uint8_t ack_uid_buff[] = { 0x55,0x55,0x55,0x55,0xFF,0xFF,0xFF,0xFF,0xAA };
 	bool    Is_whitelist_uid = OPERATION_ERR;
 	uint8_t uidpos = 0;
 
@@ -619,10 +620,8 @@ void RFIRQ_EXTI_IRQHandler(void)
 		if(Is_whitelist_uid == OPERATION_SUCCESS)
 		{
 			/* get uid */
-			memcpy(sign_buffer   ,nrf_communication.receive_buf+1 ,4);
-			memcpy(ack_uid_buff+4,nrf_communication.receive_buf+1 ,4);
-			memcpy(ack_uid_buff  ,nrf_communication.receive_buf+5 ,4);
-			memcpy(ack_uid_buff+8,nrf_communication.receive_buf+10,1);
+			memcpy(sign_buffer   ,nrf_communication.receive_buf+5 ,4);
+			memcpy(nrf_communication.dtq_uid,nrf_communication.receive_buf+5 ,4);
 
 			/* 收到的是ACK */
 			if(nrf_communication.receive_buf[11] == NRF_DATA_IS_ACK)
@@ -632,9 +631,10 @@ void RFIRQ_EXTI_IRQHandler(void)
 //			printf("package  num = %2x \r\n",(uint8_t)*(nrf_communication.receive_buf+10));
 
 				/* 返回ACK的包号和上次发送的是否相同 */
-				if(nrf_communication.receive_buf[10] == jsq_to_dtq_sequence)
+				if(nrf_communication.receive_buf[10] == jsq_to_dtq_packnum)
 				{
 					nrf_communication.transmit_ok_flag = true;
+//				jsq_to_dtq_packnum++;
 //				printf("irq_debug, same sequence %02X  \n",nrf_communication.receive_buf[10]);
 //				for(i = 0; i < nrf_communication.receive_len; i++)
 //				{
@@ -643,7 +643,7 @@ void RFIRQ_EXTI_IRQHandler(void)
 				}
 				else
 				{
-					//irq_debug("irq_debug，无效ACK,包号不同: %02X \n",rf_var.rx_buf[0]);
+					//my_nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK);
 				}
 			}
 			else//收到的是有效数据
@@ -653,28 +653,31 @@ void RFIRQ_EXTI_IRQHandler(void)
 //				printf("package  num = %2x \r\n",(uint8_t)*(nrf_communication.receive_buf+10));
 
 				/* 重复接收的数据，返回包号和上次一样的ACK */
-				if(dtq_to_jsq_sequence == nrf_communication.receive_buf[10])
+				if(dtq_to_jsq_packnum == nrf_communication.receive_buf[10])
 				{
-					//printf("irq_debug: %02X  \n",nrf_communication.receive_buf[10]);
-					/* 更新接收包号 */
-					dtq_to_jsq_sequence = nrf_communication.receive_buf[10];
-          /* 回复ACK */
-					my_nrf_transmit_start(ack_uid_buff,0,NRF_DATA_IS_ACK);
+          /* 判断是否为加强针，回复ACK */
+					if(dtq_to_jsq_sequence != nrf_communication.receive_buf[9])
+					{
+						dtq_to_jsq_sequence = nrf_communication.receive_buf[9];
+						dtq_to_jsq_packnum = nrf_communication.receive_buf[10];
+						my_nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK);
+					}
 				}
 				else//有效数据，返回ACK
 				{
-//					printf("irq_debug dtq_to_jsq_sequence = %02X  \r\n",nrf_communication.receive_buf[10]);
-//					for(i = 0; i < nrf_communication.receive_len; i++)
-//					{
-//						printf("%02X ", nrf_communication.receive_buf[i]);
-//					}
-//					printf("\r\n");
+//				printf("irq_debug dtq_to_jsq_sequence = %02X  \r\n",nrf_communication.receive_buf[10]);
+//				for(i = 0; i < nrf_communication.receive_len; i++)
+//				{
+//					printf("%02X ", nrf_communication.receive_buf[i]);
+//				}
+//				printf("\r\n");
 					/* 有效数据复制到缓存 */
 					rf_move_data_to_buffer(&nrf_communication);
-					/* 更新接收包号 */
-					dtq_to_jsq_sequence = nrf_communication.receive_buf[10];
+					/* 更新接收数据帧号与包号 */
+					dtq_to_jsq_sequence = nrf_communication.receive_buf[9];
+					dtq_to_jsq_packnum = nrf_communication.receive_buf[10];
 					/* 回复ACK */
-					my_nrf_transmit_start(ack_uid_buff,0,NRF_DATA_IS_ACK);
+					my_nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK);
 					/* 用户接收到数据处理函数 */
 					my_nrf_receive_success_handler();
 				}
@@ -723,6 +726,9 @@ void TIM3_IRQHandler(void)   //TIM3中断
 			}
 			else
 			{
+				jsq_to_dtq_sequence++;
+				nrf_communication.transmit_buf[9] = jsq_to_dtq_sequence;
+				nrf_communication.transmit_buf[15 + rf_var.tx_len] = XOR_Cal(nrf_communication.transmit_buf+1,14+rf_var.tx_len);
 				uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
 			}
 		}

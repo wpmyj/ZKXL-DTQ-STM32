@@ -32,7 +32,9 @@ spi_cmd_type_t 					spi_cmd_type;
 volatile uint8_t				flag_nrf_int = 0;
 nrf_communication_t			nrf_communication;
 uint8_t 					      dtq_to_jsq_sequence;
+uint8_t 					      dtq_to_jsq_packnum;
 uint8_t 					      jsq_to_dtq_sequence;
+uint8_t 					      jsq_to_dtq_packnum;
 
 /* Private functions ---------------------------------------------------------*/
 static uint8_t hal_nrf_rw(SPI_TypeDef* SPIx, uint8_t value);
@@ -269,20 +271,22 @@ void nrf51822_parameters_init(void)
 	
 	dtq_to_jsq_sequence = 0;
 	jsq_to_dtq_sequence = 0;
+	dtq_to_jsq_packnum  = 0;
+	jsq_to_dtq_packnum  = 0;
 	
 	nrf_communication.sequence = 0;					//初始化发送数据编号为0，每发送一次+1
 	nrf_communication.number_of_retransmits = 0;
 	nrf_communication.transmit_ing_flag = false;
 	nrf_communication.transmit_ok_flag = false;
-	nrf_communication.dtq_uid[0] = 0x61;
-	nrf_communication.dtq_uid[1] = 0x62;
-	nrf_communication.dtq_uid[2] = 0x63;
-	nrf_communication.dtq_uid[3] = 0x64;
+	nrf_communication.dtq_uid[0] = 0;
+	nrf_communication.dtq_uid[1] = 0;
+	nrf_communication.dtq_uid[2] = 0;
+	nrf_communication.dtq_uid[3] = 0;
 	
-	nrf_communication.jsq_uid[0] = jsq_uid[0];
-	nrf_communication.jsq_uid[1] = jsq_uid[1];
-	nrf_communication.jsq_uid[2] = jsq_uid[2];
-	nrf_communication.jsq_uid[3] = jsq_uid[3];
+	nrf_communication.jsq_uid[0] = (jsq_uid[1]&0x0F)|((jsq_uid[0]<<4)&0xF0);
+	nrf_communication.jsq_uid[1] = (jsq_uid[3]&0x0F)|((jsq_uid[2]<<4)&0xF0);
+	nrf_communication.jsq_uid[2] = (jsq_uid[5]&0x0F)|((jsq_uid[4]<<4)&0xF0);
+	nrf_communication.jsq_uid[3] = (jsq_uid[7]&0x0F)|((jsq_uid[6]<<4)&0xF0);
 	
 	//返回ACK结构体，固定参数定义，
 	nrf_communication.software_ack_len = NRF_TOTAL_DATA_LEN;	

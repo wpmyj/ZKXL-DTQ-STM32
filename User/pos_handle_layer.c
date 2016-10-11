@@ -18,6 +18,7 @@
 /* Private variables ---------------------------------------------------------*/	 
 extern Uart_MessageTypeDef uart_irq_send_massage;
 extern uint8_t uart_tx_status;
+extern uint8_t jsq_to_dtq_packnum;
        uint8_t serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;	
 			 uint8_t serial_cmd_type = 0;
 			 uint8_t err_cmd_type = 0;
@@ -523,8 +524,8 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 	/* 有数据下发且未曾下发过 */
 	if(rf_var.flag_txing)	
 	{
+		jsq_to_dtq_packnum++;
 		my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL);
-	
 		rf_var.flag_tx_ok = true;
 		rf_change_systick_status(1);
 	}

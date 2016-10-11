@@ -22,7 +22,8 @@
 extern nrf_communication_t nrf_communication;
 extern uint8_t 					   dtq_to_jsq_sequence;
 extern uint8_t 					   jsq_to_dtq_sequence;
-
+extern uint8_t 					   dtq_to_jsq_packnum;
+extern uint8_t 					   jsq_to_dtq_packnum;
 /******************************************************************************
   Function:my_nrf_transmit_start
   Description:
@@ -120,7 +121,7 @@ void nrf51822_spi_init(void)
 
 void TIM3_Int_Init(u16 arr,u16 psc)
 {
-    TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+  TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE); //时钟使能
@@ -156,22 +157,22 @@ void TIM3_Int_Init(u16 arr,u16 psc)
 ******************************************************************************/
 void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_data_type)
 {
-	if(nrf_data_type == NRF_DATA_IS_USEFUL)		//有效数据包，发送nrf_communication.transmit_buf内容
+	if(nrf_data_type != NRF_DATA_IS_ACK)		//有效数据包，发送nrf_communication.transmit_buf内容
 	{
 		nrf_communication.transmit_ing_flag = true;
 		nrf_communication.transmit_ok_flag = false;
-		jsq_to_dtq_sequence++;
 		nrf_communication.transmit_buf[0]  = 0x61;
-		memcpy((nrf_communication.transmit_buf + 1), nrf_communication.jsq_uid, 4);
-		memset((nrf_communication.transmit_buf + 5), 0, 4);
+
+		memcpy((nrf_communication.transmit_buf + 1), nrf_communication.dtq_uid, 4);
+		memcpy((nrf_communication.transmit_buf + 5), nrf_communication.jsq_uid, 4);
 		nrf_communication.transmit_buf[9]  = jsq_to_dtq_sequence;
-		nrf_communication.transmit_buf[10] = jsq_to_dtq_sequence;
+		nrf_communication.transmit_buf[10] = jsq_to_dtq_packnum;
 		nrf_communication.transmit_buf[11] = NRF_DATA_IS_USEFUL;
 		nrf_communication.transmit_buf[12] = 0xFF;
 		nrf_communication.transmit_buf[13] = 0xFF;
 
 		/* len */
-		nrf_communication.software_ack_buf[14] = data_buff_len;
+		nrf_communication.transmit_buf[14] = data_buff_len;
 
 		/* get data */
 		memcpy((nrf_communication.transmit_buf + 15), data_buff, data_buff_len);	//有效数据从第10位开始放
@@ -180,22 +181,29 @@ void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf
 		nrf_communication.transmit_buf[16 + data_buff_len] = 0x21;
 
 		nrf_communication.transmit_len = data_buff_len + 17;
+		
+		/* 开始通讯之前先发2次，之后开启定时判断重发机制 */
+		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
+		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
 		TIM_Cmd(TIM3, ENABLE);
 	}
 	else if(nrf_data_type == NRF_DATA_IS_ACK)	//ACK数据包，发送nrf_communication.software_ack_buf 内容
 	{
+		int i ;
 		nrf_communication.software_ack_buf[0] = 0x61;
-		memcpy(nrf_communication.software_ack_buf+1,data_buff,8);
-		nrf_communication.software_ack_buf[9] = dtq_to_jsq_sequence;
-		nrf_communication.software_ack_buf[10] = data_buff[8];
+		memcpy((nrf_communication.software_ack_buf + 1), nrf_communication.dtq_uid, 4);
+		memcpy((nrf_communication.software_ack_buf + 5), nrf_communication.jsq_uid, 4);
+		nrf_communication.software_ack_buf[9]  = dtq_to_jsq_sequence;
+		nrf_communication.software_ack_buf[10] = dtq_to_jsq_packnum;
 		nrf_communication.software_ack_buf[11] = NRF_DATA_IS_ACK;
 		nrf_communication.software_ack_buf[12] = 0xFF;
 		nrf_communication.software_ack_buf[13] = 0xFF;
 		nrf_communication.software_ack_buf[14] = 0;
 		nrf_communication.software_ack_buf[15] = XOR_Cal(nrf_communication.software_ack_buf+1,14);
 		nrf_communication.software_ack_buf[16] = 0x21;
-
+		
 		nrf_communication.software_ack_len = 17;
+
 		uesb_nrf_write_tx_payload(nrf_communication.software_ack_buf,nrf_communication.software_ack_len);
 	}
 	else{;}
