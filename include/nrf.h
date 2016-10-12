@@ -204,7 +204,7 @@ uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_da
 uint8_t uesb_nrf_write_tx_payload(const uint8_t *tx_pload, uint8_t length);
 uint8_t uesb_nrf_write_tx_payload_noack(const uint8_t *tx_pload, uint8_t length);
 
-void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_data_type);
+void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_data_type, uint8_t send_mdoe);
 void my_nrf_transmit_tx_success_handler(void);
 void my_nrf_transmit_tx_failed_handler(void);
 void my_nrf_receive_success_handler(void);	

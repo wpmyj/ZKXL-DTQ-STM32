@@ -463,6 +463,16 @@ void SysTick_Handler(void)
 {
 	TimingDelay_Decrement();
 
+	if(get_clicker_send_data_status() == 3)
+	{
+		clicker_send_data_time_set(1);
+		if(clicker_send_data_time_set(2) == 300)
+		{
+			clicker_send_data_time_set(0);
+			change_clicker_send_data_status(4);
+		}
+	}
+	
 	if(rf_systick_status == 3)
 	{
 		rf_tx_time_cnt++;
@@ -482,6 +492,7 @@ void SysTick_Handler(void)
 		if(rf_tx_timeout_cnt >= 1000)
 		{
 			rf_change_systick_status(2);
+			change_clicker_send_data_status(2);
 			rf_tx_timeout_cnt = 0;
 		}
 	}
@@ -598,17 +609,23 @@ void RFIRQ_EXTI_IRQHandler(void)
 
 		if(Is_whitelist_uid == OPERATION_SUCCESS)
 		{
-			uint8_t systick_current_status = 0;
+			uint8_t systick_current_status = 0, clicker_send_data_current_status = 0;
 
 			/* 获取当前的systick的状态 */
 			systick_current_status = rf_get_systick_status();
-
+			clicker_send_data_current_status = get_clicker_send_data_status();
+			
 			if(systick_current_status == 1)
 			{
 				set_index_of_white_list_pos(1,uidpos);
 			}
+			
+			if((clicker_send_data_current_status == 2)|(clicker_send_data_current_status == 3))
+			{
+				set_index_of_white_list_pos(5,uidpos);
+			}
 		}
-
+		
 		/* 白名单是否关闭 */
 		if(white_on_off == OFF)
 		{
@@ -629,7 +646,7 @@ void RFIRQ_EXTI_IRQHandler(void)
 //			printf("NRF_DATA_IS_ACK\r\n");
 //			printf("sequence num = %2x \r\n",(uint8_t)*(nrf_communication.receive_buf+9));
 //			printf("package  num = %2x \r\n",(uint8_t)*(nrf_communication.receive_buf+10));
-
+//			printf("UID = %2x%2x%2x%2x",*(nrf_communication.receive_buf+5),*(nrf_communication.receive_buf+6),*(nrf_communication.receive_buf+7),*(nrf_communication.receive_buf+8));
 				/* 返回ACK的包号和上次发送的是否相同 */
 				if(nrf_communication.receive_buf[10] == jsq_to_dtq_packnum)
 				{
@@ -660,7 +677,8 @@ void RFIRQ_EXTI_IRQHandler(void)
 					{
 						dtq_to_jsq_sequence = nrf_communication.receive_buf[9];
 						dtq_to_jsq_packnum = nrf_communication.receive_buf[10];
-						my_nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK);
+						
+						my_nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK,1);
 					}
 				}
 				else//有效数据，返回ACK
@@ -677,7 +695,7 @@ void RFIRQ_EXTI_IRQHandler(void)
 					dtq_to_jsq_sequence = nrf_communication.receive_buf[9];
 					dtq_to_jsq_packnum = nrf_communication.receive_buf[10];
 					/* 回复ACK */
-					my_nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK);
+					my_nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK,1);
 					/* 用户接收到数据处理函数 */
 					my_nrf_receive_success_handler();
 				}

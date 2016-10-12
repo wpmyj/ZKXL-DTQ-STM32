@@ -190,7 +190,7 @@ static void nrf51822_spi_send_test(void)
 	
     while(1)
 		{
-				my_nrf_transmit_start(TestBuffer,10,NRF_DATA_IS_USEFUL);
+				my_nrf_transmit_start(TestBuffer,10,NRF_DATA_IS_USEFUL,1);
 				
 				for(j=0;j<10;j++)
 				{

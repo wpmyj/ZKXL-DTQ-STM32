@@ -9,13 +9,14 @@ uint16_t					match_number = 1;			  	    // 配对序号
 uint8_t           uid_p;
 uint8_t		        uid_len = 0;					        // M1卡序列号长度
 uint8_t 	        g_cSNR[10];						        // M1卡序列号
-uint16_t          white_list_use_onlne_table[5][8] =
+uint16_t          white_list_use_onlne_table[6][8] =
 {	
 	{0,0,0,0,0,0,0,0}, // UID 使用索引表
 	{0,0,0,0,0,0,0,0}, // UID 在线索引表
 	{0,0,0,0,0,0,0,0}, // UID 在线索暂存表
 	{0,0,0,0,0,0,0,0}, // UID 新增题目重发表
-	{0,0,0,0,0,0,0,0}  // UID 在线题目重发表
+	{0,0,0,0,0,0,0,0}, // UID 在线题目重发表
+	{0,0,0,0,0,0,0,0}  // UID 在线题目重发,检测表
 };
 uint8_t           rf_current_uid_index = 0;
 
