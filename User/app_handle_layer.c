@@ -4,7 +4,7 @@
   * @author  	Tian erjun
   * @version 	V1.0.0.0
   * @date   	2015.11.05
-  * @brief   	
+  * @brief
   ******************************************************************************
   */
 
@@ -13,9 +13,10 @@
 #include "pos_handle_layer.h"
 #include "rc500_handle_layer.h"
 
-extern uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];		
+extern uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];
 extern uint8_t card_cmd_type ;
 extern Uart_MessageTypeDef pc_subject_massage;
+extern nrf_communication_t nrf_communication;
 
 uint8_t rf_outline_index = 0;
 extern uint8_t rf_back_sign[4];
@@ -24,18 +25,32 @@ Uart_MessageTypeDef rf_systick_massage = {
 	0x2D,                 // TYPE
 	0x00,0x00,0x00,0x00,  // UID
 	0x00,                 // LEN
-	
+
 	0x00,0x00,0x00,0x00,      // ID
-	
+
 	0x00,                 // XOR
 	0xCA,                 // END
 };
 
+Uart_MessageTypeDef revice_data_massage = {
+	0x5C,                 // HEADER
+	0x30,                 // TYPE
+	0x00,0x00,0x00,0x00,  // UID
+	0x00,                 // LEN
+
+	0x00,0x00,0x00,0x00,      // ID
+
+	0x00,                 // XOR
+	0xCA,                 // END
+};
+
+
 void App_clickers_systick_process(void);
+void App_clickers_send_data_process(void);
 void App_rf_check_process(void);
 void App_card_process(void);
 void Buzze_Control(void);
-	
+
 /******************************************************************************
   Function:app_handle_layer
   Description:
@@ -48,13 +63,15 @@ void app_handle_layer(void)
 {
 		/* serial cmd processing process */
 		App_seirial_cmd_process();
-		
+
 		/* MI Card processing process */
 		App_card_process();
-	
+
 		/*clickers systick process */
 		App_clickers_systick_process();
-	
+
+		/*clickers send data process */
+		App_clickers_send_data_process();
 }
 
 /******************************************************************************
@@ -89,18 +106,18 @@ bool is_new_uid_online( void )
   Return:
   Others:None
 ******************************************************************************/
-bool checkout_outline_uid(uint8_t *puid,uint8_t *len)
+bool checkout_outline_uid(uint8_t src_table, uint8_t check_table, uint8_t mode, uint8_t *puid,uint8_t *len)
 {
 	uint8_t i;
 	uint8_t is_use_pos = 0,is_online_pos = 0;
-	
+
 	for(i=rf_outline_index;(i<120)&&(*len<240);i++)
 	{
-		is_use_pos = get_index_of_white_list_pos_status(0,i);
+		is_use_pos = get_index_of_white_list_pos_status(src_table,i);
 		if(is_use_pos == 1)
 		{
-			is_online_pos = get_index_of_white_list_pos_status(1,i);
-			if(is_online_pos == 1)
+			is_online_pos = get_index_of_white_list_pos_status(check_table,i);
+			if(is_online_pos == mode)
 			{
 				get_index_of_uid(i,puid);
 				puid = puid+4;
@@ -108,7 +125,7 @@ bool checkout_outline_uid(uint8_t *puid,uint8_t *len)
 			}
 		}
 	}
-	
+
 	if(i==120)
 	{
 		rf_outline_index = 0;
@@ -134,38 +151,38 @@ void App_clickers_systick_process(void)
 	Uart_MessageTypeDef ReviceMessage;
 	uint8_t buffer_status = 0;
 	uint8_t systick_current_status = 0;
-	uint8_t rf_clickers_sign[4];
-	
+	//uint8_t rf_clickers_sign[4] = { 0, 0, 0, 0 };
+
 	/* 获取当前的systick的状态 */
 	systick_current_status = rf_get_systick_status();
-	
+
 	/* 10s 时间到 发送新的心跳包到答题器 */
 	if(systick_current_status == 4)
 	{
-		get_next_uid_of_white_list(0,rf_clickers_sign);
-		
+		//get_next_uid_of_white_list(0,rf_clickers_sign);
+
 		ReviceMessage.HEADER = 0x5C;
 		ReviceMessage.TYPE   = 0x10;
 		memset(ReviceMessage.SIGN,0x00,4);
 		ReviceMessage.LEN = 0x0A;
-		
+
 		ReviceMessage.DATA[0] = 0x5A;
-		ReviceMessage.DATA[1] = rf_clickers_sign[0];
-		ReviceMessage.DATA[2] = rf_clickers_sign[1];
-		ReviceMessage.DATA[3] = rf_clickers_sign[2];
- 		ReviceMessage.DATA[4] = rf_clickers_sign[3];
+		ReviceMessage.DATA[1] = 0;//rf_clickers_sign[0];
+		ReviceMessage.DATA[2] = 0;//rf_clickers_sign[1];
+		ReviceMessage.DATA[3] = 0;//rf_clickers_sign[2];
+ 		ReviceMessage.DATA[4] = 0;//rf_clickers_sign[3];
 		ReviceMessage.DATA[5] = 0x00;
 		ReviceMessage.DATA[6] = 0x15;
 		ReviceMessage.DATA[7] = 0x00;
 		ReviceMessage.DATA[8] = XOR_Cal(ReviceMessage.DATA+1, 7);
 		ReviceMessage.DATA[9] = 0xCA;
-		
-		ReviceMessage.XOR = XOR_Cal((uint8_t *)(&(ReviceMessage.TYPE)), 9+6);	
+
+		ReviceMessage.XOR = XOR_Cal((uint8_t *)(&(ReviceMessage.TYPE)), 9+6);
 		ReviceMessage.XOR = 0xCA;
-		
+
 		/* 获取接收缓存的状态 */
 		buffer_status = buffer_get_buffer_status(REVICE_RINGBUFFER);
-		
+
 		if( get_pc_subject_status() == 1 )
 		{
 		  uint8_t is_new_uid = 0;
@@ -194,16 +211,16 @@ void App_clickers_systick_process(void)
 		  }
 		}
 	}
-	
+
 	/* 发送数据之后 */
 	if(systick_current_status == 2)
 	{
 		/* 填充心跳包 */
 		uint8_t Is_over = 0;
-		Is_over = checkout_outline_uid(rf_systick_massage.DATA,&(rf_systick_massage.LEN));
+		Is_over = checkout_outline_uid(0,1,1,rf_systick_massage.DATA,&(rf_systick_massage.LEN));
 		rf_systick_massage.XOR =  XOR_Cal((uint8_t *)(&(rf_systick_massage.TYPE)), rf_systick_massage.LEN+6);
 		rf_systick_massage.END = 0xCA;
-		
+
 		/* 上传在线状态 */
 		if(rf_systick_massage.LEN != 0)
 		{
@@ -213,11 +230,126 @@ void App_clickers_systick_process(void)
 			}
 			rf_systick_massage.LEN = 0;
 		}
-		
+
 		if(Is_over == 0)
 		{
 			rf_change_systick_status(3);
 		}
+	}
+}
+
+
+/******************************************************************************
+  Function:clicker_send_data
+  Description:
+		App RF 射频轮询处理函数
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void clicker_send_data(uint8_t uid[])
+{
+	memcpy(nrf_communication.dtq_uid,uid,4);
+	my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,1);
+
+}
+
+/******************************************************************************
+  Function:App_rf_check_process
+  Description:
+		App RF 射频轮询处理函数
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void App_clickers_send_data_process(void)
+{
+	Uart_MessageTypeDef ReviceMessage;
+	uint8_t clicker_send_data_current_status = 0;
+
+	/* 获取当前的systick的状态 */
+	clicker_send_data_current_status = get_clicker_send_data_status();
+
+	/* 1s 时间到,统计收到包的状态，重发数据 */
+	if(clicker_send_data_current_status == 2)
+	{
+		uint8_t i;
+		uint8_t is_use_pos = 0,is_online_pos = 0;
+		uint8_t puid[4];
+
+		for(i=0;i<120;i++)
+		{
+			is_use_pos = get_index_of_white_list_pos_status(0,i);
+			if(is_use_pos == 1)
+			{
+				is_online_pos = get_index_of_white_list_pos_status(1,i);
+				if(is_online_pos == 0)
+				{
+					get_index_of_uid(i,puid);
+
+					/* 设置重发 UID 索引表 */
+					set_index_of_white_list_pos(4,i);
+
+					/* 重发数据 */
+					clicker_send_data(puid);
+				}
+			}
+		}
+
+		/* 跟新状态，开始2次统计 */
+		change_clicker_send_data_status(3);
+	}
+
+	if(clicker_send_data_current_status == 4)
+	{
+		uint8_t i;
+		uint8_t is_use_pos = 0,is_online_pos = 0;
+		uint8_t puid[4];
+
+		for(i=0;i<120;i++)
+		{
+			is_use_pos = get_index_of_white_list_pos_status(4,i);
+			if(is_use_pos == 1)
+			{
+				is_online_pos = get_index_of_white_list_pos_status(5,i);
+				if(is_online_pos == 0)
+				{
+					get_index_of_uid(i,puid);
+
+					/* 设置重发 UID 索引表 */
+					set_index_of_white_list_pos(4,i);
+					printf("outline uid : %2x%2x%2x%2x",puid[0],puid[1],puid[2],puid[3]);
+					/* 重发数据 */
+					clicker_send_data(puid);
+				}
+			}
+		}
+		change_clicker_send_data_status(5);
+	}
+
+	if(clicker_send_data_current_status == 5)
+	{
+		/* 返回失败的UID */
+		uint8_t Is_over = 0;
+		Is_over = checkout_outline_uid(4,5,0,revice_data_massage.DATA,&(revice_data_massage.LEN));
+		revice_data_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_data_massage.TYPE)), revice_data_massage.LEN+6);
+		revice_data_massage.END = 0xCA;
+
+		/* 上传在线状态 */
+		if(rf_systick_massage.LEN != 0)
+		{
+			if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+			{
+				serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_data_massage);
+			}
+			rf_systick_massage.LEN = 0;
+		}
+
+		if(Is_over == 0)
+		{
+			change_clicker_send_data_status(0);
+		}
+
 	}
 }
 
@@ -230,20 +362,20 @@ void App_clickers_systick_process(void)
   Others:None
 ******************************************************************************/
 void App_card_process(void)
-{ 
+{
 	Uart_MessageTypeDef card_message;
 	uint8_t is_white_list_uid = 0,uid_p = 0;
 	uint8_t cmd_process_status = 0;
-	
+
 	if((delay_nms == 0)&&((attendance_on_off == ON) || match_on_off == ON))
 	{
 		delay_nms = 200;
 		if(FindICCard() == MI_OK)
 		{
 			/* 处理数据 */
-			if(attendance_on_off)						
+			if(attendance_on_off)
 			{
-				is_white_list_uid = add_uid_to_white_list(g_cSNR+4,&uid_p);
+				is_white_list_uid = add_uid_to_white_list(g_cSNR+5,&uid_p);
 
 				if(is_white_list_uid != OPERATION_ERR)
 				{
@@ -261,7 +393,7 @@ void App_card_process(void)
 			{
 				cmd_process_status = 1;
 			}
-			
+
 			if(cmd_process_status == 1)
 			{
 				/* 封装协议  */
@@ -280,26 +412,26 @@ void App_card_process(void)
 					card_message.END  = 0xCA;
 				}
 			}
-			
+
 			if(cmd_process_status != 0)
 			{
 				/* 执行完的指令存入发送缓存 */
 				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 				{
 					serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
-				}	
+				}
 			}
 			//蜂鸣器响300ms
 			time_for_buzzer_on = 10;
 			time_for_buzzer_off = 300;
-			
+
 			//写入配对时将UID传给答题器
 			write_RF_config();
-			
+
 			//不重复寻卡
 			PcdHalt();
 		}
-	}	
+	}
 	Buzze_Control();
 }
 

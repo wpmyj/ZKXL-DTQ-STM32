@@ -155,14 +155,13 @@ void TIM3_Int_Init(u16 arr,u16 psc)
   Return:
   Others:注意：通信方式限制，若向同一UID答题器下发数据，时间要间隔3S以上
 ******************************************************************************/
-void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_data_type)
+void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_data_type, uint8_t send_mdoe)
 {
 	if(nrf_data_type != NRF_DATA_IS_ACK)		//有效数据包，发送nrf_communication.transmit_buf内容
 	{
 		nrf_communication.transmit_ing_flag = true;
 		nrf_communication.transmit_ok_flag = false;
 		nrf_communication.transmit_buf[0]  = 0x61;
-
 		memcpy((nrf_communication.transmit_buf + 1), nrf_communication.dtq_uid, 4);
 		memcpy((nrf_communication.transmit_buf + 5), nrf_communication.jsq_uid, 4);
 		nrf_communication.transmit_buf[9]  = jsq_to_dtq_sequence;
@@ -185,7 +184,9 @@ void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf
 		/* 开始通讯之前先发2次，之后开启定时判断重发机制 */
 		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
 		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
-		TIM_Cmd(TIM3, ENABLE);
+
+		if(send_mdoe)
+			TIM_Cmd(TIM3, ENABLE);
 	}
 	else if(nrf_data_type == NRF_DATA_IS_ACK)	//ACK数据包，发送nrf_communication.software_ack_buf 内容
 	{
