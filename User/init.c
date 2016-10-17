@@ -64,11 +64,11 @@ void Platform_Init(void)
 	ENABLE_ALL_IRQ();
 	
 	/* led 、蜂鸣器声音提示初始化完毕 */
-	BEEP_EN();																	    
+	//BEEP_EN();																	    
 	ledOn(LGREEN);																 
 	ledOn(LBLUE);																    
 	DelayMs(200);
-	BEEP_DISEN();
+	//BEEP_DISEN();
 	ledOff(LGREEN);
 	ledOff(LBLUE);
 

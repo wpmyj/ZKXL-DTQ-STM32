@@ -69,6 +69,20 @@ uint32_t clicker_send_data_time_set(uint8_t mode)
 
 	return tempdata;
 }
+
+void clicker_send_data_time_set1(uint8_t status1, uint8_t status2, uint32_t delayms)
+{
+	if(get_clicker_send_data_status() == status1)
+	{
+		clicker_send_data_time_set(1);
+		if(clicker_send_data_time_set(2) == delayms)
+		{
+			clicker_send_data_time_set(0);
+			change_clicker_send_data_status(status2);
+		}
+	}
+}
+
 /******************************************************************************
   Function:change_clicker_send_data_status
   Description:
@@ -282,10 +296,10 @@ static void serial_cmd_process(void)
 				{
 					memcpy(uart_rf_cmd_sign,ReviceMessage.SIGN,4);
 					App_send_data_to_clickers( &ReviceMessage, &SendMessage);
-					if(ReviceMessage.DATA[6] == 0x15)
+					//if(ReviceMessage.DATA[6] == 0x15)
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_IGNORE;
-					else
-						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+					//else
+					//	serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 				}
 				break;
 
@@ -587,9 +601,13 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 		jsq_to_dtq_packnum++;
 		/* ·¢ËÍ¹ã²¥ UID */
 		memset(nrf_communication.dtq_uid , 0, 4);
-		my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,1);
+		my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,0);
 		rf_var.flag_tx_ok = true;
-		rf_change_systick_status(1);
+		//rf_change_systick_status(1);
+		
+		nrf_communication.transmit_ing_flag = true;
+		nrf_communication.transmit_ok_flag = false;
+		
 		change_clicker_send_data_status(1);
 	}
 }

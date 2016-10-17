@@ -159,12 +159,11 @@ void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf
 {
 	if(nrf_data_type != NRF_DATA_IS_ACK)		//有效数据包，发送nrf_communication.transmit_buf内容
 	{
-		nrf_communication.transmit_ing_flag = true;
-		nrf_communication.transmit_ok_flag = false;
+		/* data header */
 		nrf_communication.transmit_buf[0]  = 0x61;
 		memcpy((nrf_communication.transmit_buf + 1), nrf_communication.dtq_uid, 4);
 		memcpy((nrf_communication.transmit_buf + 5), nrf_communication.jsq_uid, 4);
-		nrf_communication.transmit_buf[9]  = jsq_to_dtq_sequence;
+		nrf_communication.transmit_buf[9]  = jsq_to_dtq_sequence++;
 		nrf_communication.transmit_buf[10] = jsq_to_dtq_packnum;
 		nrf_communication.transmit_buf[11] = NRF_DATA_IS_USEFUL;
 		nrf_communication.transmit_buf[12] = 0xFF;
@@ -176,13 +175,13 @@ void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf
 		/* get data */
 		memcpy((nrf_communication.transmit_buf + 15), data_buff, data_buff_len);	//有效数据从第10位开始放
 
+		/* xor data */
 		nrf_communication.transmit_buf[15 + data_buff_len] = XOR_Cal(nrf_communication.transmit_buf+1,14+data_buff_len);
 		nrf_communication.transmit_buf[16 + data_buff_len] = 0x21;
 
 		nrf_communication.transmit_len = data_buff_len + 17;
 		
 		/* 开始通讯之前先发2次，之后开启定时判断重发机制 */
-		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
 		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
 
 		if(send_mdoe)

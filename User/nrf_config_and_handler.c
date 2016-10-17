@@ -157,6 +157,7 @@ uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_da
 	uint8_t retval[BUFFER_SIZE_MAX];
 	uint8_t i = 0;
 	uint8_t *temp_data = NULL;
+	uint8_t syc_read_char;
 	
 	*rx_data_len = 0;
 	memset(spi_cmd_type.data, 0xFF, BUFFER_SIZE_MAX);
@@ -173,6 +174,7 @@ uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_da
 	for(i=0; i<spi_cmd_type.data_len+3; i++)
 	{
 		retval[i] = hal_nrf_rw(SPIx, *(temp_data+i));
+		//printf("%2x ",retval[i]);
 		if(i ==  2 && retval[2] != 0x00 && retval[2] != 0xFF)
 		{
 			*flags = retval[2];
@@ -185,6 +187,15 @@ uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_da
 			spi_cmd_type.data[spi_cmd_type.data_len] = XOR_Cal((uint8_t *)&spi_cmd_type.data[3], spi_cmd_type.data_len - 3);
 		}
 	}
+	//printf("\r\n");
+	CSN_HIGH();	//关闭SPI传输
+	
+	/* 发送同步信号 */
+	CSN_LOW();	//开始SPI传输
+	syc_read_char = hal_nrf_rw(SPIx, 0xAA);
+	syc_read_char = hal_nrf_rw(SPIx, 0xBB);
+	syc_read_char = hal_nrf_rw(SPIx, 0xCC);
+	syc_read_char = hal_nrf_rw(SPIx, 0xDD);
 	CSN_HIGH();	//关闭SPI传输
 	
 	memcpy(rx_data, &retval[4],*rx_data_len);
