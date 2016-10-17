@@ -12,8 +12,29 @@
 #include "main.h"
 #include "stdlib.h"
 
+typedef struct 
+{
+	uint8_t uid[4];
+	uint8_t use;
+	uint8_t first;
+	uint16_t prepacknum;
+	uint32_t revice_package_num;
+	uint32_t lost_package_num;
+}clicker_t;
+
+typedef struct 
+{
+	uint8_t hour;
+	uint8_t min;
+	uint8_t s;
+	uint16_t ms;
+}timer_t;
+
 extern void app_handle_layer(void);
 extern void rc500_handle_layer(void);
+extern clicker_t clickers[120];
+extern uint32_t clicker_test_printf_flg;
+extern timer_t clicker_time;
 
 /* Private functions ---------------------------------------------------------*/
 static void Fee_Test(void);
@@ -45,7 +66,31 @@ int main(void)
 	
 	while(1)
 	{	
+		int i;
+		
 		app_handle_layer();
+		
+//		if(clicker_test_printf_flg == 1)
+//		{
+//			for(i=0;i<120;i++)
+//			{
+//				if(clickers[i].use ==1 )
+//				{
+//					printf("[%2d:%2d:%2d] clickers : %02x%02x%02x%02x, revice = %8d, lost = %8d, lost_rate = %5.3f\r\n",
+//						clicker_time.hour,clicker_time.min,clicker_time.s,	
+//						clickers[i].uid[0],
+//						clickers[i].uid[1],
+//						clickers[i].uid[2],
+//						clickers[i].uid[3],
+//						(clickers[i].revice_package_num),
+//						(clickers[i].lost_package_num),
+//						(clickers[i].lost_package_num)*100.0/(clickers[i].revice_package_num + clickers[i].lost_package_num)
+//						);
+//				}
+//			}
+//			clicker_test_printf_flg = 0;
+//			printf("\r\n");
+//		}
 		
 //		if(serial_ringbuffer_get_usage_rate(0) !=0 )
 //		{
@@ -262,7 +307,6 @@ static void Fee_Test(void)
 				TestErrNum++;
 			}
 
-				
 			if(TestNum%100 == 0 )
 			{
 				printf("FEE Test Num = %5d write and read data Ok = %4d Error = %4d \r\n\r\n",

@@ -65,4 +65,5 @@ bool get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[]);
 void clear_white_list_online_table(void);
 bool get_index_of_white_list_pos_status( uint8_t use_or_online, uint8_t index );
 void copy_online_to_store_table( void );
+void clear_white_list_table(uint8_t sel_table);
 #endif // __WHITE_LIST_H_

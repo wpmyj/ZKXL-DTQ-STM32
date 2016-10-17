@@ -9,14 +9,21 @@ uint16_t					match_number = 1;			  	    // 配对序号
 uint8_t           uid_p;
 uint8_t		        uid_len = 0;					        // M1卡序列号长度
 uint8_t 	        g_cSNR[10];						        // M1卡序列号
-uint16_t          white_list_use_onlne_table[6][8] =
+uint16_t          white_list_use_onlne_table[10][8] =
 {	
 	{0,0,0,0,0,0,0,0}, // UID 使用索引表
 	{0,0,0,0,0,0,0,0}, // UID 在线索引表
 	{0,0,0,0,0,0,0,0}, // UID 在线索暂存表
-	{0,0,0,0,0,0,0,0}, // UID 新增题目重发表
-	{0,0,0,0,0,0,0,0}, // UID 在线题目重发表
-	{0,0,0,0,0,0,0,0}  // UID 在线题目重发,检测表
+	
+	{0,0,0,0,0,0,0,0}, // [3]:第一次统计接收表
+	{0,0,0,0,0,0,0,0}, // [4]:第二次统计接收表
+	{0,0,0,0,0,0,0,0}, // [5]:第三次统计接收表
+	
+	{0,0,0,0,0,0,0,0}, // [6]:第1次统计重发表	
+	{0,0,0,0,0,0,0,0}, // [7]:第2次统计重发表	
+	
+	{0,0,0,0,0,0,0,0}, // [8]:第四次统计接收表
+	{0,0,0,0,0,0,0,0}  // [9]:第3次统计重发表	
 };
 uint8_t           rf_current_uid_index = 0;
 
@@ -38,7 +45,15 @@ void clear_white_list_online_table(void)
 		white_list_use_onlne_table[1][i] = 0x00;
 	}
 }
-	
+
+void clear_white_list_table(uint8_t sel_table)
+{
+	uint8_t i;
+	for(i=0;i<8;i++)
+	{
+		white_list_use_onlne_table[sel_table][i] = 0x00;
+	}
+}
 /******************************************************************************
   Function:flash_white_list_use_table
   Description:
