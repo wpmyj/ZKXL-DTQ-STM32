@@ -70,7 +70,19 @@ extern uint8_t              sign_buffer[4];
 
 /* rf systick data */
 volatile uint8_t rf_systick_status = 0; // 0 = IDLE
+static uint8_t   rf_retransmit_status = 0;
+static uint32_t  rf_retransmit_timecnt = 0;
 
+void rf_retransmit_set_status(uint8_t new_status)
+{
+	rf_retransmit_status = new_status;
+	DebugLog("status = %d \r\n",rf_retransmit_status);
+}
+
+uint8_t get_rf_retransmit_status(void)
+{
+	return rf_retransmit_status;
+}
 
 void time_inc()
 {
@@ -542,8 +554,17 @@ void SysTick_Handler(void)
 	clicker_send_data_time_set1( 1, 2,1200);
 	clicker_send_data_time_set1( 4, 5,1200);
 	clicker_send_data_time_set1( 7, 8,1200);
-	clicker_send_data_time_set1(10,11,1200);
-	
+
+	if(get_rf_retransmit_status() == 1)
+	{
+		rf_retransmit_timecnt++;
+		if(rf_retransmit_timecnt == 1200)
+		{
+			rf_retransmit_set_status(3);
+			rf_retransmit_timecnt = 0;
+		}
+	}
+
 	if(rf_systick_status == 3)
 	{
 		rf_tx_time_cnt++;
@@ -705,15 +726,26 @@ void RFIRQ_EXTI_IRQHandler(void)
 
 				/* 获取当前的systick的状态 */
 				systick_current_status = rf_get_systick_status();
-				
+
 				/* 获取发送状态 */
 				if(systick_current_status == 1)
 				{
 					set_index_of_white_list_pos(1,uidpos);
 				}
-				
+
 				/* 统计发送状态 */
 				clicker_send_data_statistics( get_clicker_send_data_status(), uidpos );
+
+				if(1 == get_rf_retransmit_status())
+				{
+					if(nrf_communication.dtq_uid[0] == clickers[uidpos].uid[0] &&
+						 nrf_communication.dtq_uid[1] == clickers[uidpos].uid[1]
+						)
+					{
+						rf_retransmit_set_status(2);
+
+					}
+				}
 			}
 
 			/* 白名单是否关闭 */
@@ -801,52 +833,6 @@ void RFIRQ_EXTI_IRQHandler(void)
 		}
 	}
 	ledToggle(LBLUE);
-}
-
-
-//软件模拟ACK通信，处理定时器
-void TIM3_IRQHandler(void)   //TIM3中断
-{
-	if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET)  //检查TIM3更新中断发生与否
-	{
-		TIM_ClearITPendingBit(TIM3, TIM_IT_Update  );  //清除TIMx更新中断标志
-		//irq_debug("定时器3中断  ");
-
-		nrf_communication.number_of_retransmits++;
-		if( true == nrf_communication.transmit_ing_flag )		//正在传输
-		{
-			if( true == nrf_communication.transmit_ok_flag ) 	//收到有效ACK,发送成功
-			{
-				my_nrf_transmit_tx_success_handler();			//用户发送成功处理函数
-				nrf_communication.transmit_ing_flag = false;
-				nrf_communication.transmit_ok_flag = true;
-				TIM_Cmd(TIM3, DISABLE); 						//停止定时器
-				//irq_debug("irq_debug:transmit succeed,sequence:	%02X \r\n",jsq_to_dtq_sequence);
-			}
-			else if( nrf_communication.number_of_retransmits > NRF_MAX_NUMBER_OF_RETRANSMITS )	//达到最大重发次数，发送失败
-			{
-				my_nrf_transmit_tx_failed_handler();			//用户发送失败处理函数
-				nrf_communication.transmit_ing_flag = false;
-				nrf_communication.transmit_ok_flag = false;
-				nrf_communication.number_of_retransmits = 0;
-				TIM_Cmd(TIM3, DISABLE);
-				//irq_debug("irq_debug:transmit  failure,sequence: %02X \r\n",jsq_to_dtq_sequence);
-			}
-			else
-			{
-				jsq_to_dtq_sequence++;
-				nrf_communication.transmit_buf[9] = jsq_to_dtq_sequence;
-				nrf_communication.transmit_buf[15 + rf_var.tx_len] = XOR_Cal(nrf_communication.transmit_buf+1,14+rf_var.tx_len);
-				uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
-			}
-		}
-		else	//定时器第一次发送数据
-		{
-			nrf_communication.transmit_ing_flag = true;
-			nrf_communication.transmit_ok_flag = false;
-			uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
-		}
-	}
 }
 
 /**

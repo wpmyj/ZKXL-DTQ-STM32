@@ -25,6 +25,7 @@
 #define APP_SERIAL_CMD_STATUS_WORK        0x01
 #define APP_SERIAL_CMD_STATUS_ERR         0x02
 #define APP_SERIAL_CMD_STATUS_IGNORE      0x03
+#define APP_SERIAL_CMD_STATUS_WORK_IGNORE 0x04
 
 #define START_SEND_DATA                   0
 #define STOP_SEND_DATA                    1
