@@ -35,6 +35,10 @@ static uint8_t pc_subject_status = 0;
 static uint8_t clicker_send_data_status = 0;
 static uint32_t clicker_send_data_timecnt = 0;
 
+uint8_t retransmit_flg = 0;
+uint8_t retransmit_count = 0;
+uint8_t retransmit_sum = 0;
+
 /* Private functions ---------------------------------------------------------*/
 static void serial_send_data_to_pc(void);
 static void serial_cmd_process(void);
@@ -42,7 +46,8 @@ static void serial_cmd_process(void);
 
 void App_initialize_white_list( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
-void App_send_data_to_clicker( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_send_data_to_clicker_start( Uart_MessageTypeDef *RMessage);
+void App_send_data_to_clicker_return( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_stop_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_open_or_close_white_list( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
@@ -52,8 +57,6 @@ void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef 
 void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err_type );
 void App_uart_message_copy( Uart_MessageTypeDef *SrcMessage, Uart_MessageTypeDef *DstMessage );
 void App_return_systick( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
-
-
 
 uint32_t clicker_send_data_time_set(uint8_t mode)
 {
@@ -463,9 +466,23 @@ static void serial_cmd_process(void)
 			/* 单独下发给答题器 */
 			case 0x2F:
 				{
-					//memcpy(uart_rf_cmd_sign,ReviceMessage.SIGN,4);
-					App_send_data_to_clicker( &ReviceMessage, &SendMessage);
-					serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+					uint8_t rf_retransmit_status = 0;
+					rf_retransmit_status = get_rf_retransmit_status();
+					//printf("rf_retransmit_status = %d\r\n",rf_retransmit_status);
+					if(rf_retransmit_status == 0)
+					{
+						//printf("111111111111111111111111111111");
+						App_send_data_to_clicker_start( &ReviceMessage);
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_WORK_IGNORE;
+						rf_retransmit_set_status(1);
+					}
+
+					if(rf_retransmit_status == 2 || rf_retransmit_status == 3 )
+					{
+						App_send_data_to_clicker_return( &ReviceMessage, &SendMessage);
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+						rf_retransmit_set_status(0);
+					}
 				}
 				break;
 
@@ -503,13 +520,19 @@ static void serial_cmd_process(void)
 			return;
 		}
 
+		if(serial_cmd_status == APP_SERIAL_CMD_STATUS_WORK_IGNORE)
+		{
+			return;
+		}
+
 		if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
 		{
 			DebugLog("Serial Send Buffer is full! \r\n");
 		}
 		else
 		{
-			serial_ringbuffer_write_data(SEND_RINGBUFFER,&SendMessage);
+			if(serial_cmd_type != 0x2f)
+				serial_ringbuffer_write_data(SEND_RINGBUFFER,&SendMessage);
 		}
 	}
 }
@@ -604,10 +627,10 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 		my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,0);
 		rf_var.flag_tx_ok = true;
 		//rf_change_systick_status(1);
-		
+
 		nrf_communication.transmit_ing_flag = true;
 		nrf_communication.transmit_ok_flag = false;
-		
+
 		change_clicker_send_data_status(1);
 	}
 }
@@ -622,19 +645,33 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
   Return:
   Others:None
 ******************************************************************************/
-void App_send_data_to_clicker( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+void App_send_data_to_clicker_start( Uart_MessageTypeDef *RMessage)
 {
-	uint16_t i = 0;
-	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
-
+	uint8_t uidpos = 0;
 	/* 获取:包封装的答题器->数据长度 */
 	rf_var.tx_len = RMessage->LEN;
 
 	/* 获取：包封装的答题器->数据内容 */
 	memcpy(rf_var.tx_buf, (uint8_t *)(RMessage->DATA), RMessage->LEN);
 
-	/* 打开发送开关 */
-	rf_var.flag_txing = true;
+	/* 更新指定UID */
+	memcpy(nrf_communication.dtq_uid , RMessage->SIGN, 4);
+	search_uid_in_white_list(RMessage->SIGN,&uidpos);
+
+	printf("[%2d]:%02x%02x%02x%02x ",uidpos,RMessage->SIGN[0],RMessage->SIGN[1],
+																					RMessage->SIGN[2],RMessage->SIGN[3]);
+	/* 不开自动重发定时器,直接发送2次 */
+	my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,0);
+
+}
+
+void App_send_data_to_clicker_return( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	uint16_t i = 0;
+	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
+	static uint8_t ret_count[120];
+	static uint8_t fail_uid[120][4];
+	uint8_t uidpos;
 
 	SMessage->HEADER = 0x5C;
 	SMessage->TYPE = RMessage->TYPE;
@@ -642,21 +679,43 @@ void App_send_data_to_clicker( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDe
 
 	SMessage->LEN = 0x01;
 
-	*( pdata + ( i++ ) ) = 0x00;
+	if(get_rf_retransmit_status() == 2)
+	{
+		*( pdata + ( i++ ) ) = 0x00;
+		printf("ok\r\n");
+		retransmit_count++;
+	}
+	else
+	{
+		*( pdata + ( i++ ) ) = 0x01;
+
+		search_uid_in_white_list(RMessage->SIGN,&uidpos);
+
+		printf("fail\r\n");
+		ret_count[uidpos]++;
+		if(ret_count[uidpos] == 3)
+		{
+			retransmit_count++;
+			ret_count[uidpos] = 0;
+		}
+		else
+		{
+			if(BUFFERFULL != buffer_get_buffer_status(REVICE_RINGBUFFER))
+			{
+				serial_ringbuffer_write_data(REVICE_RINGBUFFER,RMessage);
+			}
+		}
+	}
 
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;
 
-	/* 有数据下发且未曾下发过 */
-	if(rf_var.flag_txing)
+	if(retransmit_count == retransmit_sum)
 	{
-		/* 更新指定UID */
-		memcpy(nrf_communication.dtq_uid , RMessage->SIGN, 4);
-		/* 不开自动重发定时器,直接发送2次 */
-		my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,0);
-		rf_var.flag_tx_ok = true;
+		change_clicker_send_data_status(11);
 	}
 }
+
 
 /******************************************************************************
   Function:App_initialize_white_list
@@ -956,8 +1015,6 @@ void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef 
 	SMessage->TYPE = RMessage->TYPE;
 
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
-
-
 
 	for(temp_count=0,i=0;(temp_count<4)&&(i<8);temp_count++,i=i+2)
 	{

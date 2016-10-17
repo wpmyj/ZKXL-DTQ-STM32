@@ -17,6 +17,7 @@ extern uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];
 extern uint8_t card_cmd_type ;
 extern Uart_MessageTypeDef pc_subject_massage;
 extern nrf_communication_t nrf_communication;
+extern uint8_t retransmit_sum;
 
 uint8_t rf_outline_index = 0;
 extern uint8_t rf_back_sign[4];
@@ -181,7 +182,7 @@ void App_clickers_systick_process(void)
 		ReviceMessage.DATA[9] = 0xCA;
 
 		ReviceMessage.XOR = XOR_Cal((uint8_t *)(&(ReviceMessage.TYPE)), 9+6);
-		ReviceMessage.XOR = 0xCA;
+		ReviceMessage.END = 0xCA;
 
 		/* 获取接收缓存的状态 */
 		buffer_status = buffer_get_buffer_status(REVICE_RINGBUFFER);
@@ -256,24 +257,45 @@ void App_clickers_systick_process(void)
 //	DelayMs(delayms);
 //}
 
-void clicker_check_send_data(uint8_t sel_table, uint8_t uid_pos, uint8_t uid[], uint16_t delayms, uint8_t send_times)
+void clicker_check_send_data(uint8_t sel_table, uint8_t uid_pos, uint8_t uid[], uint16_t delayms)
 {
 	uint8_t is_online_pos = 0;
-	uint8_t i = 0;
-	
-	for(i=0;i<send_times;i++)
+
+	is_online_pos = get_index_of_white_list_pos_status(sel_table,uid_pos);
+	if(is_online_pos == 0)
 	{
-		is_online_pos = get_index_of_white_list_pos_status(sel_table,uid_pos);
-		if(is_online_pos == 0)
+		memcpy(nrf_communication.dtq_uid,uid,4);
+		/* 如果发送间隔时间短，就是用阻塞式发送：直接延时等待，减小缓冲区负担 */
+		if(delayms < 10)
 		{
-			memcpy(nrf_communication.dtq_uid,uid,4);
 			printf("[%2d]:%02x%02x%02x%02x ",uid_pos,uid[0],uid[1],uid[2],uid[3]);
 			my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,0);
 			DelayMs(delayms);
 		}
+		else /* 如果发送间隔时间长，就是用非阻塞式发送:送入指令缓存，减小等待时间*/
+		{
+			Uart_MessageTypeDef ReviceMessage;
+			uint8_t buffer_status = 0;
+
+			ReviceMessage.HEADER = 0x5C;
+			ReviceMessage.TYPE   = 0x2F;
+			memcpy(ReviceMessage.SIGN,uid,4);
+
+			ReviceMessage.LEN = rf_var.tx_len;
+			memcpy(ReviceMessage.DATA,rf_var.tx_buf,rf_var.tx_len);
+
+			ReviceMessage.XOR = XOR_Cal((uint8_t *)(&(ReviceMessage.TYPE)), rf_var.tx_len+5);
+			ReviceMessage.END = 0xCA;
+
+			/* 获取接收缓存的状态 */
+			buffer_status = buffer_get_buffer_status(REVICE_RINGBUFFER);
+
+			if(BUFFERFULL != buffer_status)
+			{
+				serial_ringbuffer_write_data(REVICE_RINGBUFFER,&ReviceMessage);
+			}
+		}
 	}
-	if(send_times !=1 )
-		printf("\n");
 }
 
 /******************************************************************************
@@ -307,13 +329,13 @@ void clear_uid_check_table( uint8_t clicker_count )
   Return:
   Others:None
 ******************************************************************************/
-void clickers_retransmit(uint8_t sumtable, uint8_t onlinetable, uint8_t nextsumtable,uint8_t nextOnlinetable, uint16_t delayms, uint8_t send_times)
+void clickers_retransmit(uint8_t sumtable, uint8_t onlinetable, uint8_t nextsumtable,uint8_t nextOnlinetable, uint16_t delayms)
 {
 	uint8_t i;
 	uint8_t is_use_pos = 0,is_online_pos = 0;
 	uint8_t puid[4];
 	uint8_t index = 0;
-	
+
 	for(i=0;i<120;i++)
 	{
 		is_use_pos = get_index_of_white_list_pos_status(sumtable,i);
@@ -324,15 +346,16 @@ void clickers_retransmit(uint8_t sumtable, uint8_t onlinetable, uint8_t nextsumt
 			{
 				get_index_of_uid(i,puid);
 				set_index_of_white_list_pos(nextsumtable,i);
-				
+
 				/* 重发数据 */
-				//clicker_send_data(puid,delayms);
-				clicker_check_send_data(nextOnlinetable,i,puid,delayms,send_times);
-				if(send_times == 1)
-				{
-					if(((index++)+1) % 5 == 0)
-						printf("\n");
-				}
+				clicker_check_send_data(nextOnlinetable,i,puid,delayms);
+
+				if(delayms>10)
+					retransmit_sum++;
+
+				if(((index++)+1) % 5 == 0)
+					printf("\n");
+
 			}
 		}
 	}
@@ -352,10 +375,10 @@ void App_clickers_send_data_process(void)
 	uint8_t clicker_send_data_current_status = 0;
 	static uint8_t clicker_count = 0;
 	uint8_t lostuidlen = 0;
-	
+
 	/* 获取当前的systick的状态 */
 	clicker_send_data_current_status = get_clicker_send_data_status();
-	
+
 	/* 上报第一次接受失败的UID */
 	if(clicker_send_data_current_status == 2)
 	{
@@ -365,7 +388,7 @@ void App_clickers_send_data_process(void)
 		printf("\r\nlost:\r\n");
 		Is_over = checkout_outline_uid(0,3,0,revice_data_massage.DATA,&(revice_data_massage.LEN));
 		lostuidlen = revice_data_massage.LEN;
-				
+
 		revice_data_massage.LEN = 0;
 		printf("\r\nok:\r\n");
 		Is_over = checkout_outline_uid(0,3,1,revice_data_massage.DATA,&(revice_data_massage.LEN));
@@ -382,7 +405,7 @@ void App_clickers_send_data_process(void)
 				//serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_data_massage);
 			}
 
-			
+
 			if(Is_over == 0)
 			{
 				change_clicker_send_data_status(3);
@@ -396,13 +419,13 @@ void App_clickers_send_data_process(void)
 			clear_uid_check_table(clicker_count);
 		}
 	}
-	
+
 	/* 上报之后，重新单独发送 */
 	if(clicker_send_data_current_status == 3)
 	{
 		printf("\r\n\r\n[1].retransmit:\r\n");
-		clickers_retransmit(0,3,6,4,0,1);
-		
+		clickers_retransmit(0,3,6,4,0);
+
 		/* 跟新状态，开始2次统计 */
 		change_clicker_send_data_status(4);
 	}
@@ -415,7 +438,7 @@ void App_clickers_send_data_process(void)
 		printf("\r\nlost:\r\n");
 		Is_over = checkout_outline_uid(6,4,0,revice_data_massage.DATA,&(revice_data_massage.LEN));
 		lostuidlen = revice_data_massage.LEN;
-				
+
 		revice_data_massage.LEN = 0;
 		printf("\r\nok:\r\n");
 		Is_over = checkout_outline_uid(6,4,1,revice_data_massage.DATA,&(revice_data_massage.LEN));
@@ -424,7 +447,7 @@ void App_clickers_send_data_process(void)
 		clicker_count += revice_data_massage.LEN/4;
 		printf("\r\ncount:%d\r\n",revice_data_massage.LEN/4);
 		revice_data_massage.LEN = 0;
-		
+
 		/* 上传在线状态 */
 		if(lostuidlen != 0)
 		{
@@ -433,7 +456,7 @@ void App_clickers_send_data_process(void)
 				//serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_data_massage);
 			}
 
-				
+
 			if(Is_over == 0)
 			{
 				change_clicker_send_data_status(6);
@@ -443,19 +466,19 @@ void App_clickers_send_data_process(void)
 		{
 			change_clicker_send_data_status(0);
 			clear_uid_check_table(clicker_count);
-		}	
+		}
 	}
-	
+
 	/* 上报之后，重新单独发送 */
 	if(clicker_send_data_current_status == 6)
 	{
 		printf("\r\n\r\n[2].retransmit:\r\n");
-		clickers_retransmit(6,4,7,5,0,1);
+		clickers_retransmit(6,4,7,5,0);
 
 		/* 跟新状态，开始2次统计 */
 		change_clicker_send_data_status(7);
 	}
-	
+
 	if(clicker_send_data_current_status == 8)
 	{
 		/* 返回失败的UID */
@@ -464,7 +487,7 @@ void App_clickers_send_data_process(void)
 		printf("\r\nlost:\r\n");
 		Is_over = checkout_outline_uid(7,5,0,revice_data_massage.DATA,&(revice_data_massage.LEN));
 		lostuidlen = revice_data_massage.LEN;
-					
+
 		revice_data_massage.LEN = 0;
 		printf("\r\nok:\r\n");
 		Is_over = checkout_outline_uid(7,5,1,revice_data_massage.DATA,&(revice_data_massage.LEN));
@@ -473,7 +496,7 @@ void App_clickers_send_data_process(void)
 		clicker_count += revice_data_massage.LEN/4;
 		printf("\r\ncount:%d\r\n",revice_data_massage.LEN/4);
 		revice_data_massage.LEN = 0;
-		
+
 		/* 上传在线状态 */
 		if(lostuidlen != 0)
 		{
@@ -492,19 +515,19 @@ void App_clickers_send_data_process(void)
 		{
 			change_clicker_send_data_status(0);
 			clear_uid_check_table(clicker_count);
-		}	
+		}
 	}
-	
+
 	/* 第三次上报之后，重新单独发送 */
 	if(clicker_send_data_current_status == 9)
 	{
 		printf("\r\n\r\n[3].retransmit:\r\n");
-		clickers_retransmit(7,5,9,8,1200,3);
+		clickers_retransmit(7,5,9,8,1200);
 
 		/* 跟新状态，开始2次统计 */
 		change_clicker_send_data_status(10);
 	}
-	
+
 	if(clicker_send_data_current_status == 11)
 	{
 		/* 返回失败的UID */
@@ -513,7 +536,7 @@ void App_clickers_send_data_process(void)
 		printf("\r\nlost:\r\n");
 		Is_over = checkout_outline_uid(9,8,0,revice_data_massage.DATA,&(revice_data_massage.LEN));
 		lostuidlen = revice_data_massage.LEN;
-					
+
 		revice_data_massage.LEN = 0;
 		printf("\r\nok:\r\n");
 		Is_over = checkout_outline_uid(9,8,1,revice_data_massage.DATA,&(revice_data_massage.LEN));
@@ -521,9 +544,9 @@ void App_clickers_send_data_process(void)
 		revice_data_massage.END = 0xCA;
 		clicker_count += revice_data_massage.LEN/4;
 		printf("\r\ncount:%d\r\n",revice_data_massage.LEN/4);
-		
+
 		revice_data_massage.LEN = 0;
-		
+
 		/* 上传在线状态 */
 		if(lostuidlen!= 0)
 		{
@@ -531,7 +554,7 @@ void App_clickers_send_data_process(void)
 			{
 				//serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_data_massage);
 			}
-	
+
 			if(Is_over == 0)
 			{
 				change_clicker_send_data_status(0);
@@ -542,10 +565,10 @@ void App_clickers_send_data_process(void)
 		{
 			change_clicker_send_data_status(0);
 			clear_uid_check_table(clicker_count);
-		}	
+		}
 	}
-	
-	
+
+
 }
 
 /******************************************************************************

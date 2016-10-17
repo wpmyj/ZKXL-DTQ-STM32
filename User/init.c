@@ -45,7 +45,7 @@ void Platform_Init(void)
 	nrf51822_parameters_init();
 
 	/* 接收器重发定时,返回ACK随机延时0~255ms，所以这个值要大于255ms	*/
-	TIM3_Int_Init(NRF_RETRANSMIT_DELAY,64000);
+	//TIM3_Int_Init(NRF_RETRANSMIT_DELAY,64000);
 
 	/* eeprom init and white_list init*/
 	Fee_Init(FEE_INIT_POWERUP);
