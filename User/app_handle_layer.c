@@ -19,7 +19,15 @@ extern Uart_MessageTypeDef pc_subject_massage;
 extern nrf_communication_t nrf_communication;
 extern uint8_t retransmit_sum;
 
-uint8_t rf_outline_index = 0;
+uint8_t rf_online_index[2] = 
+{ 
+	0, // outline  index
+	0  // online index
+};
+uint8_t clicker_count = 0;
+uint8_t Is_ok_over = 1, Is_lost_over = 1;
+uint16_t lostuidlen = 0 ,okuidlen = 0 ;
+
 extern uint8_t rf_back_sign[4];
 Uart_MessageTypeDef rf_systick_massage = {
 	0x5C,                 // HEADER
@@ -33,7 +41,7 @@ Uart_MessageTypeDef rf_systick_massage = {
 	0xCA,                 // END
 };
 
-Uart_MessageTypeDef revice_data_massage = {
+Uart_MessageTypeDef revice_lost_massage = {
 	0x5C,                 // HEADER
 	0x30,                 // TYPE
 	0x00,0x00,0x00,0x00,  // UID
@@ -45,6 +53,17 @@ Uart_MessageTypeDef revice_data_massage = {
 	0xCA,                 // END
 };
 
+Uart_MessageTypeDef revice_ok_massage = {
+	0x5C,                 // HEADER
+	0x30,                 // TYPE
+	0x00,0x00,0x00,0x00,  // UID
+	0x00,                 // LEN
+
+	0x00,0x00,0x00,0x00,      // ID
+
+	0x00,                 // XOR
+	0xCA,                 // END
+};
 
 void App_clickers_systick_process(void);
 void App_clickers_send_data_process(void);
@@ -107,13 +126,13 @@ bool is_new_uid_online( void )
   Return:
   Others:None
 ******************************************************************************/
-bool checkout_outline_uid(uint8_t src_table, uint8_t check_table, uint8_t mode, uint8_t *puid,uint8_t *len)
+bool checkout_online_uids(uint8_t src_table, uint8_t check_table, uint8_t mode, uint8_t *puid,uint8_t *len)
 {
 	uint8_t i;
 	uint8_t is_use_pos = 0,is_online_pos = 0;
 	uint8_t index = 0;
-
-	for(i=rf_outline_index;(i<120)&&(*len<240);i++)
+	
+	for(i=rf_online_index[mode];(i<120)&&(*len<240);i++)
 	{
 		is_use_pos = get_index_of_white_list_pos_status(src_table,i);
 		if(is_use_pos == 1)
@@ -122,7 +141,7 @@ bool checkout_outline_uid(uint8_t src_table, uint8_t check_table, uint8_t mode, 
 			if(is_online_pos == mode)
 			{
 				get_index_of_uid(i,puid);
-				printf("[%2d]:%02x%02x%02x%02x ",i,*puid, *(puid+1), *(puid+2), *(puid+3) );
+				printf("[%3d]:%02x%02x%02x%02x ",i,*puid, *(puid+1), *(puid+2), *(puid+3) );
 				puid = puid+4;
 				*len = *len + 4;
 				if(((index++)+1) % 5 == 0)
@@ -133,12 +152,12 @@ bool checkout_outline_uid(uint8_t src_table, uint8_t check_table, uint8_t mode, 
 
 	if(i==120)
 	{
-		rf_outline_index = 0;
+		rf_online_index[mode] = 0;
 		return 0;
 	}
 	else
 	{
-		rf_outline_index = i;
+		rf_online_index[mode] = i;
 		return 1;
 	}
 }
@@ -221,7 +240,7 @@ void App_clickers_systick_process(void)
 	{
 		/* 填充心跳包 */
 		uint8_t Is_over = 0;
-		Is_over = checkout_outline_uid(0,1,1,rf_systick_massage.DATA,&(rf_systick_massage.LEN));
+		Is_over = checkout_online_uids(0,1,1,rf_systick_massage.DATA,&(rf_systick_massage.LEN));
 		rf_systick_massage.XOR =  XOR_Cal((uint8_t *)(&(rf_systick_massage.TYPE)), rf_systick_massage.LEN+6);
 		rf_systick_massage.END = 0xCA;
 
@@ -250,13 +269,6 @@ void App_clickers_systick_process(void)
   Return:
   Others:None
 ******************************************************************************/
-//void clicker_send_data(uint8_t uid[],uint16_t delayms)
-//{
-//	memcpy(nrf_communication.dtq_uid,uid,4);
-//	my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,0);
-//	DelayMs(delayms);
-//}
-
 void clicker_check_send_data(uint8_t sel_table, uint8_t uid_pos, uint8_t uid[], uint16_t delayms)
 {
 	uint8_t is_online_pos = 0;
@@ -268,7 +280,7 @@ void clicker_check_send_data(uint8_t sel_table, uint8_t uid_pos, uint8_t uid[], 
 		/* 如果发送间隔时间短，就是用阻塞式发送：直接延时等待，减小缓冲区负担 */
 		if(delayms < 10)
 		{
-			printf("[%2d]:%02x%02x%02x%02x ",uid_pos,uid[0],uid[1],uid[2],uid[3]);
+			printf("[%3d]:%02x%02x%02x%02x ",uid_pos,uid[0],uid[1],uid[2],uid[3]);
 			my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,0);
 			DelayMs(delayms);
 		}
@@ -306,7 +318,7 @@ void clicker_check_send_data(uint8_t sel_table, uint8_t uid_pos, uint8_t uid[], 
   Return:
   Others:None
 ******************************************************************************/
-void clear_uid_check_table( uint8_t clicker_count )
+void clear_uid_check_table( void )
 {
 	clear_white_list_table(3);
 	clear_white_list_table(4);
@@ -316,6 +328,7 @@ void clear_uid_check_table( uint8_t clicker_count )
 	clear_white_list_table(8);
 	clear_white_list_table(9);
 	printf("\r\nSum count:%d\r\n",clicker_count);
+	clicker_count = 0;
 }
 
 /******************************************************************************
@@ -370,11 +383,13 @@ void clickers_retransmit(uint8_t sumtable, uint8_t onlinetable, uint8_t nextsumt
   Return:
   Others:None
 ******************************************************************************/
+
+
+
+
 void App_clickers_send_data_process(void)
 {
 	uint8_t clicker_send_data_current_status = 0;
-	static uint8_t clicker_count = 0;
-	uint8_t lostuidlen = 0;
 
 	/* 获取当前的systick的状态 */
 	clicker_send_data_current_status = get_clicker_send_data_status();
@@ -383,20 +398,26 @@ void App_clickers_send_data_process(void)
 	if(clicker_send_data_current_status == 2)
 	{
 		/* 返回失败的UID */
-		uint8_t Is_over = 0;
-		printf("\r\n第1次发送统计结果：");
-		printf("\r\nlost:\r\n");
-		Is_over = checkout_outline_uid(0,3,0,revice_data_massage.DATA,&(revice_data_massage.LEN));
-		lostuidlen = revice_data_massage.LEN;
+		if(Is_lost_over != 0)
+		{
+			printf("\r\n第1次发送统计结果：");
+			printf("\r\nlost:\r\n");
+			Is_lost_over = checkout_online_uids(0,3,0,revice_lost_massage.DATA,&(revice_lost_massage.LEN));
+			lostuidlen += revice_lost_massage.LEN;
+			revice_lost_massage.LEN = 0;
+		}
 
-		revice_data_massage.LEN = 0;
-		printf("\r\nok:\r\n");
-		Is_over = checkout_outline_uid(0,3,1,revice_data_massage.DATA,&(revice_data_massage.LEN));
-		revice_data_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_data_massage.TYPE)), revice_data_massage.LEN+6);
-		revice_data_massage.END = 0xCA;
-		clicker_count = revice_data_massage.LEN/4;
-		printf("\r\ncount:%d\r\n",revice_data_massage.LEN/4);
-		revice_data_massage.LEN = 0;
+		if(Is_ok_over != 0)
+		{
+			printf("\r\n第1次发送统计结果：");
+			printf("\r\nok:\r\n");
+			Is_ok_over = checkout_online_uids(0,3,1,revice_ok_massage.DATA,&(revice_ok_massage.LEN));
+			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)), revice_ok_massage.LEN+6);
+			revice_ok_massage.END = 0xCA;
+			clicker_count += revice_ok_massage.LEN/4;;
+			okuidlen += revice_ok_massage.LEN;
+			revice_ok_massage.LEN = 0;
+		}
 		/* 上传在线状态 */
 		if(lostuidlen != 0)
 		{
@@ -405,18 +426,23 @@ void App_clickers_send_data_process(void)
 				//serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_data_massage);
 			}
 
-
-			if(Is_over == 0)
+			if((Is_lost_over == 0) && (Is_ok_over == 0))
 			{
 				change_clicker_send_data_status(3);
-				//change_clicker_send_data_status(0);
-				//clear_uid_check_table();
+				okuidlen = 0;
+				lostuidlen = 0;
+				Is_lost_over = 1;
+				Is_ok_over = 1;
 			}
 		}
 		else
 		{
 			change_clicker_send_data_status(0);
-			clear_uid_check_table(clicker_count);
+			clear_uid_check_table();
+			okuidlen = 0;
+			lostuidlen = 0;
+			Is_lost_over = 1;
+			Is_ok_over = 1;
 		}
 	}
 
@@ -433,21 +459,25 @@ void App_clickers_send_data_process(void)
 	if(clicker_send_data_current_status == 5)
 	{
 		/* 返回失败的UID */
-		uint8_t Is_over = 0;
-		printf("\r\n第2次发送统计结果： ");
-		printf("\r\nlost:\r\n");
-		Is_over = checkout_outline_uid(6,4,0,revice_data_massage.DATA,&(revice_data_massage.LEN));
-		lostuidlen = revice_data_massage.LEN;
+		if(Is_lost_over != 0)
+		{
+			printf("\r\n第2次发送统计结果： ");
+			printf("\r\nlost:\r\n");
+			Is_lost_over = checkout_online_uids(6,4,0,revice_lost_massage.DATA,&(revice_lost_massage.LEN));
+			lostuidlen = revice_lost_massage.LEN;
+			revice_lost_massage.LEN = 0;
+		}
 
-		revice_data_massage.LEN = 0;
-		printf("\r\nok:\r\n");
-		Is_over = checkout_outline_uid(6,4,1,revice_data_massage.DATA,&(revice_data_massage.LEN));
-		revice_data_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_data_massage.TYPE)), revice_data_massage.LEN+6);
-		revice_data_massage.END = 0xCA;
-		clicker_count += revice_data_massage.LEN/4;
-		printf("\r\ncount:%d\r\n",revice_data_massage.LEN/4);
-		revice_data_massage.LEN = 0;
-
+		if(Is_ok_over != 0)
+		{
+			printf("\r\nok:\r\n");
+			Is_ok_over = checkout_online_uids(6,4,1,revice_ok_massage.DATA,&(revice_ok_massage.LEN));
+			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)), revice_ok_massage.LEN+6);
+			revice_ok_massage.END = 0xCA;
+			clicker_count += revice_ok_massage.LEN/4;
+			okuidlen = revice_ok_massage.LEN;
+			revice_ok_massage.LEN = 0;
+		}
 		/* 上传在线状态 */
 		if(lostuidlen != 0)
 		{
@@ -456,16 +486,23 @@ void App_clickers_send_data_process(void)
 				//serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_data_massage);
 			}
 
-
-			if(Is_over == 0)
+			if((Is_lost_over == 0) && (Is_ok_over == 0))
 			{
 				change_clicker_send_data_status(6);
+				okuidlen = 0;
+				lostuidlen = 0;
+				Is_lost_over = 1;
+				Is_ok_over = 1;
 			}
 		}
 		else
 		{
 			change_clicker_send_data_status(0);
-			clear_uid_check_table(clicker_count);
+			clear_uid_check_table();
+			okuidlen = 0;
+			lostuidlen = 0;
+			Is_lost_over = 1;
+			Is_ok_over = 1;
 		}
 	}
 
@@ -482,21 +519,25 @@ void App_clickers_send_data_process(void)
 	if(clicker_send_data_current_status == 8)
 	{
 		/* 返回失败的UID */
-		uint8_t Is_over = 0;
-		printf("\r\n第3次发送统计结果： ");
-		printf("\r\nlost:\r\n");
-		Is_over = checkout_outline_uid(7,5,0,revice_data_massage.DATA,&(revice_data_massage.LEN));
-		lostuidlen = revice_data_massage.LEN;
+		if(Is_lost_over != 0)
+		{
+			printf("\r\n第3次发送统计结果： ");
+			printf("\r\nlost:\r\n");
+			Is_lost_over = checkout_online_uids(7,5,0,revice_lost_massage.DATA,&(revice_lost_massage.LEN));
+			lostuidlen = revice_lost_massage.LEN;
+			revice_lost_massage.LEN = 0;
+		}
 
-		revice_data_massage.LEN = 0;
-		printf("\r\nok:\r\n");
-		Is_over = checkout_outline_uid(7,5,1,revice_data_massage.DATA,&(revice_data_massage.LEN));
-		revice_data_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_data_massage.TYPE)), revice_data_massage.LEN+6);
-		revice_data_massage.END = 0xCA;
-		clicker_count += revice_data_massage.LEN/4;
-		printf("\r\ncount:%d\r\n",revice_data_massage.LEN/4);
-		revice_data_massage.LEN = 0;
-
+		if(Is_ok_over != 0)
+		{
+			printf("\r\nok:\r\n");
+			Is_ok_over = checkout_online_uids(7,5,1,revice_ok_massage.DATA,&(revice_ok_massage.LEN));
+			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)), revice_ok_massage.LEN+6);
+			revice_ok_massage.END = 0xCA;
+			clicker_count += revice_ok_massage.LEN/4;
+			okuidlen = revice_ok_massage.LEN;
+			revice_ok_massage.LEN = 0;
+		}
 		/* 上传在线状态 */
 		if(lostuidlen != 0)
 		{
@@ -505,16 +546,23 @@ void App_clickers_send_data_process(void)
 				//serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_data_massage);
 			}
 
-			if(Is_over == 0)
+			if((Is_lost_over == 0) && (Is_ok_over == 0))
 			{
 				change_clicker_send_data_status(9);
-				//clear_uid_check_table();
+				okuidlen = 0;
+				lostuidlen = 0;
+				Is_lost_over = 1;
+				Is_ok_over = 1;
 			}
 		}
 		else
 		{
 			change_clicker_send_data_status(0);
-			clear_uid_check_table(clicker_count);
+			clear_uid_check_table();
+			okuidlen = 0;
+			lostuidlen = 0;
+			Is_lost_over = 1;
+			Is_ok_over = 1;
 		}
 	}
 
@@ -531,22 +579,25 @@ void App_clickers_send_data_process(void)
 	if(clicker_send_data_current_status == 11)
 	{
 		/* 返回失败的UID */
-		uint8_t Is_over = 0;
-		printf("\r\n第4次发送统计结果： ");
-		printf("\r\nlost:\r\n");
-		Is_over = checkout_outline_uid(9,8,0,revice_data_massage.DATA,&(revice_data_massage.LEN));
-		lostuidlen = revice_data_massage.LEN;
+		if(Is_lost_over != 0)
+		{
+			printf("\r\n第4次发送统计结果： ");
+			printf("\r\nlost:\r\n");
+			Is_lost_over = checkout_online_uids(9,8,0,revice_lost_massage.DATA,&(revice_lost_massage.LEN));
+			lostuidlen = revice_lost_massage.LEN;
+			revice_lost_massage.LEN = 0;
+		}
 
-		revice_data_massage.LEN = 0;
-		printf("\r\nok:\r\n");
-		Is_over = checkout_outline_uid(9,8,1,revice_data_massage.DATA,&(revice_data_massage.LEN));
-		revice_data_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_data_massage.TYPE)), revice_data_massage.LEN+6);
-		revice_data_massage.END = 0xCA;
-		clicker_count += revice_data_massage.LEN/4;
-		printf("\r\ncount:%d\r\n",revice_data_massage.LEN/4);
-
-		revice_data_massage.LEN = 0;
-
+		if(Is_ok_over != 0)
+		{
+			printf("\r\nok:\r\n");
+			Is_ok_over = checkout_online_uids(9,8,1,revice_ok_massage.DATA,&(revice_ok_massage.LEN));
+			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)), revice_ok_massage.LEN+6);
+			revice_ok_massage.END = 0xCA;
+			clicker_count += revice_ok_massage.LEN/4;
+			okuidlen = revice_ok_massage.LEN;
+			revice_ok_massage.LEN = 0;
+		}
 		/* 上传在线状态 */
 		if(lostuidlen!= 0)
 		{
@@ -555,20 +606,26 @@ void App_clickers_send_data_process(void)
 				//serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_data_massage);
 			}
 
-			if(Is_over == 0)
+			if((Is_lost_over == 0) && (Is_ok_over == 0))
 			{
 				change_clicker_send_data_status(0);
-				clear_uid_check_table(clicker_count);
+				clear_uid_check_table();
+				okuidlen = 0;
+				lostuidlen = 0;
+				Is_lost_over = 1;
+				Is_ok_over = 1;
 			}
 		}
 		else
 		{
 			change_clicker_send_data_status(0);
-			clear_uid_check_table(clicker_count);
+			clear_uid_check_table();
+			okuidlen = 0;
+			lostuidlen = 0;
+			Is_lost_over = 1;
+			Is_ok_over = 1;
 		}
 	}
-
-
 }
 
 /******************************************************************************
