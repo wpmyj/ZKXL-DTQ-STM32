@@ -30,14 +30,16 @@ extern uint8_t jsq_to_dtq_packnum;
 uint8_t uart_rf_cmd_sign[4];
 uint8_t uart_card_cmd_sign[4];
 
+/* 暂存题目信息，以备重发使用 */
 Uart_MessageTypeDef pc_subject_massage;
+
 static uint8_t pc_subject_status = 0;
 static uint8_t clicker_send_data_status = 0;
 static uint32_t clicker_send_data_timecnt = 0;
 
 uint8_t retransmit_flg = 0;
-uint8_t retransmit_count = 0;
-uint8_t retransmit_sum = 0;
+
+
 
 /* Private functions ---------------------------------------------------------*/
 static void serial_send_data_to_pc(void);
@@ -466,23 +468,21 @@ static void serial_cmd_process(void)
 			/* 单独下发给答题器 */
 			case 0x2F:
 				{
-					uint8_t rf_retransmit_status = 0;
-					rf_retransmit_status = get_rf_retransmit_status();
-					//printf("rf_retransmit_status = %d\r\n",rf_retransmit_status);
-					if(rf_retransmit_status == 0)
-					{
-						//printf("111111111111111111111111111111");
-						App_send_data_to_clicker_start( &ReviceMessage);
-						serial_cmd_status = APP_SERIAL_CMD_STATUS_WORK_IGNORE;
-						rf_retransmit_set_status(1);
-					}
+//					uint8_t rf_retransmit_status = 0;
+//					rf_retransmit_status = get_rf_retransmit_status();
+//					if(rf_retransmit_status == 0)
+//					{
+//						App_send_data_to_clicker_start( &ReviceMessage);
+//						serial_cmd_status = APP_SERIAL_CMD_STATUS_WORK_IGNORE;
+//						rf_retransmit_set_status(1);
+//					}
 
-					if(rf_retransmit_status == 2 || rf_retransmit_status == 3 )
-					{
-						App_send_data_to_clicker_return( &ReviceMessage, &SendMessage);
-						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
-						rf_retransmit_set_status(0);
-					}
+//					if(rf_retransmit_status == 2 || rf_retransmit_status == 3 )
+//					{
+//						//App_send_data_to_clicker_return( &ReviceMessage, &SendMessage);
+//						//serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+//						rf_retransmit_set_status(0);
+//					}
 				}
 				break;
 
@@ -658,62 +658,10 @@ void App_send_data_to_clicker_start( Uart_MessageTypeDef *RMessage)
 	memcpy(nrf_communication.dtq_uid , RMessage->SIGN, 4);
 	search_uid_in_white_list(RMessage->SIGN,&uidpos);
 
-	printf("[%2d]:%02x%02x%02x%02x ",uidpos,RMessage->SIGN[0],RMessage->SIGN[1],
+	printf("[%3d]:%02x%02x%02x%02x ",uidpos,RMessage->SIGN[0],RMessage->SIGN[1],
 																					RMessage->SIGN[2],RMessage->SIGN[3]);
 	/* 不开自动重发定时器,直接发送2次 */
 	my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,0);
-
-}
-
-void App_send_data_to_clicker_return( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
-{
-	uint16_t i = 0;
-	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
-	static uint8_t ret_count[120];
-	static uint8_t fail_uid[120][4];
-	uint8_t uidpos;
-
-	SMessage->HEADER = 0x5C;
-	SMessage->TYPE = RMessage->TYPE;
-	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
-
-	SMessage->LEN = 0x01;
-
-	if(get_rf_retransmit_status() == 2)
-	{
-		*( pdata + ( i++ ) ) = 0x00;
-		printf("ok\r\n");
-		retransmit_count++;
-	}
-	else
-	{
-		*( pdata + ( i++ ) ) = 0x01;
-
-		search_uid_in_white_list(RMessage->SIGN,&uidpos);
-
-		printf("fail\r\n");
-		ret_count[uidpos]++;
-		if(ret_count[uidpos] == 3)
-		{
-			retransmit_count++;
-			ret_count[uidpos] = 0;
-		}
-		else
-		{
-			if(BUFFERFULL != buffer_get_buffer_status(REVICE_RINGBUFFER))
-			{
-				serial_ringbuffer_write_data(REVICE_RINGBUFFER,RMessage);
-			}
-		}
-	}
-
-	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
-	SMessage->END = 0xCA;
-
-	if(retransmit_count == retransmit_sum)
-	{
-		change_clicker_send_data_status(11);
-	}
 }
 
 

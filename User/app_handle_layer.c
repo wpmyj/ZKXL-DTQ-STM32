@@ -18,15 +18,19 @@ extern uint8_t card_cmd_type ;
 extern Uart_MessageTypeDef pc_subject_massage;
 extern nrf_communication_t nrf_communication;
 extern uint8_t retransmit_sum;
+extern clicker_t clickers[120];
 
-uint8_t rf_online_index[2] = 
-{ 
+uint8_t rf_online_index[2] =
+{
 	0, // outline  index
 	0  // online index
 };
 uint8_t clicker_count = 0;
 uint8_t Is_ok_over = 1, Is_lost_over = 1;
 uint16_t lostuidlen = 0 ,okuidlen = 0 ;
+uint8_t retransmit_count = 0;
+uint8_t retransmit_sum = 0;
+uint8_t retransmit_uid[4];
 
 extern uint8_t rf_back_sign[4];
 Uart_MessageTypeDef rf_systick_massage = {
@@ -131,7 +135,7 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table, uint8_t mode, 
 	uint8_t i;
 	uint8_t is_use_pos = 0,is_online_pos = 0;
 	uint8_t index = 0;
-	
+
 	for(i=rf_online_index[mode];(i<120)&&(*len<240);i++)
 	{
 		is_use_pos = get_index_of_white_list_pos_status(src_table,i);
@@ -361,7 +365,8 @@ void clickers_retransmit(uint8_t sumtable, uint8_t onlinetable, uint8_t nextsumt
 				set_index_of_white_list_pos(nextsumtable,i);
 
 				/* 重发数据 */
-				clicker_check_send_data(nextOnlinetable,i,puid,delayms);
+				if(delayms<10)
+					clicker_check_send_data(nextOnlinetable,i,puid,delayms);
 
 				if(delayms>10)
 					retransmit_sum++;
@@ -375,6 +380,45 @@ void clickers_retransmit(uint8_t sumtable, uint8_t onlinetable, uint8_t nextsumt
 	printf("\n");
 }
 
+
+void clickers_set_retransmit_table(uint8_t sumtable, uint8_t onlinetable, uint8_t nextsumtable)
+{
+	uint8_t i;
+	uint8_t is_use_pos = 0,is_online_pos = 0;
+	uint8_t puid[4];
+	uint8_t index = 0;
+
+	for(i=0;i<120;i++)
+	{
+		is_use_pos = get_index_of_white_list_pos_status(sumtable,i);
+		if(is_use_pos == 1)
+		{
+			is_online_pos = get_index_of_white_list_pos_status(onlinetable,i);
+			if(is_online_pos == 0)
+			{
+				set_index_of_white_list_pos(nextsumtable,i);
+				retransmit_sum++;
+				//printf("retransmit_sum = %d\r\n",retransmit_sum);
+			}
+		}
+	}
+}
+
+void retransmit_data_to_next_clicker( uint8_t Is_next_uid, uint8_t *pos )
+{
+	if(Is_next_uid == 1)
+	{
+		get_next_uid_of_white_list(9,retransmit_uid);
+		search_uid_in_white_list(retransmit_uid,pos);
+	}
+
+	printf("[%3d]:%02x%02x%02x%02x ",*pos,retransmit_uid[0],retransmit_uid[1],
+																					retransmit_uid[2],retransmit_uid[3]);
+	memcpy(rf_var.tx_buf, (uint8_t *)(pc_subject_massage.DATA), pc_subject_massage.LEN);
+	my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,0);
+	rf_retransmit_set_status(1);
+}
+
 /******************************************************************************
   Function:App_clickers_send_data_process
   Description:
@@ -383,10 +427,6 @@ void clickers_retransmit(uint8_t sumtable, uint8_t onlinetable, uint8_t nextsumt
   Return:
   Others:None
 ******************************************************************************/
-
-
-
-
 void App_clickers_send_data_process(void)
 {
 	uint8_t clicker_send_data_current_status = 0;
@@ -549,6 +589,8 @@ void App_clickers_send_data_process(void)
 			if((Is_lost_over == 0) && (Is_ok_over == 0))
 			{
 				change_clicker_send_data_status(9);
+				clickers_set_retransmit_table(7,5,9);
+				printf("\r\n\r\n[3].retransmit:\r\n");
 				okuidlen = 0;
 				lostuidlen = 0;
 				Is_lost_over = 1;
@@ -569,11 +611,43 @@ void App_clickers_send_data_process(void)
 	/* 第三次上报之后，重新单独发送 */
 	if(clicker_send_data_current_status == 9)
 	{
-		printf("\r\n\r\n[3].retransmit:\r\n");
-		clickers_retransmit(7,5,9,8,1200);
+		uint8_t rf_retransmit_status = 0;
+		static uint8_t uidpos = 0;
+
+		rf_retransmit_status = get_rf_retransmit_status();
+
+		if(rf_retransmit_status == 0)
+			retransmit_data_to_next_clicker(1,&uidpos);
+
+		if(rf_retransmit_status == 2)
+		{
+			printf("ok\r\n");
+			retransmit_count++;
+			retransmit_data_to_next_clicker(1,&uidpos);
+		}
+
+		if(rf_retransmit_status == 3)
+		{
+			printf("fail\r\n");
+			clickers[uidpos].retransmit_count++;
+			if(clickers[uidpos].retransmit_count == 3)
+			{
+				retransmit_count++;
+				clickers[uidpos].retransmit_count = 0;
+
+				retransmit_data_to_next_clicker(1,&uidpos);
+			}
+			else
+			{
+				retransmit_data_to_next_clicker(0,&uidpos);
+			}
+		}
 
 		/* 跟新状态，开始2次统计 */
-		change_clicker_send_data_status(10);
+		if(retransmit_count == retransmit_sum)
+		{
+			change_clicker_send_data_status(11);
+		}
 	}
 
 	if(clicker_send_data_current_status == 11)
