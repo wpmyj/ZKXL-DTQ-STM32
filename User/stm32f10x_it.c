@@ -25,24 +25,6 @@
 
 /* uart global variables */
 
-typedef struct
-{
-	uint8_t uid[4];
-	uint8_t use;
-	uint8_t first;
-	uint16_t prepacknum;
-	uint32_t revice_package_num;
-	uint32_t lost_package_num;
-}clicker_t;
-
-typedef struct
-{
-	uint8_t hour;
-	uint8_t min;
-	uint8_t s;
-	uint16_t ms;
-}timer_t;
-
 clicker_t clickers[120];
 uint32_t clicker_test_printf_flg = 0;
 timer_t clicker_time;

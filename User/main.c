@@ -12,24 +12,6 @@
 #include "main.h"
 #include "stdlib.h"
 
-typedef struct 
-{
-	uint8_t uid[4];
-	uint8_t use;
-	uint8_t first;
-	uint16_t prepacknum;
-	uint32_t revice_package_num;
-	uint32_t lost_package_num;
-}clicker_t;
-
-typedef struct 
-{
-	uint8_t hour;
-	uint8_t min;
-	uint8_t s;
-	uint16_t ms;
-}timer_t;
-
 extern void app_handle_layer(void);
 extern void rc500_handle_layer(void);
 extern clicker_t clickers[120];
