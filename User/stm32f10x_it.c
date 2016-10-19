@@ -49,6 +49,7 @@ extern uint8_t 			        jsq_to_dtq_sequence;
 extern uint8_t 					    dtq_to_jsq_packnum;
 extern uint8_t 			        jsq_to_dtq_packnum;
 extern uint8_t              sign_buffer[4];
+extern uint8_t              retransmit_uid[4];
 
 /* rf systick data */
 volatile uint8_t rf_systick_status = 0; // 0 = IDLE
@@ -720,8 +721,8 @@ void RFIRQ_EXTI_IRQHandler(void)
 
 				if(1 == get_rf_retransmit_status())
 				{
-					if(nrf_communication.dtq_uid[0] == clickers[uidpos].uid[0] &&
-						 nrf_communication.dtq_uid[1] == clickers[uidpos].uid[1]
+					if(nrf_communication.dtq_uid[0] == retransmit_uid[0] &&
+						 nrf_communication.dtq_uid[1] == retransmit_uid[1]
 						)
 					{
 						rf_retransmit_set_status(2);
