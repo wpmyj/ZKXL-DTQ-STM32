@@ -20,6 +20,13 @@ extern nrf_communication_t nrf_communication;
 extern uint8_t retransmit_sum;
 extern clicker_t clickers[120];
 
+extern uint8_t dtq_to_jsq_sequence;
+extern uint8_t jsq_to_dtq_sequence;
+extern uint8_t dtq_to_jsq_packnum;
+extern uint8_t jsq_to_dtq_packnum;
+extern uint8_t sign_buffer[4];
+extern uint8_t retransmit_uid[4];
+
 uint8_t rf_online_index[2] =
 {
 	0, // outline  index
@@ -85,17 +92,184 @@ void Buzze_Control(void);
 ******************************************************************************/
 void app_handle_layer(void)
 {
+	/*clickers send data process */
+	App_clickers_send_data_process();
+
+	if(get_clicker_send_data_status() == 0)
+	{
 		/* serial cmd processing process */
 		App_seirial_cmd_process();
 
 		/* MI Card processing process */
 		App_card_process();
+	}
 
-		/*clickers systick process */
-		//App_clickers_systick_process();
+	/*clickers systick process */
+	//App_clickers_systick_process();
+}
+/******************************************************************************
+  Function:clicker_send_data_statistics
+  Description:
+		App RF 射频轮询处理函数
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void clicker_send_data_statistics( uint8_t send_data_status, uint8_t uidpos )
+{
+	switch(send_data_status)
+	{
+		case 1 : set_index_of_white_list_pos(3,uidpos); break;
+		case 3 :
+		case 4 : set_index_of_white_list_pos(4,uidpos); break;
+		case 6 :
+		case 7 : set_index_of_white_list_pos(5,uidpos); break;
+		case 9 :
+		case 10: set_index_of_white_list_pos(8,uidpos); break;
+		default:break;
+	}
+}
 
-		/*clickers send data process */
-		App_clickers_send_data_process();
+
+void spi_process_revice_data(uint8_t clicker_send_data_status)
+{
+	static uint8_t spi_message[255];
+	bool    Is_whitelist_uid = OPERATION_ERR;
+	uint8_t uidpos = 0;
+
+	if(buffer_get_buffer_status(SPI_REVICE_BUFFER) != BUFFEREMPTY)
+	{
+		memset(spi_message,0,255);
+		spi_read_data_from_buffer( SPI_REVICE_BUFFER, spi_message );
+	}
+
+	if(clicker_send_data_status != 0)
+	{
+		/* 白名单开启，检测是否为白名单的内容 */
+		Is_whitelist_uid = search_uid_in_white_list(spi_message+5,&uidpos);
+
+		if(clickers[uidpos].use == 0)
+		{
+			memcpy(clickers[uidpos].uid, spi_message+5, 4);
+			clickers[uidpos].use = 1;
+			clickers[uidpos].first = 1;
+		}
+		else
+		{
+			clickers[uidpos].first = 0;
+		}
+
+		/* 统计答题器的接受情况 */
+		if(Is_whitelist_uid == OPERATION_SUCCESS)
+		{
+			uint8_t systick_current_status = 0;
+
+			/* 获取当前的systick的状态 */
+			systick_current_status = rf_get_systick_status();
+
+			/* 获取发送状态 */
+			if(systick_current_status == 1)
+			{
+				set_index_of_white_list_pos(1,uidpos);
+			}
+
+			/* 统计发送状态 */
+			clicker_send_data_statistics( spi_message[spi_message[14]+17], uidpos );
+
+			if(1 == get_rf_retransmit_status())
+			{
+				if(spi_message[5] == retransmit_uid[0] &&
+					 spi_message[6] == retransmit_uid[1]
+					)
+				{
+					rf_retransmit_set_status(2);
+				}
+			}
+		}
+
+		/* 白名单是否关闭 */
+		if(white_on_off == OFF)
+		{
+			/* 白名单关闭数据透传 */
+			Is_whitelist_uid = OPERATION_SUCCESS;
+		}
+
+		/* 白名单匹配 */
+		if(Is_whitelist_uid == OPERATION_SUCCESS)
+		{
+			/* get uid */
+			memcpy(sign_buffer   ,spi_message+5 ,4);
+			//memcpy(spi_message.dtq_uid,spi_message+5 ,4);
+
+			/* 收到的是ACK */
+			if(spi_message[11] == NRF_DATA_IS_ACK)
+			{
+				/* 返回ACK的包号和上次发送的是否相同 */
+				if(spi_message[10] == jsq_to_dtq_packnum)
+				{
+//						printf("[ACK] uid:%02x%02x%02x%02x, ",
+//							*(nrf_communication.receive_buf+5),*(nrf_communication.receive_buf+6),
+//							*(nrf_communication.receive_buf+7),*(nrf_communication.receive_buf+8));
+//						printf("seq:%2x, pac:%2x\r\n",(uint8_t)*(nrf_communication.receive_buf+9),
+//							(uint8_t)*(nrf_communication.receive_buf+10));
+				}
+			}
+			else//收到的是有效数据
+			{
+//					printf("[DATA] uid:%02x%02x%02x%02x, ",
+//						*(nrf_communication.receive_buf+5),*(nrf_communication.receive_buf+6),
+//						*(nrf_communication.receive_buf+7),*(nrf_communication.receive_buf+8));
+//					printf("seq:%2x, pac:%2x\r\n",(uint8_t)*(nrf_communication.receive_buf+9),
+//						(uint8_t)*(nrf_communication.receive_buf+10));
+
+				/* 重复接收的数据，返回包号和上次一样的ACK */
+				if(clickers[uidpos].prepacknum != spi_message[10])
+				{
+					/* 统计丢包 */
+					if( clickers[uidpos].use == 1 )
+					{
+						//float lostrate = 0.0;
+
+						if(clickers[uidpos].first == 0)
+						{
+							if( spi_message[10] > clickers[uidpos].prepacknum )
+								clickers[uidpos].lost_package_num += spi_message[10] - clickers[uidpos].prepacknum -1 ;
+
+							if( spi_message[10] < clickers[uidpos].prepacknum )
+								clickers[uidpos].lost_package_num += spi_message[10] + 255 - clickers[uidpos].prepacknum ;
+						}
+						else
+						{
+							clickers[uidpos].lost_package_num = 0;
+						}
+
+						/* 统计收到包数 */
+//					clickers[uidpos].revice_package_num++;
+//					printf("clickers : %02x%02x%02x%02x, pre:%2x, cur:%2x revice = %08x, lost = %08x, \r\n",
+//					clickers[uidpos].uid[0],
+//					clickers[uidpos].uid[1],
+//					clickers[uidpos].uid[2],
+//					clickers[uidpos].uid[3],
+//					clickers[uidpos].prepacknum,
+//					nrf_communication.receive_buf[10],
+//					clickers[uidpos].revice_package_num,
+//					clickers[uidpos].lost_package_num
+//					);
+						clickers[uidpos].prepacknum = spi_message[10];
+					}
+					/* 有效数据复制到缓存 */
+					//rf_move_data_to_buffer(&nrf_communication);
+					/* 更新接收数据帧号与包号 */
+					dtq_to_jsq_sequence = spi_message[9];
+					dtq_to_jsq_packnum = spi_message[10];
+					/* 回复ACK */
+					my_nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK,0);
+					/* 用户接收到数据处理函数 */
+					my_nrf_receive_success_handler();
+				}
+			}
+		}
+	}
 }
 
 /******************************************************************************
@@ -383,10 +557,7 @@ void clickers_retransmit(uint8_t sumtable, uint8_t onlinetable, uint8_t nextsumt
 
 void clickers_set_retransmit_table(uint8_t sumtable, uint8_t onlinetable, uint8_t nextsumtable)
 {
-	uint8_t i;
-	uint8_t is_use_pos = 0,is_online_pos = 0;
-	uint8_t puid[4];
-	uint8_t index = 0;
+	uint8_t i, is_use_pos = 0,is_online_pos = 0;
 
 	for(i=0;i<120;i++)
 	{
@@ -398,7 +569,6 @@ void clickers_set_retransmit_table(uint8_t sumtable, uint8_t onlinetable, uint8_
 			{
 				set_index_of_white_list_pos(nextsumtable,i);
 				retransmit_sum++;
-				//printf("retransmit_sum = %d\r\n",retransmit_sum);
 			}
 		}
 	}
@@ -428,12 +598,14 @@ void retransmit_data_to_next_clicker( uint8_t Is_next_uid, uint8_t *pos )
   Return:
   Others:None
 ******************************************************************************/
-void App_clickers_send_data_process(void)
+void App_clickers_send_data_process( void )
 {
 	uint8_t clicker_send_data_current_status = 0;
 
 	/* 获取当前的systick的状态 */
 	clicker_send_data_current_status = get_clicker_send_data_status();
+
+	spi_process_revice_data(clicker_send_data_current_status);
 
 	/* 上报第一次接受失败的UID */
 	if(clicker_send_data_current_status == 2)
@@ -788,6 +960,7 @@ void App_card_process(void)
 	}
 	Buzze_Control();
 }
+
 
 /*******************************************************************************
   * @brief  Initialize the Gpio port for system

@@ -25,7 +25,6 @@
 
 /* uart global variables */
 
-clicker_t clickers[120];
 uint32_t clicker_test_printf_flg = 0;
 timer_t clicker_time;
 
@@ -44,12 +43,7 @@ uint8_t uart_tx_status      = 0;
 
 /* uart global variables */
 extern nrf_communication_t	nrf_communication;
-extern uint8_t 					    dtq_to_jsq_sequence;
-extern uint8_t 			        jsq_to_dtq_sequence;
-extern uint8_t 					    dtq_to_jsq_packnum;
-extern uint8_t 			        jsq_to_dtq_packnum;
-extern uint8_t              sign_buffer[4];
-extern uint8_t              retransmit_uid[4];
+
 
 /* rf systick data */
 volatile uint8_t rf_systick_status = 0; // 0 = IDLE
@@ -91,28 +85,7 @@ void time_inc()
 	}
 }
 
-/******************************************************************************
-  Function:clicker_send_data_statistics
-  Description:
-		App RF 射频轮询处理函数
-  Input :
-  Return:
-  Others:None
-******************************************************************************/
-void clicker_send_data_statistics( uint8_t send_data_status, uint8_t uidpos )
-{
-	switch(send_data_status)
-	{
-		case 1 : set_index_of_white_list_pos(3,uidpos); break;
-		case 3 :
-		case 4 : set_index_of_white_list_pos(4,uidpos); break;
-		case 6 :
-		case 7 : set_index_of_white_list_pos(5,uidpos); break;
-		case 9 :
-		case 10: set_index_of_white_list_pos(8,uidpos); break;
-		default:break;
-	}
-}
+
 
 /******************************************************************************
   Function:rf_change_systick_status
@@ -354,44 +327,6 @@ void uart_send_data_state_machine( void )
 	}
 }
 
-/******************************************************************************
-  Function:App_rf_check_process
-  Description:
-		App RF 消息缓存处理函数
-  Input :
-  Return:
-  Others:None
-******************************************************************************/
-void rf_move_data_to_buffer(nrf_communication_t *Message)
-{
-	Uart_MessageTypeDef rf_message;
-	uint8_t i = 0 ;
-
-	rf_message.HEADER = 0x5C;
-	rf_message.TYPE = 0x10;
-
-	memcpy(rf_message.SIGN,nrf_communication.receive_buf+5,4);
-
-	/* 获取消息的有效长度 */
-	rf_message.LEN = Message->receive_buf[14];
-
-	for (i=0;i<rf_message.LEN;i++)
-	{
-		rf_message.DATA[i]=Message->receive_buf[i+15];
-	}
-
-	rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.TYPE)), i+6);
-	rf_message.END = 0xCA;
-
-	/* 存入缓存 */
-	if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
-	{
-		serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
-	}
-}
-
-
-
 /** @addtogroup STM32F10x_StdPeriph_Examples
   * @{
   */
@@ -534,7 +469,7 @@ void SysTick_Handler(void)
 
 	time_inc();
 
-	clicker_send_data_time_set1( 1, 2,1200);
+	clicker_send_data_time_set1( 1, 2,2000);
 	clicker_send_data_time_set1( 4, 5,1200);
 	clicker_send_data_time_set1( 7, 8,1200);
 
@@ -664,154 +599,24 @@ void USART1pos_IRQHandler(void)
 	}
 }
 
-bool search_uid_in_white_list(uint8_t *g_uid , uint8_t *position);
-
 uint8_t irq_flag;
-
 void RFIRQ_EXTI_IRQHandler(void)
 {
-	bool    Is_whitelist_uid = OPERATION_ERR;
-	uint8_t uidpos = 0;
-
 	if(EXTI_GetITStatus(EXTI_LINE_RFIRQ) != RESET)
 	{
 		EXTI_ClearITPendingBit(EXTI_LINE_RFIRQ);
 
-		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_communication.receive_len, nrf_communication.receive_buf);		//读取数据
-
-//	printf("start = %2x ",*(nrf_communication.receive_buf));
-//	printf("len = %2x ",*(nrf_communication.receive_buf+14));
-//	printf("xor = %2x ",*(nrf_communication.receive_buf + *(nrf_communication.receive_buf+14)+15));
-//	printf("calxor = %2x \r\n",XOR_Cal(nrf_communication.receive_buf+1, *(nrf_communication.receive_buf+14)+14));
-
+		/* 读取数据 */
+		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_communication.receive_len,
+		                                         nrf_communication.receive_buf);
 		/* 进行 crc 校验 */
-		if(*(nrf_communication.receive_buf + *(nrf_communication.receive_buf+14)+15) ==
-			  XOR_Cal(nrf_communication.receive_buf+1, *(nrf_communication.receive_buf+14)+14))
+		//if(*(nrf_communication.receive_buf + *(nrf_communication.receive_buf+14)+15) ==
+		//	  XOR_Cal(nrf_communication.receive_buf+1, *(nrf_communication.receive_buf+14)+14))
 		{
-			/* 白名单开启，检测是否为白名单的内容 */
-			Is_whitelist_uid = search_uid_in_white_list(nrf_communication.receive_buf+5,&uidpos);
-
-			if(clickers[uidpos].use == 0)
+			if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
 			{
-				memcpy(clickers[uidpos].uid, nrf_communication.receive_buf+5, 4);
-				clickers[uidpos].use = 1;
-				clickers[uidpos].first = 1;
-			}
-			else
-			{
-				clickers[uidpos].first = 0;
-			}
-
-			/* 统计答题器的接受情况 */
-			if(Is_whitelist_uid == OPERATION_SUCCESS)
-			{
-				uint8_t systick_current_status = 0;
-
-				/* 获取当前的systick的状态 */
-				systick_current_status = rf_get_systick_status();
-
-				/* 获取发送状态 */
-				if(systick_current_status == 1)
-				{
-					set_index_of_white_list_pos(1,uidpos);
-				}
-
-				/* 统计发送状态 */
-				clicker_send_data_statistics( get_clicker_send_data_status(), uidpos );
-
-				if(1 == get_rf_retransmit_status())
-				{
-					if(nrf_communication.dtq_uid[0] == retransmit_uid[0] &&
-						 nrf_communication.dtq_uid[1] == retransmit_uid[1]
-						)
-					{
-						rf_retransmit_set_status(2);
-
-					}
-				}
-			}
-
-			/* 白名单是否关闭 */
-			if(white_on_off == OFF)
-			{
-				/* 白名单关闭数据透传 */
-				Is_whitelist_uid = OPERATION_SUCCESS;
-			}
-
-			/* 白名单匹配 */
-			if(Is_whitelist_uid == OPERATION_SUCCESS)
-			{
-				/* get uid */
-				memcpy(sign_buffer   ,nrf_communication.receive_buf+5 ,4);
-				memcpy(nrf_communication.dtq_uid,nrf_communication.receive_buf+5 ,4);
-
-				/* 收到的是ACK */
-				if(nrf_communication.receive_buf[11] == NRF_DATA_IS_ACK)
-				{
-					/* 返回ACK的包号和上次发送的是否相同 */
-					if(nrf_communication.receive_buf[10] == jsq_to_dtq_packnum)
-					{
-//						printf("[ACK] uid:%02x%02x%02x%02x, ",
-//							*(nrf_communication.receive_buf+5),*(nrf_communication.receive_buf+6),
-//							*(nrf_communication.receive_buf+7),*(nrf_communication.receive_buf+8));
-//						printf("seq:%2x, pac:%2x\r\n",(uint8_t)*(nrf_communication.receive_buf+9),
-//							(uint8_t)*(nrf_communication.receive_buf+10));
-					}
-				}
-				else//收到的是有效数据
-				{
-//					printf("[DATA] uid:%02x%02x%02x%02x, ",
-//						*(nrf_communication.receive_buf+5),*(nrf_communication.receive_buf+6),
-//						*(nrf_communication.receive_buf+7),*(nrf_communication.receive_buf+8));
-//					printf("seq:%2x, pac:%2x\r\n",(uint8_t)*(nrf_communication.receive_buf+9),
-//						(uint8_t)*(nrf_communication.receive_buf+10));
-
-					/* 重复接收的数据，返回包号和上次一样的ACK */
-					if(clickers[uidpos].prepacknum != nrf_communication.receive_buf[10])
-					{
-						/* 统计丢包 */
-						if( clickers[uidpos].use == 1 )
-						{
-							//float lostrate = 0.0;
-
-							if(clickers[uidpos].first == 0)
-							{
-								if( nrf_communication.receive_buf[10] > clickers[uidpos].prepacknum )
-									clickers[uidpos].lost_package_num += nrf_communication.receive_buf[10] - clickers[uidpos].prepacknum -1 ;
-
-								if( nrf_communication.receive_buf[10] < clickers[uidpos].prepacknum )
-									clickers[uidpos].lost_package_num += nrf_communication.receive_buf[10] + 255 - clickers[uidpos].prepacknum ;
-							}
-							else
-							{
-								clickers[uidpos].lost_package_num = 0;
-							}
-
-							/* 统计收到包数 */
-							clickers[uidpos].revice_package_num++;
-//						printf("clickers : %02x%02x%02x%02x, pre:%2x, cur:%2x revice = %08x, lost = %08x, \r\n",
-//						clickers[uidpos].uid[0],
-//						clickers[uidpos].uid[1],
-//						clickers[uidpos].uid[2],
-//						clickers[uidpos].uid[3],
-//						clickers[uidpos].prepacknum,
-//						nrf_communication.receive_buf[10],
-//						clickers[uidpos].revice_package_num,
-//						clickers[uidpos].lost_package_num
-//						);
-							clickers[uidpos].prepacknum = nrf_communication.receive_buf[10];
-						}
-						/* 有效数据复制到缓存 */
-						//rf_move_data_to_buffer(&nrf_communication);
-						/* 更新接收数据帧号与包号 */
-						dtq_to_jsq_sequence = nrf_communication.receive_buf[9];
-						dtq_to_jsq_packnum = nrf_communication.receive_buf[10];
-						/* 回复ACK */
-						my_nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK,0);
-						/* 用户接收到数据处理函数 */
-						my_nrf_receive_success_handler();
-					}
-				}
+				uint8_t send_data_status = get_clicker_send_data_status();
+				spi_write_data_to_buffer(SPI_REVICE_BUFFER,nrf_communication.receive_buf, send_data_status);
 			}
 		}
 	}
