@@ -415,6 +415,7 @@ void retransmit_data_to_next_clicker( uint8_t Is_next_uid, uint8_t *pos )
 	printf("[%3d]:%02x%02x%02x%02x ",*pos,retransmit_uid[0],retransmit_uid[1],
 																					retransmit_uid[2],retransmit_uid[3]);
 	memcpy(rf_var.tx_buf, (uint8_t *)(pc_subject_massage.DATA), pc_subject_massage.LEN);
+	memcpy(nrf_communication.dtq_uid,retransmit_uid,4);
 	my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,0);
 	rf_retransmit_set_status(1);
 }
@@ -454,7 +455,8 @@ void App_clickers_send_data_process(void)
 			Is_ok_over = checkout_online_uids(0,3,1,revice_ok_massage.DATA,&(revice_ok_massage.LEN));
 			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)), revice_ok_massage.LEN+6);
 			revice_ok_massage.END = 0xCA;
-			clicker_count += revice_ok_massage.LEN/4;;
+			clicker_count += revice_ok_massage.LEN/4;
+			printf("\r\ncount:%d\r\n",revice_ok_massage.LEN/4);
 			okuidlen += revice_ok_massage.LEN;
 			revice_ok_massage.LEN = 0;
 		}
@@ -515,6 +517,7 @@ void App_clickers_send_data_process(void)
 			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)), revice_ok_massage.LEN+6);
 			revice_ok_massage.END = 0xCA;
 			clicker_count += revice_ok_massage.LEN/4;
+			printf("\r\ncount:%d\r\n",revice_ok_massage.LEN/4);
 			okuidlen = revice_ok_massage.LEN;
 			revice_ok_massage.LEN = 0;
 		}
@@ -575,6 +578,7 @@ void App_clickers_send_data_process(void)
 			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)), revice_ok_massage.LEN+6);
 			revice_ok_massage.END = 0xCA;
 			clicker_count += revice_ok_massage.LEN/4;
+			printf("\r\ncount:%d\r\n",revice_ok_massage.LEN/4);
 			okuidlen = revice_ok_massage.LEN;
 			revice_ok_massage.LEN = 0;
 		}
@@ -669,6 +673,7 @@ void App_clickers_send_data_process(void)
 			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)), revice_ok_massage.LEN+6);
 			revice_ok_massage.END = 0xCA;
 			clicker_count += revice_ok_massage.LEN/4;
+			printf("\r\ncount:%d\r\n",revice_ok_massage.LEN/4);
 			okuidlen = revice_ok_massage.LEN;
 			revice_ok_massage.LEN = 0;
 		}
