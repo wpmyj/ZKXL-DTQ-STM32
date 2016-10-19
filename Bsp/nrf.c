@@ -189,7 +189,6 @@ void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf
 	}
 	else if(nrf_data_type == NRF_DATA_IS_ACK)	//ACK数据包，发送nrf_communication.software_ack_buf 内容
 	{
-		int i ;
 		nrf_communication.software_ack_buf[0] = 0x61;
 		memcpy((nrf_communication.software_ack_buf + 1), nrf_communication.dtq_uid, 4);
 		memcpy((nrf_communication.software_ack_buf + 5), nrf_communication.jsq_uid, 4);
