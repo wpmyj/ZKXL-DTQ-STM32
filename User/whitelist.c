@@ -1,6 +1,7 @@
 #include "whitelist.h"
 
 /* Private variables ---------------------------------------------------------*/
+clicker_t         clickers[120];
 uint8_t						white_len;						        // 白名单长度
 Switch_State			white_on_off;					        // 白名单开关 
 Switch_State			attendance_on_off;		        // 考勤开关 
