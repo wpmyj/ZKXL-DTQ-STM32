@@ -100,8 +100,16 @@ void clicker_send_data_time_set1(uint8_t status1, uint8_t status2, uint32_t dela
 ******************************************************************************/
 void change_clicker_send_data_status( uint8_t newstatus )
 {
+	uint8_t spi_status_message[17];
 	clicker_send_data_status = newstatus;
 	DebugLog("<%s>clicker_send_data_status = %d\r\n",__func__,clicker_send_data_status);
+	spi_status_message[0] = 0x61;
+	memset(spi_status_message+1,0,10);
+	spi_status_message[11] = 0x02;//status
+	memset(spi_status_message+12,0,3);
+	spi_status_message[15] = 0x02;
+	spi_status_message[16] = 0x21;
+	spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_status_message, newstatus);
 }
 
 /******************************************************************************

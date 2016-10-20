@@ -131,7 +131,7 @@ void clicker_send_data_statistics( uint8_t send_data_status, uint8_t uidpos )
 }
 
 
-void spi_process_revice_data(uint8_t clicker_send_data_status)
+uint8_t spi_process_revice_data( void )
 {
 	static uint8_t spi_message[255];
 	bool    Is_whitelist_uid = OPERATION_ERR;
@@ -143,7 +143,7 @@ void spi_process_revice_data(uint8_t clicker_send_data_status)
 		spi_read_data_from_buffer( SPI_REVICE_BUFFER, spi_message );
 	}
 
-	if(clicker_send_data_status != 0)
+	//if(clicker_send_data_status != 0)
 	{
 		/* 白名单开启，检测是否为白名单的内容 */
 		Is_whitelist_uid = search_uid_in_white_list(spi_message+5,&uidpos);
@@ -270,6 +270,7 @@ void spi_process_revice_data(uint8_t clicker_send_data_status)
 			}
 		}
 	}
+	return (spi_message[spi_message[14]+17]);
 }
 
 /******************************************************************************
@@ -603,9 +604,7 @@ void App_clickers_send_data_process( void )
 	uint8_t clicker_send_data_current_status = 0;
 
 	/* 获取当前的systick的状态 */
-	clicker_send_data_current_status = get_clicker_send_data_status();
-
-	spi_process_revice_data(clicker_send_data_current_status);
+	clicker_send_data_current_status = spi_process_revice_data();
 
 	/* 上报第一次接受失败的UID */
 	if(clicker_send_data_current_status == 2)
