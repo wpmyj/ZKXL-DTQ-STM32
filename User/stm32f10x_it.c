@@ -22,7 +22,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
+#include "app_send_data_process.h"
 /* uart global variables */
 
 uint32_t clicker_test_printf_flg = 0;
@@ -47,45 +47,7 @@ extern nrf_communication_t	nrf_communication;
 
 /* rf systick data */
 volatile uint8_t rf_systick_status = 0; // 0 = IDLE
-static uint8_t   rf_retransmit_status = 0;
 static uint32_t  rf_retransmit_timecnt = 0;
-
-void rf_retransmit_set_status(uint8_t new_status)
-{
-	rf_retransmit_status = new_status;
-	DebugLog("status = %d \r\n",rf_retransmit_status);
-}
-
-uint8_t get_rf_retransmit_status(void)
-{
-	return rf_retransmit_status;
-}
-
-void time_inc()
-{
-	clicker_time.ms++;
-	if(clicker_time.ms == 1000)
-	{
-		clicker_time.ms = 0;
-		clicker_time.s++;
-
-		if(clicker_time.s%10==0)
-			clicker_test_printf_flg = 1;
-
-		if(clicker_time.s == 60)
-		{
-			clicker_time.s = 0;
-			clicker_time.min++;
-			if(clicker_time.min == 60)
-			{
-				clicker_time.min = 0;
-				clicker_time.hour++;
-			}
-		}
-	}
-}
-
-
 
 /******************************************************************************
   Function:rf_change_systick_status
@@ -467,11 +429,9 @@ void SysTick_Handler(void)
 {
 	TimingDelay_Decrement();
 
-	time_inc();
-
-	clicker_send_data_time_set1( 1, 2,2000);
-	clicker_send_data_time_set1( 4, 5,1200);
-	clicker_send_data_time_set1( 7, 8,1200);
+	clicker_send_data_time_set1( SEND_DATA1_STATUS, SEND_DATA1_UPDATE_STATUS,2000);
+	clicker_send_data_time_set1( SEND_DATA2_SEND_OVER_STATUS, SEND_DATA2_UPDATE_STATUS,1200);
+	clicker_send_data_time_set1( SEND_DATA3_SEND_OVER_STATUS, SEND_DATA3_UPDATE_STATUS,1200);
 
 	if(get_rf_retransmit_status() == 1)
 	{
@@ -480,6 +440,7 @@ void SysTick_Handler(void)
 		{
 			rf_retransmit_set_status(3);
 			rf_retransmit_timecnt = 0;
+			//printf
 		}
 	}
 
@@ -502,7 +463,6 @@ void SysTick_Handler(void)
 		if(rf_tx_timeout_cnt >= 1000)
 		{
 			rf_change_systick_status(2);
-			change_clicker_send_data_status(2);
 			rf_tx_timeout_cnt = 0;
 		}
 	}

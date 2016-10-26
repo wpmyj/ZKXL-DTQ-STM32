@@ -7,41 +7,41 @@
 #define SPI_MISO_PORT              		GPIOA
 #define SPI_MISO_CLK               		RCC_APB2Periph_GPIOA
 #define SPI_MISO_PIN               		GPIO_Pin_6
-			
+
 #define SPI_MOSI_PORT              		GPIOA
 #define SPI_MOSI_CLK               		RCC_APB2Periph_GPIOA
 #define SPI_MOSI_PIN               		GPIO_Pin_7
-			
+
 #define SPI_SCK_PORT              		GPIOA
 #define SPI_SCK_CLK               		RCC_APB2Periph_GPIOA
 #define SPI_SCK_PIN               		GPIO_Pin_5
-			
+
 #define SPI_CSN_PORT              		GPIOA
 #define SPI_CSN_CLK               		RCC_APB2Periph_GPIOA
-#define SPI_CSN_PIN               		GPIO_Pin_4				
-			
+#define SPI_CSN_PIN               		GPIO_Pin_4
+
 #define SPI_CE_PORT              		  GPIOC
 #define SPI_CE_CLK               		  RCC_APB2Periph_GPIOC
 #define SPI_CE_PIN               		  GPIO_Pin_4
-			
-#define SPI_IRQ_PORT              		GPIOC					
+
+#define SPI_IRQ_PORT              		GPIOC
 #define SPI_IRQ_CLK               		RCC_APB2Periph_GPIOC
 #define SPI_IRQ_PIN               		GPIO_Pin_5
 
-#define EXTI_LINE_RFIRQ 				      EXTI_Line5				
+#define EXTI_LINE_RFIRQ 				      EXTI_Line5
 #define RFIRQ_PinSource 				      GPIO_PinSource5
 #define RFIRQ_PortSource 				      GPIO_PortSourceGPIOC
 #define RFIRQ_EXTI_IRQn					      EXTI9_5_IRQn
 #define RFIRQ_EXTI_IRQHandler			    EXTI9_5_IRQHandler
-		
+
 #define SPI_CSN_PORT_2              	GPIOB
 #define SPI_CSN_CLK_2               	RCC_APB2Periph_GPIOB
 #define SPI_CSN_PIN_2               	GPIO_Pin_3
-			
+
 #define SPI_CE_PORT_2              		GPIOB
 #define SPI_CE_CLK_2               		RCC_APB2Periph_GPIOB
 #define SPI_CE_PIN_2               		GPIO_Pin_5
-			
+
 #define SPI_IRQ_PORT_2              	GPIOB
 #define SPI_IRQ_CLK_2               	RCC_APB2Periph_GPIOB
 #define SPI_IRQ_PIN_2               	GPIO_Pin_3
@@ -61,7 +61,7 @@
 #define CSN_HIGH() 		                GPIOA->BSRR = GPIO_Pin_4
 #define CE_LOW() 		                  GPIOC->BRR = GPIO_Pin_4
 #define CE_HIGH() 		                GPIOC->BSRR = GPIO_Pin_4
-                  
+
 #define CSN_LOW_2() 	                GPIOB->BRR = GPIO_Pin_3
 #define CSN_HIGH_2() 	                GPIOB->BSRR = GPIO_Pin_3
 #define CE_LOW_2() 		                GPIOC->BRR = GPIO_Pin_4
@@ -71,10 +71,11 @@
 #define NRF_MAX_NUMBER_OF_RETRANSMITS		(3)				//最大重发次数
 #define	NRF_RETRANSMIT_DELAY			      (280)				//重发延时 ms
 #define	NRF_ACK_PROTOCOL_LEN			      (10)				//自定义的软件模拟ACK协议数据长度
-#define	NRF_TOTAL_DATA_LEN				      (250)				//2.4G数据总长度	
+#define	NRF_TOTAL_DATA_LEN				      (250)				//2.4G数据总长度
 #define	NRF_USEFUL_DATA_LEN	            (NRF_TOTAL_DATA_LEN - NRF_ACK_PROTOCOL_LEN)		//有效数据长度
 #define	NRF_DATA_IS_USEFUL				      (0)
 #define NRF_DATA_IS_ACK				          (1)
+#define NRF_DATA_IS_PRE				          (2)
 
 #define BUFFER_SIZE_MAX							    (255)
 
@@ -89,16 +90,16 @@
 typedef enum {
     UESB_MODE_POWERUP,          													// power up
     UESB_MODE_POWERDOWN         													// power down
-} uesb_power_mode_t;												
-												
-typedef enum {												
+} uesb_power_mode_t;
+
+typedef enum {
   UESB_MODE_PTX,          														// Primary transmitter
   UESB_MODE_PRX,          														// Primary receiver
 	UESB_MODE_IDLE																	// idle mode
 } uesb_mode_t;
 
 typedef enum {
-    RADIO_MODE_MODE_Nrf_1Mbit,	
+    RADIO_MODE_MODE_Nrf_1Mbit,
     RADIO_MODE_MODE_Nrf_2Mbit,
     RADIO_MODE_MODE_Nrf_250Kbit
 } uesb_bitrate_t;
@@ -165,18 +166,18 @@ typedef struct
 	bool							        receive_ok_flag;
 	bool							        transmit_ok_flag;
 	bool							        transmit_ing_flag;		//正在发送标志
-	uint8_t							      sequence;				//传输数据的序号		
+	uint8_t							      sequence;				//传输数据的序号
 	uint8_t	 						      dtq_uid[4];				//此答题器UID
 	uint8_t							      jsq_uid[4];				//与之配对的接收器UID
 	uint8_t							      number_of_retransmits;
-	
+
 	uint8_t							      receive_len;
 	uint8_t							      transmit_len;
 	uint8_t							      software_ack_len;
 	uint8_t							      receive_buf[NRF_TOTAL_DATA_LEN];		//接收数据反冲区
 	uint8_t							      transmit_buf[NRF_TOTAL_DATA_LEN];		//发送数据反冲区
 	uint8_t							      software_ack_buf[NRF_TOTAL_DATA_LEN];	//回软件ACK专用反冲区
-	
+
 }nrf_communication_t;
 
 typedef struct
@@ -192,6 +193,8 @@ typedef struct
 {
 	uint8_t 				spi_cmd;
 	uint8_t					data_len;
+	uint8_t         count;
+	uint8_t         delay100us;
 	uint8_t 				data[BUFFER_SIZE_MAX];
 	uint8_t 				xor;														//为所有数据异或结果
 } spi_cmd_type_t;
@@ -201,13 +204,14 @@ typedef struct
 
 /* Private functions ---------------------------------------------------------*/
 uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_data_len, uint8_t *rx_data);
-uint8_t uesb_nrf_write_tx_payload(const uint8_t *tx_pload, uint8_t length);
+uint8_t uesb_nrf_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count, uint8_t delay100us);
 uint8_t uesb_nrf_write_tx_payload_noack(const uint8_t *tx_pload, uint8_t length);
 
-void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_data_type, uint8_t send_mdoe);
+void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_data_type,
+	                      uint8_t count, uint8_t delau100us, uint8_t sel_table);
 void my_nrf_transmit_tx_success_handler(void);
 void my_nrf_transmit_tx_failed_handler(void);
-void my_nrf_receive_success_handler(void);	
+void my_nrf_receive_success_handler(void);
 
 void nrf51822_spi_init(void);
 void nrf51822_parameters_init(void);
