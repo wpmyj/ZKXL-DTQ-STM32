@@ -47,7 +47,7 @@ uint8_t rf_online_index[2]        = { 0, 0 };
 uint8_t uid_check_tables[2]       = { 0, 0 };
 uint8_t uid_status_change         = 0;
 uint8_t uid_retransmit_tables[4]  = { 0, 0, 0, 0};
-
+uint8_t retransmit_status_change  = 0;
 
 Uart_MessageTypeDef revice_lost_massage = {
 	0x5C,                 // HEADER
@@ -489,8 +489,8 @@ void get_send_data_table_message(uint8_t status)
 				printf("\r\n第3次发送统计结果：");
 				uid_check_tables[PRE_SUM_TABLE] = SEND_DATA3_SUM_TABLE;
 				uid_check_tables[PRE_ACK_TABLE] = SEND_DATA3_ACK_TABLE;
-				///uid_status_change = SEND_DATA4_STATUS;
-				uid_status_change = SEND_IDLE_STATUS;
+				uid_status_change = SEND_DATA4_STATUS;
+				//uid_status_change = SEND_IDLE_STATUS;
 			} 
 			break;
 		case SEND_DATA4_UPDATE_STATUS: 
@@ -523,7 +523,7 @@ void get_retransmit_messsage( uint8_t status )
 				uid_retransmit_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
 				uid_retransmit_tables[CUR_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
 				uid_retransmit_tables[CUR_ACK_TABLE] = SEND_DATA2_ACK_TABLE;	
-				
+				retransmit_status_change             = SEND_DATA2_SEND_OVER_STATUS;
 			}
 			break;
 	
@@ -534,7 +534,7 @@ void get_retransmit_messsage( uint8_t status )
 				uid_retransmit_tables[PRE_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
 				uid_retransmit_tables[CUR_SUM_TABLE] = SEND_DATA3_SUM_TABLE;
 				uid_retransmit_tables[CUR_ACK_TABLE] = SEND_DATA3_ACK_TABLE;	
-				
+				retransmit_status_change             = SEND_DATA3_SEND_OVER_STATUS;
 			}
 			break;
 		
@@ -635,7 +635,7 @@ void retansmit_data( uint8_t status )
 		                    SEND_DATA_COUNT, SEND_DATA_DELAY100US, uid_retransmit_tables[CUR_ACK_TABLE] );
 
 		/* 跟新状态，开始2次统计 */
-		change_clicker_send_data_status(uid_retransmit_tables[CUR_ACK_TABLE] + 1);
+		change_clicker_send_data_status( retransmit_status_change );
 	}
 }
 
