@@ -24,6 +24,7 @@ extern uint8_t 					   dtq_to_jsq_sequence;
 extern uint8_t 					   jsq_to_dtq_sequence;
 extern uint8_t 					   dtq_to_jsq_packnum;
 extern uint8_t 					   jsq_to_dtq_packnum;
+extern uint16_t            white_list_use_onlne_table[10][8];
 /******************************************************************************
   Function:my_nrf_transmit_start
   Description:
@@ -145,7 +146,7 @@ void TIM3_Int_Init(u16 arr,u16 psc)
 }
 
 /******************************************************************************
-  Function:my_nrf_transmit_start
+  Function:nrf_transmit_start
   Description:
   Input:	data_buff：	   要发送的数组
 			data_buff_len：要发送的数组长度
@@ -155,10 +156,12 @@ void TIM3_Int_Init(u16 arr,u16 psc)
   Return:
   Others:注意：通信方式限制，若向同一UID答题器下发数据，时间要间隔3S以上
 ******************************************************************************/
-void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_data_type, uint8_t send_mdoe)
+void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_data_type,
+												uint8_t count, uint8_t delay100us, uint8_t sel_table)
 {
-	if(nrf_data_type != NRF_DATA_IS_ACK)		//有效数据包，发送nrf_communication.transmit_buf内容
+	if(nrf_data_type == NRF_DATA_IS_USEFUL)		//有效数据包，发送nrf_communication.transmit_buf内容
 	{
+		int i = 0;
 		/* data header */
 		nrf_communication.transmit_buf[0]  = 0x61;
 		memcpy((nrf_communication.transmit_buf + 1), nrf_communication.dtq_uid, 4);
@@ -175,17 +178,23 @@ void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf
 		/* get data */
 		memcpy((nrf_communication.transmit_buf + 15), data_buff, data_buff_len);	//有效数据从第10位开始放
 
+		/* 检测是否为定向重发帧，如果是则加入状态索引表 */
+		memcpy(nrf_communication.transmit_buf+15 + data_buff_len, white_list_use_onlne_table[sel_table], 16);
+		printf("ACK TABLE[%d]:",sel_table);
+		for(i=0;i<8;i++)
+		{
+			printf("%04x ",white_list_use_onlne_table[sel_table][i]);
+		}
+		//printf("\r\n");
+
 		/* xor data */
-		nrf_communication.transmit_buf[15 + data_buff_len] = XOR_Cal(nrf_communication.transmit_buf+1,14+data_buff_len);
-		nrf_communication.transmit_buf[16 + data_buff_len] = 0x21;
+		nrf_communication.transmit_buf[15+16 + data_buff_len] = XOR_Cal(nrf_communication.transmit_buf+1,14+data_buff_len+16);
+		nrf_communication.transmit_buf[16+16 + data_buff_len] = 0x21;
 
-		nrf_communication.transmit_len = data_buff_len + 17;
-		
+		nrf_communication.transmit_len = data_buff_len + 17+16;
+
 		/* 开始通讯之前先发2次，之后开启定时判断重发机制 */
-		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
-
-		if(send_mdoe)
-			TIM_Cmd(TIM3, ENABLE);
+		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len,count,delay100us);
 	}
 	else if(nrf_data_type == NRF_DATA_IS_ACK)	//ACK数据包，发送nrf_communication.software_ack_buf 内容
 	{
@@ -200,15 +209,36 @@ void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf
 		nrf_communication.software_ack_buf[14] = 0;
 		nrf_communication.software_ack_buf[15] = XOR_Cal(nrf_communication.software_ack_buf+1,14);
 		nrf_communication.software_ack_buf[16] = 0x21;
-		
+
 		nrf_communication.software_ack_len = 17;
 
-		uesb_nrf_write_tx_payload(nrf_communication.software_ack_buf,nrf_communication.software_ack_len);
+		uesb_nrf_write_tx_payload(nrf_communication.software_ack_buf,nrf_communication.software_ack_len,count,delay100us);
 	}
-	else{;}
+	else if( nrf_data_type == NRF_DATA_IS_PRE )
+	{
+		nrf_communication.software_ack_buf[0] = 0x61;
+		memcpy((nrf_communication.software_ack_buf + 1), nrf_communication.dtq_uid, 4);
+		memcpy((nrf_communication.software_ack_buf + 5), nrf_communication.jsq_uid, 4);
+		nrf_communication.software_ack_buf[9]  = dtq_to_jsq_sequence;
+		nrf_communication.software_ack_buf[10] = dtq_to_jsq_packnum;
+		nrf_communication.software_ack_buf[11] = NRF_DATA_IS_PRE;
+		nrf_communication.software_ack_buf[12] = 0xFF;
+		nrf_communication.software_ack_buf[13] = 0xFF;
+		/* len */
+		nrf_communication.software_ack_buf[14] = 0;
+		/* get data */
+		memcpy(nrf_communication.transmit_buf+15 + data_buff_len, white_list_use_onlne_table[sel_table], 16);
+		//printf("%4X\r\n");
 
+		nrf_communication.software_ack_buf[15+16 + data_buff_len] = XOR_Cal(nrf_communication.software_ack_buf+1,14+data_buff_len+16);
+		nrf_communication.software_ack_buf[16+16 + data_buff_len] = 0x21;
+
+		nrf_communication.software_ack_len = 17+16;
+
+		uesb_nrf_write_tx_payload(nrf_communication.software_ack_buf,nrf_communication.software_ack_len,count,delay100us);
+		DelayMs(10);
+	}
 }
-
 
 /******************************************************************************
   Function:my_nrf_transmit_tx_success_handler

@@ -14,6 +14,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "app_send_data_process.h"
 
 /* Private variables ---------------------------------------------------------*/
 extern Uart_MessageTypeDef uart_irq_send_massage;
@@ -31,11 +32,10 @@ uint8_t uart_rf_cmd_sign[4];
 uint8_t uart_card_cmd_sign[4];
 
 /* 暂存题目信息，以备重发使用 */
-Uart_MessageTypeDef pc_subject_massage;
+Uart_MessageTypeDef backup_massage;
 
 static uint8_t pc_subject_status = 0;
-static uint8_t clicker_send_data_status = 0;
-static uint32_t clicker_send_data_timecnt = 0;
+volatile static uint32_t clicker_send_data_timecnt = 0;
 
 uint8_t retransmit_flg = 0;
 
@@ -48,7 +48,7 @@ static void serial_cmd_process(void);
 
 void App_initialize_white_list( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
-void App_send_data_to_clicker_start( Uart_MessageTypeDef *RMessage);
+//void App_send_data_to_clicker_start( Uart_MessageTypeDef *RMessage);
 void App_send_data_to_clicker_return( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_stop_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
@@ -86,45 +86,6 @@ void clicker_send_data_time_set1(uint8_t status1, uint8_t status2, uint32_t dela
 			change_clicker_send_data_status(status2);
 		}
 	}
-}
-
-/******************************************************************************
-  Function:change_clicker_send_data_status
-  Description:
-		修改clicker_send_data_status的状态
-  Input :
-		clicker_send_data_status: clicker_send_data_status状态
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-void change_clicker_send_data_status( uint8_t newstatus )
-{
-	uint8_t spi_status_message[17];
-	clicker_send_data_status = newstatus;
-	DebugLog("<%s>clicker_send_data_status = %d\r\n",__func__,clicker_send_data_status);
-	spi_status_message[0] = 0x61;
-	memset(spi_status_message+1,0,10);
-	spi_status_message[11] = 0x02;//status
-	memset(spi_status_message+12,0,3);
-	spi_status_message[15] = 0x02;
-	spi_status_message[16] = 0x21;
-	spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_status_message, newstatus);
-}
-
-/******************************************************************************
-  Function:get_clicker_send_data_status
-  Description:
-		获取clicker_send_data状态
-  Input :
-		clicker_send_data: clicker_send_data的新状态
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-uint8_t get_clicker_send_data_status( void )
-{
-	return clicker_send_data_status;
 }
 
 /******************************************************************************
@@ -582,6 +543,7 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 {
 	uint16_t i = 0;
 	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
+	uint8_t temp = 0;
 
 	/* 获取:包封装的答题器->数据长度 */
 	rf_var.tx_len = RMessage->LEN;
@@ -596,22 +558,19 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 		case 0x11:
 			{
 				/* 暂存题目 */
-				pc_subject_massage.HEADER = 0x5C;
-				pc_subject_massage.TYPE = RMessage->TYPE;
+				backup_massage.HEADER = 0x5C;
+				backup_massage.TYPE = RMessage->TYPE;
 				memcpy(SMessage->SIGN, RMessage->SIGN, 4);
-				pc_subject_massage.LEN = RMessage->LEN;
-				memcpy( pc_subject_massage.DATA, (uint8_t *)(RMessage->DATA), RMessage->LEN );
-				pc_subject_massage.XOR = RMessage->XOR;
-				pc_subject_massage.XOR = 0xCA;
+				backup_massage.LEN = RMessage->LEN;
+				memcpy( backup_massage.DATA, (uint8_t *)(RMessage->DATA), RMessage->LEN );
+				backup_massage.XOR = RMessage->XOR;
+				backup_massage.XOR = 0xCA;
 				pc_subject_change_status(1);
 			}
 			break;
 
 		default: break;
 	}
-
-	/* 打开发送开关 */
-	rf_var.flag_txing = true;
 
 	SMessage->HEADER = 0x5C;
 	SMessage->TYPE = RMessage->TYPE;
@@ -627,51 +586,18 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 	SMessage->END = 0xCA;
 
 	/* 有数据下发且未曾下发过 */
-	if(rf_var.flag_txing)
-	{
-		jsq_to_dtq_packnum++;
-		/* 发送广播 UID */
-		memset(nrf_communication.dtq_uid , 0, 4);
-		my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,0);
-		rf_var.flag_tx_ok = true;
-		//rf_change_systick_status(1);
+	jsq_to_dtq_packnum++;
 
-		nrf_communication.transmit_ing_flag = true;
-		nrf_communication.transmit_ok_flag = false;
+	/* 发送前导帧 */
+	memset(nrf_communication.dtq_uid, 0, 4);
+	nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,  SEND_PRE_DELAY100US, SEND_DATA1_SUM_TABLE);
 
-		change_clicker_send_data_status(1);
-	}
+	/* 发送数据帧 */
+	memset(nrf_communication.dtq_uid,0, 4);
+	nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA1_ACK_TABLE );
+
+	change_clicker_send_data_status( SEND_DATA1_STATUS );
 }
-
-/******************************************************************************
-  Function:App_send_data_to_clicker
-  Description:
-		将指令发送到答题器
-  Input :
-		RMessage:串口接收指令的消息指针
-		SMessage:串口发送指令的消息指针
-  Return:
-  Others:None
-******************************************************************************/
-void App_send_data_to_clicker_start( Uart_MessageTypeDef *RMessage)
-{
-	uint8_t uidpos = 0;
-	/* 获取:包封装的答题器->数据长度 */
-	rf_var.tx_len = RMessage->LEN;
-
-	/* 获取：包封装的答题器->数据内容 */
-	memcpy(rf_var.tx_buf, (uint8_t *)(RMessage->DATA), RMessage->LEN);
-
-	/* 更新指定UID */
-	memcpy(nrf_communication.dtq_uid , RMessage->SIGN, 4);
-	search_uid_in_white_list(RMessage->SIGN,&uidpos);
-
-	printf("[%3d]:%02x%02x%02x%02x ",uidpos,RMessage->SIGN[0],RMessage->SIGN[1],
-																					RMessage->SIGN[2],RMessage->SIGN[3]);
-	/* 不开自动重发定时器,直接发送2次 */
-	my_nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,0);
-}
-
 
 /******************************************************************************
   Function:App_initialize_white_list
