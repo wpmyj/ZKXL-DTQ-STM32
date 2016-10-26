@@ -429,9 +429,9 @@ void SysTick_Handler(void)
 {
 	TimingDelay_Decrement();
 
-	clicker_send_data_time_set1( SEND_DATA1_STATUS, SEND_DATA1_UPDATE_STATUS,2000);
-	clicker_send_data_time_set1( SEND_DATA2_SEND_OVER_STATUS, SEND_DATA2_UPDATE_STATUS,1200);
-	clicker_send_data_time_set1( SEND_DATA3_SEND_OVER_STATUS, SEND_DATA3_UPDATE_STATUS,1200);
+	clicker_send_data_time_set1( SEND_DATA1_STATUS, SEND_DATA1_UPDATE_STATUS,SEND_DATA1_TIMEOUT);
+	clicker_send_data_time_set1( SEND_DATA2_SEND_OVER_STATUS, SEND_DATA2_UPDATE_STATUS,SEND_DATA2_TIMEOUT);
+	clicker_send_data_time_set1( SEND_DATA3_SEND_OVER_STATUS, SEND_DATA3_UPDATE_STATUS,SEND_DATA3_TIMEOUT);
 
 	if(get_rf_retransmit_status() == 1)
 	{
