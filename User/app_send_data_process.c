@@ -7,12 +7,11 @@
 
 static uint8_t clicker_send_data_status = 0;
 static uint8_t pre_status = 0;
-static uint8_t rf_retransmit_status = 0;
 uint8_t sum_clicker_count = 0;
 
 extern nrf_communication_t nrf_communication;
 extern uint16_t white_list_use_onlne_table[10][8];
-extern uint8_t retransmit_sum;
+
 extern clicker_t clickers[120];
 extern Uart_MessageTypeDef backup_massage;
 extern uint8_t dtq_to_jsq_sequence;
@@ -20,16 +19,7 @@ extern uint8_t jsq_to_dtq_sequence;
 extern uint8_t dtq_to_jsq_packnum;
 extern uint8_t jsq_to_dtq_packnum;
 extern uint8_t sign_buffer[4];
-extern uint8_t retransmit_uid[4];
 extern uint8_t sum_clicker_count;
-
-uint8_t clicker_count = 0;
-uint8_t Is_ok_over = 1, Is_lost_over = 1;
-uint16_t lostuidlen = 0 ,okuidlen = 0 ;
-uint8_t retransmit_count = 0;
-uint8_t retransmit_sum = 0;
-uint8_t retransmit_uid[4];
-uint8_t retransmit_uid_pos = 0;
 
 /* 统计与重发过程所使用变量 */
 // 在线状态检索
@@ -48,6 +38,15 @@ uint8_t uid_check_tables[2]       = { 0, 0 };
 uint8_t uid_status_change         = 0;
 uint8_t uid_retransmit_tables[4]  = { 0, 0, 0, 0};
 uint8_t retransmit_status_change  = 0;
+
+message_show_tcb_tydef message_show_tcb = { 0, 1, 1, 0, 0 };
+retransmit_tcb_tydef   retransmit_tcb   = {
+	0,
+	0,
+	{ 0 , 0 ,0 , 0},
+	0,
+	0,
+};
 
 Uart_MessageTypeDef revice_lost_massage = {
 	0x5C,                 // HEADER
@@ -85,7 +84,7 @@ Uart_MessageTypeDef revice_ok_massage = {
 ******************************************************************************/
 void rf_retransmit_set_status(uint8_t new_status)
 {
-	rf_retransmit_status = new_status;
+	retransmit_tcb.status = new_status;
 	//printf("rf_retransmit_set_status = %d \r\n",rf_retransmit_status);
 }
 
@@ -101,7 +100,7 @@ void rf_retransmit_set_status(uint8_t new_status)
 ******************************************************************************/
 uint8_t get_rf_retransmit_status(void)
 {
-	return rf_retransmit_status;
+	return retransmit_tcb.status;
 }
 
 
@@ -309,8 +308,8 @@ uint8_t spi_process_revice_data( void )
 			
 			if(1 == get_rf_retransmit_status())
 			{
-				if(spi_message[5] == retransmit_uid[0] &&
-					 spi_message[6] == retransmit_uid[1]
+				if(spi_message[5] == retransmit_tcb.uid[0] &&
+					 spi_message[6] == retransmit_tcb.uid[1]
 					)
 				{
 					rf_retransmit_set_status(2);
@@ -468,7 +467,7 @@ void clickers_set_retransmit_table(uint8_t sumtable, uint8_t onlinetable, uint8_
 			{
 				get_index_of_white_list_pos_status(sumtable,i);
 				set_index_of_white_list_pos(nextsumtable,i);
-				retransmit_sum++;
+				retransmit_tcb.sum++;
 			}
 		}
 	}
@@ -625,8 +624,8 @@ void clickers_retransmit(uint8_t sumtable, uint8_t onlinetable, uint8_t nextsumt
 				if(delayms<10)
 					clicker_check_send_data(nextOnlinetable,i,puid,delayms);
 
-				if(delayms>10)
-					retransmit_sum++;
+				//if(delayms>10)
+				//	retransmit_sum++;
 
 				if(((index++)+1) % 5 == 0)
 					printf("\n");
@@ -674,39 +673,39 @@ void send_data_result( uint8_t status )
 		get_send_data_table_message(status);
 		printf("\r\nlost:\r\n");
 		/* 返回失败的UID */
-		while(Is_lost_over != 0)
+		while( message_show_tcb.Is_lost_over != 0)
 		{
-			Is_lost_over = checkout_online_uids( uid_check_tables[PRE_SUM_TABLE],uid_check_tables[PRE_ACK_TABLE], 0,
+			message_show_tcb.Is_lost_over = checkout_online_uids( uid_check_tables[PRE_SUM_TABLE],uid_check_tables[PRE_ACK_TABLE], 0,
 				revice_lost_massage.DATA,&(revice_lost_massage.LEN));
-			lostuidlen = revice_lost_massage.LEN;
+			message_show_tcb.lostuidlen = revice_lost_massage.LEN;
 			revice_lost_massage.LEN = 0;
 		}
 
 		printf("\r\nok:\r\n");
-		clicker_count = 0;
-		while(Is_ok_over != 0)
+		message_show_tcb.clicker_count = 0;
+		while(message_show_tcb.Is_ok_over != 0)
 		{
-			Is_ok_over = checkout_online_uids( uid_check_tables[PRE_SUM_TABLE],uid_check_tables[PRE_ACK_TABLE], 1,
+			message_show_tcb.Is_ok_over = checkout_online_uids( uid_check_tables[PRE_SUM_TABLE],uid_check_tables[PRE_ACK_TABLE], 1,
 				revice_ok_massage.DATA,&(revice_ok_massage.LEN));
 			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)), 
 			                                 revice_ok_massage.LEN+6);
 			revice_ok_massage.END = 0xCA;
-			clicker_count += revice_ok_massage.LEN/4;
-			okuidlen = revice_ok_massage.LEN;
+			message_show_tcb.clicker_count += revice_ok_massage.LEN/4;
+			message_show_tcb.okuidlen = revice_ok_massage.LEN;
 			revice_ok_massage.LEN = 0;
 		}
-		printf("\r\ncount:%d\r\n",clicker_count);
-		sum_clicker_count += clicker_count;
-		clicker_count = 0;
+		printf("\r\ncount:%d\r\n",message_show_tcb.clicker_count);
+		sum_clicker_count += message_show_tcb.clicker_count;
+		message_show_tcb.clicker_count = 0;
 		/* 上传在线状态 */
-		if(lostuidlen != 0)
+		if(message_show_tcb.lostuidlen != 0)
 		{
 			if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 			{
 				//serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_data_massage);
 			}
 
-			if((Is_lost_over == 0) && (Is_ok_over == 0))
+			if((message_show_tcb.Is_lost_over == 0) && (message_show_tcb.Is_ok_over == 0))
 			{
 				if( status == SEND_DATA3_UPDATE_STATUS )
 				{
@@ -717,20 +716,20 @@ void send_data_result( uint8_t status )
 				change_clicker_send_data_status( uid_status_change ); // 10
 				if(status == SEND_DATA4_UPDATE_STATUS)
 					clear_uid_check_table();
-				okuidlen = 0;
-				lostuidlen = 0;
-				Is_lost_over = 1;
-				Is_ok_over = 1;
+				message_show_tcb.okuidlen = 0;
+				message_show_tcb.lostuidlen = 0;
+				message_show_tcb.Is_lost_over = 1;
+				message_show_tcb.Is_ok_over = 1;
 			}
 		}
 		else
 		{
 			change_clicker_send_data_status(0);
 			clear_uid_check_table();
-			okuidlen = 0;
-			lostuidlen = 0;
-			Is_lost_over = 1;
-			Is_ok_over = 1;
+			message_show_tcb.okuidlen = 0;
+			message_show_tcb.lostuidlen = 0;
+			message_show_tcb.Is_lost_over = 1;
+			message_show_tcb.Is_ok_over = 1;
 		}
 	}
 }
@@ -740,16 +739,16 @@ void retransmit_data_to_next_clicker( uint8_t Is_next_uid, uint8_t *pos )
 {
 	if(Is_next_uid == 1)
 	{
-		get_next_uid_of_white_list( SEND_DATA4_SUM_TABLE, retransmit_uid );
+		get_next_uid_of_white_list( SEND_DATA4_SUM_TABLE, retransmit_tcb.uid );
 
-		search_uid_in_white_list( retransmit_uid, pos );
+		search_uid_in_white_list( retransmit_tcb.uid, pos );
 	}
 
-	printf("[%3d]:%02x%02x%02x%02x ",*pos,retransmit_uid[0],retransmit_uid[1],
-																					retransmit_uid[2],retransmit_uid[3]);
+	printf("[%3d]:%02x%02x%02x%02x ",*pos,retransmit_tcb.uid[0],retransmit_tcb.uid[1],
+																					retransmit_tcb.uid[2],retransmit_tcb.uid[3]);
 
 	memcpy(rf_var.tx_buf, (uint8_t *)(backup_massage.DATA), backup_massage.LEN);
-	memcpy(nrf_communication.dtq_uid,retransmit_uid,4);
+	memcpy(nrf_communication.dtq_uid,retransmit_tcb.uid,4);
 	nrf_transmit_start(rf_var.tx_buf,0,NRF_DATA_IS_PRE,SEND_PRE_COUNT,
 	                   SEND_PRE_DELAY100US,SEND_DATA4_SUM_TABLE);
 	whitelist_checktable_or(SEND_DATA3_ACK_TABLE,SEND_DATA_ACK_TABLE);
@@ -788,44 +787,48 @@ void App_clickers_send_data_process( void )
 
 		if(rf_retransmit_status == 0)
 		{
-			retransmit_data_to_next_clicker( 1, &retransmit_uid_pos );
+			retransmit_data_to_next_clicker( 1, &retransmit_tcb.pos );
 
 		}
 
 		if(rf_retransmit_status == 2)
 		{
 			printf("ok\r\n");
-			clickers[retransmit_uid_pos].retransmit_count = 0;
-			retransmit_count++;
+			clickers[retransmit_tcb.pos].retransmit_count = 0;
+			retransmit_tcb.count++;
 			rf_retransmit_set_status(0);
 
-			if(retransmit_count == retransmit_sum)
+			if(retransmit_tcb.count == retransmit_tcb.sum)
 			{
 				change_clicker_send_data_status(SEND_DATA4_UPDATE_STATUS); // 11
-				retransmit_uid_pos = 0;
+				retransmit_tcb.count = 0;
+				retransmit_tcb.sum = 0;
+				retransmit_tcb.pos = 0;
 			}
 		}
 
 		if(rf_retransmit_status == 3)
 		{
 			printf("fail\r\n");
-			clickers[retransmit_uid_pos].retransmit_count++;
+			clickers[retransmit_tcb.pos].retransmit_count++;
 			rf_retransmit_set_status(0);
 
-			if(clickers[retransmit_uid_pos].retransmit_count == 3)
+			if(clickers[retransmit_tcb.pos].retransmit_count == 3)
 			{
-				retransmit_count++;
-				clickers[retransmit_uid_pos].retransmit_count = 0;
+				retransmit_tcb.count++;
+				clickers[retransmit_tcb.pos].retransmit_count = 0;
 				
-				if(retransmit_count == retransmit_sum)
+				if(retransmit_tcb.count == retransmit_tcb.sum)
 				{
 					change_clicker_send_data_status( SEND_DATA4_UPDATE_STATUS ); // 11
-					retransmit_uid_pos = 0;
+					retransmit_tcb.count = 0;
+					retransmit_tcb.sum = 0;
+					retransmit_tcb.pos = 0;
 				}
 			}
 			else
 			{
-				retransmit_data_to_next_clicker(0,&retransmit_uid_pos);
+				retransmit_data_to_next_clicker(0,&retransmit_tcb.pos);
 			}
 		}
 	}

@@ -54,6 +54,26 @@
 //#define OPEN_SEND_STATUS_SHOW
 #define   SEND_DATA_DETAIL_MESSAGE_SHOW
 
+
+typedef struct
+{
+	uint8_t count;
+	uint8_t sum;
+	uint8_t uid[4];
+	uint8_t pos;
+	uint8_t status;
+}retransmit_tcb_tydef;
+
+typedef struct
+{
+	uint8_t clicker_count;
+	uint8_t Is_ok_over;
+	uint8_t Is_lost_over;
+	uint16_t lostuidlen;
+	uint16_t okuidlen;
+}message_show_tcb_tydef;
+
+
 void change_clicker_send_data_status( uint8_t newstatus );
 uint8_t get_clicker_send_data_status( void );
 uint8_t spi_buffer_status_check( uint8_t status );
