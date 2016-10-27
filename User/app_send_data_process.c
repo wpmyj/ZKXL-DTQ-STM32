@@ -34,13 +34,13 @@ uint8_t rf_online_index[2]        = { 0, 0 };
 #define CUR_SUM_TABLE     2
 #define CUR_ACK_TABLE     3
 
-uint8_t uid_check_tables[2]       = { 0, 0 };
-uint8_t uid_status_change         = 0;
-uint8_t uid_retransmit_tables[4]  = { 0, 0, 0, 0};
-uint8_t retransmit_status_change  = 0;
+uint8_t result_check_tables[2]     = { 0, 0 };
+uint8_t after_result_status        = 0;
+uint8_t retransmit_check_tables[4] = { 0, 0, 0, 0};
+uint8_t after_retransmit_status    = 0;
 
-message_show_tcb_tydef message_show_tcb = { 0, 1, 1, 0, 0 };
-retransmit_tcb_tydef   retransmit_tcb   = {
+message_tcb_tydef    message_tcb = { 0, 1, 1, 0, 0 };
+retransmit_tcb_tydef retransmit_tcb   = {
 	0,
 	0,
 	{ 0 , 0 ,0 , 0},
@@ -480,9 +480,9 @@ void get_send_data_table_message(uint8_t status)
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				printf("\r\n第1次发送统计结果："); 
 #endif
-				uid_check_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
-				uid_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
-				uid_status_change = SEND_DATA2_STATUS;
+				result_check_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
+				result_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
+				after_result_status = SEND_DATA2_STATUS;
 			}
 			break;
 		
@@ -491,9 +491,9 @@ void get_send_data_table_message(uint8_t status)
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				printf("\r\n第2次发送统计结果：");
 #endif
-				uid_check_tables[PRE_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
-				uid_check_tables[PRE_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
-				uid_status_change = SEND_DATA3_STATUS;
+				result_check_tables[PRE_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
+				result_check_tables[PRE_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
+				after_result_status = SEND_DATA3_STATUS;
 			}
 			break;
 		case SEND_DATA3_UPDATE_STATUS: 
@@ -501,10 +501,10 @@ void get_send_data_table_message(uint8_t status)
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				printf("\r\n第3次发送统计结果：");
 #endif
-				uid_check_tables[PRE_SUM_TABLE] = SEND_DATA3_SUM_TABLE;
-				uid_check_tables[PRE_ACK_TABLE] = SEND_DATA3_ACK_TABLE;
-				uid_status_change = SEND_DATA4_STATUS;
-				//uid_status_change = SEND_IDLE_STATUS;
+				result_check_tables[PRE_SUM_TABLE] = SEND_DATA3_SUM_TABLE;
+				result_check_tables[PRE_ACK_TABLE] = SEND_DATA3_ACK_TABLE;
+				after_result_status = SEND_DATA4_STATUS;
+				//after_result_status = SEND_IDLE_STATUS;
 			} 
 			break;
 		case SEND_DATA4_UPDATE_STATUS: 
@@ -512,16 +512,16 @@ void get_send_data_table_message(uint8_t status)
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				printf("\r\n第4次发送统计结果：");
 #endif
-				uid_check_tables[PRE_SUM_TABLE] = SEND_DATA4_SUM_TABLE;
-				uid_check_tables[PRE_ACK_TABLE] = SEND_DATA4_ACK_TABLE;
-				uid_status_change = SEND_IDLE_STATUS;
+				result_check_tables[PRE_SUM_TABLE] = SEND_DATA4_SUM_TABLE;
+				result_check_tables[PRE_ACK_TABLE] = SEND_DATA4_ACK_TABLE;
+				after_result_status = SEND_IDLE_STATUS;
 			}
 			break;
 		default:
 			{
-				uid_check_tables[PRE_SUM_TABLE] = 0;
-				uid_check_tables[PRE_ACK_TABLE] = 0;
-				uid_status_change = 0;
+				result_check_tables[PRE_SUM_TABLE] = 0;
+				result_check_tables[PRE_ACK_TABLE] = 0;
+				after_result_status = 0;
 			}
 			break;
 	}
@@ -537,11 +537,11 @@ void get_retransmit_messsage( uint8_t status )
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				printf("\r\n\r\n[1].retransmit:\r\n");
 #endif
-				uid_retransmit_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
-				uid_retransmit_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
-				uid_retransmit_tables[CUR_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
-				uid_retransmit_tables[CUR_ACK_TABLE] = SEND_DATA2_ACK_TABLE;	
-				retransmit_status_change             = SEND_DATA2_SEND_OVER_STATUS;
+				retransmit_check_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
+				retransmit_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
+				retransmit_check_tables[CUR_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
+				retransmit_check_tables[CUR_ACK_TABLE] = SEND_DATA2_ACK_TABLE;	
+				after_retransmit_status             = SEND_DATA2_SEND_OVER_STATUS;
 			}
 			break;
 	
@@ -550,20 +550,20 @@ void get_retransmit_messsage( uint8_t status )
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				printf("\r\n\r\n[2].retransmit:\r\n");
 #endif
-				uid_retransmit_tables[PRE_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
-				uid_retransmit_tables[PRE_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
-				uid_retransmit_tables[CUR_SUM_TABLE] = SEND_DATA3_SUM_TABLE;
-				uid_retransmit_tables[CUR_ACK_TABLE] = SEND_DATA3_ACK_TABLE;	
-				retransmit_status_change             = SEND_DATA3_SEND_OVER_STATUS;
+				retransmit_check_tables[PRE_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
+				retransmit_check_tables[PRE_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
+				retransmit_check_tables[CUR_SUM_TABLE] = SEND_DATA3_SUM_TABLE;
+				retransmit_check_tables[CUR_ACK_TABLE] = SEND_DATA3_ACK_TABLE;	
+				after_retransmit_status             = SEND_DATA3_SEND_OVER_STATUS;
 			}
 			break;
 		
 		default:
 			{
-				uid_retransmit_tables[PRE_SUM_TABLE] = 0;
-				uid_retransmit_tables[PRE_ACK_TABLE] = 0;
-				uid_retransmit_tables[CUR_SUM_TABLE] = 0;
-				uid_retransmit_tables[CUR_ACK_TABLE] = 0;	
+				retransmit_check_tables[PRE_SUM_TABLE] = 0;
+				retransmit_check_tables[PRE_ACK_TABLE] = 0;
+				retransmit_check_tables[CUR_SUM_TABLE] = 0;
+				retransmit_check_tables[CUR_ACK_TABLE] = 0;	
 			}
 			break;
 	}
@@ -620,22 +620,22 @@ void retansmit_data( uint8_t status )
 	{
 		get_retransmit_messsage( status );
 		
-		checkout_retransmit_clickers( uid_retransmit_tables[PRE_SUM_TABLE] ,uid_retransmit_tables[PRE_ACK_TABLE],
-		                     uid_retransmit_tables[CUR_SUM_TABLE] );
+		checkout_retransmit_clickers( retransmit_check_tables[PRE_SUM_TABLE] ,retransmit_check_tables[PRE_ACK_TABLE],
+		                     retransmit_check_tables[CUR_SUM_TABLE] );
 		/* 发送前导帧 */
 		memset(nrf_communication.dtq_uid, 0, 4);
 		nrf_transmit_start( nrf_communication.dtq_uid, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT, 
-		                    SEND_PRE_DELAY100US, uid_retransmit_tables[CUR_SUM_TABLE]);
+		                    SEND_PRE_DELAY100US, retransmit_check_tables[CUR_SUM_TABLE]);
 		/* 发送数据帧 */
 		memset(nrf_communication.dtq_uid, 0, 4);
 
-		whitelist_checktable_or(uid_retransmit_tables[PRE_ACK_TABLE],SEND_DATA_ACK_TABLE);
+		whitelist_checktable_or(retransmit_check_tables[PRE_ACK_TABLE],SEND_DATA_ACK_TABLE);
 		
 		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL, 
 		                    SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE );
 
 		/* 跟新状态，开始2次统计 */
-		change_clicker_send_data_status( retransmit_status_change );
+		change_clicker_send_data_status( after_retransmit_status );
 	}
 }
 
@@ -651,39 +651,39 @@ void send_data_result( uint8_t status )
 		get_send_data_table_message(status);
 		printf("\r\nlost:\r\n");
 		/* 返回失败的UID */
-		while( message_show_tcb.Is_lost_over != 0)
+		while( message_tcb.Is_lost_over != 0)
 		{
-			message_show_tcb.Is_lost_over = checkout_online_uids( uid_check_tables[PRE_SUM_TABLE],uid_check_tables[PRE_ACK_TABLE], 0,
+			message_tcb.Is_lost_over = checkout_online_uids( result_check_tables[PRE_SUM_TABLE],result_check_tables[PRE_ACK_TABLE], 0,
 				revice_lost_massage.DATA,&(revice_lost_massage.LEN));
-			message_show_tcb.lostuidlen = revice_lost_massage.LEN;
+			message_tcb.lostuidlen = revice_lost_massage.LEN;
 			revice_lost_massage.LEN = 0;
 		}
 
 		printf("\r\nok:\r\n");
-		message_show_tcb.clicker_count = 0;
-		while(message_show_tcb.Is_ok_over != 0)
+		message_tcb.clicker_count = 0;
+		while(message_tcb.Is_ok_over != 0)
 		{
-			message_show_tcb.Is_ok_over = checkout_online_uids( uid_check_tables[PRE_SUM_TABLE],uid_check_tables[PRE_ACK_TABLE], 1,
+			message_tcb.Is_ok_over = checkout_online_uids( result_check_tables[PRE_SUM_TABLE],result_check_tables[PRE_ACK_TABLE], 1,
 				revice_ok_massage.DATA,&(revice_ok_massage.LEN));
 			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)), 
 			                                 revice_ok_massage.LEN+6);
 			revice_ok_massage.END = 0xCA;
-			message_show_tcb.clicker_count += revice_ok_massage.LEN/4;
-			message_show_tcb.okuidlen = revice_ok_massage.LEN;
+			message_tcb.clicker_count += revice_ok_massage.LEN/4;
+			message_tcb.okuidlen = revice_ok_massage.LEN;
 			revice_ok_massage.LEN = 0;
 		}
-		printf("\r\ncount:%d\r\n",message_show_tcb.clicker_count);
-		sum_clicker_count += message_show_tcb.clicker_count;
-		message_show_tcb.clicker_count = 0;
+		printf("\r\ncount:%d\r\n",message_tcb.clicker_count);
+		sum_clicker_count += message_tcb.clicker_count;
+		message_tcb.clicker_count = 0;
 		/* 上传在线状态 */
-		if(message_show_tcb.lostuidlen != 0)
+		if(message_tcb.lostuidlen != 0)
 		{
 			if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 			{
 				//serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_data_massage);
 			}
 
-			if((message_show_tcb.Is_lost_over == 0) && (message_show_tcb.Is_ok_over == 0))
+			if((message_tcb.Is_lost_over == 0) && (message_tcb.Is_ok_over == 0))
 			{
 				if( status == SEND_DATA3_UPDATE_STATUS )
 				{
@@ -692,35 +692,40 @@ void send_data_result( uint8_t status )
 																				SEND_DATA4_SUM_TABLE);
 					whitelist_checktable_or(SEND_DATA3_ACK_TABLE,SEND_DATA_ACK_TABLE);
 				}
-				change_clicker_send_data_status( uid_status_change ); // 10
+				change_clicker_send_data_status( after_result_status ); // 10
 				if(status == SEND_DATA4_UPDATE_STATUS)
 					clear_uid_check_table();
-				message_show_tcb.okuidlen = 0;
-				message_show_tcb.lostuidlen = 0;
-				message_show_tcb.Is_lost_over = 1;
-				message_show_tcb.Is_ok_over = 1;
+				message_tcb.okuidlen = 0;
+				message_tcb.lostuidlen = 0;
+				message_tcb.Is_lost_over = 1;
+				message_tcb.Is_ok_over = 1;
 			}
 		}
 		else
 		{
 			change_clicker_send_data_status(0);
 			clear_uid_check_table();
-			message_show_tcb.okuidlen = 0;
-			message_show_tcb.lostuidlen = 0;
-			message_show_tcb.Is_lost_over = 1;
-			message_show_tcb.Is_ok_over = 1;
+			message_tcb.okuidlen = 0;
+			message_tcb.lostuidlen = 0;
+			message_tcb.Is_lost_over = 1;
+			message_tcb.Is_ok_over = 1;
 		}
 	}
 }
 
-/* 第三次重发函数 */
+/******************************************************************************
+  Function:retransmit_data_to_next_clicker
+  Description:
+		第三次重发函数
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
 void retransmit_data_to_next_clicker( uint8_t Is_next_uid, uint8_t *pos )
 {
-	if(Is_next_uid == 1)
+	if( Is_next_uid == 1 )
 	{
-		get_next_uid_of_white_list( SEND_DATA4_SUM_TABLE, retransmit_tcb.uid );
-
-		search_uid_in_white_list( retransmit_tcb.uid, pos );
+		get_next_uid_of_white_list( SEND_DATA4_SUM_TABLE, retransmit_tcb.uid, pos );
 	}
 
 	printf("[%3d]:%02x%02x%02x%02x ",*pos,retransmit_tcb.uid[0],retransmit_tcb.uid[1],
@@ -737,6 +742,24 @@ void retransmit_data_to_next_clicker( uint8_t Is_next_uid, uint8_t *pos )
 	                   SEND_DATA_DELAY100US,SEND_DATA_ACK_TABLE);
 
 	rf_retransmit_set_status(1);
+}
+
+/******************************************************************************
+  Function:retransmit_env_clear
+  Description:
+		清除重发过程中的环境变量
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void retransmit_env_clear( void )
+{
+	retransmit_tcb.count = 0;
+	retransmit_tcb.sum = 0;
+	retransmit_tcb.pos = 0;
+	retransmit_tcb.status = 0;
+	memset(retransmit_tcb.uid,0,4);
+	clear_current_uid_index();
 }
 
 /******************************************************************************
@@ -786,11 +809,7 @@ void App_clickers_send_data_process( void )
 			if(retransmit_tcb.count == retransmit_tcb.sum)
 			{
 				change_clicker_send_data_status(SEND_DATA4_UPDATE_STATUS); // 11
-				retransmit_tcb.count = 0;
-				retransmit_tcb.sum = 0;
-				retransmit_tcb.pos = 0;
-				retransmit_tcb.status = 0;
-				memset(retransmit_tcb.uid,0,4);
+				retransmit_env_clear();
 			}
 			else
 			{
@@ -815,11 +834,7 @@ void App_clickers_send_data_process( void )
 				if(retransmit_tcb.count == retransmit_tcb.sum)
 				{
 					change_clicker_send_data_status( SEND_DATA4_UPDATE_STATUS ); // 11
-					retransmit_tcb.count = 0;
-					retransmit_tcb.sum = 0;
-					retransmit_tcb.pos = 0;
-					retransmit_tcb.status = 0;
-					memset(retransmit_tcb.uid,0,4);
+					retransmit_env_clear();
 				}
 				else
 				{

@@ -71,7 +71,7 @@ typedef struct
 	uint8_t Is_lost_over;
 	uint16_t lostuidlen;
 	uint16_t okuidlen;
-}message_show_tcb_tydef;
+}message_tcb_tydef;
 
 
 void change_clicker_send_data_status( uint8_t newstatus );

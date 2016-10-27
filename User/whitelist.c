@@ -26,8 +26,21 @@ uint16_t          white_list_use_onlne_table[10][8] =
 	{0,0,0,0,0,0,0,0}, // [8]:第四次统计接收表
 	{0,0,0,0,0,0,0,0}  // [9]:第3次统计重发表	
 };
+
 uint8_t           rf_current_uid_index = 0;
 
+/******************************************************************************
+  Function:clear_white_list_online_table
+  Description:
+  Input:None
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void clear_current_uid_index( void )
+{
+	rf_current_uid_index = 0;
+}
 
 /******************************************************************************
   Function:clear_white_list_online_table
@@ -509,7 +522,7 @@ uint8_t add_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
   Return:
   Others:None
 ******************************************************************************/
-bool get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[])
+bool get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[], uint8_t *uidpos )
 {
 	uint8_t i;
 	
@@ -519,6 +532,7 @@ bool get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[])
 		if(get_index_of_white_list_pos_status(sel_table,i) == 1)
 		{
 			get_index_of_uid(i,uid);
+			*uidpos = i;
 			rf_current_uid_index = i+1;
 			return OPERATION_SUCCESS;
 		}
@@ -530,6 +544,7 @@ bool get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[])
 		if(get_index_of_white_list_pos_status(sel_table,i) == 1)
 		{
 			get_index_of_uid(i,uid);
+			*uidpos = i;
 			rf_current_uid_index = i+1;
 			return OPERATION_SUCCESS;
 		}
