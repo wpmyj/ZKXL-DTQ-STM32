@@ -3,6 +3,13 @@
 
 #include "main.h"
 
+//#define OPEN_ACK_SHOW
+//#define OPEN_ACT_TABLE_SHOW
+//#define OPEN_SEND_STATUS_SHOW
+#define SEND_DATA_DETAIL_MESSAGE_SHOW
+#define RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
+
+
 /* ø’œ– */
 #define SEND_IDLE_STATUS            0
 #define SEND_PRE_TIMEOUT            50 // ms
@@ -46,13 +53,6 @@
 #define SEND_DATA4_TIMEOUT          2000
 #define SEND_DATA4_ACK_TABLE        9
 #define SEND_DATA4_UPDATE_STATUS    (SEND_DATA4_STATUS+1)           // 11
-
-
-
-//#define OPEN_ACK_SHOW
-//#define OPEN_ACT_TABLE_SHOW
-//#define OPEN_SEND_STATUS_SHOW
-#define   SEND_DATA_DETAIL_MESSAGE_SHOW
 
 
 typedef struct
