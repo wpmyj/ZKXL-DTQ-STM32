@@ -29,7 +29,7 @@ uint16_t lostuidlen = 0 ,okuidlen = 0 ;
 uint8_t retransmit_count = 0;
 uint8_t retransmit_sum = 0;
 uint8_t retransmit_uid[4];
-
+uint8_t retransmit_uid_pos = 0;
 
 /* 统计与重发过程所使用变量 */
 // 在线状态检索
@@ -119,7 +119,9 @@ void change_clicker_send_data_status( uint8_t newstatus )
 {
 	uint8_t spi_status_message[17];
 	clicker_send_data_status = newstatus;
-	//printf("<%s>clicker_send_data_status = %d\r\n",__func__,clicker_send_data_status);
+#ifdef OPEN_SEND_STATUS_SHOW
+	printf("<%s>clicker_send_data_status = %d\r\n",__func__,clicker_send_data_status);
+#endif
 	spi_status_message[0] = 0x61;
 	memset(spi_status_message+1,0,10);
 	spi_status_message[11] = CLICKER_SNED_DATA_STATUS_TYPE;
@@ -189,6 +191,7 @@ uint8_t spi_buffer_status_check(uint8_t status)
 ******************************************************************************/
 void clear_uid_check_table( void )
 {
+	clear_white_list_table(2);
 	clear_white_list_table(3);
 	clear_white_list_table(4);
 	clear_white_list_table(5);
@@ -196,7 +199,9 @@ void clear_uid_check_table( void )
 	clear_white_list_table(7);
 	clear_white_list_table(8);
 	clear_white_list_table(9);
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 	printf("\r\nSum count:%d\r\n",sum_clicker_count);
+#endif
 	sum_clicker_count = 0;
 }
 
@@ -332,11 +337,13 @@ uint8_t spi_process_revice_data( void )
 					/* 返回ACK的包号和上次发送的是否相同 */
 					if(spi_message[10] == jsq_to_dtq_packnum)
 					{
+#ifdef OPEN_ACK_SHOW
 						printf("[ACK] uid:%02x%02x%02x%02x, ",
 							*(nrf_communication.receive_buf+5),*(nrf_communication.receive_buf+6),
 							*(nrf_communication.receive_buf+7),*(nrf_communication.receive_buf+8));
 						printf("seq:%2x, pac:%2x\r\n",(uint8_t)*(nrf_communication.receive_buf+9),
 							(uint8_t)*(nrf_communication.receive_buf+10));
+#endif
 					}
 					else//收到的是有效数据
 					{
@@ -387,7 +394,7 @@ uint8_t spi_process_revice_data( void )
 							dtq_to_jsq_sequence = spi_message[9];
 							dtq_to_jsq_packnum = spi_message[10];
 							/* 回复ACK */
-							nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK, 1, 0, 0);
+							nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK, 1, 0, SEND_DATA_ACK_TABLE);
 							/* 用户接收到数据处理函数 */
 							my_nrf_receive_success_handler();
 						}
@@ -422,11 +429,15 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table, uint8_t mode, 
 			if(is_online_pos == mode)
 			{
 				get_index_of_uid(i,puid);
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				printf("[%3d]:%02x%02x%02x%02x ",i,*puid, *(puid+1), *(puid+2), *(puid+3) );
+#endif
 				puid = puid+4;
 				*len = *len + 4;
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				if(((index++)+1) % 5 == 0)
 					printf("\n");
+#endif
 			}
 		}
 	}
@@ -469,7 +480,9 @@ void get_send_data_table_message(uint8_t status)
 	{
 		case SEND_DATA1_UPDATE_STATUS: 
 			{
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				printf("\r\n第1次发送统计结果："); 
+#endif
 				uid_check_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
 				uid_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
 				uid_status_change = SEND_DATA2_STATUS;
@@ -478,7 +491,9 @@ void get_send_data_table_message(uint8_t status)
 		
 		case SEND_DATA2_UPDATE_STATUS: 
 			{
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				printf("\r\n第2次发送统计结果：");
+#endif
 				uid_check_tables[PRE_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
 				uid_check_tables[PRE_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
 				uid_status_change = SEND_DATA3_STATUS;
@@ -486,7 +501,9 @@ void get_send_data_table_message(uint8_t status)
 			break;
 		case SEND_DATA3_UPDATE_STATUS: 
 			{
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				printf("\r\n第3次发送统计结果：");
+#endif
 				uid_check_tables[PRE_SUM_TABLE] = SEND_DATA3_SUM_TABLE;
 				uid_check_tables[PRE_ACK_TABLE] = SEND_DATA3_ACK_TABLE;
 				uid_status_change = SEND_DATA4_STATUS;
@@ -495,7 +512,9 @@ void get_send_data_table_message(uint8_t status)
 			break;
 		case SEND_DATA4_UPDATE_STATUS: 
 			{
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				printf("\r\n第4次发送统计结果：");
+#endif
 				uid_check_tables[PRE_SUM_TABLE] = SEND_DATA4_SUM_TABLE;
 				uid_check_tables[PRE_ACK_TABLE] = SEND_DATA4_ACK_TABLE;
 				uid_status_change = SEND_IDLE_STATUS;
@@ -518,7 +537,9 @@ void get_retransmit_messsage( uint8_t status )
 	{
 		case SEND_DATA2_STATUS: 
 			{
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				printf("\r\n\r\n[1].retransmit:\r\n");
+#endif
 				uid_retransmit_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
 				uid_retransmit_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
 				uid_retransmit_tables[CUR_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
@@ -529,7 +550,9 @@ void get_retransmit_messsage( uint8_t status )
 	
 		case SEND_DATA3_STATUS: 
 			{
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				printf("\r\n\r\n[2].retransmit:\r\n");
+#endif
 				uid_retransmit_tables[PRE_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
 				uid_retransmit_tables[PRE_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
 				uid_retransmit_tables[CUR_SUM_TABLE] = SEND_DATA3_SUM_TABLE;
@@ -629,10 +652,10 @@ void retansmit_data( uint8_t status )
 		/* 发送数据帧 */
 		memset(nrf_communication.dtq_uid, 0, 4);
 
-		whitelist_checktable_or(uid_retransmit_tables[PRE_ACK_TABLE],uid_retransmit_tables[CUR_ACK_TABLE]);
+		whitelist_checktable_or(uid_retransmit_tables[PRE_ACK_TABLE],SEND_DATA_ACK_TABLE);
 		
 		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL, 
-		                    SEND_DATA_COUNT, SEND_DATA_DELAY100US, uid_retransmit_tables[CUR_ACK_TABLE] );
+		                    SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE );
 
 		/* 跟新状态，开始2次统计 */
 		change_clicker_send_data_status( retransmit_status_change );
@@ -717,8 +740,9 @@ void retransmit_data_to_next_clicker( uint8_t Is_next_uid, uint8_t *pos )
 {
 	if(Is_next_uid == 1)
 	{
-		get_next_uid_of_white_list(SEND_DATA4_SUM_TABLE,retransmit_uid);
-		search_uid_in_white_list(retransmit_uid,pos);
+		get_next_uid_of_white_list( SEND_DATA4_SUM_TABLE, retransmit_uid );
+
+		search_uid_in_white_list( retransmit_uid, pos );
 	}
 
 	printf("[%3d]:%02x%02x%02x%02x ",*pos,retransmit_uid[0],retransmit_uid[1],
@@ -728,12 +752,11 @@ void retransmit_data_to_next_clicker( uint8_t Is_next_uid, uint8_t *pos )
 	memcpy(nrf_communication.dtq_uid,retransmit_uid,4);
 	nrf_transmit_start(rf_var.tx_buf,0,NRF_DATA_IS_PRE,SEND_PRE_COUNT,
 	                   SEND_PRE_DELAY100US,SEND_DATA4_SUM_TABLE);
-	
-	whitelist_checktable_or(SEND_DATA3_ACK_TABLE,SEND_DATA4_ACK_TABLE);
+	whitelist_checktable_or(SEND_DATA3_ACK_TABLE,SEND_DATA_ACK_TABLE);
 
 	nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,SEND_DATA_COUNT,
-	                   SEND_DATA_DELAY100US,SEND_DATA4_ACK_TABLE);
-	
+	                   SEND_DATA_DELAY100US,SEND_DATA_ACK_TABLE);
+
 	rf_retransmit_set_status(1);
 }
 
@@ -760,48 +783,49 @@ void App_clickers_send_data_process( void )
 	if( current_status == SEND_DATA4_STATUS ) // 10
 	{
 		uint8_t rf_retransmit_status = 0;
-		static uint8_t uidpos = 0;
 
 		rf_retransmit_status = get_rf_retransmit_status();
 
 		if(rf_retransmit_status == 0)
 		{
-			retransmit_data_to_next_clicker(1,&uidpos);
+			retransmit_data_to_next_clicker( 1, &retransmit_uid_pos );
+
 		}
 
 		if(rf_retransmit_status == 2)
 		{
 			printf("ok\r\n");
+			clickers[retransmit_uid_pos].retransmit_count = 0;
 			retransmit_count++;
 			rf_retransmit_set_status(0);
 
 			if(retransmit_count == retransmit_sum)
 			{
 				change_clicker_send_data_status(SEND_DATA4_UPDATE_STATUS); // 11
-				uidpos = 0;
+				retransmit_uid_pos = 0;
 			}
 		}
 
 		if(rf_retransmit_status == 3)
 		{
 			printf("fail\r\n");
-			clickers[uidpos].retransmit_count++;
+			clickers[retransmit_uid_pos].retransmit_count++;
 			rf_retransmit_set_status(0);
 
-			if(clickers[uidpos].retransmit_count == 3)
+			if(clickers[retransmit_uid_pos].retransmit_count == 3)
 			{
 				retransmit_count++;
-				clickers[uidpos].retransmit_count = 0;
+				clickers[retransmit_uid_pos].retransmit_count = 0;
 				
 				if(retransmit_count == retransmit_sum)
 				{
-					change_clicker_send_data_status(SEND_DATA4_UPDATE_STATUS); // 11
-					uidpos = 0;
+					change_clicker_send_data_status( SEND_DATA4_UPDATE_STATUS ); // 11
+					retransmit_uid_pos = 0;
 				}
 			}
 			else
 			{
-				retransmit_data_to_next_clicker(0,&uidpos);
+				retransmit_data_to_next_clicker(0,&retransmit_uid_pos);
 			}
 		}
 	}

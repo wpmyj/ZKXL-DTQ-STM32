@@ -15,7 +15,7 @@
 /* 数据帧 */
 #define SEND_DATA_COUNT             2
 #define SEND_DATA_DELAY100US        50
-
+#define SEND_DATA_ACK_TABLE         2
 
 /* 广播帧 */
 #define SEND_DATA1_STATUS           (SEND_PRE_STATUS+1)             // 2
@@ -43,10 +43,16 @@
 /* 第3次重发帧 */
 #define SEND_DATA4_STATUS           (SEND_DATA3_UPDATE_STATUS+1)    // 10
 #define SEND_DATA4_SUM_TABLE        8
-#define SEND_DATA4_TIMEOUT          1300
+#define SEND_DATA4_TIMEOUT          2000
 #define SEND_DATA4_ACK_TABLE        9
 #define SEND_DATA4_UPDATE_STATUS    (SEND_DATA4_STATUS+1)           // 11
 
+
+
+//#define OPEN_ACK_SHOW
+//#define OPEN_ACT_TABLE_SHOW
+//#define OPEN_SEND_STATUS_SHOW
+#define   SEND_DATA_DETAIL_MESSAGE_SHOW
 
 void change_clicker_send_data_status( uint8_t newstatus );
 uint8_t get_clicker_send_data_status( void );
