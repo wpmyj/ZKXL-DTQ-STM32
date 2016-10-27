@@ -19,7 +19,6 @@ extern uint8_t card_cmd_type ;
 extern Uart_MessageTypeDef backup_massage;
 extern nrf_communication_t nrf_communication;
 
-extern uint8_t retransmit_sum;
 extern clicker_t clickers[120];
 extern uint8_t dtq_to_jsq_sequence;
 extern uint8_t jsq_to_dtq_sequence;
