@@ -10,7 +10,7 @@
 
 #include "main.h"
 #include "nrf.h"
-
+#include "app_send_data_process.h"
 
 
 #ifdef NRF_DEBUG
@@ -161,7 +161,6 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 {
 	if(nrf_data_type == NRF_DATA_IS_USEFUL)		//有效数据包，发送nrf_communication.transmit_buf内容
 	{
-		int i = 0;
 		/* data header */
 		nrf_communication.transmit_buf[0]  = 0x61;
 		memcpy((nrf_communication.transmit_buf + 1), nrf_communication.dtq_uid, 4);
@@ -179,13 +178,17 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 		memcpy((nrf_communication.transmit_buf + 15), data_buff, data_buff_len);	//有效数据从第10位开始放
 
 		/* 检测是否为定向重发帧，如果是则加入状态索引表 */
-		memcpy(nrf_communication.transmit_buf+15 + data_buff_len, white_list_use_onlne_table[sel_table], 16);
-		printf("ACK TABLE[%d]:",sel_table);
-		for(i=0;i<8;i++)
+		memcpy(nrf_communication.transmit_buf+15 + data_buff_len, white_list_use_onlne_table[SEND_DATA_ACK_TABLE], 16);
+#ifdef OPEN_ACT_TABLE_SHOW
 		{
-			printf("%04x ",white_list_use_onlne_table[sel_table][i]);
+			int i = 0;
+			printf("ACK TABLE[%d]:",sel_table);
+			for(i=0;i<8;i++)
+			{
+				printf("%04x ",white_list_use_onlne_table[sel_table][i]);
+			}
 		}
-		//printf("\r\n");
+#endif
 
 		/* xor data */
 		nrf_communication.transmit_buf[15+16 + data_buff_len] = XOR_Cal(nrf_communication.transmit_buf+1,14+data_buff_len+16);
