@@ -187,6 +187,7 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 			{
 				printf("%04x ",white_list_use_onlne_table[sel_table][i]);
 			}
+			printf("\r\n");
 		}
 #endif
 
@@ -231,7 +232,17 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 		nrf_communication.software_ack_buf[14] = 0;
 		/* get data */
 		memcpy(nrf_communication.transmit_buf+15 + data_buff_len, white_list_use_onlne_table[sel_table], 16);
-		//printf("%4X\r\n");
+#ifdef OPEN_ACT_TABLE_SHOW
+		{
+			int i = 0;
+			printf("\r\nSUM TABLE[%d]:",sel_table);
+			for(i=0;i<8;i++)
+			{
+				printf("%04x ",white_list_use_onlne_table[sel_table][i]);
+			}
+			printf("\r\n");
+		}
+#endif
 
 		nrf_communication.software_ack_buf[15+16 + data_buff_len] = XOR_Cal(nrf_communication.software_ack_buf+1,14+data_buff_len+16);
 		nrf_communication.software_ack_buf[16+16 + data_buff_len] = 0x21;
