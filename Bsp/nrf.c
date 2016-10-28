@@ -178,7 +178,7 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 		memcpy((nrf_communication.transmit_buf + 15), data_buff, data_buff_len);	//有效数据从第10位开始放
 
 		/* 检测是否为定向重发帧，如果是则加入状态索引表 */
-		memcpy(nrf_communication.transmit_buf+15 + data_buff_len, white_list_use_onlne_table[SEND_DATA_ACK_TABLE], 16);
+		memcpy(nrf_communication.transmit_buf+15 + data_buff_len, white_list_use_onlne_table[sel_table], 16);
 #ifdef OPEN_ACT_TABLE_SHOW
 		{
 			int i = 0;

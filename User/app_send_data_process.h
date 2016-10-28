@@ -6,9 +6,9 @@
 //#define OPEN_ACK_SHOW
 //#define OPEN_ACT_TABLE_SHOW
 //#define OPEN_SEND_STATUS_SHOW
-#define SEND_DATA_DETAIL_MESSAGE_SHOW
-#define RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
-
+//#define RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
+//#define SEND_DATA_DETAIL_MESSAGE_SHOW
+#define ENABLE_SEND_DATA_TO_PC
 
 /* 空闲 */
 #define SEND_IDLE_STATUS            0
@@ -16,7 +16,7 @@
 
 /* 前导帧 */
 #define SEND_PRE_STATUS             (SEND_IDLE_STATUS+1)            // 1
-#define SEND_PRE_COUNT              30 
+#define SEND_PRE_COUNT              30
 #define SEND_PRE_DELAY100US         20  // 100us
 
 /* 数据帧 */
