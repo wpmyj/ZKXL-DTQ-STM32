@@ -594,7 +594,7 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 
 	/* ·¢ËÍÊý¾ÝÖ¡ */
 	memset(nrf_communication.dtq_uid,0, 4);
-	nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA1_ACK_TABLE );
+	nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE );
 
 	change_clicker_send_data_status( SEND_DATA1_STATUS );
 }
