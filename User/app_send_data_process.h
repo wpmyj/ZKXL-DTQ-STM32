@@ -54,7 +54,6 @@
 #define SEND_DATA4_ACK_TABLE        9
 #define SEND_DATA4_UPDATE_STATUS    (SEND_DATA4_STATUS+1)           // 11
 
-
 typedef struct
 {
 	uint8_t count;
@@ -66,20 +65,18 @@ typedef struct
 
 typedef struct
 {
-	uint8_t clicker_count;
-	uint8_t Is_ok_over;
-	uint8_t Is_lost_over;
+	uint8_t  clicker_count;
+	uint8_t  Is_ok_over;
+	uint8_t  Is_lost_over;
 	uint16_t lostuidlen;
 	uint16_t okuidlen;
 }message_tcb_tydef;
-
 
 void change_clicker_send_data_status( uint8_t newstatus );
 uint8_t get_clicker_send_data_status( void );
 uint8_t spi_buffer_status_check( uint8_t status );
 void rf_retransmit_set_status(uint8_t new_status);
 uint8_t get_rf_retransmit_status(void);
-void clear_uid_check_table( void );
 void whitelist_checktable_or(uint8_t table1, uint8_t table2);
 void clicker_send_data_statistics( uint8_t send_data_status, uint8_t uidpos );
 bool checkout_online_uids(uint8_t src_table, uint8_t check_table, uint8_t mode, uint8_t *puid,uint8_t *len);
