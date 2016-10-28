@@ -7,10 +7,10 @@
 
 static uint8_t clicker_send_data_status = 0;
 static uint8_t pre_status = 0;
-uint8_t sum_clicker_count = 0;
+static uint8_t sum_clicker_count = 0;
 
 extern nrf_communication_t nrf_communication;
-extern uint16_t white_list_use_onlne_table[10][8];
+extern uint16_t list_tcb_table[10][8];
 
 extern clicker_t clickers[120];
 extern Uart_MessageTypeDef backup_massage;
@@ -26,7 +26,7 @@ extern uint8_t sum_clicker_count;
 #define LOST_INDEX        0
 #define OK_INDEX          1
 
-uint8_t rf_online_index[2]        = { 0, 0 };
+uint8_t rf_online_index[2];
 
 // 上报与重发
 #define PRE_SUM_TABLE     0
@@ -34,21 +34,14 @@ uint8_t rf_online_index[2]        = { 0, 0 };
 #define CUR_SUM_TABLE     2
 #define CUR_ACK_TABLE     3
 
-uint8_t result_check_tables[2]     = { 0, 0 };
-uint8_t after_result_status        = 0;
-uint8_t retransmit_check_tables[4] = { 0, 0, 0, 0};
-uint8_t after_retransmit_status    = 0;
+static uint8_t result_check_tables[2];
+static uint8_t after_result_status;
+static uint8_t retransmit_check_tables[4];;
+static uint8_t after_retransmit_status;
 
-message_tcb_tydef    message_tcb = { 0, 1, 1, 0, 0 };
-retransmit_tcb_tydef retransmit_tcb   = {
-	0,
-	0,
-	{ 0 , 0 ,0 , 0},
-	0,
-	0,
-};
-
-Uart_MessageTypeDef revice_lost_massage,revice_ok_massage;
+static message_tcb_tydef    message_tcb ;
+static retransmit_tcb_tydef retransmit_tcb;
+static Uart_MessageTypeDef  revice_lost_massage,revice_ok_massage;
 
 /******************************************************************************
   Function:change_clicker_send_data_status
@@ -217,8 +210,8 @@ void whitelist_checktable_or(uint8_t table1, uint8_t table2)
 	uint8_t i = 0;
 	for(i=0;i<8;i++)
 	{
-		white_list_use_onlne_table[table2][i] = white_list_use_onlne_table[table1][i] |
-			white_list_use_onlne_table[table2][i];
+		list_tcb_table[table2][i] = list_tcb_table[table1][i] |
+			list_tcb_table[table2][i];
 	}
 }
 
@@ -886,6 +879,8 @@ void send_data_env_init(void)
 	memset(retransmit_check_tables,0,4);
 	after_retransmit_status = 0;
 
+	memset(rf_online_index,0,2);
+
 	/* clear online check table */
-	memset(white_list_use_onlne_table[2],0,16*8);
+	memset(list_tcb_table[2],0,16*8);
 }

@@ -24,7 +24,7 @@ extern uint8_t 					   dtq_to_jsq_sequence;
 extern uint8_t 					   jsq_to_dtq_sequence;
 extern uint8_t 					   dtq_to_jsq_packnum;
 extern uint8_t 					   jsq_to_dtq_packnum;
-extern uint16_t            white_list_use_onlne_table[10][8];
+extern uint16_t            list_tcb_table[10][8];
 /******************************************************************************
   Function:my_nrf_transmit_start
   Description:
@@ -178,14 +178,14 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 		memcpy((nrf_communication.transmit_buf + 15), data_buff, data_buff_len);	//有效数据从第10位开始放
 
 		/* 检测是否为定向重发帧，如果是则加入状态索引表 */
-		memcpy(nrf_communication.transmit_buf+15 + data_buff_len, white_list_use_onlne_table[sel_table], 16);
+		memcpy(nrf_communication.transmit_buf+15 + data_buff_len, list_tcb_table[sel_table], 16);
 #ifdef OPEN_ACT_TABLE_SHOW
 		{
 			int i = 0;
 			printf("ACK TABLE[%d]:",sel_table);
 			for(i=0;i<8;i++)
 			{
-				printf("%04x ",white_list_use_onlne_table[sel_table][i]);
+				printf("%04x ",list_tcb_table[sel_table][i]);
 			}
 			printf("\r\n");
 		}
@@ -231,14 +231,14 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 		/* len */
 		nrf_communication.software_ack_buf[14] = 0;
 		/* get data */
-		memcpy(nrf_communication.transmit_buf+15 + data_buff_len, white_list_use_onlne_table[sel_table], 16);
+		memcpy(nrf_communication.transmit_buf+15 + data_buff_len, list_tcb_table[sel_table], 16);
 #ifdef OPEN_ACT_TABLE_SHOW
 		{
 			int i = 0;
 			printf("\r\nSUM TABLE[%d]:",sel_table);
 			for(i=0;i<8;i++)
 			{
-				printf("%04x ",white_list_use_onlne_table[sel_table][i]);
+				printf("%04x ",list_tcb_table[sel_table][i]);
 			}
 			printf("\r\n");
 		}
