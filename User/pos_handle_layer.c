@@ -270,10 +270,14 @@ static void serial_cmd_process(void)
 				{
 					memcpy(uart_rf_cmd_sign,ReviceMessage.SIGN,4);
 					App_send_data_to_clickers( &ReviceMessage, &SendMessage);
-					//if(ReviceMessage.DATA[6] == 0x15)
+#ifdef ENABLE_SEND_DATA_TO_PC
+					if(ReviceMessage.DATA[6] == 0x15)
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_IGNORE;
-					//else
-					//	serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+					else
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+#else
+					serial_cmd_status = APP_SERIAL_CMD_STATUS_IGNORE;
+#endif
 				}
 				break;
 
@@ -544,6 +548,7 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 	uint16_t i = 0;
 	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
 	uint8_t temp = 0;
+	uint8_t send_data_status = get_clicker_send_data_status() ;
 
 	/* 获取:包封装的答题器->数据长度 */
 	rf_var.tx_len = RMessage->LEN;
@@ -578,25 +583,39 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 
 	SMessage->LEN = 0x03;
 
-	*( pdata + ( i++ ) ) = 0x00;
+	if( send_data_status == 0)
+	{
+		*( pdata + ( i++ ) ) = 0x00; // ok
+	}
+	else
+	{
+		*( pdata + ( i++ ) ) = 0x01; // busy
+	}
+
 	*( pdata + ( i++ ) ) = white_on_off;
 	*( pdata + ( i++ ) ) = white_len;
 
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;
 
-	/* 有数据下发且未曾下发过 */
-	jsq_to_dtq_packnum++;
+	if( send_data_status == 0 )
+	{
+		/* 准备发送数据管理块 */
+		send_data_env_init();
 
-	/* 发送前导帧 */
-	memset(nrf_communication.dtq_uid, 0, 4);
-	nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,  SEND_PRE_DELAY100US, SEND_DATA1_SUM_TABLE);
+		/* 有数据下发且未曾下发过 */
+		jsq_to_dtq_packnum++;
 
-	/* 发送数据帧 */
-	memset(nrf_communication.dtq_uid,0, 4);
-	nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE );
+		/* 发送前导帧 */
+		memset(nrf_communication.dtq_uid, 0, 4);
+		nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,  SEND_PRE_DELAY100US, SEND_DATA1_SUM_TABLE);
 
-	change_clicker_send_data_status( SEND_DATA1_STATUS );
+		/* 发送数据帧 */
+		memset(nrf_communication.dtq_uid,0, 4);
+		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE );
+
+		change_clicker_send_data_status( SEND_DATA1_STATUS );
+	}
 }
 
 /******************************************************************************

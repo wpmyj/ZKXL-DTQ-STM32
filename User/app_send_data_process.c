@@ -863,3 +863,29 @@ void App_clickers_send_data_process( void )
 	/* 上报之后，重新广播发送 */
   retansmit_data( current_status );
 }
+
+/******************************************************************************
+  Function:send_data_env_init
+  Description:
+		答题器发送处理逻辑函数
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void send_data_env_init(void)
+{
+	message_tcb.okuidlen     = 0;
+	message_tcb.lostuidlen   = 0;
+	message_tcb.Is_lost_over = 1;
+	message_tcb.Is_ok_over   = 1;
+
+	memset(&retransmit_tcb.uid,0,8);
+
+	memset(result_check_tables,0,2);
+	after_result_status = 0;
+	memset(retransmit_check_tables,0,4);
+	after_retransmit_status = 0;
+
+	/* clear online check table */
+	memset(white_list_use_onlne_table[2],0,16*8);
+}

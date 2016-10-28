@@ -6,9 +6,9 @@
 //#define OPEN_ACK_SHOW
 //#define OPEN_ACT_TABLE_SHOW
 //#define OPEN_SEND_STATUS_SHOW
-//#define RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
-//#define SEND_DATA_DETAIL_MESSAGE_SHOW
-#define ENABLE_SEND_DATA_TO_PC
+#define RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
+#define SEND_DATA_DETAIL_MESSAGE_SHOW
+//#define ENABLE_SEND_DATA_TO_PC
 
 /* ø’œ– */
 #define SEND_IDLE_STATUS            0
@@ -88,5 +88,5 @@ void send_data_result( uint8_t status );
 void get_retransmit_messsage( uint8_t status );
 void retansmit_data( uint8_t status );
 void App_clickers_send_data_process( void );
-
+void send_data_env_init(void);
 #endif
