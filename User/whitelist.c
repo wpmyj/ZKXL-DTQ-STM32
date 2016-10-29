@@ -504,6 +504,7 @@ uint8_t add_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
 		if(status == OPERATION_ERR)
 		{
 			WhiteListDebug("<%s> The white list is full \r\n",__func__);
+			*position = 0;
 			return OPERATION_ERR;
 		}
 		else

@@ -266,11 +266,15 @@ void App_card_process(void)
 					serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
 				}
 			}
-			//写入配对时将UID传给答题器
-			write_RF_config();
 
-			//不重复寻卡
-			PcdHalt();
+			if(is_white_list_uid != OPERATION_ERR)
+			{
+				//写入配对时将UID传给答题器
+				write_RF_config();
+
+				//不重复寻卡
+				PcdHalt();
+			}
 		}
 	}
 	Buzze_Control();
