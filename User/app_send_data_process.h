@@ -3,12 +3,40 @@
 
 #include "main.h"
 
-//#define OPEN_ACK_SHOW
-//#define OPEN_ACT_TABLE_SHOW
+//#define OPEN_BUFFER_ACK_SHOW
+//#define OPEN_BUFFER_DATA_SHOW
+//#define OPEN_ACK_TABLE_SHOW
 //#define OPEN_SEND_STATUS_SHOW
 #define RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
 #define SEND_DATA_DETAIL_MESSAGE_SHOW
 //#define ENABLE_SEND_DATA_TO_PC
+
+/* 打印信息控制 */
+#ifdef 	OPEN_BUFFER_ACK_SHOW
+#define DEBUG_BUFFER_ACK_LOG							     printf
+#else
+#define DEBUG_BUFFER_ACK_LOG(...)
+#endif
+
+#ifdef 	OPEN_BUFFER_DATA_SHOW
+#define DEBUG_BUFFER_DTATA_LOG							   printf
+#else
+#define DEBUG_BUFFER_DTATA_LOG(...)
+#endif
+
+#ifdef 	RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
+#define DEBUG_RETRANSMIT_LOG							     printf
+#else
+#define DEBUG_RETRANSMIT_LOG(...)
+#endif
+
+#ifdef 	SEND_DATA_DETAIL_MESSAGE_SHOW
+#define DEBUG_SEND_DATA_LOG							       printf
+#else
+#define DEBUG_SEND_DATA_LOG(...)
+#endif
+
+
 
 /* 空闲 */
 #define SEND_IDLE_STATUS            0
