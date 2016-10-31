@@ -556,25 +556,28 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 	/* 获取：包封装的答题器->数据内容 */
 	memcpy(rf_var.tx_buf, (uint8_t *)(RMessage->DATA), RMessage->LEN);
 
-	/* 获取下发数据: 决定是否暂存数据 */
-	switch( RMessage->DATA[6] )
+	if( send_data_status == 0 )
 	{
-		case 0x10:
-		case 0x11:
-			{
-				/* 暂存题目 */
-				backup_massage.HEADER = 0x5C;
-				backup_massage.TYPE = RMessage->TYPE;
-				memcpy(SMessage->SIGN, RMessage->SIGN, 4);
-				backup_massage.LEN = RMessage->LEN;
-				memcpy( backup_massage.DATA, (uint8_t *)(RMessage->DATA), RMessage->LEN );
-				backup_massage.XOR = RMessage->XOR;
-				backup_massage.XOR = 0xCA;
-				pc_subject_change_status(1);
-			}
-			break;
+		/* 获取下发数据: 决定是否暂存数据 */
+		switch( RMessage->DATA[6] )
+		{
+			case 0x10:
+			case 0x11:
+				{
+					/* 暂存题目 */
+					backup_massage.HEADER = 0x5C;
+					backup_massage.TYPE = RMessage->TYPE;
+					memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+					backup_massage.LEN = RMessage->LEN;
+					memcpy( backup_massage.DATA, (uint8_t *)(RMessage->DATA), RMessage->LEN );
+					backup_massage.XOR = RMessage->XOR;
+					backup_massage.XOR = 0xCA;
+					pc_subject_change_status(1);
+				}
+				break;
 
-		default: break;
+			default: break;
+		}
 	}
 
 	SMessage->HEADER = 0x5C;

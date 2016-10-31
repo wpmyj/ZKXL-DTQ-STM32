@@ -398,7 +398,9 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table, uint8_t mode, 
 {
 	uint8_t i;
 	uint8_t is_use_pos = 0,is_online_pos = 0;
-
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
+	uint8_t index = 0;
+#endif
 	for(i=rf_online_index[mode];(i<120)&&(*len<240);i++)
 	{
 		is_use_pos = get_index_of_white_list_pos_status(src_table,i);
@@ -410,7 +412,6 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table, uint8_t mode, 
 				get_index_of_uid(i,buffer);
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				{
-					uint8_t index = 0;
 					printf("[%3d]:%02x%02x%02x%02x ",i,*buffer, *(buffer+1), *(buffer+2), *(buffer+3) );
 					if((((index++)+1) % 5 == 0) || (index>=120))
 						printf("\n");
@@ -537,7 +538,9 @@ uint8_t checkout_retransmit_clickers(uint8_t presumtable, uint8_t preacktable, u
 	uint8_t is_use_pos = 0,is_online_pos = 0;
 	uint8_t puid[4];
 	uint8_t clickernum = 0;
-
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
+	uint8_t index = 0;
+#endif	
 	for(i=0;i<120;i++)
 	{
 		is_use_pos = get_index_of_white_list_pos_status(presumtable,i);
@@ -549,17 +552,19 @@ uint8_t checkout_retransmit_clickers(uint8_t presumtable, uint8_t preacktable, u
 				get_index_of_uid(i,puid);
 				set_index_of_white_list_pos(cursumtable,i);
 				clickernum++;
-				#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				{
-					uint8_t index = 0;
 					printf("[%3d]:%02x%02x%02x%02x ",i,puid[0],puid[1],puid[2],puid[3]);
-					if((((index++)+1) % 5 == 0) || (index>=120))
+					if(((index++)+1) % 5 == 0)
 						printf("\n");
 				}
-				#endif
+#endif
 			}
 		}
 	}
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
+	printf("\n");
+#endif
 	return clickernum;
 }
 
