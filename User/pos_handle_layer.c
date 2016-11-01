@@ -730,6 +730,15 @@ void App_stop_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_Message
 
 	SMessage->LEN = 0x03;
 
+	{
+		send_data_env_init();
+
+		memset(nrf_communication.dtq_uid,0, 4);
+		memset( rf_var.tx_buf, 0,rf_var.tx_len);
+
+		change_clicker_send_data_status( 0 );
+	}
+
 	*( pdata + ( i++ ) ) = 0x00;
 	*( pdata + ( i++ ) ) = white_on_off;
 	*( pdata + ( i++ ) ) = white_len;
