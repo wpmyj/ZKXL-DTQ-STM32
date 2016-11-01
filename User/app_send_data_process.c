@@ -316,21 +316,12 @@ uint8_t spi_process_revice_data( void )
 			{
 				/* get uid */
 				memcpy(sign_buffer   ,spi_message+5 ,4);
-				//memcpy(spi_message.dtq_uid,spi_message+5 ,4);
 
-				/* 收到的是ACK */
-				if(spi_message[11] == NRF_DATA_IS_ACK)
+				/* 收到的是Data */
+				if(spi_message[11] == NRF_DATA_IS_USEFUL)
 				{
 					/* 返回ACK的包号和上次发送的是否相同 */
-					if(spi_message[10] == jsq_to_dtq_packnum)
-					{
-						DEBUG_BUFFER_ACK_LOG("[ACK] uid:%02x%02x%02x%02x, ",
-							*(nrf_communication.receive_buf+5),*(nrf_communication.receive_buf+6),
-							*(nrf_communication.receive_buf+7),*(nrf_communication.receive_buf+8));
-						DEBUG_BUFFER_ACK_LOG("seq:%2x, pac:%2x\r\n",(uint8_t)*(nrf_communication.receive_buf+9),
-							(uint8_t)*(nrf_communication.receive_buf+10));
-					}
-					else//收到的是有效数据
+					if(spi_message[10] != jsq_to_dtq_packnum)//收到的是有效数据
 					{
 						DEBUG_BUFFER_DTATA_LOG("[DATA] uid:%02x%02x%02x%02x, ",
 							*(nrf_communication.receive_buf+5),*(nrf_communication.receive_buf+6),
@@ -338,47 +329,60 @@ uint8_t spi_process_revice_data( void )
 						DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x\r\n",(uint8_t)*(nrf_communication.receive_buf+9),
 							(uint8_t)*(nrf_communication.receive_buf+10));
 
-						/* 重复接收的数据，返回包号和上次一样的ACK */
-						if(clickers[uidpos].prepacknum != spi_message[10])
+						/* 有效数据复制到缓存 */
+						//rf_move_data_to_buffer(&nrf_communication);
+						/* 更新接收数据帧号与包号 */
+						dtq_to_jsq_sequence = spi_message[9];
+						dtq_to_jsq_packnum = spi_message[10];
+						/* 回复ACK */
+						nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK, 1, 0, SEND_DATA_ACK_TABLE);
+						/* 用户接收到数据处理函数 */
+						my_nrf_receive_success_handler();
+					}
+				}
+				/* 收到的是Ack */
+				else if(spi_message[11] == NRF_DATA_IS_ACK)
+				{
+					DEBUG_BUFFER_DTATA_LOG("[ACK] uid:%02x%02x%02x%02x, ",
+						*(nrf_communication.receive_buf+5),*(nrf_communication.receive_buf+6),
+						*(nrf_communication.receive_buf+7),*(nrf_communication.receive_buf+8));
+					DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x\r\n",(uint8_t)*(nrf_communication.receive_buf+9),
+						(uint8_t)*(nrf_communication.receive_buf+10));
+					/* 重复接收的数据，返回包号和上次一样的*/
+					if(clickers[uidpos].prepacknum != spi_message[10])
+					{
+						/* 统计丢包 */
+						if( clickers[uidpos].use == 1 )
 						{
-							/* 统计丢包 */
-							if( clickers[uidpos].use == 1 )
+							if(clickers[uidpos].first == 0)
 							{
-								if(clickers[uidpos].first == 0)
-								{
-									if( spi_message[10] > clickers[uidpos].prepacknum )
-										clickers[uidpos].lost_package_num += spi_message[10] - clickers[uidpos].prepacknum -1 ;
+								if( spi_message[10] > clickers[uidpos].prepacknum )
+									clickers[uidpos].lost_package_num += spi_message[10] - clickers[uidpos].prepacknum -1 ;
 
-									if( spi_message[10] < clickers[uidpos].prepacknum )
-										clickers[uidpos].lost_package_num += spi_message[10] + 255 - clickers[uidpos].prepacknum ;
-								}
-								else
-								{
-									clickers[uidpos].lost_package_num = 0;
-								}
-
-	//							/* 统计收到包数 */
-	//						clickers[uidpos].revice_package_num++;
-	//						printf("clickers : %02x%02x%02x%02x, pre:%2x, cur:%2x revice = %08x, lost = %08x, \r\n",
-	//						clickers[uidpos].uid[0],clickers[uidpos].uid[1],clickers[uidpos].uid[2],
-	//						clickers[uidpos].uid[3],
-	//						clickers[uidpos].prepacknum,
-	//						nrf_communication.receive_buf[10],
-	//						clickers[uidpos].revice_package_num,clickers[uidpos].lost_package_num
-	//						);
-								clickers[uidpos].prepacknum = spi_message[10];
+								if( spi_message[10] < clickers[uidpos].prepacknum )
+									clickers[uidpos].lost_package_num += spi_message[10] + 255 - clickers[uidpos].prepacknum ;
 							}
-							/* 有效数据复制到缓存 */
-							//rf_move_data_to_buffer(&nrf_communication);
-							/* 更新接收数据帧号与包号 */
-							dtq_to_jsq_sequence = spi_message[9];
-							dtq_to_jsq_packnum = spi_message[10];
-							/* 回复ACK */
-							nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK, 1, 0, SEND_DATA_ACK_TABLE);
-							/* 用户接收到数据处理函数 */
-							my_nrf_receive_success_handler();
+							else
+							{
+								clickers[uidpos].lost_package_num = 0;
+							}
+
+//							/* 统计收到包数 */
+//						clickers[uidpos].revice_package_num++;
+//						printf("clickers : %02x%02x%02x%02x, pre:%2x, cur:%2x revice = %08x, lost = %08x, \r\n",
+//						clickers[uidpos].uid[0],clickers[uidpos].uid[1],clickers[uidpos].uid[2],
+//						clickers[uidpos].uid[3],
+//						clickers[uidpos].prepacknum,
+//						nrf_communication.receive_buf[10],
+//						clickers[uidpos].revice_package_num,clickers[uidpos].lost_package_num
+//						);
+							clickers[uidpos].prepacknum = spi_message[10];
 						}
 					}
+				}
+				else
+				{
+
 				}
 			}
 		}
