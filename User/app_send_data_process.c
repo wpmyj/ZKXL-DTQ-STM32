@@ -849,6 +849,11 @@ void send_data_env_init(void)
 	after_retransmit_status = 0;
 
 	memset(rf_online_index,0,2);
+	retransmit_tcb.count = 0;
+	retransmit_tcb.sum = 0;
+	retransmit_tcb.pos = 0;
+	retransmit_tcb.status = 0;
+	memset(retransmit_tcb.uid,0,4);
 
 	/* clear online check table */
 	memset(list_tcb_table[2],0,16*8);
