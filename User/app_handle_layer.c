@@ -270,7 +270,7 @@ void App_card_process(void)
 			if(is_white_list_uid != OPERATION_ERR)
 			{
 				//写入配对时将UID传给答题器
-				write_RF_config();
+				write_RF_config(uid_p);
 
 				//不重复寻卡
 				PcdHalt();

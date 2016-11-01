@@ -66,18 +66,19 @@ void rc500_handle_layer(void)
 	sendtoRC500();
 
 }
-void write_RF_config(void)
+void write_RF_config(uint8_t upos)
 {
 	if(SelectApplication() == MI_OK)		//选择应用
 	{
 		if(WriteNDEFfile((uint8_t *)&NDEF_DataWrite) == MI_OK)		//写入NDEF文件
 		{
-			time_for_buzzer_on = 10;
-			time_for_buzzer_off = 300;
 			if(ReadNDEFfile(NDEF_DataWrite, &NDEF_Len) == MI_OK)			//读出验证
 			{
-				DebugLog("[ReadNDEFfile]:NDEF_Data is ");
-				app_debuglog_dump(NDEF_DataWrite, NDEF_Len);
+				if(NDEF_DataWrite[6] == upos)
+				{
+					time_for_buzzer_on = 10;
+					time_for_buzzer_off = 300;
+				}
 			}
 		}
 		Deselect();	//去除选择
