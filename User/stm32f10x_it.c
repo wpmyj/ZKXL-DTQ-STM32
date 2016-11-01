@@ -440,7 +440,6 @@ void SysTick_Handler(void)
 		{
 			rf_retransmit_set_status(3);
 			rf_retransmit_timecnt = 0;
-			//printf
 		}
 	}
 

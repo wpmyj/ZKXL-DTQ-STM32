@@ -266,10 +266,6 @@ void nrf51822_parameters_init(void)
 		nrf_communication.transmit_buf[i] = 0x00;
 	}
 
-	nrf_communication.sequence = 0;					//初始化发送数据编号为0，每发送一次+1
-	nrf_communication.number_of_retransmits = 0;
-	nrf_communication.transmit_ing_flag = false;
-	nrf_communication.transmit_ok_flag = false;
 	nrf_communication.dtq_uid[0] = 0;
 	nrf_communication.dtq_uid[1] = 0;
 	nrf_communication.dtq_uid[2] = 0;
@@ -280,11 +276,6 @@ void nrf51822_parameters_init(void)
 	nrf_communication.jsq_uid[2] = (jsq_uid[5]&0x0F)|((jsq_uid[4]<<4)&0xF0);
 	nrf_communication.jsq_uid[3] = (jsq_uid[7]&0x0F)|((jsq_uid[6]<<4)&0xF0);
 
-	//返回ACK结构体，固定参数定义，
-	nrf_communication.software_ack_len = NRF_TOTAL_DATA_LEN;
-	memcpy((nrf_communication.software_ack_buf + 1), nrf_communication.jsq_uid, 4);
-	nrf_communication.software_ack_buf[5] = 1;	//buf[5]=1表示发送的数据是ACK
-	nrf_communication.software_ack_buf[5] = NRF_USEFUL_DATA_LEN;
 
 	//发送数据结构体，固定参数定义，
 	nrf_communication.transmit_len = NRF_TOTAL_DATA_LEN;				//序号

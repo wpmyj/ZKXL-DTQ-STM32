@@ -163,21 +163,12 @@ typedef struct
 
 typedef struct
 {
-	bool							        receive_ok_flag;
-	bool							        transmit_ok_flag;
-	bool							        transmit_ing_flag;		//正在发送标志
-	uint8_t							      sequence;				//传输数据的序号
 	uint8_t	 						      dtq_uid[4];				//此答题器UID
 	uint8_t							      jsq_uid[4];				//与之配对的接收器UID
-	uint8_t							      number_of_retransmits;
-
 	uint8_t							      receive_len;
 	uint8_t							      transmit_len;
-	uint8_t							      software_ack_len;
 	uint8_t							      receive_buf[NRF_TOTAL_DATA_LEN];		//接收数据反冲区
 	uint8_t							      transmit_buf[NRF_TOTAL_DATA_LEN];		//发送数据反冲区
-	uint8_t							      software_ack_buf[NRF_TOTAL_DATA_LEN];	//回软件ACK专用反冲区
-
 }nrf_communication_t;
 
 typedef struct
@@ -198,9 +189,6 @@ typedef struct
 	uint8_t 				data[BUFFER_SIZE_MAX];
 	uint8_t 				xor;														//为所有数据异或结果
 } spi_cmd_type_t;
-
-
-
 
 /* Private functions ---------------------------------------------------------*/
 uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_data_len, uint8_t *rx_data);

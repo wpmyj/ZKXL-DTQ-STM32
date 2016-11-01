@@ -46,7 +46,6 @@
 uint8_t buffer_get_buffer_status( uint8_t sel_buffer );
 void serial_ringbuffer_write_data( uint8_t sel_buffer, Uart_MessageTypeDef *data );
 void serial_ringbuffer_read_data( uint8_t sel_buffer, Uart_MessageTypeDef *data );
-void serial_ringbuffer_write_data1(uint8_t sel_buffer, uint8_t *data);
 uint8_t serial_ringbuffer_get_usage_rate(uint8_t sel_buffer);
 void spi_read_data_from_buffer( uint8_t sel_buffer,uint8_t SpiMessage[] );
 void spi_write_data_to_buffer( uint8_t sel_buffer, uint8_t SpiMessage[], uint8_t send_data_status );
