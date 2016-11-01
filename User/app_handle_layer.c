@@ -18,12 +18,7 @@ extern uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];
 extern uint8_t card_cmd_type ;
 extern Uart_MessageTypeDef backup_massage;
 extern nrf_communication_t nrf_communication;
-
-extern clicker_t clickers[120];
-extern uint8_t dtq_to_jsq_sequence;
-extern uint8_t jsq_to_dtq_sequence;
-extern uint8_t dtq_to_jsq_packnum;
-extern uint8_t jsq_to_dtq_packnum;
+extern WhiteList_Typedef wl;
 extern uint8_t sign_buffer[4];
 extern uint8_t retransmit_uid[4];
 extern uint8_t sum_clicker_count;
@@ -142,7 +137,7 @@ void App_clickers_systick_process(void)
 		/* 获取接收缓存的状态 */
 		buffer_status = buffer_get_buffer_status(REVICE_RINGBUFFER);
 
-		if( get_pc_subject_status() == 1 )
+		if( get_backup_massage_status() == 1 )
 		{
 		  uint8_t is_new_uid = 0;
 
@@ -212,13 +207,13 @@ void App_card_process(void)
 	uint8_t is_white_list_uid = 0,uid_p = 0;
 	uint8_t cmd_process_status = 0;
 
-	if((delay_nms == 0)&&((attendance_on_off == ON) || match_on_off == ON))
+	if((delay_nms == 0)&&((wl.attendance_sttaus == ON) || wl.match_status == ON))
 	{
 		delay_nms = 200;
 		if(FindICCard() == MI_OK)
 		{
 			/* 处理数据 */
-			if(attendance_on_off)
+			if(wl.attendance_sttaus)
 			{
 				is_white_list_uid = add_uid_to_white_list(g_cSNR+5,&uid_p);
 				NDEF_DataWrite[6] = uid_p;

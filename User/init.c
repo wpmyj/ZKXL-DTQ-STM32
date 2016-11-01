@@ -10,7 +10,7 @@
   
 #include "main.h"
 #include "mcu_config.h"
-
+extern WhiteList_Typedef wl;
 /*******************************************************************************
   * @brief  硬件平台初始化
   * @param  None
@@ -49,12 +49,9 @@ void Platform_Init(void)
 
 	/* eeprom init and white_list init*/
 	Fee_Init(FEE_INIT_POWERUP);
-	get_white_list_use_table();
-	white_len = get_len_of_white_list();
-	DebugLog("\r\n[%s]:White list len = %d \r\n",__func__, white_len);
-	white_on_off = get_switch_status_of_white_list();
-	DebugLog("[%s]:White list switch status is %d \r\n",__func__, white_on_off);
-	get_white_list_use_table();
+	get_white_list_from_flash();
+	DebugLog("\r\n[%s]:White list len = %d \r\n",__func__, wl.len);
+	DebugLog("[%s]:White list switch status is %d \r\n",__func__, wl.switch_status);
 	
 	/* 复位并初始化RC500 */
 	GPIOInit_MFRC500();

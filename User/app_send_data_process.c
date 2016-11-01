@@ -5,19 +5,15 @@
 #define CLICKER_SNED_DATA_STATUS_TYPE     10
 #define CLICKER_PRE_DATA_STATUS_TYPE      11
 
-static uint8_t clicker_send_data_status = 0;
+uint8_t clicker_send_data_status = 0;
 static uint8_t pre_status = 0;
 static uint8_t sum_clicker_count = 0;
+uint32_t send_data_timer,retransmit_data_timer;
 
 extern nrf_communication_t nrf_communication;
 extern uint16_t list_tcb_table[10][8];
 
-extern clicker_t clickers[120];
 extern Uart_MessageTypeDef backup_massage;
-extern uint8_t dtq_to_jsq_sequence;
-extern uint8_t jsq_to_dtq_sequence;
-extern uint8_t dtq_to_jsq_packnum;
-extern uint8_t jsq_to_dtq_packnum;
 extern uint8_t sign_buffer[4];
 extern uint8_t sum_clicker_count;
 
@@ -40,9 +36,10 @@ static uint8_t retransmit_check_tables[4];;
 static uint8_t after_retransmit_status;
 
 static message_tcb_tydef    message_tcb ;
-static retransmit_tcb_tydef retransmit_tcb;
+retransmit_tcb_tydef retransmit_tcb;
 static Uart_MessageTypeDef  revice_lost_massage,revice_ok_massage;
-
+extern WhiteList_Typedef    wl;
+extern Revicer_Typedef      revicer;
 /******************************************************************************
   Function:change_clicker_send_data_status
   Description:
@@ -265,15 +262,14 @@ uint8_t spi_process_revice_data( void )
 			/* 检索白名单 */
 			Is_whitelist_uid = search_uid_in_white_list(spi_message+5,&uidpos);
 
-			if(clickers[uidpos].use == 0)
+			if(wl.uids[uidpos].use == 0)
 			{
-				memcpy(clickers[uidpos].uid, spi_message+5, 4);
-				clickers[uidpos].use = 1;
-				clickers[uidpos].first = 1;
+				wl.uids[uidpos].use = 1;
+				wl.uids[uidpos].firstrev = 1;
 			}
 			else
 			{
-				clickers[uidpos].first = 0;
+				wl.uids[uidpos].firstrev = 0;
 			}
 
 			/* 检测是白名单 */
@@ -305,7 +301,7 @@ uint8_t spi_process_revice_data( void )
 			}
 
 			/* 白名单开关状态 */
-			if(white_on_off == OFF)
+			if(wl.switch_status == OFF)
 			{
 				/* 关闭白名单是不过滤白名单 */
 				Is_whitelist_uid = OPERATION_SUCCESS;
@@ -321,8 +317,9 @@ uint8_t spi_process_revice_data( void )
 				if(spi_message[11] == NRF_DATA_IS_USEFUL)
 				{
 					/* 返回ACK的包号和上次发送的是否相同 */
-					if(spi_message[10] != jsq_to_dtq_packnum)//收到的是有效数据
+					if(spi_message[10] != revicer.sen_num)//收到的是有效数据
 					{
+						uint8_t temp;
 						DEBUG_BUFFER_DTATA_LOG("[DATA] uid:%02x%02x%02x%02x, ",
 							*(nrf_communication.receive_buf+5),*(nrf_communication.receive_buf+6),
 							*(nrf_communication.receive_buf+7),*(nrf_communication.receive_buf+8));
@@ -332,10 +329,10 @@ uint8_t spi_process_revice_data( void )
 						/* 有效数据复制到缓存 */
 						//rf_move_data_to_buffer(&nrf_communication);
 						/* 更新接收数据帧号与包号 */
-						dtq_to_jsq_sequence = spi_message[9];
-						dtq_to_jsq_packnum = spi_message[10];
+						wl.uids[uidpos].rev_seq = spi_message[9];
+						wl.uids[uidpos].rev_num = spi_message[10];
 						/* 回复ACK */
-						nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK, 1, 0, SEND_DATA_ACK_TABLE);
+						nrf_transmit_start(&temp,0,NRF_DATA_IS_ACK, 1, 0, SEND_DATA_ACK_TABLE);
 						/* 用户接收到数据处理函数 */
 						my_nrf_receive_success_handler();
 					}
@@ -349,22 +346,22 @@ uint8_t spi_process_revice_data( void )
 					DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x\r\n",(uint8_t)*(nrf_communication.receive_buf+9),
 						(uint8_t)*(nrf_communication.receive_buf+10));
 					/* 重复接收的数据，返回包号和上次一样的*/
-					if(clickers[uidpos].prepacknum != spi_message[10])
+					if(wl.uids[uidpos].rev_num != spi_message[10])
 					{
 						/* 统计丢包 */
-						if( clickers[uidpos].use == 1 )
+						if( wl.uids[uidpos].use == 1 )
 						{
-							if(clickers[uidpos].first == 0)
+							if(wl.uids[uidpos].firstrev == 0)
 							{
-								if( spi_message[10] > clickers[uidpos].prepacknum )
-									clickers[uidpos].lost_package_num += spi_message[10] - clickers[uidpos].prepacknum -1 ;
+								if( spi_message[10] > wl.uids[uidpos].rev_num)
+									wl.uids[uidpos].lost_package_num += spi_message[10] - wl.uids[uidpos].rev_num -1 ;
 
-								if( spi_message[10] < clickers[uidpos].prepacknum )
-									clickers[uidpos].lost_package_num += spi_message[10] + 255 - clickers[uidpos].prepacknum ;
+								if( spi_message[10] < wl.uids[uidpos].rev_num )
+									wl.uids[uidpos].lost_package_num += spi_message[10] + 255 - wl.uids[uidpos].rev_num ;
 							}
 							else
 							{
-								clickers[uidpos].lost_package_num = 0;
+								wl.uids[uidpos].lost_package_num = 0;
 							}
 
 //							/* 统计收到包数 */
@@ -376,7 +373,7 @@ uint8_t spi_process_revice_data( void )
 //						nrf_communication.receive_buf[10],
 //						clickers[uidpos].revice_package_num,clickers[uidpos].lost_package_num
 //						);
-							clickers[uidpos].prepacknum = spi_message[10];
+							wl.uids[uidpos].rev_num = spi_message[10];
 						}
 					}
 				}
@@ -417,7 +414,7 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table, uint8_t mode, 
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				{
 					printf("[%3d]:%02x%02x%02x%02x ",i,*buffer, *(buffer+1), *(buffer+2), *(buffer+3) );
-					if((((index++)+1) % 5 == 0) || (index>=120))
+					if(((index++)+1) % 5 == 0)
 						printf("\n");
 				}
 #endif
@@ -426,6 +423,9 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table, uint8_t mode, 
 			}
 		}
 	}
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
+	printf("\n");
+#endif
 
 	if(i==120)
 	{
@@ -499,7 +499,7 @@ void get_retransmit_messsage( uint8_t status )
 				retransmit_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
 				retransmit_check_tables[CUR_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
 				retransmit_check_tables[CUR_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
-				after_retransmit_status             = SEND_DATA2_SEND_OVER_STATUS;
+				after_retransmit_status                = SEND_DATA2_SEND_OVER_STATUS;
 			}
 			break;
 
@@ -510,7 +510,7 @@ void get_retransmit_messsage( uint8_t status )
 				retransmit_check_tables[PRE_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
 				retransmit_check_tables[CUR_SUM_TABLE] = SEND_DATA3_SUM_TABLE;
 				retransmit_check_tables[CUR_ACK_TABLE] = SEND_DATA3_ACK_TABLE;
-				after_retransmit_status             = SEND_DATA3_SEND_OVER_STATUS;
+				after_retransmit_status                = SEND_DATA3_SEND_OVER_STATUS;
 			}
 			break;
 
@@ -772,13 +772,12 @@ void App_clickers_send_data_process( void )
 			if(rf_retransmit_status == 0)
 			{
 				retransmit_data_to_next_clicker( 1, &retransmit_tcb.pos );
-
 			}
 		}
 
 		if(rf_retransmit_status == 2)
 		{
-			clickers[retransmit_tcb.pos].retransmit_count = 0;
+			//clickers[retransmit_tcb.pos].retransmit_count = 0;
 			retransmit_tcb.count++;
 			DEBUG_RETRANSMIT_LOG("ok\r\n");
 			DEBUG_RETRANSMIT_LOG("retransmit_tcb.count = %d retransmit_tcb.sum = %d\r\n",
@@ -797,15 +796,15 @@ void App_clickers_send_data_process( void )
 		if(rf_retransmit_status == 3)
 		{
 			DEBUG_RETRANSMIT_LOG("fail\r\n");
-			clickers[retransmit_tcb.pos].retransmit_count++;
+			retransmit_tcb.retransmit_count++;
 
-			if(clickers[retransmit_tcb.pos].retransmit_count == 3)
+			if(retransmit_tcb.retransmit_count == 3)
 			{
 				retransmit_tcb.count++;
 			  DEBUG_RETRANSMIT_LOG("retransmit_tcb.count = %d retransmit_tcb.sum = %d\r\n",
 			                       retransmit_tcb.count, retransmit_tcb.sum );
-				clickers[retransmit_tcb.pos].retransmit_count = 0;
 
+				retransmit_tcb.retransmit_count = 0;
 				if(retransmit_tcb.count == retransmit_tcb.sum)
 				{
 					change_clicker_send_data_status( SEND_DATA4_UPDATE_STATUS ); // 11
@@ -857,6 +856,7 @@ void send_data_env_init(void)
 	retransmit_tcb.sum = 0;
 	retransmit_tcb.pos = 0;
 	retransmit_tcb.status = 0;
+	retransmit_tcb.retransmit_count = 0;
 	memset(retransmit_tcb.uid,0,4);
 
 	/* clear online check table */

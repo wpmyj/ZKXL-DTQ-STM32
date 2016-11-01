@@ -29,10 +29,7 @@ typedef enum
 	ON 	= 1
 } Switch_State;
 
-//extern white_list_t			white_list[MAX_WHITE_LEN];		// 白名单列表
-extern uint8_t						white_len;						// 白名单长度
-extern Switch_State				white_on_off;					// 白名单开关
-extern Switch_State				attendance_on_off;		// 考勤开关 
+//extern Switch_State				attendance_on_off;		// 考勤开关 
 extern Switch_State				match_on_off;					// 配对开关 
 extern uint16_t						match_number;					// 配对序号
 extern uint8_t            uid_p;
@@ -55,9 +52,8 @@ bool store_len_to_fee(uint8_t len);
 uint8_t get_len_of_white_list(void);
 bool store_switch_status_to_fee(uint8_t switch_status);
 uint8_t get_switch_status_of_white_list(void);
-void get_white_list_use_table(void);
+void get_white_list_from_flash(void);
 void flash_white_list_use_table(void);
-void get_white_list_use_table(void);
 void set_index_of_white_list_pos( uint8_t use_or_online, uint8_t index );
 void clear_index_of_white_list_pos( uint8_t use_or_online, uint8_t index );
 bool get_nouse_pos_of_white_list( uint8_t *pos);

@@ -5,7 +5,7 @@
 
 //#define OPEN_BUFFER_ACK_SHOW
 //#define OPEN_BUFFER_DATA_SHOW
-//#define OPEN_ACK_TABLE_SHOW
+#define OPEN_ACK_TABLE_SHOW
 //#define OPEN_SEND_STATUS_SHOW
 #define RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
 #define SEND_DATA_DETAIL_MESSAGE_SHOW
@@ -89,6 +89,7 @@ typedef struct
 	uint8_t uid[4];
 	uint8_t pos;
 	uint8_t status;
+	uint8_t retransmit_count;
 }retransmit_tcb_tydef;
 
 typedef struct

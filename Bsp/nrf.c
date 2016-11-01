@@ -20,11 +20,9 @@
 #endif
 
 extern nrf_communication_t nrf_communication;
-extern uint8_t 					   dtq_to_jsq_sequence;
-extern uint8_t 					   jsq_to_dtq_sequence;
-extern uint8_t 					   dtq_to_jsq_packnum;
-extern uint8_t 					   jsq_to_dtq_packnum;
 extern uint16_t            list_tcb_table[10][8];
+extern WhiteList_Typedef wl;
+extern Revicer_Typedef   revicer;
 /******************************************************************************
   Function:my_nrf_transmit_start
   Description:
@@ -165,8 +163,8 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 		nrf_communication.transmit_buf[0]  = 0x61;
 		memcpy((nrf_communication.transmit_buf + 1), nrf_communication.dtq_uid, 4);
 		memcpy((nrf_communication.transmit_buf + 5), nrf_communication.jsq_uid, 4);
-		nrf_communication.transmit_buf[9]  = jsq_to_dtq_sequence++;
-		nrf_communication.transmit_buf[10] = jsq_to_dtq_packnum;
+		nrf_communication.transmit_buf[9]  = revicer.sen_seq++;
+		nrf_communication.transmit_buf[10] = revicer.sen_num;
 		nrf_communication.transmit_buf[11] = NRF_DATA_IS_USEFUL;
 		nrf_communication.transmit_buf[12] = 0xFF;
 		nrf_communication.transmit_buf[13] = 0xFF;
@@ -202,11 +200,13 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 	}
 	else if(nrf_data_type == NRF_DATA_IS_ACK)	//ACK数据包，发送nrf_communication.software_ack_buf 内容
 	{
+		uint8_t uidpos;
+		search_uid_in_white_list(&uidpos,nrf_communication.dtq_uid);
 		nrf_communication.software_ack_buf[0] = 0x61;
-		memcpy((nrf_communication.software_ack_buf + 1), nrf_communication.dtq_uid, 4);
+		memcpy((nrf_communication.software_ack_buf + 1), wl.uids[uidpos].uid, 4);
 		memcpy((nrf_communication.software_ack_buf + 5), nrf_communication.jsq_uid, 4);
-		nrf_communication.software_ack_buf[9]  = dtq_to_jsq_sequence;
-		nrf_communication.software_ack_buf[10] = dtq_to_jsq_packnum;
+		nrf_communication.software_ack_buf[9]  = wl.uids[uidpos].rev_num;
+		nrf_communication.software_ack_buf[10] = wl.uids[uidpos].rev_seq;
 		nrf_communication.software_ack_buf[11] = NRF_DATA_IS_ACK;
 		nrf_communication.software_ack_buf[12] = 0xFF;
 		nrf_communication.software_ack_buf[13] = 0xFF;
@@ -223,8 +223,8 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 		nrf_communication.software_ack_buf[0] = 0x61;
 		memcpy((nrf_communication.software_ack_buf + 1), nrf_communication.dtq_uid, 4);
 		memcpy((nrf_communication.software_ack_buf + 5), nrf_communication.jsq_uid, 4);
-		nrf_communication.software_ack_buf[9]  = dtq_to_jsq_sequence;
-		nrf_communication.software_ack_buf[10] = dtq_to_jsq_packnum;
+		nrf_communication.software_ack_buf[9]  = revicer.pre_seq++;
+		nrf_communication.software_ack_buf[10] = revicer.sen_num;
 		nrf_communication.software_ack_buf[11] = NRF_DATA_IS_PRE;
 		nrf_communication.software_ack_buf[12] = 0xFF;
 		nrf_communication.software_ack_buf[13] = 0xFF;
