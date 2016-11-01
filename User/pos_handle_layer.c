@@ -381,8 +381,6 @@ static void serial_cmd_process(void)
 					}
 					else
 					{
-						/* 延迟：增加操作Fee的时间间隔，防止读取数据出错 */
-						DelayMs(30);
 						whitelist_print_index = App_return_whitelist_data(
 								&ReviceMessage, &SendMessage,whitelist_print_index );
 						if( whitelist_print_index < wl.len )

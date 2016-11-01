@@ -423,9 +423,6 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table, uint8_t mode, 
 			}
 		}
 	}
-#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
-	printf("\n");
-#endif
 
 	if(i==120)
 	{
@@ -844,21 +841,22 @@ void send_data_env_init(void)
 	message_tcb.Is_lost_over = 1;
 	message_tcb.Is_ok_over   = 1;
 
-	memset(&retransmit_tcb.uid,0,8);
-
 	memset(result_check_tables,0,2);
 	after_result_status = 0;
 	memset(retransmit_check_tables,0,4);
 	after_retransmit_status = 0;
 
 	memset(rf_online_index,0,2);
-	retransmit_tcb.count = 0;
-	retransmit_tcb.sum = 0;
-	retransmit_tcb.pos = 0;
-	retransmit_tcb.status = 0;
-	retransmit_tcb.retransmit_count = 0;
-	memset(retransmit_tcb.uid,0,4);
+
+	/* clear retransmit task control block*/
+	memset(&retransmit_tcb,0,9);
 
 	/* clear online check table */
 	memset(list_tcb_table[2],0,16*8);
+
+	/* clear count of clicker */
+	sum_clicker_count = 0;
+
+	/* clear send data status */
+	clicker_send_data_status = 0;
 }

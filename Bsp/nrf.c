@@ -198,38 +198,38 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 		/* 开始通讯之前先发2次，之后开启定时判断重发机制 */
 		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len,count,delay100us);
 	}
-	else if(nrf_data_type == NRF_DATA_IS_ACK)	//ACK数据包，发送nrf_communication.software_ack_buf 内容
+	else if(nrf_data_type == NRF_DATA_IS_ACK)	//ACK数据包，发送nrf_communication.transmit_buf 内容
 	{
 		uint8_t uidpos;
 		search_uid_in_white_list(&uidpos,nrf_communication.dtq_uid);
-		nrf_communication.software_ack_buf[0] = 0x61;
-		memcpy((nrf_communication.software_ack_buf + 1), wl.uids[uidpos].uid, 4);
-		memcpy((nrf_communication.software_ack_buf + 5), nrf_communication.jsq_uid, 4);
-		nrf_communication.software_ack_buf[9]  = wl.uids[uidpos].rev_num;
-		nrf_communication.software_ack_buf[10] = wl.uids[uidpos].rev_seq;
-		nrf_communication.software_ack_buf[11] = NRF_DATA_IS_ACK;
-		nrf_communication.software_ack_buf[12] = 0xFF;
-		nrf_communication.software_ack_buf[13] = 0xFF;
-		nrf_communication.software_ack_buf[14] = 0;
-		nrf_communication.software_ack_buf[15] = XOR_Cal(nrf_communication.software_ack_buf+1,14);
-		nrf_communication.software_ack_buf[16] = 0x21;
+		nrf_communication.transmit_buf[0] = 0x61;
+		memcpy((nrf_communication.transmit_buf + 1), wl.uids[uidpos].uid, 4);
+		memcpy((nrf_communication.transmit_buf + 5), nrf_communication.jsq_uid, 4);
+		nrf_communication.transmit_buf[9]  = wl.uids[uidpos].rev_num;
+		nrf_communication.transmit_buf[10] = wl.uids[uidpos].rev_seq;
+		nrf_communication.transmit_buf[11] = NRF_DATA_IS_ACK;
+		nrf_communication.transmit_buf[12] = 0xFF;
+		nrf_communication.transmit_buf[13] = 0xFF;
+		nrf_communication.transmit_buf[14] = 0;
+		nrf_communication.transmit_buf[15] = XOR_Cal(nrf_communication.transmit_buf+1,14);
+		nrf_communication.transmit_buf[16] = 0x21;
 
-		nrf_communication.software_ack_len = 17;
+		nrf_communication.transmit_len = 17;
 
-		uesb_nrf_write_tx_payload(nrf_communication.software_ack_buf,nrf_communication.software_ack_len,count,delay100us);
+		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len,count,delay100us);
 	}
 	else if( nrf_data_type == NRF_DATA_IS_PRE )
 	{
-		nrf_communication.software_ack_buf[0] = 0x61;
-		memcpy((nrf_communication.software_ack_buf + 1), nrf_communication.dtq_uid, 4);
-		memcpy((nrf_communication.software_ack_buf + 5), nrf_communication.jsq_uid, 4);
-		nrf_communication.software_ack_buf[9]  = revicer.pre_seq++;
-		nrf_communication.software_ack_buf[10] = revicer.sen_num;
-		nrf_communication.software_ack_buf[11] = NRF_DATA_IS_PRE;
-		nrf_communication.software_ack_buf[12] = 0xFF;
-		nrf_communication.software_ack_buf[13] = 0xFF;
+		nrf_communication.transmit_buf[0] = 0x61;
+		memcpy((nrf_communication.transmit_buf + 1), nrf_communication.dtq_uid, 4);
+		memcpy((nrf_communication.transmit_buf + 5), nrf_communication.jsq_uid, 4);
+		nrf_communication.transmit_buf[9]  = revicer.pre_seq++;
+		nrf_communication.transmit_buf[10] = revicer.sen_num;
+		nrf_communication.transmit_buf[11] = NRF_DATA_IS_PRE;
+		nrf_communication.transmit_buf[12] = 0xFF;
+		nrf_communication.transmit_buf[13] = 0xFF;
 		/* len */
-		nrf_communication.software_ack_buf[14] = 0;
+		nrf_communication.transmit_buf[14] = 0;
 		/* get data */
 		memcpy(nrf_communication.transmit_buf+15 + data_buff_len, list_tcb_table[sel_table], 16);
 #ifdef OPEN_ACT_TABLE_SHOW
@@ -244,12 +244,12 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 		}
 #endif
 
-		nrf_communication.software_ack_buf[15+16 + data_buff_len] = XOR_Cal(nrf_communication.software_ack_buf+1,14+data_buff_len+16);
-		nrf_communication.software_ack_buf[16+16 + data_buff_len] = 0x21;
+		nrf_communication.transmit_buf[15+16 + data_buff_len] = XOR_Cal(nrf_communication.transmit_buf+1,14+data_buff_len+16);
+		nrf_communication.transmit_buf[16+16 + data_buff_len] = 0x21;
 
-		nrf_communication.software_ack_len = 17+16;
+		nrf_communication.transmit_len = 17+16;
 
-		uesb_nrf_write_tx_payload(nrf_communication.software_ack_buf,nrf_communication.software_ack_len,count,delay100us);
+		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len,count,delay100us);
 		DelayMs(10);
 	}
 }
