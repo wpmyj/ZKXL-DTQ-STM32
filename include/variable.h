@@ -240,13 +240,38 @@ extern uint8_t 						g_cCid;
 typedef struct
 {
 	uint8_t  uid[4];
+	uint8_t  pos;
 	uint8_t  use;
-	uint8_t  first;
-	uint16_t prepacknum;
-	uint8_t  retransmit_count;
-	uint32_t revice_package_num;
+	uint8_t  rev_num;
+	uint8_t  rev_seq;
+	uint8_t  sen_num;
+	uint8_t  sen_seq;
+	uint8_t  firstrev;
 	uint32_t lost_package_num;
-}clicker_t;
+}Clicker_Typedef;
+
+typedef struct
+{
+	uint8_t  uid[4];
+	uint8_t  sen_num;
+	uint8_t  sen_seq;
+	uint8_t  pre_seq;
+}Revicer_Typedef;
+
+typedef struct
+{
+	Clicker_Typedef uids[120];
+	uint8_t    len;
+	uint8_t    switch_status;
+	uint8_t    attendance_sttaus;
+	uint8_t    match_status;
+}WhiteList_Typedef;
+
+typedef struct
+{
+	uint8_t  status;
+	uint32_t cnt;
+}Timer_Typedef;
 
 typedef struct 
 {

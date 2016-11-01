@@ -76,8 +76,7 @@ typedef struct
 
 void serial_handle_layer(void);
 void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err_type );
-void pc_subject_change_status( uint8_t newstatus );
-uint8_t get_pc_subject_status( void );
+uint8_t get_backup_massage_status( void );
 void change_clicker_send_data_status( uint8_t newstatus );
 uint8_t get_clicker_send_data_status( void );
 uint32_t clicker_send_data_time_set(uint8_t mode);

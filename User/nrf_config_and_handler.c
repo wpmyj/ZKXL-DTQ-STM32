@@ -31,15 +31,9 @@ volatile nrf_config_t		m_nrf_config;
 spi_cmd_type_t 					spi_cmd_type;
 volatile uint8_t				flag_nrf_int = 0;
 nrf_communication_t			nrf_communication;
-uint8_t 					      dtq_to_jsq_sequence;
-uint8_t 					      dtq_to_jsq_packnum;
-uint8_t 					      jsq_to_dtq_sequence;
-uint8_t 					      jsq_to_dtq_packnum;
 
 /* Private functions ---------------------------------------------------------*/
 static uint8_t hal_nrf_rw(SPI_TypeDef* SPIx, uint8_t value);
-
-
 
 static uint8_t hal_nrf_rw(SPI_TypeDef* SPIx, uint8_t value)
 {
@@ -271,11 +265,6 @@ void nrf51822_parameters_init(void)
 	{
 		nrf_communication.transmit_buf[i] = 0x00;
 	}
-
-	dtq_to_jsq_sequence = 0;
-	jsq_to_dtq_sequence = 0;
-	dtq_to_jsq_packnum  = 0;
-	jsq_to_dtq_packnum  = 0;
 
 	nrf_communication.sequence = 0;					//初始化发送数据编号为0，每发送一次+1
 	nrf_communication.number_of_retransmits = 0;

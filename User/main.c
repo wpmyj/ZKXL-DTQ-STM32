@@ -14,9 +14,7 @@
 
 extern void app_handle_layer(void);
 extern void rc500_handle_layer(void);
-extern clicker_t clickers[120];
 extern uint32_t clicker_test_printf_flg;
-extern timer_t clicker_time;
 
 /******************************************************************************
   Function:main

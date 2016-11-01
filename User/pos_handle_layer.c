@@ -17,15 +17,15 @@
 #include "app_send_data_process.h"
 
 /* Private variables ---------------------------------------------------------*/
+static uint8_t whitelist_print_index = 0;
+
 extern Uart_MessageTypeDef uart_irq_send_massage;
 extern uint8_t uart_tx_status;
 extern nrf_communication_t nrf_communication;
-extern uint8_t jsq_to_dtq_packnum;
        uint8_t serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 			 uint8_t serial_cmd_type = 0;
 			 uint8_t err_cmd_type = 0;
 	     uint8_t sign_buffer[4];
-			 uint8_t whitelist_print_index = 0;
 			 uint8_t card_cmd_type = 0;
 
 uint8_t uart_rf_cmd_sign[4];
@@ -33,22 +33,18 @@ uint8_t uart_card_cmd_sign[4];
 
 /* 暂存题目信息，以备重发使用 */
 Uart_MessageTypeDef backup_massage;
+static uint8_t backup_massage_status = 0;
+static uint32_t clicker_send_data_timecnt = 0;
 
-static uint8_t pc_subject_status = 0;
-volatile static uint32_t clicker_send_data_timecnt = 0;
-
-uint8_t retransmit_flg = 0;
-
-
+extern WhiteList_Typedef wl;
+extern Revicer_Typedef   revicer;
 
 /* Private functions ---------------------------------------------------------*/
 static void serial_send_data_to_pc(void);
 static void serial_cmd_process(void);
-//static void serial_transmission_to_nrf51822(void);
 
 void App_initialize_white_list( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
-//void App_send_data_to_clicker_start( Uart_MessageTypeDef *RMessage);
 void App_send_data_to_clicker_return( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_stop_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
@@ -91,32 +87,32 @@ void clicker_send_data_time_set1(uint8_t status1, uint8_t status2, uint32_t dela
 /******************************************************************************
   Function:pc_subject_change_status
   Description:
-		修改pc_subject_status的状态
+		修改backup_massage_status的状态
   Input :
-		pc_subject_status: pc_subject_status的新状态
+		backup_massage_status: backup_massage_status的新状态
   Output:
   Return:
   Others:None
 ******************************************************************************/
 void pc_subject_change_status( uint8_t newstatus )
 {
-	pc_subject_status = newstatus;
-	DebugLog("<%s>pc_subject_status = %d\r\n",__func__,pc_subject_status);
+	backup_massage_status = newstatus;
+	DebugLog("<%s>backup_massage_status = %d\r\n",__func__,backup_massage_status);
 }
 
 /******************************************************************************
-  Function:get_pc_subject_status
+  Function:get_backup_massage_status
   Description:
-		修改pc_subject_status的状态
+		修改backup_massage_status的状态
   Input :
-		pc_subject_status: pc_subject_status的新状态
+		backup_massage_status: backup_massage_status的新状态
   Output:
   Return:
   Others:None
 ******************************************************************************/
-uint8_t get_pc_subject_status( void )
+uint8_t get_backup_massage_status( void )
 {
-	return pc_subject_status;
+	return backup_massage_status;
 }
 
 /******************************************************************************
@@ -389,7 +385,7 @@ static void serial_cmd_process(void)
 						DelayMs(30);
 						whitelist_print_index = App_return_whitelist_data(
 								&ReviceMessage, &SendMessage,whitelist_print_index );
-						if( whitelist_print_index < white_len )
+						if( whitelist_print_index < wl.len )
 						{
 							serial_cmd_type = 0x2B;
 							serial_cmd_status = APP_SERIAL_CMD_STATUS_WORK;
@@ -595,8 +591,8 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 		*( pdata + ( i++ ) ) = 0x01; // busy
 	}
 
-	*( pdata + ( i++ ) ) = white_on_off;
-	*( pdata + ( i++ ) ) = white_len;
+	*( pdata + ( i++ ) ) = wl.switch_status;
+	*( pdata + ( i++ ) ) = wl.len;
 
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;
@@ -607,7 +603,7 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 		send_data_env_init();
 
 		/* 有数据下发且未曾下发过 */
-		jsq_to_dtq_packnum++;
+		revicer.sen_num++;
 
 		/* 发送前导帧 */
 		memset(nrf_communication.dtq_uid, 0, 4);
@@ -679,9 +675,9 @@ void App_open_or_close_white_list( Uart_MessageTypeDef *RMessage,
 	SMessage->HEADER = 0x5C;
 
 	if(RMessage->TYPE == 0x23)
-		white_on_off = ON;
+		wl.switch_status = 1;
 	else
-		white_on_off = OFF;
+		wl.switch_status = 0;
 
 	SMessage->TYPE = RMessage->TYPE;
 
@@ -689,7 +685,7 @@ void App_open_or_close_white_list( Uart_MessageTypeDef *RMessage,
 
 	SMessage->LEN = 0x01;
 
-	openstatus = store_switch_status_to_fee(white_on_off);
+	openstatus = store_switch_status_to_fee(wl.switch_status);
 
 	if(openstatus == OPERATION_SUCCESS)
 	{
@@ -740,8 +736,8 @@ void App_stop_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_Message
 	}
 
 	*( pdata + ( i++ ) ) = 0x00;
-	*( pdata + ( i++ ) ) = white_on_off;
-	*( pdata + ( i++ ) ) = white_len;
+	*( pdata + ( i++ ) ) = wl.switch_status;
+	*( pdata + ( i++ ) ) = wl.len;
 
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;
@@ -808,7 +804,7 @@ void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageT
 		*( pdata + ( i++ ) ) = UidAddStatus[j];
 	}
 
-	*( pdata + ( i++ ) ) = white_len;
+	*( pdata + ( i++ ) ) = wl.len;
 
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;
@@ -841,9 +837,8 @@ uint8_t App_return_whitelist_data( Uart_MessageTypeDef *RMessage, Uart_MessageTy
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
 
 	pdata++;
-	white_len = get_len_of_white_list();
 
-	for(i=0;(i<UART_NBUF-6)&&(uid_p<white_len);i=i+4)
+	for(i=0;(i<UART_NBUF-6)&&(uid_p<wl.len);i=i+4)
 	{
 		get_index_of_uid(uid_p,tempuid);
 
@@ -879,11 +874,11 @@ void App_open_or_close_attendance_match( Uart_MessageTypeDef *RMessage, Uart_Mes
 
 	switch(RMessage->TYPE)
 	{
-		case 0x25: attendance_on_off = ON;  break;
-		case 0x27: attendance_on_off = OFF; break;
-		case 0x28: match_on_off = ON;       break;
-		case 0x2A: match_on_off = OFF;      break;
-		default:                            break;
+		case 0x25: wl.attendance_sttaus = ON;  break;
+		case 0x27: wl.attendance_sttaus = OFF; break;
+		case 0x28: wl.match_status = ON;       break;
+		case 0x2A: wl.match_status = OFF;      break;
+		default:                               break;
 	}
 
 	card_cmd_type = RMessage->TYPE;
@@ -917,12 +912,11 @@ void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef 
 
 	if(RMessage->TYPE == 0x28)
 	{
-		match_on_off = ON;
-		match_number = 1;
+		wl.match_status = ON;
 	}
 	else
 	{
-		match_on_off = OFF;
+		wl.match_status = OFF;
 	}
 
 	SMessage->TYPE = RMessage->TYPE;
