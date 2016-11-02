@@ -13,8 +13,6 @@
 #include "stdlib.h"
 
 extern void app_handle_layer(void);
-extern void rc500_handle_layer(void);
-extern uint32_t clicker_test_printf_flg;
 
 /******************************************************************************
   Function:main

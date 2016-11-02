@@ -8,6 +8,7 @@
   ******************************************************************************
   */
 #include "version.h"
+#include "main.h"
 
 /* Private variables ---------------------------------------------------------*/
 const uint8_t software[3] = {
@@ -29,6 +30,7 @@ const uint8_t company[16] = {
 
 uint8_t  jsq_uid[8];
 
+extern nrf_communication_t nrf_communication;
 /*******************************************************************************
   * @brief  Get stm32 MCU.
   * @param  None
@@ -52,4 +54,9 @@ void get_mcu_uid(void)
 	jsq_uid[2]=(uint8_t)(MCUID[3]>>20)&0x0f;
 	jsq_uid[1]=(uint8_t)(MCUID[3]>>24)&0x0f;
 	jsq_uid[0]=(uint8_t)(MCUID[3]>>28)&0x0f;
+
+	nrf_communication.jsq_uid[0] = (jsq_uid[1]&0x0F)|((jsq_uid[0]<<4)&0xF0);
+	nrf_communication.jsq_uid[1] = (jsq_uid[3]&0x0F)|((jsq_uid[2]<<4)&0xF0);
+	nrf_communication.jsq_uid[2] = (jsq_uid[5]&0x0F)|((jsq_uid[4]<<4)&0xF0);
+	nrf_communication.jsq_uid[3] = (jsq_uid[7]&0x0F)|((jsq_uid[6]<<4)&0xF0);
 }
