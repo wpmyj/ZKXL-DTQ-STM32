@@ -66,7 +66,7 @@ void rc500_handle_layer(void)
 	sendtoRC500();
 
 }
-void write_RF_config(uint8_t upos)
+void write_RF_config(uint8_t upos,uint8_t ndef_xor)
 {
 	if(SelectApplication() == MI_OK)		//选择应用
 	{
@@ -74,7 +74,7 @@ void write_RF_config(uint8_t upos)
 		{
 			if(ReadNDEFfile(NDEF_DataWrite, &NDEF_Len) == MI_OK)			//读出验证
 			{
-				if(NDEF_DataWrite[6] == upos)
+				if((NDEF_DataWrite[6] == upos) && (NDEF_DataWrite[7] == ndef_xor))
 				{
 					time_for_buzzer_on = 10;
 					time_for_buzzer_off = 300;

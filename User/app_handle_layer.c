@@ -204,7 +204,7 @@ void App_clickers_systick_process(void)
 void App_card_process(void)
 {
 	Uart_MessageTypeDef card_message;
-	uint8_t is_white_list_uid = 0,uid_p = 0;
+	uint8_t is_white_list_uid = 0,uid_p = 0,ndef_xor = 0;
 	uint8_t cmd_process_status = 0;
 
 	if((delay_nms == 0)&&((wl.attendance_sttaus == ON) || wl.match_status == ON))
@@ -217,6 +217,9 @@ void App_card_process(void)
 			{
 				is_white_list_uid = add_uid_to_white_list(g_cSNR+5,&uid_p);
 				NDEF_DataWrite[6] = uid_p;
+				ndef_xor          = XOR_Cal(NDEF_DataWrite+1,6);
+				NDEF_DataWrite[7] = ndef_xor;
+				
 				if(is_white_list_uid != OPERATION_ERR)
 				{
           // OK
@@ -265,7 +268,7 @@ void App_card_process(void)
 			if(is_white_list_uid != OPERATION_ERR)
 			{
 				//写入配对时将UID传给答题器
-				write_RF_config(uid_p);
+				write_RF_config(uid_p,ndef_xor);
 
 				//不重复寻卡
 				PcdHalt();

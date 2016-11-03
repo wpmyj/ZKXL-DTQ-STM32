@@ -16,7 +16,6 @@ extern uint16_t list_tcb_table[10][8];
 extern Uart_MessageTypeDef backup_massage;
 extern uint8_t sign_buffer[4];
 extern uint8_t sum_clicker_count;
-
 /* 统计与重发过程所使用变量 */
 // 在线状态检索
 #define LOST_INDEX        0
@@ -255,6 +254,16 @@ uint8_t spi_process_revice_data( void )
 		spi_read_data_from_buffer( SPI_REVICE_BUFFER, spi_message );
 		clicker_send_data_status = spi_message[spi_message[14]+17];
 		spi_message_type = spi_message[11];
+
+		#ifdef OPEN_BUFFER_DATA_SHOW
+		{
+			int i;
+			printf("%4d ", buffer_get_buffer_status(SPI_REVICE_BUFFER));
+			printf("Buffer Read :");
+			for(i=0;i<spi_message[15]+18;i++)
+				printf("%2x ",spi_message[i]);
+		}
+		#endif
 
 		/* 判断是否为状态帧 */
 		if(spi_message_type != 0x0A)

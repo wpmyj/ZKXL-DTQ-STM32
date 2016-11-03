@@ -15,10 +15,10 @@ static uint8_t  UartSendBuffer[SENDBUFFERSIZE];
 static uint8_t  SpireviceBuffer[SPIBUFFERSIZE];
 const uint32_t  BufferSize[RINGBUFFERSUM]       = {REVICEBUFFERSIZE,SENDBUFFERSIZE,SPIBUFFERSIZE};
 static uint8_t *pUartBuffer[RINGBUFFERSUM]      = {UartReviceBuffer,UartSendBuffer,SpireviceBuffer};
-static uint16_t UartBufferTop[RINGBUFFERSUM]    = { 0, 0, 0 };
-static uint16_t UartBufferBottom[RINGBUFFERSUM] = { 0, 0, 0 };
-static uint32_t UartBufferSize[RINGBUFFERSUM]   = { 0, 0, 0 };
-static uint8_t  UartBufferStatus[RINGBUFFERSUM] = { BUFFEREMPTY, BUFFEREMPTY, BUFFEREMPTY};
+static volatile uint16_t UartBufferTop[RINGBUFFERSUM]    = { 0, 0, 0 };
+static volatile uint16_t UartBufferBottom[RINGBUFFERSUM] = { 0, 0, 0 };
+static volatile int32_t UartBufferSize[RINGBUFFERSUM]   = { 0, 0, 0 };
+static volatile uint8_t  UartBufferStatus[RINGBUFFERSUM] = { BUFFEREMPTY, BUFFEREMPTY, BUFFEREMPTY};
 
 /* Private functions ---------------------------------------------------------*/
 static void    buffer_read_change_status( uint8_t sel_buffer) ;
@@ -51,19 +51,7 @@ uint8_t buffer_get_buffer_status( uint8_t sel_buffer )
 ******************************************************************************/
 uint8_t buffer_get_data_from_buffer( uint8_t sel_buffer, uint16_t index )
 {
-	uint8_t data;
-
-	if( index < BufferSize[sel_buffer] )
-	{
-		data = pUartBuffer[sel_buffer][index];
-		pUartBuffer[sel_buffer][index] = 0;
-	}
-	else
-	{
-		data = pUartBuffer[sel_buffer][index-BufferSize[sel_buffer]];
-		pUartBuffer[sel_buffer][index-BufferSize[sel_buffer]] = 0;
-	}
-	return data;
+	return  pUartBuffer[sel_buffer][index % BufferSize[sel_buffer]];
 }
 
 /******************************************************************************
@@ -76,10 +64,7 @@ uint8_t buffer_get_data_from_buffer( uint8_t sel_buffer, uint16_t index )
 ******************************************************************************/
 void buffer_store_data_to_buffer( uint8_t sel_buffer, uint16_t index, uint8_t data)
 {
-	if( index < BufferSize[sel_buffer] )
-		pUartBuffer[sel_buffer][index] = data;
-	else
-		pUartBuffer[sel_buffer][index-BufferSize[sel_buffer]] = data;
+		pUartBuffer[sel_buffer][index % BufferSize[sel_buffer]] = data;
 }
 
 
@@ -104,11 +89,20 @@ static void buffer_read_change_status( uint8_t sel_buffer)
 
 		case BUFFERUSEING:
 			{
-				if((serial_ringbuffer_get_usage_rate(sel_buffer) <= USAGE_TATE_EREMPTY) &&
-					 (UartBufferTop[sel_buffer] == UartBufferBottom[sel_buffer]))
+				if(UartBufferSize[sel_buffer] == 0)
+				{
 					UartBufferStatus[sel_buffer] = BUFFEREMPTY;
-				else
+				}
+				else if(UartBufferSize[sel_buffer] > 0)
+				{
 					UartBufferStatus[sel_buffer] = BUFFERUSEING;
+				}
+				else
+				{
+					UartBufferStatus[sel_buffer] = BUFFEREMPTY;
+					UartBufferTop[sel_buffer] = 0;
+					UartBufferBottom[sel_buffer] = 0;
+				}
 			}
 			break;
 
@@ -171,16 +165,8 @@ static void buffer_write_change_status( uint8_t sel_buffer)
 ******************************************************************************/
 static void buffer_update_write_index( uint8_t sel_buffer, uint8_t Len )
 {
-    uint16_t tmp = 0;
-
 	UartBufferSize[sel_buffer] += Len;
-
-	tmp = UartBufferTop[sel_buffer] + Len;
-
-	if(tmp > BufferSize[sel_buffer])
-		UartBufferTop[sel_buffer] = tmp - BufferSize[sel_buffer];
-	else
-		UartBufferTop[sel_buffer] = tmp;
+	UartBufferTop[sel_buffer] = (UartBufferTop[sel_buffer] + Len) % BufferSize[sel_buffer];
 }
 
 /******************************************************************************
@@ -193,16 +179,8 @@ static void buffer_update_write_index( uint8_t sel_buffer, uint8_t Len )
 ******************************************************************************/
 static void buffer_update_read_index( uint8_t sel_buffer, uint8_t Len )
 {
-  uint16_t tmp = 0;
-
 	UartBufferSize[sel_buffer] -= Len;
-
-	tmp = UartBufferBottom[sel_buffer] + Len;
-
-	if(tmp > BufferSize[sel_buffer])
-		UartBufferBottom[sel_buffer] = tmp - BufferSize[sel_buffer];
-	else
-		UartBufferBottom[sel_buffer] = tmp;
+	UartBufferBottom[sel_buffer] = (UartBufferBottom[sel_buffer] + Len) % BufferSize[sel_buffer];
 }
 
 /******************************************************************************
@@ -271,7 +249,8 @@ void spi_read_data_from_buffer( uint8_t sel_buffer, uint8_t SpiMessage[] )
 {
 	uint8_t *pdata, i;
 	uint8_t MessageLen = buffer_get_data_from_buffer( sel_buffer,
-														UartBufferBottom[sel_buffer]+14) + 17;
+														UartBufferBottom[sel_buffer]+14) + 17; 
+
 	pdata = SpiMessage;
 
 	for(i=0;i<=MessageLen;i++)
@@ -282,6 +261,9 @@ void spi_read_data_from_buffer( uint8_t sel_buffer, uint8_t SpiMessage[] )
 				UartBufferBottom[sel_buffer]+i,0);
 		pdata++;
 	}
+	
+	SpiMessage[15] = MessageLen - 17;
+	
 
 	buffer_update_read_index(sel_buffer, MessageLen+1);
 

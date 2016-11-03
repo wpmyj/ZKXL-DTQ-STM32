@@ -11,6 +11,7 @@
 #include "main.h"
 #include "mcu_config.h"
 extern WhiteList_Typedef wl;
+extern nrf_communication_t nrf_communication;
 /*******************************************************************************
   * @brief  硬件平台初始化
   * @param  None
@@ -37,8 +38,8 @@ void Platform_Init(void)
 	get_mcu_uid();
 	
 	/* 配对是存入接收器器UID到答题器 */
-	NDEF_DataWrite[1] = 0x05;
-	memcpy((NDEF_DataWrite+2),jsq_uid,4);
+	NDEF_DataWrite[1] = 0x06;
+	memcpy(NDEF_DataWrite+2,nrf_communication.jsq_uid,4);;
 	
 	/* initialize the spi interface with nrf51822 */
 	nrf51822_spi_init();	
