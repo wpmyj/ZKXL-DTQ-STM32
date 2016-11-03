@@ -57,7 +57,7 @@ uint8_t ReadSystemfile(uint8_t *Systemfile_Data, uint8_t *Systemfile_len);
 uint8_t ReadNDEFfile(uint8_t *NDEFfile_Data, uint16_t *NDEFfile_len);
 uint8_t WriteNDEFfile(uint8_t *pDataToWrite);
 uint8_t Deselect(void);
-void write_RF_config(uint8_t upos);
+void write_RF_config(uint8_t upos,uint8_t ndef_xor);
 
 #endif //_RC500_HANDLE_LAYER_H
 

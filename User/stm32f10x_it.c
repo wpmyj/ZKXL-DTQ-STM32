@@ -27,7 +27,6 @@
 
 uint32_t clicker_test_printf_flg = 0;
 timer_t clicker_time;
-
 // revice part
 Uart_MessageTypeDef uart_irq_revice_massage;
 static uint32_t uart_rx_timeout = 0;
@@ -576,6 +575,17 @@ void RFIRQ_EXTI_IRQHandler(void)
 			{
 				uint8_t send_data_status = get_clicker_send_data_status();
 				spi_write_data_to_buffer(SPI_REVICE_BUFFER,nrf_communication.receive_buf, send_data_status);
+				#ifdef OPEN_BUFFER_DATA_SHOW
+				{
+					int i;
+					printf("%4d ", buffer_get_buffer_status(SPI_REVICE_BUFFER));
+					printf("Buffer Write:");
+					for(i=0;i<nrf_communication.receive_buf[14]+17;i++)
+						printf("%2x ",nrf_communication.receive_buf[i]);
+					printf("%2x ",send_data_status);
+				}
+				#endif
+				
 			}
 		}
 	}
