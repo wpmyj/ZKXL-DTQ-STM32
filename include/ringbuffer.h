@@ -21,9 +21,9 @@
 #define SPI_REVICE_BUFFER    2
 
 #define PACKETSIZE           (UART_NBUF+9)
-#define REVICEBUFFERSIZE     (2048)
+#define REVICEBUFFERSIZE     (1024)
 #define SENDBUFFERSIZE       (2048)
-#define SPIBUFFERSIZE        (4096)
+#define SPIBUFFERSIZE        (1024)
 #define RINGBUFFERSUM        (3)
 
 /* buffer status  */

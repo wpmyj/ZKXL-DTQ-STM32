@@ -568,21 +568,23 @@ void RFIRQ_EXTI_IRQHandler(void)
 		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_communication.receive_len,
 		                                         nrf_communication.receive_buf);
 		/* 进行 crc 校验 */
-		//if(*(nrf_communication.receive_buf + *(nrf_communication.receive_buf+14)+15) ==
-		//	  XOR_Cal(nrf_communication.receive_buf+1, *(nrf_communication.receive_buf+14)+14))
+		if( *(nrf_communication.receive_buf+1) == nrf_communication.jsq_uid[0] &&
+			  *(nrf_communication.receive_buf+2) == nrf_communication.jsq_uid[1] &&
+				*(nrf_communication.receive_buf+3) == nrf_communication.jsq_uid[2] &&
+				*(nrf_communication.receive_buf+4) == nrf_communication.jsq_uid[3])
 		{
 			if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
 			{
 				uint8_t send_data_status = get_clicker_send_data_status();
 				spi_write_data_to_buffer(SPI_REVICE_BUFFER,nrf_communication.receive_buf, send_data_status);
-				#ifdef OPEN_BUFFER_DATA_SHOW
+				#ifdef OPEN_BUFFER_ACK_SHOW
 				{
 					int i;
 					printf("%4d ", buffer_get_buffer_status(SPI_REVICE_BUFFER));
 					printf("Buffer Write:");
 					for(i=0;i<nrf_communication.receive_buf[14]+17;i++)
 						printf("%2x ",nrf_communication.receive_buf[i]);
-					printf("%2x ",send_data_status);
+					printf("%2x \r\n",send_data_status);
 				}
 				#endif
 				

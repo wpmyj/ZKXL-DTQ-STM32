@@ -260,7 +260,7 @@ uint8_t spi_process_revice_data( void )
 			int i;
 			printf("%4d ", buffer_get_buffer_status(SPI_REVICE_BUFFER));
 			printf("Buffer Read :");
-			for(i=0;i<spi_message[15]+18;i++)
+			for(i=0;i<spi_message[14]+18;i++)
 				printf("%2x ",spi_message[i]);
 		}
 		#endif
@@ -388,9 +388,13 @@ uint8_t spi_process_revice_data( void )
 				}
 				else
 				{
-
+					DEBUG_BUFFER_DTATA_LOG("[STATUS]:%d \r\n",spi_message[spi_message[15]+18]);
 				}
 			}
+		}
+		else
+		{
+			
 		}
 	}
 	return (clicker_send_data_status);
