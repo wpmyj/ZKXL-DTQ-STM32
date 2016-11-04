@@ -92,7 +92,6 @@ bool is_new_uid_online( void )
 	return 0;
 }
 
-
 /******************************************************************************
   Function:App_rf_check_process
   Description:
@@ -249,9 +248,10 @@ void App_card_process(void)
 						default:                               break;
 					}
 					memcpy(card_message.SIGN,uart_card_cmd_sign,4);
-					card_message.LEN    = 0x04;
-					memcpy(card_message.DATA,g_cSNR+5,4);
-					card_message.XOR = XOR_Cal(&card_message.TYPE,10);
+					card_message.LEN     = 0x05;
+					card_message.DATA[0] = uid_p;
+					memcpy(card_message.DATA+1,g_cSNR+5,4);
+					card_message.XOR = XOR_Cal(&card_message.TYPE,11);
 					card_message.END  = 0xCA;
 				}
 			}

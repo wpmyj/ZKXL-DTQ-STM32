@@ -823,9 +823,8 @@ void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageT
 ******************************************************************************/
 uint8_t App_return_whitelist_data( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage, uint8_t index)
 {
-	uint8_t i = 0;
-	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
-	uint8_t uid_p = index;
+	uint8_t *pdata = (uint8_t *)(SMessage->DATA+1);
+	uint8_t uid_p = index,uid_count = 0;
 	uint8_t tempuid[4] = {0,0,0,0};
 
 	SMessage->HEADER = 0x5C;
@@ -834,21 +833,23 @@ uint8_t App_return_whitelist_data( Uart_MessageTypeDef *RMessage, Uart_MessageTy
 
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
 
-	pdata++;
-
-	for(i=0;(i<UART_NBUF-6)&&(uid_p<wl.len);i=i+4)
+	while((uid_count*5<UART_NBUF-6)&&(uid_p<120))
 	{
-		get_index_of_uid(uid_p,tempuid);
-
-		*pdata++ = tempuid[0];
-		*pdata++ = tempuid[1];
-		*pdata++ = tempuid[2];
-		*pdata++ = tempuid[3];
+		if(OPERATION_SUCCESS == get_index_of_uid(uid_p,tempuid))
+		{
+			*pdata++ = uid_p;
+			*pdata++ = tempuid[0];
+			*pdata++ = tempuid[1];
+			*pdata++ = tempuid[2];
+			*pdata++ = tempuid[3];
+			uid_count++;
+		}
 		uid_p++;
 	}
-	SMessage->DATA[0] = uid_p;
-	SMessage->LEN = (uid_p-index)*4+1;
-	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+7);
+
+	SMessage->DATA[0] = wl.len;
+	SMessage->LEN = uid_count*5+1;
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), SMessage->LEN+6);
 	SMessage->END = 0xCA;
 
 	return uid_p;

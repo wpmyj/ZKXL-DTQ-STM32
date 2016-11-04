@@ -331,21 +331,6 @@ uint8_t get_len_of_white_list(void)
 bool store_len_to_fee(uint8_t len)
 {
 	uint16_t FlashStatus = 0;
-	uint8_t i = 0;
-	uint8_t is_pos_use = 0;
-
-	for(i=0; i < MAX_WHITE_LEN; i++)
-	{
-		/* 获取使用表的第i位的状态 */
-		is_pos_use = get_index_of_white_list_pos_status(0,i);
-
-		/* 如果使用的话，开始匹配 */
-		if( is_pos_use == 1 )
-		{
-			/* 读取此位置的白名单 */
-			len++;
-		}
-	}
 
 	EE_WriteVariable(WHITE_LIST_LEN_POS_OF_FEE,len);
 
