@@ -32,7 +32,6 @@
 #define UART_NBUF								(240)
 #define RF_NBUF									(UART_NBUF)
 
-
 #endif //_DEFINE_H_
 /**
   * @}

@@ -455,7 +455,8 @@ void get_send_data_table_message(uint8_t status)
 	{
 		case SEND_DATA1_UPDATE_STATUS:
 			{
-				DEBUG_SEND_DATA_LOG("\r\n第1次发送统计结果：");
+				DEBUG_SEND_DATA_LOG("Statistic : %d\r\n",revicer.data_statistic_count++);
+				DEBUG_SEND_DATA_LOG("第1次发送统计结果：");
 				result_check_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
 				result_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
 				after_result_status = SEND_DATA2_STATUS;
