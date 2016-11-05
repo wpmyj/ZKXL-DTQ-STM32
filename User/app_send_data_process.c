@@ -91,20 +91,20 @@ void change_clicker_send_data_status( uint8_t newstatus )
 		uint8_t *str;
 		switch(clicker_send_data_status)
 		{
-			case SEND_IDLE_STATUS:            str = "SEND_IDLE_STATUS";            break;
-			case SEND_DATA1_STATUS:           str = "SEND_DATA1_STATUS";           break;
-			case SEND_DATA1_UPDATE_STATUS:    str = "SEND_DATA1_UPDATE_STATUS";    break;
-			case SEND_DATA2_STATUS:           str = "SEND_DATA2_STATUS";           break;
-			case SEND_DATA2_SEND_OVER_STATUS: str = "SEND_DATA2_SEND_OVER_STATUS"; break;
-			case SEND_DATA2_UPDATE_STATUS:    str = "SEND_DATA2_UPDATE_STATUS";    break;
-			case SEND_DATA3_STATUS:           str = "SEND_DATA3_STATUS";           break;
-			case SEND_DATA3_SEND_OVER_STATUS: str = "SEND_DATA3_SEND_OVER_STATUS"; break;
-			case SEND_DATA3_UPDATE_STATUS:    str = "SEND_DATA3_UPDATE_STATUS";    break;
-			case SEND_DATA4_STATUS:           str = "SEND_DATA4_STATUS";           break;
-			case SEND_DATA4_UPDATE_STATUS:    str = "SEND_DATA4_UPDATE_STATUS";    break;
+			case SEND_IDLE_STATUS:            str = "IDLE_STATUS";            break;
+			case SEND_DATA1_STATUS:           str = "DATA1_STATUS";           break;
+			case SEND_DATA1_UPDATE_STATUS:    str = "DATA1_UPDATE_STATUS";    break;
+			case SEND_DATA2_STATUS:           str = "DATA2_STATUS";           break;
+			case SEND_DATA2_SEND_OVER_STATUS: str = "DATA2_SEND_OVER_STATUS"; break;
+			case SEND_DATA2_UPDATE_STATUS:    str = "DATA2_UPDATE_STATUS";    break;
+			case SEND_DATA3_STATUS:           str = "DATA3_STATUS";           break;
+			case SEND_DATA3_SEND_OVER_STATUS: str = "DATA3_SEND_OVER_STATUS"; break;
+			case SEND_DATA3_UPDATE_STATUS:    str = "DATA3_UPDATE_STATUS";    break;
+			case SEND_DATA4_STATUS:           str = "DATA4_STATUS";           break;
+			case SEND_DATA4_UPDATE_STATUS:    str = "DATA4_UPDATE_STATUS";    break;
 			default:break;
 		}
-		printf("\r\nclicker_send_data_status = %s\r\n",str);
+		printf("send_status = %s\r\n",str);
 	}
 #endif
 	spi_status_message[0] = 0x61;
@@ -301,12 +301,12 @@ uint8_t spi_process_revice_data( void )
 
 			if(1 == get_rf_retransmit_status())
 			{
-				if(spi_message[5] == retransmit_tcb.uid[0] &&
-					 spi_message[6] == retransmit_tcb.uid[1]
-					)
-				{
-					rf_retransmit_set_status(2);
-				}
+//				if(spi_message[5] == retransmit_tcb.uid[0] &&
+//					 spi_message[6] == retransmit_tcb.uid[1]
+//					)
+//				{
+//					rf_retransmit_set_status(2);
+//				}
 			}
 
 			/* 白名单开关状态 */
@@ -456,7 +456,7 @@ void get_send_data_table_message(uint8_t status)
 		case SEND_DATA1_UPDATE_STATUS:
 			{
 				DEBUG_SEND_DATA_LOG("Statistic : %d\r\n",revicer.data_statistic_count++);
-				DEBUG_SEND_DATA_LOG("第1次发送统计结果：");
+				DEBUG_SEND_DATA_LOG("First Statistic:");
 				result_check_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
 				result_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
 				after_result_status = SEND_DATA2_STATUS;
@@ -465,7 +465,7 @@ void get_send_data_table_message(uint8_t status)
 
 		case SEND_DATA2_UPDATE_STATUS:
 			{
-				DEBUG_SEND_DATA_LOG("\r\n第2次发送统计结果：");
+				DEBUG_SEND_DATA_LOG("\r\nSecond Statistic:");
 				result_check_tables[PRE_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
 				result_check_tables[PRE_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
 				after_result_status = SEND_DATA3_STATUS;
@@ -473,16 +473,15 @@ void get_send_data_table_message(uint8_t status)
 			break;
 		case SEND_DATA3_UPDATE_STATUS:
 			{
-				DEBUG_SEND_DATA_LOG("\r\n第3次发送统计结果：");
+				DEBUG_SEND_DATA_LOG("\r\nThird Statistic:");
 				result_check_tables[PRE_SUM_TABLE] = SEND_DATA3_SUM_TABLE;
 				result_check_tables[PRE_ACK_TABLE] = SEND_DATA3_ACK_TABLE;
 				after_result_status = SEND_DATA4_STATUS;
-				//after_result_status = SEND_IDLE_STATUS;
 			}
 			break;
 		case SEND_DATA4_UPDATE_STATUS:
 			{
-				DEBUG_SEND_DATA_LOG("\r\n第4次发送统计结果：");
+				DEBUG_SEND_DATA_LOG("\r\nFourth Statistic:");
 				result_check_tables[PRE_SUM_TABLE] = SEND_DATA4_SUM_TABLE;
 				result_check_tables[PRE_ACK_TABLE] = SEND_DATA4_ACK_TABLE;
 				after_result_status = SEND_IDLE_STATUS;
@@ -682,9 +681,18 @@ void send_data_result( uint8_t status )
 		{
 			if( status == SEND_DATA3_UPDATE_STATUS )
 			{
+				uint8_t retransmit_clickers;
 				DEBUG_SEND_DATA_LOG("\r\n\r\n[3].retransmit:\r\n");
-				retransmit_tcb.sum = checkout_retransmit_clickers(SEND_DATA3_SUM_TABLE,SEND_DATA3_ACK_TABLE,
+				retransmit_clickers = checkout_retransmit_clickers(SEND_DATA3_SUM_TABLE,SEND_DATA3_ACK_TABLE,
 																			SEND_DATA4_SUM_TABLE);
+				if(retransmit_clickers > 0)
+				{
+					retransmit_tcb.sum = 3;
+				}
+				else
+				{
+					retransmit_tcb.sum = 0;
+				}
 				whitelist_checktable_or(SEND_DATA3_ACK_TABLE,SEND_DATA_ACK_TABLE);
 			}
 
@@ -712,17 +720,8 @@ void send_data_result( uint8_t status )
   Return:
   Others:None
 ******************************************************************************/
-void retransmit_data_to_next_clicker( uint8_t Is_next_uid, uint8_t *pos )
+void retransmit_data_to_next_clicker( void )
 {
-	if( Is_next_uid == 1 )
-	{
-		get_next_uid_of_white_list( SEND_DATA4_SUM_TABLE, retransmit_tcb.uid, pos );
-	}
-
-	DEBUG_RETRANSMIT_LOG("[%3d]:%02x%02x%02x%02x ",*pos,retransmit_tcb.uid[0],retransmit_tcb.uid[1],
-																					retransmit_tcb.uid[2],retransmit_tcb.uid[3]);
-	memcpy(rf_var.tx_buf, (uint8_t *)(backup_massage.DATA), backup_massage.LEN);
-	memcpy(nrf_communication.dtq_uid,retransmit_tcb.uid,4);
 	nrf_transmit_start(rf_var.tx_buf,0,NRF_DATA_IS_PRE,SEND_PRE_COUNT,
 	                   SEND_PRE_DELAY100US,SEND_DATA4_SUM_TABLE);
 
@@ -782,53 +781,23 @@ void App_clickers_send_data_process( void )
 		{
 			if(rf_retransmit_status == 0)
 			{
-				retransmit_data_to_next_clicker( 1, &retransmit_tcb.pos );
+				retransmit_data_to_next_clicker();
 			}
 		}
 
 		if(rf_retransmit_status == 2)
 		{
-			//clickers[retransmit_tcb.pos].retransmit_count = 0;
 			retransmit_tcb.count++;
-			DEBUG_RETRANSMIT_LOG("ok\r\n");
-			DEBUG_RETRANSMIT_LOG("retransmit_tcb.count = %d retransmit_tcb.sum = %d\r\n",
-			 retransmit_tcb.count, retransmit_tcb.sum );
+			DEBUG_RETRANSMIT_LOG("retransmit_count = %d\r\n",retransmit_tcb.count );
 			if(retransmit_tcb.count == retransmit_tcb.sum)
 			{
-				change_clicker_send_data_status(SEND_DATA4_UPDATE_STATUS); // 11
+				retransmit_tcb.count = 0;
+				change_clicker_send_data_status( SEND_DATA4_UPDATE_STATUS ); // 11
 				retransmit_env_clear();
 			}
 			else
 			{
-				rf_retransmit_set_status(0);
-			}
-		}
-
-		if(rf_retransmit_status == 3)
-		{
-			DEBUG_RETRANSMIT_LOG("fail\r\n");
-			retransmit_tcb.retransmit_count++;
-
-			if(retransmit_tcb.retransmit_count == 3)
-			{
-				retransmit_tcb.count++;
-			  DEBUG_RETRANSMIT_LOG("retransmit_tcb.count = %d retransmit_tcb.sum = %d\r\n",
-			                       retransmit_tcb.count, retransmit_tcb.sum );
-
-				retransmit_tcb.retransmit_count = 0;
-				if(retransmit_tcb.count == retransmit_tcb.sum)
-				{
-					change_clicker_send_data_status( SEND_DATA4_UPDATE_STATUS ); // 11
-					retransmit_env_clear();
-				}
-				else
-				{
-					rf_retransmit_set_status(0);
-				}
-			}
-			else
-			{
-				retransmit_data_to_next_clicker(0,&retransmit_tcb.pos);
+				retransmit_data_to_next_clicker();
 			}
 		}
 	}

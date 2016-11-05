@@ -6,9 +6,9 @@
 //#define OPEN_BUFFER_ACK_SHOW
 //#define OPEN_BUFFER_DATA_SHOW
 //#define OPEN_ACK_TABLE_SHOW
-//#define OPEN_SEND_STATUS_SHOW
-#define RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
-#define SEND_DATA_DETAIL_MESSAGE_SHOW
+#define OPEN_SEND_STATUS_SHOW
+//#define RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
+//#define SEND_DATA_DETAIL_MESSAGE_SHOW
 #define SUM_DATA_STATISTICS
 //#define ENABLE_SEND_DATA_TO_PC
 
@@ -56,14 +56,14 @@
 /* 广播帧 */
 #define SEND_DATA1_STATUS           (SEND_PRE_STATUS+1)             // 2
 #define SEND_DATA1_SUM_TABLE        0
-#define SEND_DATA1_TIMEOUT          4050
+#define SEND_DATA1_TIMEOUT          1500
 #define SEND_DATA1_ACK_TABLE        3
 #define SEND_DATA1_UPDATE_STATUS    (SEND_DATA1_STATUS+1)           // 3
 
 /* 第1次重发帧 */
 #define SEND_DATA2_STATUS           (SEND_DATA1_UPDATE_STATUS+1)    // 4
 #define SEND_DATA2_SUM_TABLE        4
-#define SEND_DATA2_TIMEOUT          4000
+#define SEND_DATA2_TIMEOUT          1500
 #define SEND_DATA2_ACK_TABLE        5
 #define SEND_DATA2_SEND_OVER_STATUS (SEND_DATA2_STATUS+1)           // 5
 #define SEND_DATA2_UPDATE_STATUS    (SEND_DATA2_SEND_OVER_STATUS+1) // 6
@@ -71,7 +71,7 @@
 /* 第2次重发帧 */
 #define SEND_DATA3_STATUS           (SEND_DATA2_UPDATE_STATUS+1)    // 7
 #define SEND_DATA3_SUM_TABLE        6
-#define SEND_DATA3_TIMEOUT          4000
+#define SEND_DATA3_TIMEOUT          1500
 #define SEND_DATA3_ACK_TABLE        7
 #define SEND_DATA3_SEND_OVER_STATUS (SEND_DATA3_STATUS+1)           // 8
 #define SEND_DATA3_UPDATE_STATUS    (SEND_DATA3_SEND_OVER_STATUS+1) // 9
@@ -79,7 +79,7 @@
 /* 第3次重发帧 */
 #define SEND_DATA4_STATUS           (SEND_DATA3_UPDATE_STATUS+1)    // 10
 #define SEND_DATA4_SUM_TABLE        8
-#define SEND_DATA4_TIMEOUT          4000
+#define SEND_DATA4_TIMEOUT          1500
 #define SEND_DATA4_ACK_TABLE        9
 #define SEND_DATA4_UPDATE_STATUS    (SEND_DATA4_STATUS+1)           // 11
 
@@ -90,7 +90,6 @@ typedef struct
 	uint8_t uid[4];
 	uint8_t pos;
 	uint8_t status;
-	uint8_t retransmit_count;
 }retransmit_tcb_tydef;
 
 typedef struct

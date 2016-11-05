@@ -437,7 +437,7 @@ void SysTick_Handler(void)
 		rf_retransmit_timecnt++;
 		if(rf_retransmit_timecnt == SEND_DATA4_TIMEOUT)
 		{
-			rf_retransmit_set_status(3);
+			rf_retransmit_set_status(2);
 			rf_retransmit_timecnt = 0;
 		}
 	}
