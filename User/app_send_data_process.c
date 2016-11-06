@@ -5,6 +5,9 @@
 #define CLICKER_SNED_DATA_STATUS_TYPE     10
 #define CLICKER_PRE_DATA_STATUS_TYPE      11
 
+extern uint8_t spi_temp_buffer[4][256];
+extern uint8_t write_index, read_index, Count;
+
 uint8_t clicker_send_data_status = 0;
 static uint8_t pre_status = 0;
 static uint8_t sum_clicker_count = 0;
@@ -35,7 +38,7 @@ static uint8_t retransmit_check_tables[4];;
 static uint8_t after_retransmit_status;
 
 static message_tcb_tydef    message_tcb ;
-retransmit_tcb_tydef retransmit_tcb;
+static retransmit_tcb_tydef retransmit_tcb;
 static Uart_MessageTypeDef  revice_lost_massage,revice_ok_massage;
 extern WhiteList_Typedef    wl;
 extern Revicer_Typedef      revicer;
@@ -113,7 +116,23 @@ void change_clicker_send_data_status( uint8_t newstatus )
 	memset(spi_status_message+12,0,3);
 	spi_status_message[15] = CLICKER_SNED_DATA_STATUS_TYPE;
 	spi_status_message[16] = 0x21;
-	spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_status_message, newstatus);
+	if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
+	{
+		spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_status_message, newstatus);
+		{
+			int i;
+			printf("%4d ", buffer_get_buffer_status(SPI_REVICE_BUFFER));
+			for(i=0;i<17;i++)
+			{
+				printf("%2x ",spi_status_message[i]);
+			}
+			printf("%2x \r\n",newstatus);
+		}
+	}
+	else
+	{
+		printf("buffer is full,status lost \r\n");
+	}
 }
 
 /******************************************************************************
@@ -184,7 +203,7 @@ void clear_uid_check_table( void )
 	clear_white_list_table(7);
 	clear_white_list_table(8);
 	clear_white_list_table(9);
-	DEBUG_SEND_DATA_LOG("\r\nSum count:%d\r\n",sum_clicker_count);
+	DEBUG_STATISTICS_LOG("\r\nSum count:%d\r\n",sum_clicker_count);
 	sum_clicker_count = 0;
 }
 
@@ -242,8 +261,8 @@ void clicker_send_data_statistics( uint8_t send_data_status, uint8_t uidpos )
 ******************************************************************************/
 uint8_t spi_process_revice_data( void )
 {
-	static  uint8_t spi_message[255];
-	static  uint8_t spi_message_type = 0;
+	uint8_t spi_message[255];
+	uint8_t spi_message_type = 0;
 	bool    Is_whitelist_uid = OPERATION_ERR;
 	uint8_t uidpos = 0;
 	uint8_t clicker_send_data_status = 0;
@@ -396,6 +415,11 @@ uint8_t spi_process_revice_data( void )
 		{
 			
 		}
+		// to check data
+	}
+	else
+	{
+		// ok to update to pc
 	}
 	return (clicker_send_data_status);
 }
@@ -455,8 +479,8 @@ void get_send_data_table_message(uint8_t status)
 	{
 		case SEND_DATA1_UPDATE_STATUS:
 			{
-				DEBUG_SEND_DATA_LOG("Statistic : %d\r\n",revicer.data_statistic_count++);
-				DEBUG_SEND_DATA_LOG("First Statistic:");
+				DEBUG_STATISTICS_LOG("Statistic : %d\r\n",revicer.data_statistic_count++);
+				DEBUG_STATISTICS_LOG("First Statistic:");
 				result_check_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
 				result_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
 				after_result_status = SEND_DATA2_STATUS;
@@ -465,7 +489,7 @@ void get_send_data_table_message(uint8_t status)
 
 		case SEND_DATA2_UPDATE_STATUS:
 			{
-				DEBUG_SEND_DATA_LOG("\r\nSecond Statistic:");
+				DEBUG_STATISTICS_LOG("\r\nSecond Statistic:");
 				result_check_tables[PRE_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
 				result_check_tables[PRE_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
 				after_result_status = SEND_DATA3_STATUS;
@@ -473,7 +497,7 @@ void get_send_data_table_message(uint8_t status)
 			break;
 		case SEND_DATA3_UPDATE_STATUS:
 			{
-				DEBUG_SEND_DATA_LOG("\r\nThird Statistic:");
+				DEBUG_STATISTICS_LOG("\r\nThird Statistic:");
 				result_check_tables[PRE_SUM_TABLE] = SEND_DATA3_SUM_TABLE;
 				result_check_tables[PRE_ACK_TABLE] = SEND_DATA3_ACK_TABLE;
 				after_result_status = SEND_DATA4_STATUS;
@@ -481,7 +505,7 @@ void get_send_data_table_message(uint8_t status)
 			break;
 		case SEND_DATA4_UPDATE_STATUS:
 			{
-				DEBUG_SEND_DATA_LOG("\r\nFourth Statistic:");
+				DEBUG_STATISTICS_LOG("\r\nFourth Statistic:");
 				result_check_tables[PRE_SUM_TABLE] = SEND_DATA4_SUM_TABLE;
 				result_check_tables[PRE_ACK_TABLE] = SEND_DATA4_ACK_TABLE;
 				after_result_status = SEND_IDLE_STATUS;
@@ -504,7 +528,7 @@ void get_retransmit_messsage( uint8_t status )
 	{
 		case SEND_DATA2_STATUS:
 			{
-				DEBUG_SEND_DATA_LOG("\r\n\r\n[1].retransmit:\r\n");
+				DEBUG_UID_LOG("\r\n\r\n[1].retransmit:\r\n");
 				retransmit_check_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
 				retransmit_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
 				retransmit_check_tables[CUR_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
@@ -515,7 +539,7 @@ void get_retransmit_messsage( uint8_t status )
 
 		case SEND_DATA3_STATUS:
 			{
-				DEBUG_SEND_DATA_LOG("\r\n\r\n[2].retransmit:\r\n");
+				DEBUG_UID_LOG("\r\n\r\n[2].retransmit:\r\n");
 				retransmit_check_tables[PRE_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
 				retransmit_check_tables[PRE_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
 				retransmit_check_tables[CUR_SUM_TABLE] = SEND_DATA3_SUM_TABLE;
@@ -552,7 +576,7 @@ uint8_t checkout_retransmit_clickers(uint8_t presumtable, uint8_t preacktable, u
 	uint8_t is_use_pos = 0,is_online_pos = 0;
 	uint8_t puid[4];
 	uint8_t clickernum = 0;
-#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
+#ifdef SEND_DATA_UID_MESSAGE_SHOW
 	uint8_t index = 0;
 #endif	
 	for(i=0;i<120;i++)
@@ -566,7 +590,7 @@ uint8_t checkout_retransmit_clickers(uint8_t presumtable, uint8_t preacktable, u
 				get_index_of_uid(i,puid);
 				set_index_of_white_list_pos(cursumtable,i);
 				clickernum++;
-#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
+#ifdef SEND_DATA_UID_MESSAGE_SHOW
 				{
 					printf("[%3d]:%02x%02x%02x%02x ",i,puid[0],puid[1],puid[2],puid[3]);
 					if(((index++)+1) % 5 == 0)
@@ -618,7 +642,7 @@ void send_data_result( uint8_t status )
 	{
 
 		get_send_data_table_message(status);
-		DEBUG_SEND_DATA_LOG("\r\nlost:\r\n");
+		DEBUG_UID_LOG("\r\nlost:\r\n");
 		/* 返回失败的UID */
 		while( message_tcb.Is_lost_over != 0)
 		{
@@ -643,7 +667,7 @@ void send_data_result( uint8_t status )
 			memset(revice_lost_massage.DATA,0,revice_lost_massage.LEN);
 			revice_lost_massage.LEN = 0;
 		}
-		DEBUG_SEND_DATA_LOG("\r\nok:\r\n");
+		DEBUG_UID_LOG("\r\nok:\r\n");
 		message_tcb.clicker_count = 0;
 		while(message_tcb.Is_ok_over != 0)
 		{
@@ -672,7 +696,7 @@ void send_data_result( uint8_t status )
 			memset(revice_lost_massage.DATA,0,revice_lost_massage.LEN);
 			revice_ok_massage.LEN = 0;
 		}
-		DEBUG_SEND_DATA_LOG("\r\ncount:%d\r\n",message_tcb.clicker_count);
+		DEBUG_STATISTICS_LOG("\r\ncount:%d\r\n",message_tcb.clicker_count);
 		sum_clicker_count += message_tcb.clicker_count;
 		message_tcb.clicker_count = 0;
 
@@ -682,7 +706,7 @@ void send_data_result( uint8_t status )
 			if( status == SEND_DATA3_UPDATE_STATUS )
 			{
 				uint8_t retransmit_clickers;
-				DEBUG_SEND_DATA_LOG("\r\n\r\n[3].retransmit:\r\n");
+				DEBUG_UID_LOG("\r\n\r\n[3].retransmit:\r\n");
 				retransmit_clickers = checkout_retransmit_clickers(SEND_DATA3_SUM_TABLE,SEND_DATA3_ACK_TABLE,
 																			SEND_DATA4_SUM_TABLE);
 				if(retransmit_clickers > 0)
@@ -764,6 +788,22 @@ void App_clickers_send_data_process( void )
 	uint8_t spi_buffer_status = 0;
 	uint8_t current_status = 0;
 
+	/* 读取spi数据写入到 Buffer */
+	if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
+	{
+		if(Count > 0)
+		{
+			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_temp_buffer[read_index],
+			    spi_temp_buffer[read_index][spi_temp_buffer[read_index][14]+17]);
+			read_index = (read_index + 1) % 4;
+			Count--;
+		}
+	}
+	else
+	{
+		printf("buffer is full,data lost \r\n");
+	}
+
 	/* 获取缓存状态 */
 	spi_buffer_status = spi_process_revice_data();
 
@@ -842,4 +882,7 @@ void send_data_env_init(void)
 
 	/* clear send data status */
 	clicker_send_data_status = 0;
+
+	/* clear last status of send status */
+	pre_status = 0;
 }

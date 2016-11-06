@@ -9,6 +9,7 @@
 #define OPEN_SEND_STATUS_SHOW
 //#define RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
 //#define SEND_DATA_DETAIL_MESSAGE_SHOW
+//#define SEND_DATA_UID_MESSAGE_SHOW
 #define SUM_DATA_STATISTICS
 //#define ENABLE_SEND_DATA_TO_PC
 
@@ -31,13 +32,17 @@
 #define DEBUG_RETRANSMIT_LOG(...)
 #endif
 
-#ifdef 	SEND_DATA_DETAIL_MESSAGE_SHOW
-#define DEBUG_SEND_DATA_LOG							       printf
+#ifdef 	SEND_DATA_UID_MESSAGE_SHOW
+#define DEBUG_UID_LOG							             printf
 #else
-#define DEBUG_SEND_DATA_LOG(...)
+#define DEBUG_UID_LOG(...)
 #endif
 
-
+#ifdef 	SUM_DATA_STATISTICS
+#define DEBUG_STATISTICS_LOG							     printf
+#else
+#define DEBUG_STATISTICS_LOG(...)
+#endif
 
 /* ø’œ– */
 #define SEND_IDLE_STATUS            0
