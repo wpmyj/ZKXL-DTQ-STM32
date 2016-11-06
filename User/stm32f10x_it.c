@@ -47,7 +47,8 @@ extern nrf_communication_t	nrf_communication;
 /* rf systick data */
 volatile uint8_t rf_systick_status = 0; // 0 = IDLE
 static uint32_t  rf_retransmit_timecnt = 0;
-
+uint8_t spi_temp_buffer[4][256];
+uint8_t write_index = 0, read_index = 0, Count = 0;
 /******************************************************************************
   Function:rf_change_systick_status
   Description:
@@ -483,6 +484,7 @@ void SysTick_Handler(void)
 #endif //ENABLE_WATCHDOG
 		timer_1ms = 0;
 		time.second++;
+		ledToggle(LGREEN);
 		if(time.second >= 60)
 		{
 			time.second = 0;
@@ -573,22 +575,11 @@ void RFIRQ_EXTI_IRQHandler(void)
 				*(nrf_communication.receive_buf+3) == nrf_communication.jsq_uid[2] &&
 				*(nrf_communication.receive_buf+4) == nrf_communication.jsq_uid[3])
 		{
-			if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
-			{
-				uint8_t send_data_status = get_clicker_send_data_status();
-				spi_write_data_to_buffer(SPI_REVICE_BUFFER,nrf_communication.receive_buf, send_data_status);
-				#ifdef OPEN_BUFFER_ACK_SHOW
-				{
-					int i;
-					printf("%4d ", buffer_get_buffer_status(SPI_REVICE_BUFFER));
-					printf("Buffer Write:");
-					for(i=0;i<nrf_communication.receive_buf[14]+17;i++)
-						printf("%2x ",nrf_communication.receive_buf[i]);
-					printf("%2x \r\n",send_data_status);
-				}
-				#endif
-				
-			}
+			uint8_t send_data_status = get_clicker_send_data_status();
+			memcpy(spi_temp_buffer[write_index],nrf_communication.receive_buf,nrf_communication.receive_buf[14]+17);
+			spi_temp_buffer[write_index][nrf_communication.receive_buf[14]+17] = send_data_status;
+			write_index = (write_index + 1) % 4;
+			Count++;
 		}
 	}
 	ledToggle(LBLUE);
