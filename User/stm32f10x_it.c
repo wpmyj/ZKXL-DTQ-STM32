@@ -47,8 +47,10 @@ extern nrf_communication_t	nrf_communication;
 /* rf systick data */
 volatile uint8_t rf_systick_status = 0; // 0 = IDLE
 static uint32_t  rf_retransmit_timecnt = 0;
-uint8_t spi_temp_buffer[4][256];
-uint8_t write_index = 0, read_index = 0, Count = 0;
+uint8_t spi_data_buffer[4][256];
+uint8_t spi_data_write_index = 0, spi_data_read_index = 0, spi_data_count = 0;
+uint8_t spi_status_buffer[10][18];
+uint8_t spi_status_write_index = 0, spi_status_read_index = 0, spi_status_count = 0;
 /******************************************************************************
   Function:rf_change_systick_status
   Description:
@@ -576,10 +578,10 @@ void RFIRQ_EXTI_IRQHandler(void)
 				*(nrf_communication.receive_buf+4) == nrf_communication.jsq_uid[3])
 		{
 			uint8_t send_data_status = get_clicker_send_data_status();
-			memcpy(spi_temp_buffer[write_index],nrf_communication.receive_buf,nrf_communication.receive_buf[14]+17);
-			spi_temp_buffer[write_index][nrf_communication.receive_buf[14]+17] = send_data_status;
-			write_index = (write_index + 1) % 4;
-			Count++;
+			memcpy(spi_data_buffer[spi_data_write_index],nrf_communication.receive_buf,nrf_communication.receive_buf[14]+17);
+			spi_data_buffer[spi_data_write_index][nrf_communication.receive_buf[14]+17] = send_data_status;
+			spi_data_write_index = (spi_data_write_index + 1) % 4;
+			spi_data_count++;
 		}
 	}
 	ledToggle(LBLUE);
