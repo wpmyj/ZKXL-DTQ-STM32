@@ -29,9 +29,6 @@ typedef enum
 	ON 	= 1
 } Switch_State;
 
-//extern Switch_State				attendance_on_off;		// 考勤开关 
-extern Switch_State				match_on_off;					// 配对开关 
-extern uint16_t						match_number;					// 配对序号
 extern uint8_t            uid_p;
 extern uint8_t		        uid_len;					    // M1卡序列号长度
 extern uint8_t 	          g_cSNR[10];						// M1卡序列号
