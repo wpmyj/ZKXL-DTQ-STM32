@@ -487,7 +487,6 @@ void SysTick_Handler(void)
 		IWDG_ReloadCounter();													//¶¨Ê±Î¹¹·
 #endif //ENABLE_WATCHDOG
 
-
 		timer_1ms = 0;
 		time.second++;
 		if(time.second >= 60)

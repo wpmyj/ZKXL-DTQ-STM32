@@ -44,6 +44,8 @@ static retransmit_tcb_tydef retransmit_tcb;
 static Uart_MessageTypeDef  revice_lost_massage,revice_ok_massage;
 extern WhiteList_Typedef    wl;
 extern Revicer_Typedef      revicer;
+
+void retransmit_env_init( void );
 /******************************************************************************
   Function:change_clicker_send_data_status
   Description:
@@ -96,9 +98,8 @@ void change_clicker_send_data_status( uint8_t newstatus )
 	spi_status_buffer[spi_status_write_index][15] = CLICKER_SNED_DATA_STATUS_TYPE;//xor
 	spi_status_buffer[spi_status_write_index][16] = 0x21;
 	spi_status_buffer[spi_status_write_index][17] = newstatus;
-
-	#ifdef OPEN_SEND_STATUS_SHOW
 	{
+		#ifdef OPEN_SEND_STATUS_MESSAGE_SHOW
 		uint8_t *str,status;
 		status = spi_status_buffer[spi_status_write_index][spi_status_buffer[spi_status_write_index][14]+17];
 		switch( status )
@@ -119,15 +120,15 @@ void change_clicker_send_data_status( uint8_t newstatus )
 		printf("send_status = %s\r\n",str);
 		{
 			int i;
-			printf("%4d %2d write: ", buffer_get_buffer_status(SPI_REVICE_BUFFER),spi_status_write_index);
+			printf("%4d %2d write: ", buffer_get_buffer_status(SPI_REVICE_BUFFER),spi_status_count+1);
 			for(i=0;i<17;i++)
 			{
 				printf("%2x ",spi_status_buffer[spi_status_write_index][i]);
 			}
 			printf("%2x \r\n",status);
 		}
+		#endif
 	}
-#endif
 	spi_status_write_index = (spi_status_write_index + 1)%10;
 	spi_status_count++;
 }
@@ -163,6 +164,13 @@ uint8_t spi_buffer_status_check(uint8_t status)
 
 	if( current_status == 0 )
 	{
+		if(buffer_get_buffer_status(SPI_REVICE_BUFFER) == BUFFEREMPTY)
+		{
+			if((clicker_send_data_status != pre_status) && (clicker_send_data_status != 0))
+			{
+				pre_status = clicker_send_data_status;
+			}
+		}
 		switch( pre_status )
 		{
 			case SEND_DATA1_STATUS          : current_status = SEND_DATA1_STATUS;          break;
@@ -410,9 +418,16 @@ uint8_t spi_process_revice_data( void )
 		}
 		else
 		{
-
+			#ifdef OPEN_SEND_STATUS_SHOW
+			int i;
+			printf("%4d    read2: ", buffer_get_buffer_status(SPI_REVICE_BUFFER));
+			for(i=0;i<17;i++)
+			{
+				printf("%2x ",spi_message[i]);
+			}
+			printf("%2x \r\n",spi_message[17]);
+			#endif
 		}
-		// to check data
 	}
 	else
 	{
@@ -429,7 +444,8 @@ uint8_t spi_process_revice_data( void )
   Return:
   Others:None
 ******************************************************************************/
-bool checkout_online_uids(uint8_t src_table, uint8_t check_table, uint8_t mode, uint8_t *buffer,uint8_t *len)
+bool checkout_online_uids(uint8_t src_table, uint8_t check_table,
+	                        uint8_t mode, uint8_t *buffer,uint8_t *len)
 {
 	uint8_t i;
 	uint8_t is_use_pos = 0,is_online_pos = 0;
@@ -447,7 +463,8 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table, uint8_t mode, 
 				get_index_of_uid(i,buffer);
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				{
-					printf("[%3d]:%02x%02x%02x%02x ",i,*buffer, *(buffer+1), *(buffer+2), *(buffer+3) );
+					printf("[%3d]:%02x%02x%02x%02x ",i,*buffer, *(buffer+1),
+                  *(buffer+2), *(buffer+3) );
 					if(((index++)+1) % 5 == 0)
 						printf("\n");
 				}
@@ -518,14 +535,13 @@ void get_send_data_table_message(uint8_t status)
 	}
 }
 
-
 void get_retransmit_messsage( uint8_t status )
 {
 	switch( status )
 	{
 		case SEND_DATA2_STATUS:
 			{
-				DEBUG_UID_LOG("\r\n\r\n[1].retransmit:\r\n");
+				DEBUG_DATA_DETAIL_LOG("\r\n\r\n[1].retransmit:\r\n");
 				retransmit_check_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
 				retransmit_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
 				retransmit_check_tables[CUR_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
@@ -536,7 +552,7 @@ void get_retransmit_messsage( uint8_t status )
 
 		case SEND_DATA3_STATUS:
 			{
-				DEBUG_UID_LOG("\r\n\r\n[2].retransmit:\r\n");
+				DEBUG_DATA_DETAIL_LOG("\r\n\r\n[2].retransmit:\r\n");
 				retransmit_check_tables[PRE_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
 				retransmit_check_tables[PRE_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
 				retransmit_check_tables[CUR_SUM_TABLE] = SEND_DATA3_SUM_TABLE;
@@ -551,6 +567,7 @@ void get_retransmit_messsage( uint8_t status )
 				retransmit_check_tables[PRE_ACK_TABLE] = 0;
 				retransmit_check_tables[CUR_SUM_TABLE] = 0;
 				retransmit_check_tables[CUR_ACK_TABLE] = 0;
+				after_retransmit_status                = 0;
 			}
 			break;
 	}
@@ -573,7 +590,7 @@ uint8_t checkout_retransmit_clickers(uint8_t presumtable, uint8_t preacktable, u
 	uint8_t is_use_pos = 0,is_online_pos = 0;
 	uint8_t puid[4];
 	uint8_t clickernum = 0;
-#ifdef SEND_DATA_UID_MESSAGE_SHOW
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 	uint8_t index = 0;
 #endif
 	for(i=0;i<120;i++)
@@ -587,7 +604,7 @@ uint8_t checkout_retransmit_clickers(uint8_t presumtable, uint8_t preacktable, u
 				get_index_of_uid(i,puid);
 				set_index_of_white_list_pos(cursumtable,i);
 				clickernum++;
-#ifdef SEND_DATA_UID_MESSAGE_SHOW
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				{
 					printf("[%3d]:%02x%02x%02x%02x ",i,puid[0],puid[1],puid[2],puid[3]);
 					if(((index++)+1) % 5 == 0)
@@ -626,6 +643,11 @@ void retansmit_data( uint8_t status )
 
 		/* 跟新状态，开始2次统计 */
 		change_clicker_send_data_status( after_retransmit_status );
+
+		if(after_retransmit_status == SEND_DATA3_SEND_OVER_STATUS)
+		{
+			retransmit_env_init();
+		}
 	}
 }
 
@@ -639,7 +661,9 @@ void send_data_result( uint8_t status )
 	{
 
 		get_send_data_table_message(status);
-		DEBUG_UID_LOG("\r\nlost:\r\n");
+
+		DEBUG_DATA_DETAIL_LOG("\r\nlost:\r\n");
+
 		/* 返回失败的UID */
 		while( message_tcb.Is_lost_over != 0)
 		{
@@ -664,7 +688,7 @@ void send_data_result( uint8_t status )
 			memset(revice_lost_massage.DATA,0,revice_lost_massage.LEN);
 			revice_lost_massage.LEN = 0;
 		}
-		DEBUG_UID_LOG("\r\nok:\r\n");
+		DEBUG_DATA_DETAIL_LOG("\r\nok:\r\n");
 		message_tcb.clicker_count = 0;
 		while(message_tcb.Is_ok_over != 0)
 		{
@@ -703,7 +727,7 @@ void send_data_result( uint8_t status )
 			if( status == SEND_DATA3_UPDATE_STATUS )
 			{
 				uint8_t retransmit_clickers;
-				DEBUG_UID_LOG("\r\n\r\n[3].retransmit:\r\n");
+				DEBUG_DATA_DETAIL_LOG("\r\n\r\n[3].retransmit:\r\n");
 				retransmit_clickers = checkout_retransmit_clickers(SEND_DATA3_SUM_TABLE,SEND_DATA3_ACK_TABLE,
 																			SEND_DATA4_SUM_TABLE);
 				if(retransmit_clickers > 0)
@@ -755,23 +779,88 @@ void retransmit_data_to_next_clicker( void )
 }
 
 /******************************************************************************
-  Function:retransmit_env_clear
+  Function:retransmit_env_init
   Description:
 		清除重发过程中的环境变量
   Input :
   Return:
   Others:None
 ******************************************************************************/
-void retransmit_env_clear( void )
+void retransmit_env_init( void )
 {
-	retransmit_tcb.count = 0;
-	retransmit_tcb.sum = 0;
-	retransmit_tcb.pos = 0;
+	retransmit_tcb.count  = 0;
+	retransmit_tcb.sum    = 0;
+	retransmit_tcb.pos    = 0;
 	retransmit_tcb.status = 0;
 	memset(retransmit_tcb.uid,0,4);
 	clear_current_uid_index();
 }
 
+/******************************************************************************
+  Function:spi_write_temp_buffer_to_buffer
+  Description:
+		将零时缓存的数据存入到buffer中
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void spi_write_temp_buffer_to_buffer()
+{
+	if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
+	{
+		if(spi_data_count > 0)
+		{
+			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_data_buffer[spi_data_read_index],
+			    spi_data_buffer[spi_data_read_index][spi_data_buffer[spi_data_read_index][14]+17]);
+			spi_data_read_index = (spi_data_read_index + 1) % 4;
+			spi_data_count--;
+		}
+	}
+
+	if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
+	{
+		if((spi_status_count > 0) && (spi_data_count == 0))
+		{
+			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_status_buffer[spi_status_read_index],
+			    spi_status_buffer[spi_status_read_index][spi_status_buffer[spi_status_read_index][14]+17]);
+			{
+				#ifdef OPEN_SEND_STATUS_SHOW
+				uint8_t *str,status;
+				status = spi_status_buffer[spi_status_read_index][spi_status_buffer[spi_status_read_index][14]+17];
+				switch( status )
+				{
+					case SEND_IDLE_STATUS:            str = "IDLE_STATUS";            break;
+					case SEND_DATA1_STATUS:           str = "DATA1_STATUS";           break;
+					case SEND_DATA1_UPDATE_STATUS:    str = "DATA1_UPDATE_STATUS";    break;
+					case SEND_DATA2_STATUS:           str = "DATA2_STATUS";           break;
+					case SEND_DATA2_SEND_OVER_STATUS: str = "DATA2_SEND_OVER_STATUS"; break;
+					case SEND_DATA2_UPDATE_STATUS:    str = "DATA2_UPDATE_STATUS";    break;
+					case SEND_DATA3_STATUS:           str = "DATA3_STATUS";           break;
+					case SEND_DATA3_SEND_OVER_STATUS: str = "DATA3_SEND_OVER_STATUS"; break;
+					case SEND_DATA3_UPDATE_STATUS:    str = "DATA3_UPDATE_STATUS";    break;
+					case SEND_DATA4_STATUS:           str = "DATA4_STATUS";           break;
+					case SEND_DATA4_UPDATE_STATUS:    str = "DATA4_UPDATE_STATUS";    break;
+					default:break;
+				}
+				printf("send_status = %s\r\n",str);
+				#endif
+				#ifdef OPEN_SEND_STATUS_MESSAGE_SHOW
+				{
+					int i;
+					printf("%4d %2d read1: ", buffer_get_buffer_status(SPI_REVICE_BUFFER),spi_status_count);
+					for(i=0;i<17;i++)
+					{
+						printf("%2x ",spi_status_buffer[spi_status_read_index][i]);
+					}
+					printf("%2x \r\n",status);
+				}
+				#endif
+			}
+			spi_status_read_index = (spi_status_read_index + 1) % 10;
+			spi_status_count--;
+		}
+	}
+}
 /******************************************************************************
   Function:App_clickers_send_data_process
   Description:
@@ -786,89 +875,7 @@ void App_clickers_send_data_process( void )
 	uint8_t current_status = 0;
 
 	/* 读取spi数据写入到 Buffer */
-	if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
-	{
-		if(spi_data_count > 0)
-		{
-			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_data_buffer[spi_data_read_index],
-			    spi_data_buffer[spi_data_read_index][spi_data_buffer[spi_data_read_index][14]+17]);
-			spi_data_read_index = (spi_data_read_index + 1) % 4;
-			spi_data_count--;
-		}
-	}
-	else
-	{
-		printf("buffer is full,data lost \r\n");
-	}
-
-	if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
-	{
-		if((spi_status_count > 0) && (spi_data_count == 0))
-		{
-			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_status_buffer[spi_status_read_index],
-			    spi_status_buffer[spi_status_read_index][spi_status_buffer[spi_status_read_index][14]+17]);
-			#ifdef OPEN_SEND_STATUS_SHOW
-			{
-				uint8_t str1[20];
-				uint8_t *str = str1,status;
-				status = spi_status_buffer[spi_status_read_index][spi_status_buffer[spi_status_read_index][14]+17];
-				switch( status )
-				{
-					case SEND_IDLE_STATUS:
-						memcpy(str,"IDLE_STATUS",sizeof("IDLE_STATUS"));
-					break;
-					case SEND_DATA1_STATUS:
-						memcpy(str,"DATA1_STATUS",sizeof("DATA1_STATUS"));
-					break;
-					case SEND_DATA1_UPDATE_STATUS:
-						memcpy(str,"DATA1_UPDATE_STATUS",sizeof("DATA1_UPDATE_STATUS"));
-					break;
-					case SEND_DATA2_STATUS:
-						memcpy(str,"DATA2_STATUS",sizeof("DATA2_STATUS"));
-					break;
-					case SEND_DATA2_SEND_OVER_STATUS:
-						memcpy(str,"DATA2_SEND_OVER_STATUS",sizeof("DATA2_SEND_OVER_STATUS"));
-					break;
-					case SEND_DATA2_UPDATE_STATUS:
-						memcpy(str,"DATA2_UPDATE_STATUS",sizeof("DATA2_UPDATE_STATUS"));
-					break;
-					case SEND_DATA3_STATUS:
-						memcpy(str,"DATA3_STATUS",sizeof("DATA3_STATUS"));
-					break;
-					case SEND_DATA3_SEND_OVER_STATUS:
-						memcpy(str,"DATA3_SEND_OVER_STATUS",sizeof("DATA3_SEND_OVER_STATUS"));
-					break;
-					case SEND_DATA3_UPDATE_STATUS:
-						memcpy(str,"DATA3_UPDATE_STATUS",sizeof("DATA3_UPDATE_STATUS"));
-					break;
-					case SEND_DATA4_STATUS:
-						memcpy(str,"DATA4_STATUS",sizeof("DATA4_STATUS"));
-					break;
-					case SEND_DATA4_UPDATE_STATUS:
-						memcpy(str,"DATA4_UPDATE_STATUS",sizeof("DATA4_UPDATE_STATUS"));
-					break;
-					default:break;
-				}
-				printf("send_status = %s\r\n",str);
-				{
-					int i;
-					printf("%4d %2d reaad: ", buffer_get_buffer_status(SPI_REVICE_BUFFER),spi_status_read_index);
-					for(i=0;i<17;i++)
-					{
-						printf("%2x ",spi_status_buffer[spi_status_read_index][i]);
-					}
-					printf("%2x \r\n",status);
-				}
-			}
-			#endif
-			spi_status_read_index = (spi_status_read_index + 1) % 10;
-			spi_status_count--;
-		}
-	}
-	else
-	{
-		printf("buffer is full,status lost \r\n");
-	}
+	spi_write_temp_buffer_to_buffer();
 
 	/* 获取缓存状态 */
 	spi_buffer_status = spi_process_revice_data();
@@ -894,12 +901,12 @@ void App_clickers_send_data_process( void )
 		if(rf_retransmit_status == 2)
 		{
 			retransmit_tcb.count++;
-			DEBUG_RETRANSMIT_LOG("retransmit_count = %d\r\n",retransmit_tcb.count );
+			DEBUG_DATA_DETAIL_LOG("retransmit_count = %d\r\n",retransmit_tcb.count );
 			if(retransmit_tcb.count == retransmit_tcb.sum)
 			{
 				retransmit_tcb.count = 0;
 				change_clicker_send_data_status( SEND_DATA4_UPDATE_STATUS ); // 11
-				retransmit_env_clear();
+				retransmit_env_init();
 			}
 			else
 			{
