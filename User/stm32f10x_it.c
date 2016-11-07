@@ -479,14 +479,17 @@ void SysTick_Handler(void)
 		}
 	}
 
+	if(timer_1ms%100 == 0)
+		ledToggle(LGREEN);
 	if(timer_1ms++ > 1000)
 	{
 #ifdef ENABLE_WATCHDOG
 		IWDG_ReloadCounter();													//¶¨Ê±Î¹¹·
 #endif //ENABLE_WATCHDOG
+
+
 		timer_1ms = 0;
 		time.second++;
-		ledToggle(LGREEN);
 		if(time.second >= 60)
 		{
 			time.second = 0;
