@@ -5,8 +5,10 @@
 #define CLICKER_SNED_DATA_STATUS_TYPE     10
 #define CLICKER_PRE_DATA_STATUS_TYPE      11
 
-extern uint8_t spi_temp_buffer[4][256];
-extern uint8_t write_index, read_index, Count;
+extern uint8_t spi_data_buffer[4][256];
+extern uint8_t spi_data_write_index, spi_data_read_index, spi_data_count;
+extern uint8_t spi_status_buffer[10][18];
+extern uint8_t spi_status_write_index, spi_status_read_index, spi_status_count;
 
 uint8_t clicker_send_data_status = 0;
 static uint8_t pre_status = 0;
@@ -86,13 +88,20 @@ uint8_t get_rf_retransmit_status(void)
 ******************************************************************************/
 void change_clicker_send_data_status( uint8_t newstatus )
 {
-	uint8_t spi_status_message[17];
 	clicker_send_data_status = newstatus;
+	spi_status_buffer[spi_status_write_index][0] = 0x61;
+	memset(spi_status_buffer[spi_status_write_index]+1,0,10);
+	spi_status_buffer[spi_status_write_index][11] = CLICKER_SNED_DATA_STATUS_TYPE;
+	memset(spi_status_buffer[spi_status_write_index]+12,0,3);
+	spi_status_buffer[spi_status_write_index][15] = CLICKER_SNED_DATA_STATUS_TYPE;//xor
+	spi_status_buffer[spi_status_write_index][16] = 0x21;
+	spi_status_buffer[spi_status_write_index][17] = newstatus;
 
-#ifdef OPEN_SEND_STATUS_SHOW
+	#ifdef OPEN_SEND_STATUS_SHOW
 	{
-		uint8_t *str;
-		switch(clicker_send_data_status)
+		uint8_t *str,status;
+		status = spi_status_buffer[spi_status_write_index][spi_status_buffer[spi_status_write_index][14]+17];
+		switch( status )
 		{
 			case SEND_IDLE_STATUS:            str = "IDLE_STATUS";            break;
 			case SEND_DATA1_STATUS:           str = "DATA1_STATUS";           break;
@@ -108,31 +117,19 @@ void change_clicker_send_data_status( uint8_t newstatus )
 			default:break;
 		}
 		printf("send_status = %s\r\n",str);
-	}
-#endif
-	spi_status_message[0] = 0x61;
-	memset(spi_status_message+1,0,10);
-	spi_status_message[11] = CLICKER_SNED_DATA_STATUS_TYPE;
-	memset(spi_status_message+12,0,3);
-	spi_status_message[15] = CLICKER_SNED_DATA_STATUS_TYPE;
-	spi_status_message[16] = 0x21;
-	if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
-	{
-		spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_status_message, newstatus);
 		{
 			int i;
-			printf("%4d ", buffer_get_buffer_status(SPI_REVICE_BUFFER));
+			printf("%4d %2d write: ", buffer_get_buffer_status(SPI_REVICE_BUFFER),spi_status_write_index);
 			for(i=0;i<17;i++)
 			{
-				printf("%2x ",spi_status_message[i]);
+				printf("%2x ",spi_status_buffer[spi_status_write_index][i]);
 			}
-			printf("%2x \r\n",newstatus);
+			printf("%2x \r\n",status);
 		}
 	}
-	else
-	{
-		printf("buffer is full,status lost \r\n");
-	}
+#endif
+	spi_status_write_index = (spi_status_write_index + 1)%10;
+	spi_status_count++;
 }
 
 /******************************************************************************
@@ -413,7 +410,7 @@ uint8_t spi_process_revice_data( void )
 		}
 		else
 		{
-			
+
 		}
 		// to check data
 	}
@@ -578,7 +575,7 @@ uint8_t checkout_retransmit_clickers(uint8_t presumtable, uint8_t preacktable, u
 	uint8_t clickernum = 0;
 #ifdef SEND_DATA_UID_MESSAGE_SHOW
 	uint8_t index = 0;
-#endif	
+#endif
 	for(i=0;i<120;i++)
 	{
 		is_use_pos = get_index_of_white_list_pos_status(presumtable,i);
@@ -791,17 +788,86 @@ void App_clickers_send_data_process( void )
 	/* 读取spi数据写入到 Buffer */
 	if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
 	{
-		if(Count > 0)
+		if(spi_data_count > 0)
 		{
-			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_temp_buffer[read_index],
-			    spi_temp_buffer[read_index][spi_temp_buffer[read_index][14]+17]);
-			read_index = (read_index + 1) % 4;
-			Count--;
+			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_data_buffer[spi_data_read_index],
+			    spi_data_buffer[spi_data_read_index][spi_data_buffer[spi_data_read_index][14]+17]);
+			spi_data_read_index = (spi_data_read_index + 1) % 4;
+			spi_data_count--;
 		}
 	}
 	else
 	{
 		printf("buffer is full,data lost \r\n");
+	}
+
+	if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
+	{
+		if((spi_status_count > 0) && (spi_data_count == 0))
+		{
+			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_status_buffer[spi_status_read_index],
+			    spi_status_buffer[spi_status_read_index][spi_status_buffer[spi_status_read_index][14]+17]);
+			#ifdef OPEN_SEND_STATUS_SHOW
+			{
+				uint8_t str1[20];
+				uint8_t *str = str1,status;
+				status = spi_status_buffer[spi_status_read_index][spi_status_buffer[spi_status_read_index][14]+17];
+				switch( status )
+				{
+					case SEND_IDLE_STATUS:
+						memcpy(str,"IDLE_STATUS",sizeof("IDLE_STATUS"));
+					break;
+					case SEND_DATA1_STATUS:
+						memcpy(str,"DATA1_STATUS",sizeof("DATA1_STATUS"));
+					break;
+					case SEND_DATA1_UPDATE_STATUS:
+						memcpy(str,"DATA1_UPDATE_STATUS",sizeof("DATA1_UPDATE_STATUS"));
+					break;
+					case SEND_DATA2_STATUS:
+						memcpy(str,"DATA2_STATUS",sizeof("DATA2_STATUS"));
+					break;
+					case SEND_DATA2_SEND_OVER_STATUS:
+						memcpy(str,"DATA2_SEND_OVER_STATUS",sizeof("DATA2_SEND_OVER_STATUS"));
+					break;
+					case SEND_DATA2_UPDATE_STATUS:
+						memcpy(str,"DATA2_UPDATE_STATUS",sizeof("DATA2_UPDATE_STATUS"));
+					break;
+					case SEND_DATA3_STATUS:
+						memcpy(str,"DATA3_STATUS",sizeof("DATA3_STATUS"));
+					break;
+					case SEND_DATA3_SEND_OVER_STATUS:
+						memcpy(str,"DATA3_SEND_OVER_STATUS",sizeof("DATA3_SEND_OVER_STATUS"));
+					break;
+					case SEND_DATA3_UPDATE_STATUS:
+						memcpy(str,"DATA3_UPDATE_STATUS",sizeof("DATA3_UPDATE_STATUS"));
+					break;
+					case SEND_DATA4_STATUS:
+						memcpy(str,"DATA4_STATUS",sizeof("DATA4_STATUS"));
+					break;
+					case SEND_DATA4_UPDATE_STATUS:
+						memcpy(str,"DATA4_UPDATE_STATUS",sizeof("DATA4_UPDATE_STATUS"));
+					break;
+					default:break;
+				}
+				printf("send_status = %s\r\n",str);
+				{
+					int i;
+					printf("%4d %2d reaad: ", buffer_get_buffer_status(SPI_REVICE_BUFFER),spi_status_read_index);
+					for(i=0;i<17;i++)
+					{
+						printf("%2x ",spi_status_buffer[spi_status_read_index][i]);
+					}
+					printf("%2x \r\n",status);
+				}
+			}
+			#endif
+			spi_status_read_index = (spi_status_read_index + 1) % 10;
+			spi_status_count--;
+		}
+	}
+	else
+	{
+		printf("buffer is full,status lost \r\n");
 	}
 
 	/* 获取缓存状态 */
