@@ -19,12 +19,14 @@
 #define REVICE_RINGBUFFER    0
 #define SEND_RINGBUFFER      1
 #define SPI_REVICE_BUFFER    2
+#define PRINT_BUFFER         3
 
 #define PACKETSIZE           (UART_NBUF+9)
 #define REVICEBUFFERSIZE     (1024)
 #define SENDBUFFERSIZE       (2048)
 #define SPIBUFFERSIZE        (1024)
-#define RINGBUFFERSUM        (3)
+#define PRINTBUFFERSIZE      (256)
+#define RINGBUFFERSUM        (4)
 
 /* buffer status  */
 #define BUFFEREMPTY          1
@@ -43,10 +45,12 @@
 #define OPENIRQ()            __set_PRIMASK(0)
 
 /* Private functions ---------------------------------------------------------*/
-uint8_t buffer_get_buffer_status( uint8_t sel_buffer );
-void serial_ringbuffer_write_data( uint8_t sel_buffer, Uart_MessageTypeDef *data );
-void serial_ringbuffer_read_data( uint8_t sel_buffer, Uart_MessageTypeDef *data );
-uint8_t serial_ringbuffer_get_usage_rate(uint8_t sel_buffer);
-void spi_read_data_from_buffer( uint8_t sel_buffer,uint8_t SpiMessage[] );
-void spi_write_data_to_buffer( uint8_t sel_buffer, uint8_t SpiMessage[], uint8_t send_data_status );
+uint8_t buffer_get_buffer_status( uint8_t sel );
+void serial_ringbuffer_write_data( uint8_t sel, Uart_MessageTypeDef *data );
+void serial_ringbuffer_read_data( uint8_t sel, Uart_MessageTypeDef *data );
+uint8_t serial_ringbuffer_get_usage_rate(uint8_t sel);
+void spi_read_data_from_buffer( uint8_t sel,uint8_t SpiMessage[] );
+void spi_write_data_to_buffer( uint8_t sel, uint8_t SpiMessage[], uint8_t status );
+void print_write_data_to_buffer( uint8_t *str, uint8_t len );
+uint8_t print_read_data_to_buffer( uint8_t *str );
 #endif
