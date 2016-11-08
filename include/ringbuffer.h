@@ -25,7 +25,7 @@
 #define REVICEBUFFERSIZE     (1024)
 #define SENDBUFFERSIZE       (2048)
 #define SPIBUFFERSIZE        (1024)
-#define PRINTBUFFERSIZE      (256)
+#define PRINTBUFFERSIZE      (1024)
 #define RINGBUFFERSUM        (4)
 
 /* buffer status  */
@@ -51,6 +51,6 @@ void serial_ringbuffer_read_data( uint8_t sel, Uart_MessageTypeDef *data );
 uint8_t serial_ringbuffer_get_usage_rate(uint8_t sel);
 void spi_read_data_from_buffer( uint8_t sel,uint8_t SpiMessage[] );
 void spi_write_data_to_buffer( uint8_t sel, uint8_t SpiMessage[], uint8_t status );
-void print_write_data_to_buffer( uint8_t *str, uint8_t len );
-uint8_t print_read_data_to_buffer( uint8_t *str );
+void print_write_data_to_buffer( char *str, uint8_t len );
+void print_read_data_to_buffer( uint8_t *str ,uint8_t size);
 #endif

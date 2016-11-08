@@ -13,6 +13,7 @@
 #include "pos_handle_layer.h"
 #include "rc500_handle_layer.h"
 #include "app_send_data_process.h"
+#include "app_show_message_process.h"
 
 extern uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];
 extern uint8_t card_cmd_type ;
@@ -63,6 +64,9 @@ void app_handle_layer(void)
 
 	/*clickers systick process */
 	//App_clickers_systick_process();
+	
+	/*printf message show process */
+	message_show_process();
 }
 
 

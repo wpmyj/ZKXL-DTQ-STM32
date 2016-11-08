@@ -1,6 +1,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stdio.h"
 #include "app_send_data_process.h"
+#include "app_show_message_process.h"
 
 #define CLICKER_SNED_DATA_STATUS_TYPE     10
 #define CLICKER_PRE_DATA_STATUS_TYPE      11
@@ -117,15 +119,15 @@ void change_clicker_send_data_status( uint8_t newstatus )
 			case SEND_DATA4_UPDATE_STATUS:    str = "DATA4_UPDATE_STATUS";    break;
 			default:break;
 		}
-		printf("send_status = %s\r\n",str);
+		b_print("send_status = %s\r\n",str);
 		{
 			int i;
-			printf("%4d %2d write: ", buffer_get_buffer_status(SPI_REVICE_BUFFER),spi_status_count+1);
+			b_print("%4d %2d write: ", buffer_get_buffer_status(SPI_REVICE_BUFFER),spi_status_count+1);
 			for(i=0;i<17;i++)
 			{
-				printf("%2x ",spi_status_buffer[spi_status_write_index][i]);
+				b_print("%2x ",spi_status_buffer[spi_status_write_index][i]);
 			}
-			printf("%2x \r\n",status);
+			b_print("%2x \r\n",status);
 		}
 		#endif
 	}
@@ -399,7 +401,7 @@ uint8_t spi_process_revice_data( void )
 
 //							/* 统计收到包数 */
 //						clickers[uidpos].revice_package_num++;
-//						printf("clickers : %02x%02x%02x%02x, pre:%2x, cur:%2x revice = %08x, lost = %08x, \r\n",
+//						b_print("clickers : %02x%02x%02x%02x, pre:%2x, cur:%2x revice = %08x, lost = %08x, \r\n",
 //						clickers[uidpos].uid[0],clickers[uidpos].uid[1],clickers[uidpos].uid[2],
 //						clickers[uidpos].uid[3],
 //						clickers[uidpos].prepacknum,
@@ -420,12 +422,12 @@ uint8_t spi_process_revice_data( void )
 		{
 			#ifdef OPEN_SEND_STATUS_SHOW
 			int i;
-			printf("%4d    read2: ", buffer_get_buffer_status(SPI_REVICE_BUFFER));
+			b_print("%4d    read2: ", buffer_get_buffer_status(SPI_REVICE_BUFFER));
 			for(i=0;i<17;i++)
 			{
-				printf("%2x ",spi_message[i]);
+				b_print("%2x ",spi_message[i]);
 			}
-			printf("%2x \r\n",spi_message[17]);
+			b_print("%2x \r\n",spi_message[17]);
 			#endif
 		}
 	}
@@ -463,10 +465,11 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table,
 				get_index_of_uid(i,buffer);
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				{
-					printf("[%3d]:%02x%02x%02x%02x ",i,*buffer, *(buffer+1),
-                  *(buffer+2), *(buffer+3) );
+					DEBUG_UID_LOG("[%3d]:%02x%02x%02x%02x ",i,*buffer, *(buffer+1),*(buffer+2), *(buffer+3));
 					if(((index++)+1) % 5 == 0)
-						printf("\n");
+					{
+						DEBUG_UID_LOG("\n");
+					}
 				}
 #endif
 				buffer = buffer+4;
@@ -606,16 +609,16 @@ uint8_t checkout_retransmit_clickers(uint8_t presumtable, uint8_t preacktable, u
 				clickernum++;
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				{
-					printf("[%3d]:%02x%02x%02x%02x ",i,puid[0],puid[1],puid[2],puid[3]);
+					DEBUG_UID_LOG("[%3d]:%02x%02x%02x%02x ",i,puid[0],puid[1],puid[2],puid[3]);
 					if(((index++)+1) % 5 == 0)
-						printf("\n");
+						DEBUG_UID_LOG("\n");
 				}
 #endif
 			}
 		}
 	}
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
-	printf("\n");
+	DEBUG_UID_LOG("\n");
 #endif
 	return clickernum;
 }
@@ -842,17 +845,17 @@ void spi_write_temp_buffer_to_buffer()
 					case SEND_DATA4_UPDATE_STATUS:    str = "DATA4_UPDATE_STATUS";    break;
 					default:break;
 				}
-				printf("send_status = %s\r\n",str);
+				DEBUG_BUFFER_DTATA_LOG("send_status = %s\r\n",str);
 				#endif
 				#ifdef OPEN_SEND_STATUS_MESSAGE_SHOW
 				{
 					int i;
-					printf("%4d %2d read1: ", buffer_get_buffer_status(SPI_REVICE_BUFFER),spi_status_count);
+					DEBUG_BUFFER_DTATA_LOG("%4d %2d read1: ", buffer_get_buffer_status(SPI_REVICE_BUFFER),spi_status_count);
 					for(i=0;i<17;i++)
 					{
-						printf("%2x ",spi_status_buffer[spi_status_read_index][i]);
+						DEBUG_BUFFER_DTATA_LOG("%2x ",spi_status_buffer[spi_status_read_index][i]);
 					}
-					printf("%2x \r\n",status);
+					DEBUG_BUFFER_DTATA_LOG("%2x \r\n",status);
 				}
 				#endif
 			}

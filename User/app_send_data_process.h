@@ -2,45 +2,46 @@
 #define	__APP_SEND_DATA_PROCESS_H_
 
 #include "main.h"
+#include "app_show_message_process.h"
 
 //#define OPEN_BUFFER_ACK_SHOW
 //#define OPEN_BUFFER_DATA_SHOW
 //#define OPEN_ACK_TABLE_SHOW
 //#define OPEN_SEND_STATUS_SHOW
 //#define OPEN_SEND_STATUS_MESSAGE_SHOW
-//#define RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
-//#define SEND_DATA_DETAIL_MESSAGE_SHOW
-#define SEND_DATA_UID_MESSAGE_SHOW
+#define RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
+#define SEND_DATA_DETAIL_MESSAGE_SHOW
+//#define SEND_DATA_UID_MESSAGE_SHOW
 #define SUM_DATA_STATISTICS
 //#define ENABLE_SEND_DATA_TO_PC
 
 /* 打印信息控制 */
 #ifdef 	OPEN_BUFFER_ACK_SHOW
-#define DEBUG_BUFFER_ACK_LOG							     printf
+#define DEBUG_BUFFER_ACK_LOG							     DEBUG_LOG
 #else
 #define DEBUG_BUFFER_ACK_LOG(...)
 #endif
 
 #ifdef 	OPEN_BUFFER_DATA_SHOW
-#define DEBUG_BUFFER_DTATA_LOG							   printf
+#define DEBUG_BUFFER_DTATA_LOG							     DEBUG_LOG
 #else
 #define DEBUG_BUFFER_DTATA_LOG(...)
 #endif
 
 #ifdef 	RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
-#define DEBUG_DATA_DETAIL_LOG							     printf
+#define DEBUG_DATA_DETAIL_LOG							     DEBUG_LOG
 #else
 #define DEBUG_DATA_DETAIL_LOG(...)
 #endif
 
 #ifdef 	SEND_DATA_UID_MESSAGE_SHOW
-#define DEBUG_UID_LOG							             printf
+#define DEBUG_UID_LOG							             DEBUG_LOG
 #else
 #define DEBUG_UID_LOG(...)
 #endif
 
 #ifdef 	SUM_DATA_STATISTICS
-#define DEBUG_STATISTICS_LOG							     printf
+#define DEBUG_STATISTICS_LOG							     DEBUG_LOG
 #else
 #define DEBUG_STATISTICS_LOG(...)
 #endif

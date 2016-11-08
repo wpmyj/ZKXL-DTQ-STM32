@@ -300,9 +300,10 @@ uint8_t serial_ringbuffer_get_usage_rate(uint8_t sel)
   Return:
   Others:None
 ******************************************************************************/
-void print_write_data_to_buffer( uint8_t *str, uint8_t len )
+void print_write_data_to_buffer( char *str, uint8_t len )
 {
-	uint8_t Len, *pdata, i;
+	char *pdata;
+  uint8_t	i;
 
 	pdata = str;
 
@@ -312,7 +313,7 @@ void print_write_data_to_buffer( uint8_t *str, uint8_t len )
 		pdata++;
 	}
 
-	update_top( PRINT_BUFFER, Len);
+	update_top( PRINT_BUFFER, len);
 	update_write_status(PRINT_BUFFER);
 }
 
@@ -324,11 +325,11 @@ void print_write_data_to_buffer( uint8_t *str, uint8_t len )
   Return:
   Others:None
 ******************************************************************************/
-uint8_t print_read_data_to_buffer( uint8_t *str )
+void print_read_data_to_buffer( uint8_t *str ,uint8_t size)
 {
 	uint8_t Len, *pdata, i;
 
-	Len = Size[PRINT_BUFFER] % 20;
+	Len = Size[PRINT_BUFFER] > size ? size : Size[PRINT_BUFFER];
 	pdata = str;
 
 	for(i=0;i<Len;i++)
