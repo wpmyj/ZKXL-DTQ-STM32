@@ -79,6 +79,4 @@ void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err
 uint8_t get_backup_massage_status( void );
 void change_clicker_send_data_status( uint8_t newstatus );
 uint8_t get_clicker_send_data_status( void );
-uint32_t clicker_send_data_time_set(uint8_t mode);
-void clicker_send_data_time_set1(uint8_t status1, uint8_t status2, uint32_t delayms);
 #endif // __POS_HANDLE_LAYER_H_

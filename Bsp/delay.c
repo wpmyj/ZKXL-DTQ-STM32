@@ -7,12 +7,16 @@
   * @brief   	delay function
   ******************************************************************************
   */
-  
-#include "delay.h"
 
+#include "delay.h"
+#include "main.h"
 /* Private variables ---------------------------------------------------------*/
 static __IO uint32_t TimingDelay;
+timer_list_typedef timer_list;
+uint8_t systick_timer_status;
 
+Timer_typedef retransmit_timer,systick_timer;
+Timer_typedef send_data1_timer,send_data2_timer,send_data3_timer;
 /* Private function prototypes -----------------------------------------------*/
 void Delay(__IO uint32_t nTime);
 
@@ -25,13 +29,13 @@ void SysClockInit(void)
 {
 	SystemInit();
 	SystemCoreClockUpdate();
-	
+
   if(SysTick_Config(SystemCoreClock / 1000))
-  { 
-    /* Capture error */ 
+  {
+    /* Capture error */
     while (1);
-  }		
-	
+  }
+
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
@@ -46,8 +50,8 @@ void SysClockInit(void)
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
 	RCC_ClockSecuritySystemCmd(ENABLE);
-	
-	
+
+
 }
 
 /*******************************************************************************
@@ -56,7 +60,7 @@ void SysClockInit(void)
   * @retval None
 *******************************************************************************/
 void DelayMs(__IO uint32_t nTime)
-{ 
+{
   TimingDelay = nTime;
 
   while(TimingDelay != 0);
@@ -70,13 +74,11 @@ void DelayMs(__IO uint32_t nTime)
 void TimingDelay_Decrement(void)
 {
   if (TimingDelay != 0x00)
-  { 
+  {
     TimingDelay--;
   }
 }
 
-
-#ifdef ENABLE_WATCHDOG	
 /*******************************************************************************
   * @brief  watchdog init.
   * @param  None
@@ -90,10 +92,9 @@ void IWDG_Configuration(void)
 	IWDG_ReloadCounter();													/* Î¹¹·*/
 	IWDG_Enable();																/* Ê¹ÄÜ*/
 }
-#endif //ENABLE_WATCHDOG
 
 /*******************************************************************************
-  * @brief  delay 2us 
+  * @brief  delay 2us
   * @param  None
   * @retval None
 *******************************************************************************/
@@ -105,12 +106,12 @@ void Delay2us(uint32_t times)
 		for(j = 0;j < 12;j++)
 		{
 			__nop();
-		}	
+		}
 	}
 }
 
 /*******************************************************************************
-  * @brief  delay 3us 
+  * @brief  delay 3us
   * @param  None
   * @retval None
 *******************************************************************************/
@@ -124,7 +125,7 @@ void Delay3us(void)
 }
 
 /*******************************************************************************
-  * @brief  delay 10us 
+  * @brief  delay 10us
   * @param  None
   * @retval None
 *******************************************************************************/
@@ -136,8 +137,202 @@ void Delay10us(uint16_t times)
 		for(j = 0;j < 70;j++)
 		{
 			__nop();
-		}		
-	}	
+		}
+	}
+}
+
+/******************************************************************************
+  Function:Timer_list_handler
+  Description:
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void Timer_list_handler(void)
+{
+	uint8_t i;
+	for(i=0;i<timer_list.timer_count;i++)
+	{
+		if(timer_list.timer[i] != 0)
+		{
+			if(timer_list.timer[i]->start_status == *timer_list.timer[i]->status)
+			{
+				timer_list.inc_cnt(timer_list.timer[i]);
+				if(timer_list.get_cnt(timer_list.timer[i]) == timer_list.timer[i]->timeout)
+				{
+					timer_list.set_sattus(timer_list.timer[i],timer_list.timer[i]->timeout_status);
+					timer_list.set_cnt(timer_list.timer[i],0);
+					if(timer_list.timer[i]->timerout_event_handle != 0)
+						timer_list.timer[i]->timerout_event_handle();
+				}
+			}
+		}
+	}
+}
+
+/******************************************************************************
+  Function:sw_register_timer
+  Description:
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+uint8_t sw_register_timer( Timer_typedef *timer_id )
+{
+	if(timer_list.timer_count < TIMER_COUNT_MAX)
+	{
+		timer_list.timer[timer_list.timer_count++] = timer_id;
+		timer_id->pos = timer_list.timer_count;
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
+/******************************************************************************
+  Function:sw_unregister_timer
+  Description:
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+uint8_t sw_unregister_timer( Timer_typedef *timer_id )
+{
+	timer_list.timer[timer_id->pos] = 0;
+	return 0;
+}
+
+/******************************************************************************
+  Function:sw_set_sattus
+  Description:
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void sw_set_sattus( Timer_typedef *timer_id, uint8_t new_status )
+{
+	*timer_id->status = new_status;
+}
+
+/******************************************************************************
+  Function:sw_get_status
+  Description:
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+uint8_t sw_get_status( Timer_typedef *timer_id )
+{
+	return *(timer_id->status);
+}
+
+/******************************************************************************
+  Function:sw_set_cnt
+  Description:
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void sw_set_cnt( Timer_typedef *timer_id, uint32_t new_cnt)
+{
+	timer_id->cnt = new_cnt;
+}
+
+/******************************************************************************
+  Function:sw_get_cnt
+  Description:
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+uint32_t sw_get_cnt( Timer_typedef *timer_id )
+{
+	return (timer_id->cnt);
+}
+
+/******************************************************************************
+  Function:sw_inc_cnt
+  Description:
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void sw_inc_cnt( Timer_typedef *timer_id )
+{
+	timer_id->cnt++;
+}
+
+/******************************************************************************
+  Function:sw_timer_init
+  Description:
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void sw_timer_init( void )
+{
+	uint8_t i;
+
+	for(i=0;i<TIMER_COUNT_MAX;i++)
+		timer_list.timer[i] = 0;
+
+	timer_list.timer_count = 0;
+
+	timer_list.registr_timer   = sw_register_timer;
+	timer_list.unregistr_timer = sw_unregister_timer;
+	timer_list.set_sattus      = sw_set_sattus;
+	timer_list.get_status      = sw_get_status;
+	timer_list.set_cnt         = sw_set_cnt;
+	timer_list.get_cnt         = sw_get_cnt;
+	timer_list.inc_cnt         = sw_inc_cnt;
+}
+
+/******************************************************************************
+  Function:create_timer
+  Description:
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void sw_create_timer( Timer_typedef *timer_id, uint32_t delayms, uint8_t statrt_status,
+	                    uint8_t timout_status, uint8_t * status, timerout_event_callback callback)
+{
+	timer_id->timeout        = delayms;
+	timer_id->start_status   = statrt_status;
+	timer_id->timeout_status = timout_status;
+	timer_id->status         = status;
+	timer_id->timerout_event_handle = callback;
+	timer_list.registr_timer(timer_id);
+}
+
+
+/******************************************************************************
+  Function:send_data_process_timer_init
+  Description:
+		¡¤¡é?¨ª1y3¨¬?D¦Ì??¡§¨º¡À?¡Â3?¨º??¡¥
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void systemtick_timeout_callback( void )
+{
+	ledToggle(LGREEN);
+	systick_timer_status = 0;
+}
+
+/******************************************************************************
+  Function:send_data_process_timer_init
+  Description:
+		¡¤¡é?¨ª1y3¨¬?D¦Ì??¡§¨º¡À?¡Â3?¨º??¡¥
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void systick_timer_init( void )
+{
+	sw_create_timer(&systick_timer , 100, 0, 1,&(systick_timer_status), systemtick_timeout_callback);
 }
 
 /**************************************END OF FILE****************************/

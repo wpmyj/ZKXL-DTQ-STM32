@@ -13,16 +13,56 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
+#define TIMER_COUNT_MAX    10
+
+typedef struct
+{
+	uint8_t  *status;
+	uint8_t  pos;
+	uint32_t cnt;
+	uint32_t timeout;
+	uint8_t  start_status;
+	uint8_t  timeout_status;
+	void     (*timerout_event_handle)( void );
+}Timer_typedef;
+
+typedef	void  (*timerout_event_callback)( void );
+
+typedef struct
+{
+	Timer_typedef *timer[TIMER_COUNT_MAX];
+	uint8_t       (*registr_timer)( Timer_typedef *timer_id );
+	uint8_t       (*unregistr_timer)( Timer_typedef *timer_id );
+	uint8_t       timer_count;
+
+	void          (*set_sattus)( Timer_typedef *timer_id,uint8_t new_status );
+	uint8_t       (*get_status)( Timer_typedef *timer_id );
+
+	void          (*set_cnt)( Timer_typedef *timer_id, uint32_t new_cnt);
+	uint32_t      (*get_cnt)( Timer_typedef *timer_id );
+	void          (*inc_cnt)( Timer_typedef *timer_id );
+}timer_list_typedef;
+
+
+extern timer_list_typedef timer_list;
+extern Timer_typedef retransmit_timer,systick_timer;
+extern Timer_typedef send_data1_timer,send_data2_timer,send_data3_timer;
 
 /* Private functions ---------------------------------------------------------*/
 void SysClockInit(void);
 void TimingDelay_Decrement(void);
+void IWDG_Configuration(void);
 
 void Delay2us(uint32_t times);
 void Delay3us(void);
 void Delay10us(uint16_t times);
 void DelayMs(__IO uint32_t nTime);
 
+void Timer_list_handler(void);
+void sw_timer_init(void);
+void sw_create_timer( Timer_typedef *timer_id, uint32_t delayms, uint8_t statrt_status,
+	                    uint8_t timout_status, uint8_t * status, timerout_event_callback callback);
+void systick_timer_init( void );
 #endif //__DELAY_H_
 /**************************************END OF FILE****************************/
 

@@ -11,11 +11,14 @@
 #include "main.h"
 #include "mcu_config.h"
 #include "nrf.h"
+#include "delay.h"
+#include "app_send_data_process.h"
 /* Private variables ---------------------------------------------------------*/
 spi_cmd_type_t 					 spi_cmd_type;
 nrf_communication_t			 nrf_communication;
 extern WhiteList_Typedef wl;
 extern nrf_communication_t nrf_communication;
+
 /*******************************************************************************
   * @brief  硬件平台初始化
   * @param  None
@@ -54,6 +57,11 @@ void Platform_Init(void)
 	DebugLog("\r\n[%s]:White list len = %d \r\n",__func__, wl.len);
 	DebugLog("[%s]:White list switch status is %d \r\n",__func__, wl.switch_status);
 	
+	/* init software timer */
+	sw_timer_init();
+	systick_timer_init();
+	send_data_process_timer_init();
+
 	/* 复位并初始化RC500 */
 	GPIOInit_MFRC500();
 	temp = PcdReset();															
@@ -69,6 +77,7 @@ void Platform_Init(void)
 	//BEEP_DISEN();
 	ledOff(LGREEN);
 	ledOff(LBLUE);
+	IWDG_Configuration();
 
 	DebugLog("[%s]:System clock freq is %dMHz\r\n",__func__, SystemCoreClock / 1000000);
 	DebugLog("[%s]:UID is %X%X%X%X%X%X%X%X\r\n",__func__,
