@@ -122,4 +122,5 @@ void get_retransmit_messsage( uint8_t status );
 void retansmit_data( uint8_t status );
 void App_clickers_send_data_process( void );
 void send_data_env_init(void);
+void send_data_process_timer_init( void );
 #endif

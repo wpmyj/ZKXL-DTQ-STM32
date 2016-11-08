@@ -34,7 +34,6 @@ uint8_t uart_card_cmd_sign[4];
 /* 暂存题目信息，以备重发使用 */
 Uart_MessageTypeDef backup_massage;
 static uint8_t backup_massage_status = 0;
-static uint32_t clicker_send_data_timecnt = 0;
 
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
@@ -55,34 +54,6 @@ void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef 
 void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err_type );
 void App_uart_message_copy( Uart_MessageTypeDef *SrcMessage, Uart_MessageTypeDef *DstMessage );
 void App_return_systick( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
-
-uint32_t clicker_send_data_time_set(uint8_t mode)
-{
-	uint32_t tempdata = 0;
-
-	switch(mode)
-	{
-		case 0 : clicker_send_data_timecnt = 0; break;
-		case 1 : clicker_send_data_timecnt++;   break;
-		case 2 : tempdata = clicker_send_data_timecnt; break;
-		default :break;
-	}
-
-	return tempdata;
-}
-
-void clicker_send_data_time_set1(uint8_t status1, uint8_t status2, uint32_t delayms)
-{
-	if(get_clicker_send_data_status() == status1)
-	{
-		clicker_send_data_time_set(1);
-		if(clicker_send_data_time_set(2) == delayms)
-		{
-			clicker_send_data_time_set(0);
-			change_clicker_send_data_status(status2);
-		}
-	}
-}
 
 /******************************************************************************
   Function:pc_subject_change_status
@@ -131,7 +102,6 @@ void App_seirial_cmd_process(void)
 	/* serial cmd process */
 	serial_cmd_process();
 
-	//serial_transmission_to_nrf51822();
 }
 
 /******************************************************************************

@@ -30,6 +30,6 @@ int main(void)
 	while(1)
 	{	
 		app_handle_layer();
-		
+
 	}	
 }

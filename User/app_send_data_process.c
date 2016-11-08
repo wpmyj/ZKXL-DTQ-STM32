@@ -15,7 +15,6 @@ extern uint8_t spi_status_write_index, spi_status_read_index, spi_status_count;
 uint8_t clicker_send_data_status = 0;
 static uint8_t pre_status = 0;
 static uint8_t sum_clicker_count = 0;
-uint32_t send_data_timer,retransmit_data_timer;
 
 extern nrf_communication_t nrf_communication;
 extern uint16_t list_tcb_table[10][8];
@@ -79,27 +78,24 @@ uint8_t get_rf_retransmit_status(void)
 	return retransmit_tcb.status;
 }
 
-
 /******************************************************************************
-  Function:change_clicker_send_data_status
+  Function:create_status_message
   Description:
-		修改clicker_send_data_status的状态
+		产生一个状态信息指令
   Input :
-		clicker_send_data_status: clicker_send_data_status状态
   Output:
   Return:
   Others:None
 ******************************************************************************/
-void change_clicker_send_data_status( uint8_t newstatus )
+void create_status_message( void )
 {
-	clicker_send_data_status = newstatus;
 	spi_status_buffer[spi_status_write_index][0] = 0x61;
 	memset(spi_status_buffer[spi_status_write_index]+1,0,10);
 	spi_status_buffer[spi_status_write_index][11] = CLICKER_SNED_DATA_STATUS_TYPE;
 	memset(spi_status_buffer[spi_status_write_index]+12,0,3);
 	spi_status_buffer[spi_status_write_index][15] = CLICKER_SNED_DATA_STATUS_TYPE;//xor
 	spi_status_buffer[spi_status_write_index][16] = 0x21;
-	spi_status_buffer[spi_status_write_index][17] = newstatus;
+	spi_status_buffer[spi_status_write_index][17] = clicker_send_data_status;
 	{
 		#ifdef OPEN_SEND_STATUS_MESSAGE_SHOW
 		uint8_t *str,status;
@@ -134,6 +130,23 @@ void change_clicker_send_data_status( uint8_t newstatus )
 	spi_status_write_index = (spi_status_write_index + 1)%10;
 	spi_status_count++;
 }
+
+/******************************************************************************
+  Function:change_clicker_send_data_status
+  Description:
+		修改clicker_send_data_status的状态
+  Input :
+		clicker_send_data_status: clicker_send_data_status状态
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void change_clicker_send_data_status( uint8_t newstatus )
+{
+	clicker_send_data_status = newstatus;
+	create_status_message();
+}
+
 
 /******************************************************************************
   Function:get_clicker_send_data_status
@@ -961,4 +974,26 @@ void send_data_env_init(void)
 
 	/* clear last status of send status */
 	pre_status = 0;
+}
+
+/******************************************************************************
+  Function:send_data_process_timer_init
+  Description:
+		发送过程中的定时器初始化
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void send_data_process_timer_init( void )
+{
+	/* create send data process timer*/
+	sw_create_timer(&send_data1_timer , SEND_DATA1_TIMEOUT, SEND_DATA1_STATUS,
+		SEND_DATA1_UPDATE_STATUS,&(clicker_send_data_status), create_status_message);
+	sw_create_timer(&send_data2_timer , SEND_DATA2_TIMEOUT, SEND_DATA2_SEND_OVER_STATUS,
+		SEND_DATA2_UPDATE_STATUS,&(clicker_send_data_status), create_status_message);
+	sw_create_timer(&send_data3_timer , SEND_DATA3_TIMEOUT, SEND_DATA3_SEND_OVER_STATUS,
+		SEND_DATA3_UPDATE_STATUS,&(clicker_send_data_status), create_status_message);
+
+  /* create retransmit timer */
+	sw_create_timer(&retransmit_timer, SEND_DATA4_TIMEOUT, 1, 2, &(retransmit_tcb.status), NULL);
 }

@@ -27,7 +27,7 @@ void message_show_process( void )
 /******************************************************************************
   Function:b_print
   Description:
-		打印信息输出进程
+		打印信息输出到Buffer中
   Input :
   Return:
   Others:None

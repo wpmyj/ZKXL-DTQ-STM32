@@ -46,7 +46,6 @@ extern nrf_communication_t	nrf_communication;
 
 /* rf systick data */
 volatile uint8_t rf_systick_status = 0; // 0 = IDLE
-static uint32_t  rf_retransmit_timecnt = 0;
 uint8_t spi_data_buffer[4][256];
 uint8_t spi_data_write_index = 0, spi_data_read_index = 0, spi_data_count = 0;
 uint8_t spi_status_buffer[10][18];
@@ -429,21 +428,9 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
+	Timer_list_handler();
+
 	TimingDelay_Decrement();
-
-	clicker_send_data_time_set1( SEND_DATA1_STATUS, SEND_DATA1_UPDATE_STATUS,SEND_DATA1_TIMEOUT);
-	clicker_send_data_time_set1( SEND_DATA2_SEND_OVER_STATUS, SEND_DATA2_UPDATE_STATUS,SEND_DATA2_TIMEOUT);
-	clicker_send_data_time_set1( SEND_DATA3_SEND_OVER_STATUS, SEND_DATA3_UPDATE_STATUS,SEND_DATA3_TIMEOUT);
-
-	if(get_rf_retransmit_status() == 1)
-	{
-		rf_retransmit_timecnt++;
-		if(rf_retransmit_timecnt == SEND_DATA4_TIMEOUT)
-		{
-			rf_retransmit_set_status(2);
-			rf_retransmit_timecnt = 0;
-		}
-	}
 
 	if(rf_systick_status == 3)
 	{
@@ -471,7 +458,7 @@ void SysTick_Handler(void)
 	if(flag_uart_rxing)												//串口接收超时计数器
 	{
 		uart_rx_timeout++;
-		if(uart_rx_timeout>5)										//5msc超时后重新开始接收
+		if(uart_rx_timeout>5)										//5ms超时后重新开始接收
 		{
 			uart_clear_message(&uart_irq_revice_massage);
 			flag_uart_rxing = false;
@@ -479,8 +466,6 @@ void SysTick_Handler(void)
 		}
 	}
 
-	if(timer_1ms%100 == 0)
-		ledToggle(LGREEN);
 	if(timer_1ms++ > 1000)
 	{
 #ifdef ENABLE_WATCHDOG
