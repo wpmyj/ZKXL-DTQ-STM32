@@ -108,12 +108,9 @@ void get_white_list_from_flash(void)
 				wl.uids[index].uid[i] = (uint8_t)(tmpuid[i]&0xFF);
 				wl.uids[index].pos    = index;
 			}
+			wl.len++;
 		}
 	}
-
-	/* get len */
-	EE_ReadVariable(WHITE_LIST_LEN_POS_OF_FEE,&len);
-	wl.len = len;
 
 	/* get switch_status */
 	EE_ReadVariable(WHITE_LIST_SW_POS_OF_FEE,&switch_status);
@@ -140,7 +137,10 @@ void set_index_of_white_list_pos( uint8_t use_or_online, uint8_t index )
 	{
 		flash_white_list_use_table();
 		if(wl.len<120)
+		{
 			wl.len++;
+			store_len_to_fee(wl.len);
+		}
 	}
 }
 
@@ -164,7 +164,10 @@ void clear_index_of_white_list_pos( uint8_t use_or_online, uint8_t index )
 	{
 		flash_white_list_use_table();
 		if(wl.len>0)
+		{
 			wl.len--;
+			store_len_to_fee(wl.len);
+		}
 	}
 }
 
