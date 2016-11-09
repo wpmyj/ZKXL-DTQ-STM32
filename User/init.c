@@ -11,7 +11,7 @@
 #include "main.h"
 #include "mcu_config.h"
 #include "nrf.h"
-#include "delay.h"
+#include "app_timer.h"
 #include "app_send_data_process.h"
 /* Private variables ---------------------------------------------------------*/
 spi_cmd_type_t 					 spi_cmd_type;
