@@ -467,7 +467,7 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table,
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 	uint8_t index = 0;
 #endif
-	for(i=rf_online_index[mode];(i<120)&&(*len<240);i++)
+	for(i=rf_online_index[mode];(i<120)&&(*len<239-5);i++)
 	{
 		is_use_pos = get_index_of_white_list_pos_status(src_table,i);
 		if(is_use_pos == 1)
@@ -475,7 +475,8 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table,
 			is_online_pos = get_index_of_white_list_pos_status(check_table,i);
 			if(is_online_pos == mode)
 			{
-				get_index_of_uid(i,buffer);
+				*buffer = i;
+				get_index_of_uid(i,buffer+1);
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				{
 					DEBUG_UID_LOG("[%3d]:%02x%02x%02x%02x ",i,*buffer, *(buffer+1),*(buffer+2), *(buffer+3));
@@ -485,8 +486,8 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table,
 					}
 				}
 #endif
-				buffer = buffer+4;
-				*len = *len + 4;
+				buffer = buffer+5;
+				*len = *len + 5;
 			}
 		}
 	}
@@ -684,14 +685,16 @@ void send_data_result( uint8_t status )
 		while( message_tcb.Is_lost_over != 0)
 		{
 			message_tcb.Is_lost_over = checkout_online_uids( result_check_tables[PRE_SUM_TABLE],result_check_tables[PRE_ACK_TABLE], 0,
-				revice_lost_massage.DATA,&(revice_lost_massage.LEN));
+				revice_lost_massage.DATA+1,&(revice_lost_massage.LEN));
 			message_tcb.lostuidlen += revice_lost_massage.LEN;
 
 #ifdef ENABLE_SEND_DATA_TO_PC
 			revice_lost_massage.HEADER = 0x5C;
 			memset(revice_lost_massage.SIGN,0,4);
 			revice_lost_massage.TYPE = 0x30;
-			revice_lost_massage.XOR = XOR_Cal((uint8_t *)(&(revice_lost_massage.TYPE)), revice_lost_massage.LEN+6);
+			revice_lost_massage.LEN = revice_lost_massage.LEN+1;
+			revice_lost_massage.DATA[0] = status / 3;
+			revice_lost_massage.XOR = XOR_Cal((uint8_t *)(&(revice_lost_massage.TYPE)), revice_lost_massage.LEN+6+1);
 			revice_lost_massage.END = 0xCA;
 			if(revice_lost_massage.LEN != 0)
 			{
@@ -709,7 +712,7 @@ void send_data_result( uint8_t status )
 		while(message_tcb.Is_ok_over != 0)
 		{
 			message_tcb.Is_ok_over = checkout_online_uids( result_check_tables[PRE_SUM_TABLE],result_check_tables[PRE_ACK_TABLE], 1,
-				revice_ok_massage.DATA,&(revice_ok_massage.LEN));
+				revice_ok_massage.DATA+1,&(revice_ok_massage.LEN));
 			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)),
 			                                 revice_ok_massage.LEN+6);
 			revice_ok_massage.END = 0xCA;
@@ -720,7 +723,9 @@ void send_data_result( uint8_t status )
 			revice_ok_massage.HEADER = 0x5C;
 			memset(revice_ok_massage.SIGN,0,4);
 			revice_ok_massage.TYPE = 0x31;
-			revice_ok_massage.XOR = XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)), revice_ok_massage.LEN+6);
+			revice_ok_massage.LEN = revice_ok_massage.LEN+1;
+			revice_ok_massage.DATA[0] = status / 3;
+			revice_ok_massage.XOR = XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)), revice_ok_massage.LEN+6+1);
 			revice_ok_massage.END = 0xCA;
 			if( revice_ok_massage.LEN != 0)
 			{
