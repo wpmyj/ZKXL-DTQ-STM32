@@ -8,7 +8,7 @@
   ******************************************************************************
   */
 
-#include "delay.h"
+#include "app_timer.h"
 #include "main.h"
 /* Private variables ---------------------------------------------------------*/
 static __IO uint32_t TimingDelay;
