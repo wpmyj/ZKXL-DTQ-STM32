@@ -26,7 +26,7 @@
 #include "m24sr_cmd.h"
 #include "define.h"
 
-#include "delay.h"
+#include "app_timer.h"
 #include "eeprom.h"
 #include "gpio.h"
 #include "version.h"
