@@ -365,7 +365,7 @@ uint8_t spi_process_revice_data( void )
 				if(spi_message[11] == NRF_DATA_IS_USEFUL)
 				{
 					/* 返回ACK的包号和上次发送的是否相同 */
-					if(spi_message[10] != revicer.sen_num)//收到的是有效数据
+					if(spi_message[10] != wl.uids[uidpos].rev_num)//收到的是有效数据
 					{
 						uint8_t temp;
 						DEBUG_BUFFER_DTATA_LOG("[DATA] uid:%02x%02x%02x%02x, ",
@@ -380,7 +380,7 @@ uint8_t spi_process_revice_data( void )
 						wl.uids[uidpos].rev_seq = spi_message[9];
 						wl.uids[uidpos].rev_num = spi_message[10];
 						/* 回复ACK */
-						nrf_transmit_start(&temp,0,NRF_DATA_IS_ACK, 1, 0, SEND_DATA_ACK_TABLE);
+						nrf_transmit_start(&temp,0,NRF_DATA_IS_ACK, 2, 20, SEND_DATA_ACK_TABLE);
 						/* 用户接收到数据处理函数 */
 						my_nrf_receive_success_handler();
 					}
@@ -412,14 +412,13 @@ uint8_t spi_process_revice_data( void )
 								wl.uids[uidpos].lost_package_num = 0;
 							}
 
-//							/* 统计收到包数 */
-//						clickers[uidpos].revice_package_num++;
-//						b_print("clickers : %02x%02x%02x%02x, pre:%2x, cur:%2x revice = %08x, lost = %08x, \r\n",
-//						clickers[uidpos].uid[0],clickers[uidpos].uid[1],clickers[uidpos].uid[2],
-//						clickers[uidpos].uid[3],
-//						clickers[uidpos].prepacknum,
-//						nrf_communication.receive_buf[10],
-//						clickers[uidpos].revice_package_num,clickers[uidpos].lost_package_num
+  						/* 统计收到包数 */
+							wl.uids[uidpos].recv_package_num++;
+//						printf("clickers : %02x%02x%02x%02x, revice = %08x, lost = %08x, \r\n",
+//						wl.uids[uidpos].uid[0],wl.uids[uidpos].uid[1],wl.uids[uidpos].uid[2],
+//						wl.uids[uidpos].uid[3],
+//						wl.uids[uidpos].recv_package_num,
+//						wl.uids[uidpos].lost_package_num
 //						);
 							wl.uids[uidpos].rev_num = spi_message[10];
 						}
@@ -465,7 +464,7 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table,
 	uint8_t i;
 	uint8_t is_use_pos = 0,is_online_pos = 0;
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
-	uint8_t index = 0;
+	static uint8_t index = 0;
 #endif
 	for(i=rf_online_index[mode];(i<120)&&(*len<239-5);i++)
 	{
@@ -495,6 +494,7 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table,
 	if(i==120)
 	{
 		rf_online_index[mode] = 0;
+		index = 0;
 		return 0;
 	}
 	else
@@ -716,7 +716,7 @@ void send_data_result( uint8_t status )
 			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)),
 			                                 revice_ok_massage.LEN+6);
 			revice_ok_massage.END = 0xCA;
-			message_tcb.clicker_count += revice_ok_massage.LEN/4;
+			message_tcb.clicker_count += revice_ok_massage.LEN/5;
 			message_tcb.okuidlen += revice_ok_massage.LEN;
 
 #ifdef ENABLE_SEND_DATA_TO_PC
