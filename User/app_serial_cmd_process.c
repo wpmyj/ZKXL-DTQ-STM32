@@ -402,27 +402,6 @@ static void serial_cmd_process(void)
 				}
 				break;
 
-			/* 单独下发给答题器 */
-			case 0x2F:
-				{
-//					uint8_t rf_retransmit_status = 0;
-//					rf_retransmit_status = get_rf_retransmit_status();
-//					if(rf_retransmit_status == 0)
-//					{
-//						App_send_data_to_clicker_start( &ReviceMessage);
-//						serial_cmd_status = APP_SERIAL_CMD_STATUS_WORK_IGNORE;
-//						rf_retransmit_set_status(1);
-//					}
-
-//					if(rf_retransmit_status == 2 || rf_retransmit_status == 3 )
-//					{
-//						//App_send_data_to_clicker_return( &ReviceMessage, &SendMessage);
-//						//serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
-//						rf_retransmit_set_status(0);
-//					}
-				}
-				break;
-
 			case APP_CTR_DATALEN_ERR:
 				{
 					App_returnErr(&SendMessage,err_cmd_type,APP_CTR_DATALEN_ERR);
@@ -574,11 +553,11 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 		revicer.sen_num++;
 
 		/* 发送前导帧 */
-		memset(nrf_communication.dtq_uid, 0, 4);
+		memcpy(nrf_communication.dtq_uid, SMessage->DATA+1, 4);
 		nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,  SEND_PRE_DELAY100US, SEND_DATA1_SUM_TABLE);
 
 		/* 发送数据帧 */
-		memset(nrf_communication.dtq_uid,0, 4);
+		memcpy(nrf_communication.dtq_uid, SMessage->DATA+1, 4);
 		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE );
 
 		change_clicker_send_data_status( SEND_DATA1_STATUS );
