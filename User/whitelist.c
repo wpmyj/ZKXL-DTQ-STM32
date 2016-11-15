@@ -89,7 +89,7 @@ void flash_white_list_use_table(void)
 void get_white_list_from_flash(void)
 {
 	uint8_t i,Is_use_pos,index;
-	uint16_t viraddr,tmpuid[4],switch_status,len;
+	uint16_t viraddr,tmpuid[4],switch_status;
 
 	/* get use table */
 	for(i=0;i<8;i++)
