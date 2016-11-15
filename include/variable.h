@@ -248,6 +248,7 @@ typedef struct
 	uint8_t  sen_seq;
 	uint8_t  firstrev;
 	uint32_t lost_package_num;
+	uint32_t recv_package_num;
 }Clicker_Typedef;
 
 typedef struct
