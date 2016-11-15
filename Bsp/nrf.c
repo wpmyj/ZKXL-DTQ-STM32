@@ -254,59 +254,6 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 	}
 }
 
-/******************************************************************************
-  Function:my_nrf_transmit_tx_success_handler
-  Description:向答题器发送数据后，收到答题器返回的软件ACK
-  Input:None
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-void my_nrf_transmit_tx_success_handler(void)
-{
-	nrf_debug("nrf_debug，发送成功，包号：%02X	\n",jsq_to_dtq_sequence);
-}
-
-
-/******************************************************************************
-  Function:my_nrf_transmit_tx_success_handler
-  Description:向答题器发送数据后，达到最大重发次数后，未收到答题器返回的软件ACK
-  Input:None
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-void my_nrf_transmit_tx_failed_handler(void)
-{
-	nrf_debug("nrf_debug，发送失败，包号：%02X	\n",jsq_to_dtq_sequence);
-}
-
-
-/******************************************************************************
-  Function:my_nrf_transmit_tx_success_handler
-  Description:收到答题器下发下来的数据
-  Input:None
-  Output:
-  Return:
-  Others:答题器下发的数据完整保存在rf_var.rx_buf（包括包头0x5A、包尾0xCA、XOR校验、
-         有效数据等），根据需要自行处理
-******************************************************************************/
-void my_nrf_receive_success_handler(void)
-{
-#ifdef ENABLE_RF_DATA_SHOW
-	uint8_t i;
-	nrf_debug("nrf_debug，收到答题器下发有效数据。打印如下：\r\n");
-	for(i = 0; i < rf_var.rx_len; i++)
-	{
-		nrf_debug("%02X ", rf_var.rx_buf[i]);
-		if((i+1)%20 == 0)
-			nrf_debug("\r\n");
-	}
-	nrf_debug("\r\n");
-
-#endif
-}
-
 /**************************************END OF FILE****************************/
 
 

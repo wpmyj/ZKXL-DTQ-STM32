@@ -270,12 +270,8 @@ void GPIOInit_SE2431L(void)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_Init(SE2431L_CSD_PORT, &GPIO_InitStructure);
 
-//#ifndef TX_MODE		
+	
 	SE2431L_Bypass();
-////	SE2431L_LNA();
-//#else	
-//	SE2431L_TX();
-//#endif //TX_MODE	
 }
 
 void SE2431L_LNA(void)
