@@ -13,9 +13,9 @@
 /* Private variables ---------------------------------------------------------*/
 static __IO uint32_t TimingDelay;
 timer_list_typedef timer_list;
-uint8_t systick_timer_status;
+uint8_t system_timer_status;
 
-Timer_typedef retransmit_timer,systick_timer;
+Timer_typedef retransmit_timer,system_timer;
 Timer_typedef send_data1_timer,send_data2_timer,send_data3_timer;
 /* Private function prototypes -----------------------------------------------*/
 void Delay(__IO uint32_t nTime);
@@ -50,8 +50,6 @@ void SysClockInit(void)
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
 	RCC_ClockSecuritySystemCmd(ENABLE);
-
-
 }
 
 /*******************************************************************************
@@ -319,7 +317,7 @@ void sw_create_timer( Timer_typedef *timer_id, uint32_t delayms, uint8_t statrt_
 void systemtick_timeout_callback( void )
 {
 	ledToggle(LGREEN);
-	systick_timer_status = 0;
+	system_timer_status = 0;
 }
 
 /******************************************************************************
@@ -330,9 +328,9 @@ void systemtick_timeout_callback( void )
   Return:
   Others:None
 ******************************************************************************/
-void systick_timer_init( void )
+void system_timer_init( void )
 {
-	sw_create_timer(&systick_timer , 100, 0, 1,&(systick_timer_status), systemtick_timeout_callback);
+	sw_create_timer(&system_timer , 100, 0, 1,&(system_timer_status), systemtick_timeout_callback);
 }
 
 /**************************************END OF FILE****************************/

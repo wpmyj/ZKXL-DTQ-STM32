@@ -30,8 +30,6 @@ timer_t clicker_time;
 // revice part
 Uart_MessageTypeDef uart_irq_revice_massage;
 static uint32_t uart_rx_timeout = 0;
-static uint32_t rf_tx_time_cnt = 0;
-static uint32_t rf_tx_timeout_cnt = 0;
 
 static bool     flag_uart_rxing = false;
 static uint8_t  uart_status     = UartHEADER;
@@ -45,40 +43,11 @@ extern nrf_communication_t	nrf_communication;
 
 
 /* rf systick data */
-volatile uint8_t rf_systick_status = 0; // 0 = IDLE
 uint8_t spi_data_buffer[4][256];
 uint8_t spi_data_write_index = 0, spi_data_read_index = 0, spi_data_count = 0;
 uint8_t spi_status_buffer[10][18];
 uint8_t spi_status_write_index = 0, spi_status_read_index = 0, spi_status_count = 0;
-/******************************************************************************
-  Function:rf_change_systick_status
-  Description:
-		修改systick的状态
-  Input :
-		rf_status: systick的新状态
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-void rf_change_systick_status(uint8_t rf_status)
-{
-	rf_systick_status = rf_status;
-	DebugLog("<%s> rf_systick_status = %d \r\n",__func__,rf_systick_status);
-}
 
-/******************************************************************************
-  Function:rf_get_systick_status
-  Description:
-		获取systick的状态
-  Input :
-  Output:systick的新状态
-  Return:
-  Others:None
-******************************************************************************/
-uint8_t rf_get_systick_status(void)
-{
-	return rf_systick_status ;
-}
 /******************************************************************************
   Function:uart_clear_message
   Description:
@@ -432,29 +401,6 @@ void SysTick_Handler(void)
 
 	TimingDelay_Decrement();
 
-	if(rf_systick_status == 3)
-	{
-		rf_tx_time_cnt++;
-
-		/* 5S 产生心跳包 同时计数器清零 */
-		if(rf_tx_time_cnt >= 5000)
-		{
-			rf_change_systick_status(4);
-			rf_tx_time_cnt = 0;
-		}
-	}
-
-	if(rf_systick_status == 1)
-	{
-		rf_tx_timeout_cnt++;
-		/* 1S 结束在线状态统计，清零超时基数器 */
-		if(rf_tx_timeout_cnt >= 1000)
-		{
-			rf_change_systick_status(2);
-			rf_tx_timeout_cnt = 0;
-		}
-	}
-
 	if(flag_uart_rxing)												//串口接收超时计数器
 	{
 		uart_rx_timeout++;
@@ -469,8 +415,8 @@ void SysTick_Handler(void)
 	if(timer_1ms++ > 1000)
 	{
 #ifdef ENABLE_WATCHDOG
-		IWDG_ReloadCounter();													//定时喂狗
-#endif //ENABLE_WATCHDOG
+		IWDG_ReloadCounter();
+#endif 
 
 		timer_1ms = 0;
 		time.second++;
@@ -504,8 +450,6 @@ void SysTick_Handler(void)
 	{
 		delay_nms --;
 	}
-
-
 }
 
 /******************************************************************************/
@@ -558,7 +502,7 @@ void RFIRQ_EXTI_IRQHandler(void)
 		/* 读取数据 */
 		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_communication.receive_len,
 		                                         nrf_communication.receive_buf);
-		/* 进行 crc 校验 */
+		/* 进行 UID 校验,判断是否发送给自己的数据 */
 		if( *(nrf_communication.receive_buf+1) == nrf_communication.jsq_uid[0] &&
 			  *(nrf_communication.receive_buf+2) == nrf_communication.jsq_uid[1] &&
 				*(nrf_communication.receive_buf+3) == nrf_communication.jsq_uid[2] &&
