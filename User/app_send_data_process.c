@@ -478,7 +478,7 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table,
 				get_index_of_uid(i,buffer+1);
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				{
-					DEBUG_UID_LOG("[%3d]:%02x%02x%02x%02x ",i,*buffer, *(buffer+1),*(buffer+2), *(buffer+3));
+					DEBUG_UID_LOG("[%3d]:%02x%02x%02x%02x ",i, *(buffer+1),*(buffer+2), *(buffer+3), *(buffer+4));
 					if(((index++)+1) % 5 == 0)
 					{
 						DEBUG_UID_LOG("\n");
