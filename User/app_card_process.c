@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
-  * @file   	app_handle_layer.c
-  * @author  	Tian erjun
+  * @file   	app_card_process.c
+  * @author  	sam.wu
   * @version 	V1.0.0.0
   * @date   	2015.11.05
   * @brief
