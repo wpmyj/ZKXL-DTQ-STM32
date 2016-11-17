@@ -25,22 +25,8 @@ uint32_t 					timer_1ms = 0;					      // 喂狗定时器
 time_t						time;							            // RTC结构体
 
 bool						  flag_upload_uid_once = false;	// 是否单次上传卡号标志
-uint8_t						ReadNDEF_Step = 0;				    // 读取NDEF文件的步骤
-uint8_t						FindCard_Step = 0;				    // 寻卡的步骤
-
-uint16_t					Length_CtrRC500ToApp;			    // RC500返回数据长度
-uint16_t 					Length_AppToCtrRC500;			    // 应用层下发RC500指令长度
-
-uint8_t						Buf_CtrRC500ToApp[UART_NBUF];	// RC500返回数据缓冲区
-uint8_t						Buf_AppToCtrRC500[UART_NBUF];	// 应用层下发RC500指令缓冲区
-
-uint8_t						Buf_CtrRC500return[UART_NBUF];	// RC500返回数据缓存区？？？
-
-bool 						  App_to_CtrPosReq = false;		    // pos指令请求
-bool 						  App_to_CtrRC500Req = false;		  // RC500指令请求
 
 uint8_t 					g_cardType[40] = {0x00};		    // 返回卡类型
-uint8_t 					respon[BUF_LEN + 20] = {0x00};
-uint8_t 					g_cCid;							
+uint8_t 					respon[BUF_LEN + 20] = {0x00};		
 
 /**************************************END OF FILE****************************/
