@@ -342,5 +342,4 @@ void print_read_data_to_buffer( uint8_t *str ,uint8_t size)
 	update_read_status(PRINT_BUFFER);
 }
 
-
 /**************************************END OF FILE****************************/
