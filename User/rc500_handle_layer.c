@@ -13,7 +13,6 @@
 #define RC500_DATIQI_FUNCHTION	(1)
 
 extern uint8_t serial_cmd_status ;	
-answer_setting_parameter_t	answer_setting;					// 答题器的设置参数
 
 static void sendtoRC500(void);
 void ComPcdFindCard(void);

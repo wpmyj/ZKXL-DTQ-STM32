@@ -18,8 +18,6 @@ bool 						  gbf_hse_setup_fail = FALSE;		// 外部16M晶振起振标志
 uint8_t 					time_for_buzzer_on = 0;			  // 多长时间之后开始响
 uint16_t 					time_for_buzzer_off = 0;		  // 响了多长时间之后关
 
-nrf_parameter_t	  nrf_parameter;					      // 2.4G初始化参数
-
 RF_TypeDef 				rf_var;							          // 2.4G数据包缓冲
 
 uint16_t					delay_nms = 0;					      // 中断延时变量
@@ -44,6 +42,5 @@ bool 						  App_to_CtrRC500Req = false;		  // RC500指令请求
 uint8_t 					g_cardType[40] = {0x00};		    // 返回卡类型
 uint8_t 					respon[BUF_LEN + 20] = {0x00};
 uint8_t 					g_cCid;							
-
 
 /**************************************END OF FILE****************************/
