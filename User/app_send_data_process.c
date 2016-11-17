@@ -381,8 +381,6 @@ uint8_t spi_process_revice_data( void )
 						wl.uids[uidpos].rev_num = spi_message[10];
 						/* 回复ACK */
 						nrf_transmit_start(&temp,0,NRF_DATA_IS_ACK, 2, 20, SEND_DATA_ACK_TABLE);
-						/* 用户接收到数据处理函数 */
-						my_nrf_receive_success_handler();
 					}
 				}
 				/* 收到的是Ack */
