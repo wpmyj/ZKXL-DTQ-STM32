@@ -42,26 +42,12 @@ extern uint16_t						delay_nms;						// 中断延时变量
 extern uint32_t 					timer_1ms;
 extern time_t						  time;							//保持当前时间
 
-extern bool							  flag_upload_uid_once;			//是否单次上传卡号标志
+extern bool							  flag_upload_uid_once;		//是否单次上传卡号标志
 extern uint8_t						ReadNDEF_Step;					// 读取NDEF文件的步骤
 extern uint8_t						FindCard_Step;					// 寻卡的步骤
 
-extern uint8_t 						flag_App_or_Ctr;
-extern uint16_t 					Length_CtrRC500ToApp;
-extern uint16_t 					Length_AppToCtrRC500;
-extern uint16_t 					Length_CtrPosToApp;
-extern uint16_t 					Length_AppToCtrPos;
-extern uint8_t 						Buf_CtrRC500ToApp[];
-extern uint8_t 						Buf_AppToCtrRC500[];
-extern uint8_t 						Buf_CtrPosToApp[];
-extern uint8_t 						Buf_AppToCtrPos[];
-extern uint8_t 						Buf_CtrRC500return[];			 //RC500返回数据缓存区
-extern bool 						  App_to_CtrPosReq;
-extern bool 						  App_to_CtrRC500Req;
-
 extern uint8_t 						g_cardType[];					//返回卡类型
 extern uint8_t 						respon[];
-extern uint8_t 						g_cCid;
 
 typedef struct
 {
