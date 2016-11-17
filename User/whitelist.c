@@ -25,7 +25,7 @@ uint8_t           rf_current_uid_index = 0;
 WhiteList_Typedef wl;
 Revicer_Typedef   revicer;
 /******************************************************************************
-  Function:clear_white_list_online_table
+  Function:clear_current_uid_index
   Description:
   Input:None
   Output:
@@ -38,23 +38,13 @@ void clear_current_uid_index( void )
 }
 
 /******************************************************************************
-  Function:clear_white_list_online_table
+  Function:clear_white_list_table
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-void clear_white_list_online_table(void)
-{
-	uint8_t i;
-	for(i=0;i<8;i++)
-	{
-		list_tcb_table[2][i] = list_tcb_table[1][i];
-		list_tcb_table[1][i] = 0x00;
-	}
-}
-
 void clear_white_list_table(uint8_t sel_table)
 {
 	uint8_t i;
