@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
-  * @file   	pos_handle_layer.c
-  * @author  	Tian erjun
+  * @file   	app_send_data_process.c
+  * @author  	sam.wu
   * @version 	V1.0.0.0
   * @date   	2015.11.05
   * @brief
@@ -19,13 +19,11 @@
 /* Private variables ---------------------------------------------------------*/
 static uint8_t whitelist_print_index = 0;
 
-extern Uart_MessageTypeDef uart_irq_send_massage;
 extern uint8_t uart_tx_status;
 extern nrf_communication_t nrf_communication;
        uint8_t serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 			 uint8_t serial_cmd_type = 0;
 			 uint8_t err_cmd_type = 0;
-	     uint8_t sign_buffer[4];
 			 uint8_t card_cmd_type = 0;
 
 uint8_t uart_rf_cmd_sign[4];
@@ -33,7 +31,6 @@ uint8_t uart_card_cmd_sign[4];
 
 /* 暂存题目信息，以备重发使用 */
 Uart_MessageTypeDef backup_massage;
-static uint8_t backup_massage_status = 0;
 
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
@@ -56,37 +53,6 @@ void App_uart_message_copy( Uart_MessageTypeDef *SrcMessage, Uart_MessageTypeDef
 void App_return_systick( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 
 /******************************************************************************
-  Function:pc_subject_change_status
-  Description:
-		修改backup_massage_status的状态
-  Input :
-		backup_massage_status: backup_massage_status的新状态
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-void pc_subject_change_status( uint8_t newstatus )
-{
-	backup_massage_status = newstatus;
-	DebugLog("<%s>backup_massage_status = %d\r\n",__func__,backup_massage_status);
-}
-
-/******************************************************************************
-  Function:get_backup_massage_status
-  Description:
-		修改backup_massage_status的状态
-  Input :
-		backup_massage_status: backup_massage_status的新状态
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-uint8_t get_backup_massage_status( void )
-{
-	return backup_massage_status;
-}
-
-/******************************************************************************
   Function:App_seirial_cmd_process
   Description:
 		串口进程处理函数
@@ -101,7 +67,6 @@ void App_seirial_cmd_process(void)
 
 	/* serial cmd process */
 	serial_cmd_process();
-
 }
 
 /******************************************************************************
@@ -114,85 +79,11 @@ void App_seirial_cmd_process(void)
 ******************************************************************************/
 static void serial_send_data_to_pc(void)
 {
-#ifdef ENABLE_DEBUG_LOG
-	uint8_t *pdata;
-	uint8_t i,uart_tx_cnt = 0;
-
-	if(BUFFEREMPTY == buffer_get_buffer_status(SEND_RINGBUFFER))
-	{
-		USART_ITConfig(USART1pos,USART_IT_TXE,DISABLE);
-		return;
-	}
-	else
-	{
-		serial_ringbuffer_read_data(SEND_RINGBUFFER, &uart_irq_send_massage);
-
-		pdata = (uint8_t *)(uart_irq_send_massage.DATA);
-		uart_tx_cnt = uart_irq_send_massage.LEN;
-
-		printf("message->header = %2X \r\n",uart_irq_send_massage.HEADER);
-		printf("message->type   = %2X \r\n",uart_irq_send_massage.TYPE);
-		printf("message->sign   = %X%X%X%X \r\n",
-				uart_irq_send_massage.SIGN[0],
-				uart_irq_send_massage.SIGN[1],
-				uart_irq_send_massage.SIGN[2],
-				uart_irq_send_massage.SIGN[3]);
-		printf("message->len    = %2X\r\n",uart_irq_send_massage.LEN);
-		printf("message->data   = ");
-		for(i=0;i<uart_tx_cnt;i++)
-		{
-			printf("%2X ",*pdata);
-			pdata++;
-		}
-		printf(" \r\n");
-		printf("message->xor    = %2X\r\n",uart_irq_send_massage.XOR);
-		printf("message->end    = %2X\r\n",uart_irq_send_massage.END);
-
-		printf(" \r\n");
-
-	}
-#else
-#ifdef ENABLE_OUTPUT_MODE_NORMOL
-	uint8_t *pdata;
-	uint8_t i,uart_tx_cnt = 0;
-
-	if(BUFFEREMPTY == buffer_get_buffer_status(SEND_RINGBUFFER))
-	{
-		return;
-	}
-	else
-	{
-		serial_ringbuffer_read_data(SEND_RINGBUFFER, &uart_irq_send_massage);
-
-		pdata = (uint8_t *)(uart_irq_send_massage.DATA);
-		uart_tx_cnt = uart_irq_send_massage.LEN;
-
-		uart_send_char(uart_irq_send_massage.HEADER);
-		uart_send_char(uart_irq_send_massage.TYPE);
-
-		uart_send_char(uart_irq_send_massage.SIGN[0]);
-		uart_send_char(uart_irq_send_massage.SIGN[1]);
-		uart_send_char(uart_irq_send_massage.SIGN[2]);
-		uart_send_char(uart_irq_send_massage.SIGN[3]);
-
-		uart_send_char(uart_irq_send_massage.LEN);
-
-		for(i=0;i<uart_tx_cnt;i++)
-		{
-			uart_send_char(*pdata);
-			pdata++;
-		}
-		uart_send_char(uart_irq_send_massage.XOR);
-		uart_send_char(uart_irq_send_massage.END);
-	}
-#else
 	if( uart_tx_status == 0)
 	{
 		/* enable interrupt Start send data*/
 		USART_ITConfig(USART1pos, USART_IT_TXE, ENABLE);
   }
-#endif
-#endif //ENABLE_DEBUG_LOG
 }
 
 /******************************************************************************
@@ -475,7 +366,6 @@ void app_debuglog_dump_no_space(uint8_t * p_buffer, uint32_t len)
     DebugLog("\r\n");
 }
 
-
 /******************************************************************************
   Function:App_send_data_to_clickers
   Description:
@@ -514,8 +404,7 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 					backup_massage.LEN = RMessage->LEN;
 					memcpy( backup_massage.DATA, (uint8_t *)(RMessage->DATA), RMessage->LEN );
 					backup_massage.XOR = RMessage->XOR;
-					backup_massage.XOR = 0xCA;
-					pc_subject_change_status(1);
+					backup_massage.END = 0xCA;
 				}
 				break;
 
@@ -549,7 +438,7 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 		/* 准备发送数据管理块 */
 		send_data_env_init();
 
-		/* 有数据下发且未曾下发过 */
+		/* 下发计数加1 */
 		revicer.sen_num++;
 
 		/* 发送前导帧 */
@@ -560,6 +449,7 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 		memcpy(nrf_communication.dtq_uid, SMessage->DATA+1, 4);
 		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE );
 
+    /* 启动发送数据状态机 */
 		change_clicker_send_data_status( SEND_DATA1_STATUS );
 	}
 }
@@ -893,7 +783,6 @@ void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef 
 	SMessage->LEN = j;
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), j+6);
 	SMessage->END = 0xCA;
-
 }
 
 /******************************************************************************
@@ -958,9 +847,6 @@ void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;
 }
-
-
-
 
 /**************************************END OF FILE****************************/
 
