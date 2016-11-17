@@ -13,12 +13,15 @@
 #include "nrf.h"
 #include "app_timer.h"
 #include "app_send_data_process.h"
+#include "app_systick_package_process.h"
+
 /* Private variables ---------------------------------------------------------*/
 spi_cmd_type_t 					 spi_cmd_type;
 nrf_communication_t			 nrf_communication;
 extern WhiteList_Typedef wl;
 extern nrf_communication_t nrf_communication;
 
+void systick_timer_init( void );
 /*******************************************************************************
   * @brief  硬件平台初始化
   * @param  None
@@ -59,8 +62,9 @@ void Platform_Init(void)
 	
 	/* init software timer */
 	sw_timer_init();
-	systick_timer_init();
+	system_timer_init();
 	send_data_process_timer_init();
+	systick_package_timer_init();
 
 	/* 复位并初始化RC500 */
 	GPIOInit_MFRC500();
