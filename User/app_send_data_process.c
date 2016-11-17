@@ -20,7 +20,6 @@ extern nrf_communication_t nrf_communication;
 extern uint16_t list_tcb_table[10][8];
 
 extern Uart_MessageTypeDef backup_massage;
-extern uint8_t sign_buffer[4];
 extern uint8_t sum_clicker_count;
 /* 统计与重发过程所使用变量 */
 // 在线状态检索
@@ -215,7 +214,6 @@ uint8_t spi_buffer_status_check(uint8_t status)
 ******************************************************************************/
 void clear_uid_check_table( void )
 {
-	clear_white_list_table(2);
 	clear_white_list_table(3);
 	clear_white_list_table(4);
 	clear_white_list_table(5);
@@ -272,6 +270,65 @@ void clicker_send_data_statistics( uint8_t send_data_status, uint8_t uidpos )
 }
 
 /******************************************************************************
+  Function:App_rf_check_process
+  Description:
+		App RF 消息缓存处理函数
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void rf_move_data_to_buffer(nrf_communication_t *Message)
+{
+	Uart_MessageTypeDef rf_message;
+	uint8_t i = 0 ;
+
+	rf_message.HEADER = 0x5C;
+	rf_message.TYPE = 0x10;
+
+	memcpy(rf_message.SIGN,nrf_communication.receive_buf+5,4);
+
+	/* 获取消息的有效长度 */
+	rf_message.LEN = Message->receive_buf[14];
+
+	for (i=0;i<rf_message.LEN;i++)
+	{
+		rf_message.DATA[i]=Message->receive_buf[i+15];
+	}
+
+	rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.TYPE)), i+6);
+	rf_message.END = 0xCA;
+
+	/* 存入缓存 */
+	if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+	{
+		serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
+	}
+
+  /* 检测是否为开机指令 */
+	{
+		if(rf_message.DATA[6] == 0x14)
+		{
+			if(rf_message.DATA[8] == 0x01)
+			{
+				uint8_t upos = 120, Is_revice_data = 0;
+				search_uid_in_white_list( nrf_communication.receive_buf+5, &upos );
+				Is_revice_data = get_index_of_white_list_pos_status( SEND_DATA_ACK_TABLE, upos );
+
+				if(Is_revice_data == 0)
+				{
+					/* 重新下发数据到答题器 */
+					memcpy( backup_massage.DATA+1, nrf_communication.receive_buf+5, 4);
+					if(BUFFERFULL != buffer_get_buffer_status(REVICE_RINGBUFFER))
+					{
+						serial_ringbuffer_write_data(REVICE_RINGBUFFER,&backup_massage);
+					}
+				}
+			}
+		}
+	}
+}
+
+/******************************************************************************
   Function:spi_process_revice_data
   Description:
 		RF SPI buffer 处理函数
@@ -323,29 +380,8 @@ uint8_t spi_process_revice_data( void )
 			/* 检测是白名单 */
 			if(Is_whitelist_uid == OPERATION_SUCCESS)
 			{
-				uint8_t systick_current_status = 0;
-
-				/* 获取心跳包状态 */
-				systick_current_status = rf_get_systick_status();
-
-				/* 填充索引表 */
-				if(systick_current_status == 1)
-				{
-					set_index_of_white_list_pos(1,uidpos);
-				}
-
 				/* 统计发送状态 */
 				clicker_send_data_statistics( clicker_send_data_status, uidpos );
-			}
-
-			if(1 == get_rf_retransmit_status())
-			{
-//				if(spi_message[5] == retransmit_tcb.uid[0] &&
-//					 spi_message[6] == retransmit_tcb.uid[1]
-//					)
-//				{
-//					rf_retransmit_set_status(2);
-//				}
 			}
 
 			/* 白名单开关状态 */
@@ -358,9 +394,6 @@ uint8_t spi_process_revice_data( void )
 			/* 过滤通过 */
 			if(Is_whitelist_uid == OPERATION_SUCCESS)
 			{
-				/* get uid */
-				memcpy(sign_buffer   ,spi_message+5 ,4);
-
 				/* 收到的是Data */
 				if(spi_message[11] == NRF_DATA_IS_USEFUL)
 				{
@@ -375,7 +408,7 @@ uint8_t spi_process_revice_data( void )
 							(uint8_t)*(nrf_communication.receive_buf+10));
 
 						/* 有效数据复制到缓存 */
-						//rf_move_data_to_buffer(&nrf_communication);
+						rf_move_data_to_buffer(&nrf_communication);
 						/* 更新接收数据帧号与包号 */
 						wl.uids[uidpos].rev_seq = spi_message[9];
 						wl.uids[uidpos].rev_num = spi_message[10];
