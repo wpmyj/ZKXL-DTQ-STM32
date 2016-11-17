@@ -663,7 +663,6 @@ void App_stop_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_Message
 	uint16_t i = 0;
 	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
 
-	rf_var.flag_txing = false;
 	memset(rf_var.tx_buf, 0x00, rf_var.tx_len);
 	rf_var.tx_len = 0x00;
 
