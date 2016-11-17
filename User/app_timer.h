@@ -62,7 +62,7 @@ void Timer_list_handler(void);
 void sw_timer_init(void);
 void sw_create_timer( Timer_typedef *timer_id, uint32_t delayms, uint8_t statrt_status,
 	                    uint8_t timout_status, uint8_t * status, timerout_event_callback callback);
-void systick_timer_init( void );
+void system_timer_init( void );
 #endif //__DELAY_H_
 /**************************************END OF FILE****************************/
 

@@ -309,7 +309,7 @@ void sw_create_timer( Timer_typedef *timer_id, uint32_t delayms, uint8_t statrt_
 /******************************************************************************
   Function:send_data_process_timer_init
   Description:
-		·￠?í1y3ì?Dμ??¨ê±?÷3?ê??ˉ
+		系统状态定时器回调函数
   Input :
   Return:
   Others:None
@@ -321,9 +321,9 @@ void systemtick_timeout_callback( void )
 }
 
 /******************************************************************************
-  Function:send_data_process_timer_init
+  Function:system_timer_init
   Description:
-		·￠?í1y3ì?Dμ??¨ê±?÷3?ê??ˉ
+		系统状态定时器
   Input :
   Return:
   Others:None
