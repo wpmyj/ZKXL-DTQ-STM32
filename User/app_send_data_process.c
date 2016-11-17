@@ -126,7 +126,7 @@ void create_status_message( void )
 		}
 		#endif
 	}
-	spi_status_write_index = (spi_status_write_index + 1)%10;
+	spi_status_write_index = (spi_status_write_index + 1)%SPI_DATA_IRQ_BUFFER_BLOCK_COUNT;
 	spi_status_count++;
 }
 
@@ -864,7 +864,7 @@ void spi_write_temp_buffer_to_buffer()
 		{
 			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_data_buffer[spi_data_read_index],
 			    spi_data_buffer[spi_data_read_index][spi_data_buffer[spi_data_read_index][14]+17]);
-			spi_data_read_index = (spi_data_read_index + 1) % 4;
+			spi_data_read_index = (spi_data_read_index + 1) % SPI_DATA_IRQ_BUFFER_BLOCK_COUNT;
 			spi_data_count--;
 		}
 	}
@@ -908,7 +908,7 @@ void spi_write_temp_buffer_to_buffer()
 				}
 				#endif
 			}
-			spi_status_read_index = (spi_status_read_index + 1) % 10;
+			spi_status_read_index = (spi_status_read_index + 1) % SPI_DATA_IRQ_BUFFER_BLOCK_COUNT;
 			spi_status_count--;
 		}
 	}

@@ -22,10 +22,10 @@
 #define PRINT_BUFFER         3
 
 #define PACKETSIZE           (UART_NBUF+9)
-#define REVICEBUFFERSIZE     (1024)
+#define REVICEBUFFERSIZE     (768)
 #define SENDBUFFERSIZE       (2048)
-#define SPIBUFFERSIZE        (1024)
-#define PRINTBUFFERSIZE      (1024)
+#define SPIBUFFERSIZE        (2048)
+#define PRINTBUFFERSIZE      (1)
 #define RINGBUFFERSUM        (4)
 
 /* buffer status  */
@@ -43,6 +43,8 @@
 
 #define CLOSEIRQ()           __set_PRIMASK(1)        
 #define OPENIRQ()            __set_PRIMASK(0)
+
+#define SPI_DATA_IRQ_BUFFER_BLOCK_COUNT          3
 
 /* Private functions ---------------------------------------------------------*/
 uint8_t buffer_get_buffer_status( uint8_t sel );
