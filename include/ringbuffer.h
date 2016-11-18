@@ -20,13 +20,15 @@
 #define SEND_RINGBUFFER      1
 #define SPI_REVICE_BUFFER    2
 #define PRINT_BUFFER         3
+#define SPI_IRQ_BUFFER       4
 
 #define PACKETSIZE           (UART_NBUF+9)
 #define REVICEBUFFERSIZE     (768)
-#define SENDBUFFERSIZE       (2048)
+#define SENDBUFFERSIZE       (1024)
 #define SPIBUFFERSIZE        (2048)
-#define PRINTBUFFERSIZE      (1)
-#define RINGBUFFERSUM        (4)
+#define SPIIRQBUFFERSIZE     (1024)
+#define PRINTBUFFERSIZE      (1024*4)
+#define RINGBUFFERSUM        (5)
 
 /* buffer status  */
 #define BUFFEREMPTY          1
@@ -44,7 +46,7 @@
 #define CLOSEIRQ()           __set_PRIMASK(1)        
 #define OPENIRQ()            __set_PRIMASK(0)
 
-#define SPI_DATA_IRQ_BUFFER_BLOCK_COUNT          3
+#define SPI_DATA_IRQ_BUFFER_BLOCK_COUNT          6
 
 /* Private functions ---------------------------------------------------------*/
 uint8_t buffer_get_buffer_status( uint8_t sel );
