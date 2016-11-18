@@ -2,7 +2,6 @@
 #include "app_send_data_process.h"
 
 static uint8_t rf_systick_status = 0; 
-static Timer_typedef systick_package_timer;
 
 /******************************************************************************
   Function:rf_change_systick_status

@@ -476,6 +476,9 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 			/* 启动单独发送数据状态机 */
 			change_single_send_data_status(1);
 		}
+
+		/* 清除心跳包定时时间 */
+		sw_clear_timer(&systick_package_timer);
 	}
 }
 

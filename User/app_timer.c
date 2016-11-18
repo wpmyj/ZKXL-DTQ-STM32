@@ -19,6 +19,8 @@ Timer_typedef retransmit_timer,system_timer;
 Timer_typedef send_data1_timer,send_data2_timer,send_data3_timer;
 Timer_typedef single_send_data_timer;
 Timer_typedef spi_send_data_timer,spi_send_data_timer1;
+Timer_typedef systick_package_timer;
+
 /* Private function prototypes -----------------------------------------------*/
 void Delay(__IO uint32_t nTime);
 
@@ -307,6 +309,17 @@ void sw_create_timer( Timer_typedef *timer_id, uint32_t delayms, uint8_t statrt_
 	timer_list.registr_timer(timer_id);
 }
 
+/******************************************************************************
+  Function:sw_clear_timer
+  Description:
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void sw_clear_timer( Timer_typedef *timer_id )
+{
+	timer_list.set_cnt( timer_id, 0 );
+}
 
 /******************************************************************************
   Function:send_data_process_timer_init

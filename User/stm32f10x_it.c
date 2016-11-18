@@ -42,8 +42,6 @@ uint8_t uart_tx_status      = 0;
 extern nrf_communication_t	nrf_communication;
 
 /* rf systick data */
-uint8_t spi_data_buffer[SPI_DATA_IRQ_BUFFER_BLOCK_COUNT][256];
-uint8_t spi_data_write_index = 0, spi_data_read_index = 0, spi_data_count = 0;
 uint8_t spi_status_buffer[SPI_DATA_IRQ_BUFFER_BLOCK_COUNT][18];
 uint8_t spi_status_write_index = 0, spi_status_read_index = 0, spi_status_count = 0;
 
@@ -507,11 +505,15 @@ void RFIRQ_EXTI_IRQHandler(void)
 				*(nrf_communication.receive_buf+3) == nrf_communication.jsq_uid[2] &&
 				*(nrf_communication.receive_buf+4) == nrf_communication.jsq_uid[3])
 		{
-			uint8_t send_data_status = get_clicker_send_data_status();
-			memcpy(spi_data_buffer[spi_data_write_index],nrf_communication.receive_buf,nrf_communication.receive_buf[14]+17);
-			spi_data_buffer[spi_data_write_index][nrf_communication.receive_buf[14]+17] = send_data_status;
-			spi_data_write_index = (spi_data_write_index + 1) % SPI_DATA_IRQ_BUFFER_BLOCK_COUNT;
-			spi_data_count++;
+			if(BUFFERFULL != buffer_get_buffer_status(SPI_IRQ_BUFFER))
+			{
+				uint8_t send_data_status = get_clicker_send_data_status();
+				spi_write_data_to_buffer(SPI_IRQ_BUFFER,nrf_communication.receive_buf, send_data_status);
+			}
+			else
+			{
+				DEBUG_BUFFER_ACK_LOG("spi irq buffer full \r\n");
+			}
 		}
 	}
 	ledToggle(LBLUE);
