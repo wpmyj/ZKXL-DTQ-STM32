@@ -14,13 +14,14 @@
 static uint8_t  UartReviceBuffer[REVICEBUFFERSIZE];
 static uint8_t  UartSendBuffer[SENDBUFFERSIZE];
 static uint8_t  SpireviceBuffer[SPIBUFFERSIZE];
+static uint8_t  SpiIrqBuffer[SPIIRQBUFFERSIZE];
 static uint8_t  PrintBuffer[PRINTBUFFERSIZE];
-const uint32_t  BufferSize[RINGBUFFERSUM]      = {REVICEBUFFERSIZE,SENDBUFFERSIZE,SPIBUFFERSIZE,PRINTBUFFERSIZE};
-static uint8_t *pBuffer[RINGBUFFERSUM]         = {UartReviceBuffer,UartSendBuffer,SpireviceBuffer,PrintBuffer};
-static volatile uint16_t Top[RINGBUFFERSUM]    = { 0, 0, 0, 0 };
-static volatile uint16_t Bottom[RINGBUFFERSUM] = { 0, 0, 0, 0 };
-static volatile int32_t  Size[RINGBUFFERSUM]   = { 0, 0, 0, 0 };
-static volatile uint8_t  Status[RINGBUFFERSUM] = { BUFFEREMPTY, BUFFEREMPTY, BUFFEREMPTY,BUFFEREMPTY};
+const uint32_t  BufferSize[RINGBUFFERSUM]      = {REVICEBUFFERSIZE,SENDBUFFERSIZE,SPIBUFFERSIZE,PRINTBUFFERSIZE,SPIIRQBUFFERSIZE};
+static uint8_t *pBuffer[RINGBUFFERSUM]         = {UartReviceBuffer,UartSendBuffer,SpireviceBuffer,PrintBuffer,SpiIrqBuffer};
+static volatile uint16_t Top[RINGBUFFERSUM]    = { 0, 0, 0, 0, 0 };
+static volatile uint16_t Bottom[RINGBUFFERSUM] = { 0, 0, 0, 0, 0 };
+static volatile int32_t  Size[RINGBUFFERSUM]   = { 0, 0, 0, 0, 0 };
+static volatile uint8_t  Status[RINGBUFFERSUM] = { BUFFEREMPTY, BUFFEREMPTY, BUFFEREMPTY,BUFFEREMPTY, BUFFEREMPTY};
 
 /* Private functions ---------------------------------------------------------*/
 static void    update_read_status( uint8_t sel) ;

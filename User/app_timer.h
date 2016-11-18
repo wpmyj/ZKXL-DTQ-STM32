@@ -48,6 +48,7 @@ extern timer_list_typedef timer_list;
 extern Timer_typedef retransmit_timer,systick_timer;
 extern Timer_typedef send_data1_timer,send_data2_timer,send_data3_timer,single_send_data_timer;
 extern Timer_typedef spi_send_data_timer,spi_send_data_timer1;
+extern Timer_typedef systick_package_timer;
 
 /* Private functions ---------------------------------------------------------*/
 void SysClockInit(void);
@@ -64,6 +65,7 @@ void sw_timer_init(void);
 void sw_create_timer( Timer_typedef *timer_id, uint32_t delayms, uint8_t statrt_status,
 	                    uint8_t timout_status, uint8_t * status, timerout_event_callback callback);
 void system_timer_init( void );
+void sw_clear_timer( Timer_typedef *timer_id );
 #endif //__DELAY_H_
 /**************************************END OF FILE****************************/
 

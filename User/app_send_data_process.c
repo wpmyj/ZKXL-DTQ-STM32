@@ -361,10 +361,10 @@ uint8_t spi_process_revice_data( void )
 		#ifdef OPEN_BUFFER_DATA_SHOW
 		{
 			int i;
-			printf("%4d ", buffer_get_buffer_status(SPI_REVICE_BUFFER));
-			printf("Buffer Read :");
-			for(i=0;i<spi_message[14]+18;i++)
-				printf("%2x ",spi_message[i]);
+			DEBUG_BUFFER_ACK_LOG("%4d ", buffer_get_buffer_status(SPI_REVICE_BUFFER));
+			DEBUG_BUFFER_ACK_LOG("Buffer Read :");
+			for(i=5;i<9;i++)
+				DEBUG_BUFFER_ACK_LOG("%02x",spi_message[i]);
 		}
 		#endif
 
@@ -416,9 +416,8 @@ uint8_t spi_process_revice_data( void )
 					{
 						uint8_t temp;
 						DEBUG_BUFFER_DTATA_LOG("[DATA] uid:%02x%02x%02x%02x, ",
-							*(nrf_communication.receive_buf+5),*(nrf_communication.receive_buf+6),
-							*(nrf_communication.receive_buf+7),*(nrf_communication.receive_buf+8));
-						DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x\r\n",(uint8_t)*(nrf_communication.receive_buf+9),
+							*(spi_message+5),*(spi_message+6),*(spi_message+7),*(spi_message+8));
+						DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x\r\n",(uint8_t)*(spi_message+9),
 							(uint8_t)*(nrf_communication.receive_buf+10));
 
 						/* 更新接收数据帧号与包号 */
@@ -433,11 +432,10 @@ uint8_t spi_process_revice_data( void )
 				/* 收到的是Ack */
 				else if(spi_message[11] == NRF_DATA_IS_ACK)
 				{
-					DEBUG_BUFFER_DTATA_LOG("[ACK] uid:%02x%02x%02x%02x, ",
-						*(nrf_communication.receive_buf+5),*(nrf_communication.receive_buf+6),
-						*(nrf_communication.receive_buf+7),*(nrf_communication.receive_buf+8));
-					DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x\r\n",(uint8_t)*(nrf_communication.receive_buf+9),
-						(uint8_t)*(nrf_communication.receive_buf+10));
+					DEBUG_BUFFER_ACK_LOG("[ACK] uid:%02x%02x%02x%02x, ",
+						*(spi_message+5),*(spi_message+6),*(spi_message+7),*(spi_message+8));
+					DEBUG_BUFFER_ACK_LOG("seq:%2x, pac:%2x \r\n",(uint8_t)*(spi_message+9),
+						(uint8_t)*(spi_message+10));
 					/* 重复接收的数据，返回包号和上次一样的*/
 					if(wl.uids[uidpos].rev_num != spi_message[10])
 					{
@@ -899,20 +897,23 @@ void retransmit_env_init( void )
 ******************************************************************************/
 void spi_write_temp_buffer_to_buffer()
 {
-	if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
+	if(BUFFEREMPTY != buffer_get_buffer_status(SPI_IRQ_BUFFER))
 	{
-		if(spi_data_count > 0)
+		uint8_t spi_message[255];
+		memset(spi_message,0,255);
+		spi_read_data_from_buffer( SPI_IRQ_BUFFER, spi_message );
+
+		if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
 		{
-			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_data_buffer[spi_data_read_index],
-			    spi_data_buffer[spi_data_read_index][spi_data_buffer[spi_data_read_index][14]+17]);
-			spi_data_read_index = (spi_data_read_index + 1) % SPI_DATA_IRQ_BUFFER_BLOCK_COUNT;
+			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_message, spi_message[spi_message[14]+17]);
+
 			spi_data_count--;
 		}
 	}
 
 	if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
 	{
-		if((spi_status_count > 0) && (spi_data_count == 0))
+		if((spi_status_count > 0) && (BUFFEREMPTY == buffer_get_buffer_status(SPI_IRQ_BUFFER)))
 		{
 			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_status_buffer[spi_status_read_index],
 			    spi_status_buffer[spi_status_read_index][spi_status_buffer[spi_status_read_index][14]+17]);
