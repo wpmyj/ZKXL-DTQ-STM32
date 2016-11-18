@@ -310,48 +310,27 @@ void rf_move_data_to_buffer(nrf_communication_t *Message)
 	}
 
   /* 检测是否为开机指令 */
+	if(rf_message.DATA[6] == 0x14)
 	{
-		if(rf_message.DATA[6] == 0x14)
+		if(rf_message.DATA[8] == 0x01)
 		{
-			if(rf_message.DATA[8] == 0x01)
+			uint8_t nouse_temp = 0;
+
+			/* 重新下发数据到答题器 */
+			if(	backup_massage.DATA[6] == 0)
 			{
-				uint8_t upos = 120, Is_revice_data = 0, nouse_temp = 0;
-				search_uid_in_white_list( nrf_communication.receive_buf+5, &upos );
-				Is_revice_data = get_index_of_white_list_pos_status( SEND_DATA_ACK_TABLE, upos );
-
-				if(Is_revice_data == 0)
-				{
-					/* 重新下发数据到答题器 */
-					if(	backup_massage.DATA[6] == 0)
-					{
-						backup_massage.LEN = 10;
-						backup_massage.DATA[0] = 0x5A;
-						backup_massage.DATA[6] = 0x10;
-						backup_massage.DATA[7] = 0x00;
-					}
-
-					memcpy( backup_massage.DATA+1, nrf_communication.receive_buf+5, 4);
-//				{
-//					int i;
-//					for(i=0;i<backup_massage.LEN;i++)
-//						printf(" %2x ",backup_massage.DATA[i]);
-//					printf("\r\n");
-//				}
-					backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
-//				{
-//					int i;
-//					for(i=0;i<backup_massage.LEN;i++)
-//					printf(" %2x ",backup_massage.DATA[i]);
-//					printf("\r\n");
-//				}
-					/* 此处加上小延时，SPI才能接收到先导帧 */
-					DelayMs(2);
-					nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-						SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE);
-					nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
-		        NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE);
-				}
+				backup_massage.LEN = 10;
+				backup_massage.DATA[0] = 0x5A;
+				backup_massage.DATA[6] = 0x10;
+				backup_massage.DATA[7] = 0x00;
 			}
+
+			memcpy( backup_massage.DATA+1, nrf_communication.receive_buf+5, 4);
+			backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
+			nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
+				SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE);
+			nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
+				NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE);
 		}
 	}
 }
@@ -415,7 +394,7 @@ uint8_t spi_process_revice_data( void )
 				}
 				else
 				{
-					set_index_of_white_list_pos(1,uidpos);
+					set_index_of_white_list_pos(SINGLE_SEND_DATA_ACK_TABLE,uidpos);
 				}
 			}
 
@@ -560,7 +539,9 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table,
 	if(i==120)
 	{
 		rf_online_index[mode] = 0;
+#ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 		index = 0;
+#endif
 		return 0;
 	}
 	else
@@ -734,23 +715,6 @@ void retansmit_data( uint8_t status )
 	}
 }
 
-/* 重发函数 */
-void single_retansmit_data( uint8_t status )
-{
-	if(( status == SEND_DATA2_STATUS ) || ( status == SEND_DATA3_STATUS ))
-	{
-		get_retransmit_messsage( status );
-		memcpy(nrf_communication.dtq_uid,single_send_data_uid,4);
-		nrf_transmit_start( nrf_communication.dtq_uid, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-		                    SEND_PRE_DELAY100US, 1);
-
-		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL,
-		                    SEND_DATA_COUNT, SEND_DATA_DELAY100US, 1 );
-
-		change_clicker_send_data_status( after_retransmit_status );
-	}
-}
-
 /* 统计函数 */
 void send_data_result( uint8_t status )
 {
@@ -861,52 +825,6 @@ void send_data_result( uint8_t status )
 	}
 }
 
-void single_send_data_result( uint8_t status )
-{
-	if(( status == SEND_DATA1_UPDATE_STATUS ) ||
-		 ( status == SEND_DATA2_UPDATE_STATUS ) ||
-		 ( status == SEND_DATA3_UPDATE_STATUS ) ||
-	   ( status == SEND_DATA4_UPDATE_STATUS ))
-	{
-		uint8_t Is_whitelist_uid,Is_revice_uid,uidpos;
-
-		get_send_data_table_message(status);
-
-		Is_whitelist_uid = search_uid_in_white_list( single_send_data_uid, &uidpos );
-		Is_revice_uid = get_index_of_white_list_pos_status( 1, uidpos);
-
-		if(( Is_whitelist_uid ) && ( Is_revice_uid ))
-		{
-			Uart_MessageTypeDef signle_back_message;
-
-			/* create back message */
-			{
-				signle_back_message.HEADER = 0x5C;
-				signle_back_message.TYPE   = 0x40;
-				memcpy(signle_back_message.SIGN,single_send_data_uid,4);
-				signle_back_message.LEN     = 0x05;
-				signle_back_message.DATA[0] = uidpos;
-				memcpy(signle_back_message.DATA+1,single_send_data_uid,4);
-				signle_back_message.XOR = XOR_Cal(&signle_back_message.TYPE,11);
-				signle_back_message.END  = 0xCA;
-			}
-
-			/* store message to SEND_RINGBUFFER */
-			if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
-			{
-				serial_ringbuffer_write_data(SEND_RINGBUFFER,&signle_back_message);
-			}
-
-			/* stop state machine */
-			change_clicker_send_data_status(0);
-		}
-		else
-		{
-			/* enter next state */
-			change_clicker_send_data_status( after_result_status );
-		}
-	}
-}
 /******************************************************************************
   Function:retransmit_data_to_next_clicker
   Description:
@@ -1038,7 +956,7 @@ void send_data_env_init(void)
 	memset(&retransmit_tcb,0,9);
 
 	/* clear online check table */
-	memset(list_tcb_table[2],0,16*8);
+	memset(list_tcb_table[1],0,16*9);
 
 	/* clear count of clicker */
 	sum_clicker_count = 0;
@@ -1078,6 +996,36 @@ uint8_t get_single_send_data_status( void )
 }
 
 /******************************************************************************
+  Function:single_send_data_result
+  Description:
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void single_send_data_result( uint8_t status, uint8_t pos )
+{
+	Uart_MessageTypeDef result_message;
+
+	if( status == 0 )
+		result_message.TYPE   = 0x31;
+	else
+		result_message.TYPE   = 0x30;
+
+	result_message.HEADER = 0x5C;
+	memcpy(result_message.SIGN,backup_massage.SIGN,4);
+	result_message.LEN     = 0x05;
+	result_message.DATA[0] = pos;
+	memcpy(result_message.DATA+1,single_send_data_uid,4);
+	result_message.XOR = XOR_Cal(&result_message.TYPE,11);
+	result_message.END  = 0xCA;
+
+	if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+	{
+		serial_ringbuffer_write_data(SEND_RINGBUFFER,&result_message);
+	}
+
+}
+/******************************************************************************
   Function:single_send_data_process
   Description:
   Input :
@@ -1093,21 +1041,28 @@ void App_clickers_single_send_data_process( void )
 
 		Is_whitelist_uid = search_uid_in_white_list( single_send_data_uid, &upos );
 
+		/* 白名单开关状态 */
+		if(wl.switch_status == OFF)
+		{
+			/* 关闭白名单是不过滤白名单 */
+			Is_whitelist_uid = OPERATION_SUCCESS;
+		}
+
 		if(Is_whitelist_uid == OPERATION_SUCCESS )
 		{
-			Is_revice = get_index_of_white_list_pos_status( 1, upos );
+			Is_revice = get_index_of_white_list_pos_status( SINGLE_SEND_DATA_ACK_TABLE, upos );
 
-			if( Is_revice == 0)
+			if( Is_revice == 0 )
 			{
 				/* 发送前导帧 */
 				memcpy( nrf_communication.dtq_uid, single_send_data_uid, 4 );
 				nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-														SEND_PRE_DELAY100US, 1);
+														SEND_PRE_DELAY100US, SINGLE_SEND_DATA_ACK_TABLE);
 				/* 发送数据帧 */
 				memcpy( nrf_communication.dtq_uid, single_send_data_uid, 4 );
 
 				nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL,
-														SEND_DATA_COUNT, SEND_DATA_DELAY100US, 1 );
+														SEND_DATA_COUNT, SEND_DATA_DELAY100US, SINGLE_SEND_DATA_ACK_TABLE );
 
 				single_sned_data_count++;
 
@@ -1115,26 +1070,41 @@ void App_clickers_single_send_data_process( void )
 				{
 					single_send_data_status = 0;
 					single_sned_data_count = 0;
-					printf("send over fail\r\n");
-					clear_white_list_table(1);
+					DEBUG_STATISTICS_LOG("send over fail\r\n");
+					clear_white_list_table(SINGLE_SEND_DATA_ACK_TABLE);
+					#ifdef ENABLE_SEND_DATA_TO_PC
+					single_send_data_result( 1, upos );
+					#endif
 				}
 				else
 				{
 					single_send_data_status = 1;
-					printf("send count = %d\r\n",single_sned_data_count);
+					DEBUG_STATISTICS_LOG("send count = %d\r\n",single_sned_data_count);
 				}
 			}
 			else
 			{
 				single_send_data_status = 0;
 				single_sned_data_count = 0;
-				printf("OK \r\n");
-				clear_white_list_table(1);
+				DEBUG_STATISTICS_LOG("OK \r\n");
+				clear_white_list_table(SINGLE_SEND_DATA_ACK_TABLE);
+				#ifdef ENABLE_SEND_DATA_TO_PC
+				single_send_data_result( 0, upos );
+				#endif
 			}
+		}
+		else
+		{
+			single_send_data_status = 0;
+			single_sned_data_count = 0;
+			DEBUG_STATISTICS_LOG("uid is not in white list fail\r\n");
+			clear_white_list_table(SINGLE_SEND_DATA_ACK_TABLE);
+			#ifdef ENABLE_SEND_DATA_TO_PC
+			single_send_data_result( 1, upos );
+			#endif
 		}
 	}
 }
-
 /******************************************************************************
   Function:App_clickers_send_data_process
   Description:
@@ -1175,7 +1145,7 @@ void App_clickers_send_data_process( void )
 		if(rf_retransmit_status == 2)
 		{
 			retransmit_tcb.count++;
-			DEBUG_DATA_DETAIL_LOG("retransmit_count = %d\r\n",retransmit_tcb.count );
+			DEBUG_DATA_DETAIL_LOG("[%d].retransmit\r\n",retransmit_tcb.count + 3);
 			if(retransmit_tcb.count == retransmit_tcb.sum)
 			{
 				retransmit_tcb.count = 0;

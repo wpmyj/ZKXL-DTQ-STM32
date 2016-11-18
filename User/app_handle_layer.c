@@ -16,6 +16,7 @@
 #include "app_show_message_process.h"
 #include "app_card_process.h"
 #include "app_systick_package_process.h"
+#include "app_spi_send_data_process.h"
 
 /******************************************************************************
   Function:app_handle_layer
@@ -44,4 +45,7 @@ void app_handle_layer(void)
 	
 	/*clickers send data process */
 	App_clickers_single_send_data_process();
+
+	/*revicer spi send data process */
+	App_spi_send_data_process();
 }

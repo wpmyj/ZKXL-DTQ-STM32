@@ -11,7 +11,7 @@
 #include "main.h"
 #include "nrf.h"
 #include "app_send_data_process.h"
-
+#include "app_spi_send_data_process.h"
 
 #ifdef NRF_DEBUG
 #define nrf_debug  printf
@@ -196,7 +196,7 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 		nrf_communication.transmit_len = data_buff_len + 17+16;
 
 		/* 开始通讯之前先发2次，之后开启定时判断重发机制 */
-		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len,count,delay100us);
+		spi_send_data_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len,count,delay100us,1);
 	}
 	else if(nrf_data_type == NRF_DATA_IS_ACK)	//ACK数据包，发送nrf_communication.transmit_buf 内容
 	{
@@ -216,7 +216,7 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 
 		nrf_communication.transmit_len = 17;
 
-		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len,count,delay100us);
+	  spi_send_data_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len,count,delay100us,1);
 	}
 	else if( nrf_data_type == NRF_DATA_IS_PRE )
 	{
@@ -249,8 +249,7 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 
 		nrf_communication.transmit_len = 17+16;
 
-		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len,count,delay100us);
-		DelayMs(10);
+		spi_send_data_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len, count, delay100us, 50);
 	}
 }
 

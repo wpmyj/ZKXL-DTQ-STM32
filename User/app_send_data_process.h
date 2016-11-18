@@ -90,9 +90,10 @@
 #define SEND_DATA4_ACK_TABLE        9
 #define SEND_DATA4_UPDATE_STATUS    (SEND_DATA4_STATUS+2)           // 12
 
-
+/* ¶¨Ïò·¢ËÍ */
 #define SINGLE_SEND_DATA_TIMEOUT    100
 #define SINGLE_SEND_DATA_COUNT_MAX  10
+#define SINGLE_SEND_DATA_ACK_TABLE  1
 
 
 typedef struct
