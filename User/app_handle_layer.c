@@ -41,4 +41,7 @@ void app_handle_layer(void)
 	
 	/*printf message show process */
 	message_show_process();
+	
+	/*clickers send data process */
+	App_clickers_single_send_data_process();
 }

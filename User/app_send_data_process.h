@@ -56,7 +56,7 @@
 #define SEND_PRE_DELAY100US         20  // 100us
 
 /* สýพÝึก */
-#define SEND_DATA_COUNT             1
+#define SEND_DATA_COUNT             2
 #define SEND_DATA_DELAY100US        50
 #define SEND_DATA_ACK_TABLE         2
 
@@ -89,6 +89,11 @@
 #define SEND_DATA4_TIMEOUT          800
 #define SEND_DATA4_ACK_TABLE        9
 #define SEND_DATA4_UPDATE_STATUS    (SEND_DATA4_STATUS+2)           // 12
+
+
+#define SINGLE_SEND_DATA_TIMEOUT    100
+#define SINGLE_SEND_DATA_COUNT_MAX  10
+
 
 typedef struct
 {
@@ -123,4 +128,7 @@ void retansmit_data( uint8_t status );
 void App_clickers_send_data_process( void );
 void send_data_env_init(void);
 void send_data_process_timer_init( void );
+void change_single_send_data_status( uint8_t status );
+uint8_t get_single_send_data_status( void );
+void App_clickers_single_send_data_process( void );
 #endif

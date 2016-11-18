@@ -17,6 +17,7 @@ uint8_t system_timer_status;
 
 Timer_typedef retransmit_timer,system_timer;
 Timer_typedef send_data1_timer,send_data2_timer,send_data3_timer;
+Timer_typedef single_send_data_timer;
 /* Private function prototypes -----------------------------------------------*/
 void Delay(__IO uint32_t nTime);
 
