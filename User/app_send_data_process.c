@@ -684,6 +684,31 @@ uint8_t checkout_retransmit_clickers(uint8_t presumtable, uint8_t preacktable, u
 	return clickernum;
 }
 
+/******************************************************************************
+  Function:check_is_revice_over
+  Description:
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+uint8_t check_is_revice_over( void )
+{
+	uint8_t i;
+	uint8_t is_use_pos = 0,is_online_pos = 0;
+	for(i=0;i<120;i++)
+	{
+		is_use_pos = get_index_of_white_list_pos_status(0,i);
+		if(is_use_pos == 1)
+		{
+			is_online_pos = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,i);
+			if(is_online_pos == 0)
+			{
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
 /* ÖØ·¢º¯Êý */
 void retansmit_data( uint8_t status )
 {
@@ -1144,17 +1169,30 @@ void App_clickers_send_data_process( void )
 
 		if(rf_retransmit_status == 2)
 		{
-			retransmit_tcb.count++;
-			DEBUG_DATA_DETAIL_LOG("[%d].retransmit\r\n",retransmit_tcb.count + 3);
-			if(retransmit_tcb.count == retransmit_tcb.sum)
+			uint8_t is_revice_over;
+			
+			is_revice_over = check_is_revice_over();
+			if(is_revice_over)
 			{
-				retransmit_tcb.count = 0;
-				change_clicker_send_data_status( SEND_DATA4_UPDATE_STATUS ); // 11
-				retransmit_env_init();
+				retransmit_tcb.count++;
+				DEBUG_DATA_DETAIL_LOG("[%d].retransmit\r\n",retransmit_tcb.count + 3);
+
+				if(retransmit_tcb.count == retransmit_tcb.sum)
+				{
+					retransmit_tcb.count = 0;
+					change_clicker_send_data_status( SEND_DATA4_UPDATE_STATUS ); // 11
+					retransmit_env_init();
+				}
+				else
+				{
+					retransmit_data_to_next_clicker();
+				}
 			}
 			else
 			{
-				retransmit_data_to_next_clicker();
+				retransmit_tcb.count = 0;
+				change_clicker_send_data_status( SEND_DATA4_UPDATE_STATUS ); // 11
+				retransmit_env_init();	
 			}
 		}
 	}
