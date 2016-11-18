@@ -8,7 +8,7 @@
   * @Changelog :
   *    [1].Date   : 2016_8-26
 	*        Author : sam.wu
-	*        brief  : ³¢ÊÔ·ÖÀëÊý¾Ý£¬½µµÍ´úÂëµÄñîºÏ¶È
+	*        brief  : å°è¯•åˆ†ç¦»æ•°æ®ï¼Œé™ä½Žä»£ç çš„è€¦åˆåº¦
   ******************************************************************************
   */
 
@@ -19,6 +19,7 @@
 /* Private variables ---------------------------------------------------------*/
 static uint8_t whitelist_print_index = 0;
 
+extern uint8_t is_open_statistic,single_send_data_uid[4];
 extern uint8_t uart_tx_status;
 extern nrf_communication_t nrf_communication;
        uint8_t serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
@@ -29,7 +30,7 @@ extern nrf_communication_t nrf_communication;
 uint8_t uart_rf_cmd_sign[4];
 uint8_t uart_card_cmd_sign[4];
 
-/* ÔÝ´æÌâÄ¿ÐÅÏ¢£¬ÒÔ±¸ÖØ·¢Ê¹ÓÃ */
+/* æš‚å­˜é¢˜ç›®ä¿¡æ¯ï¼Œä»¥å¤‡é‡å‘ä½¿ç”¨ */
 Uart_MessageTypeDef backup_massage;
 
 extern WhiteList_Typedef wl;
@@ -55,7 +56,7 @@ void App_return_systick( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMe
 /******************************************************************************
   Function:App_seirial_cmd_process
   Description:
-		´®¿Ú½ø³Ì´¦Àíº¯Êý
+		ä¸²å£è¿›ç¨‹å¤„ç†å‡½æ•°
   Input :None
   Return:None
   Others:None
@@ -72,7 +73,7 @@ void App_seirial_cmd_process(void)
 /******************************************************************************
   Function:serial_send_data_to_pc
   Description:
-		´®¿Ú·¢ËÍÖ¸Áîº¯Êý
+		ä¸²å£å‘é€æŒ‡ä»¤å‡½æ•°
   Input :None
   Return:None
   Others:None
@@ -89,7 +90,7 @@ static void serial_send_data_to_pc(void)
 /******************************************************************************
   Function:serial_cmd_process
   Description:
-		´®¿ÚÖ¸Áî´¦Àí½ø³Ì
+		ä¸²å£æŒ‡ä»¤å¤„ç†è¿›ç¨‹
   Input :None
   Return:None
   Others:None
@@ -99,13 +100,13 @@ static void serial_cmd_process(void)
 	static Uart_MessageTypeDef ReviceMessage,SendMessage;
 	uint8_t buffer_status = 0;
 
-  /* ÏµÍ³¿ÕÏÐÌáÈ¡»º´æÖ¸Áî */
+  /* ç³»ç»Ÿç©ºé—²æå–ç¼“å­˜æŒ‡ä»¤ */
 	if( serial_cmd_status == APP_SERIAL_CMD_STATUS_IDLE )
 	{
-		/* »ñÈ¡½ÓÊÕ»º´æµÄ×´Ì¬ */
+		/* èŽ·å–æŽ¥æ”¶ç¼“å­˜çš„çŠ¶æ€ */
 		buffer_status = buffer_get_buffer_status(REVICE_RINGBUFFER);
 
-		/* ¸ù¾Ý×´Ì¬¾ö¶¨ÊÇ·ñ¶ÁÈ¡»º´æÖ¸Áî */
+		/* æ ¹æ®çŠ¶æ€å†³å®šæ˜¯å¦è¯»å–ç¼“å­˜æŒ‡ä»¤ */
 		if(BUFFEREMPTY == buffer_status)
 			return;
 		else
@@ -116,13 +117,13 @@ static void serial_cmd_process(void)
 		}
 	}
 
-	/* ÏµÍ³²»¿ÕÏÐ½âÎöÖ¸Áî£¬Éú²ú·µ»ØÐÅÏ¢ */
+	/* ç³»ç»Ÿä¸ç©ºé—²è§£æžæŒ‡ä»¤ï¼Œç”Ÿäº§è¿”å›žä¿¡æ¯ */
 	if( serial_cmd_status != APP_SERIAL_CMD_STATUS_IDLE )
 	{
-		/* ½âÎöÖ¸Áî */
+		/* è§£æžæŒ‡ä»¤ */
 		switch(serial_cmd_type)
 		{
-			/* ÏÂ·¢¸ø´ðÌâÆ÷ */
+			/* ä¸‹å‘ç»™ç­”é¢˜å™¨ */
 			case 0x10:
 				{
 					memcpy(uart_rf_cmd_sign,ReviceMessage.SIGN,4);
@@ -138,7 +139,7 @@ static void serial_cmd_process(void)
 				}
 				break;
 
-			/* Í£Ö¹ÏÂ·¢Êý¾Ý */
+			/* åœæ­¢ä¸‹å‘æ•°æ® */
 			case 0x12:
 				{
 					if(ReviceMessage.LEN != 0)
@@ -155,7 +156,7 @@ static void serial_cmd_process(void)
 				}
 				break;
 
-			/* Ìí¼Ó»òÕßÉ¾³ý°×Ãûµ¥ */
+			/* æ·»åŠ æˆ–è€…åˆ é™¤ç™½åå• */
 			case 0x20:
 			case 0x21:
 				{
@@ -173,7 +174,7 @@ static void serial_cmd_process(void)
 				}
 				break;
 
-			/* ³õÊ¼»¯°×Ãûµ¥ */
+			/* åˆå§‹åŒ–ç™½åå• */
 			case 0x22:
 				{
 					if(ReviceMessage.LEN != 0)
@@ -184,7 +185,7 @@ static void serial_cmd_process(void)
 					}
 					else
 					{
-						/* ÑÓ³Ù£º·ÀÖ¹µÚÒ»´ÎµÄµÚÒ»ÌõÖ¸ÁîÎª³õÊ¼»¯Ê±£¬ºóÃæµÄÖ¸Áî½ÓÊÕ²»ÍêÈ« */
+						/* å»¶è¿Ÿï¼šé˜²æ­¢ç¬¬ä¸€æ¬¡çš„ç¬¬ä¸€æ¡æŒ‡ä»¤ä¸ºåˆå§‹åŒ–æ—¶ï¼ŒåŽé¢çš„æŒ‡ä»¤æŽ¥æ”¶ä¸å®Œå…¨ */
 						DelayMs(100);
 						App_initialize_white_list( &ReviceMessage, &SendMessage);
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
@@ -192,7 +193,7 @@ static void serial_cmd_process(void)
 				}
 				break;
 
-			/* ¿ªÆô»òÕß¹Ø±Õ°×Ãûµ¥ */
+			/* å¼€å¯æˆ–è€…å…³é—­ç™½åå• */
 			case 0x23:
 			case 0x24:
 				{
@@ -210,7 +211,7 @@ static void serial_cmd_process(void)
 				}
 				break;
 
-			/* ¿ªÊ¼»òÕß¹Ø±Õ¿¼ÇÚ,¿ªÊ¼»òÕß¹Ø±ÕÅä¶Ô */
+			/* å¼€å§‹æˆ–è€…å…³é—­è€ƒå‹¤,å¼€å§‹æˆ–è€…å…³é—­é…å¯¹ */
 			case 0x25:
 			case 0x27:
 			case 0x28:
@@ -231,7 +232,7 @@ static void serial_cmd_process(void)
 				}
 				break;
 
-			/* ´òÓ¡µ±Ç°°×Ãûµ¥ */
+			/* æ‰“å°å½“å‰ç™½åå• */
 			case 0x2B:
 				{
 					if(ReviceMessage.LEN != 0)
@@ -259,7 +260,7 @@ static void serial_cmd_process(void)
 				break;
 
 
-			/* »ñÈ¡Éè±¸ÐÅÏ¢ */
+			/* èŽ·å–è®¾å¤‡ä¿¡æ¯ */
 			case 0x2C:
 				{
 					if(ReviceMessage.LEN != 0)
@@ -276,7 +277,7 @@ static void serial_cmd_process(void)
 				}
 				break;
 
-			/* ·µ»ØÐÄÌøÔÚÏß×´Ì¬ */
+			/* è¿”å›žå¿ƒè·³åœ¨çº¿çŠ¶æ€ */
 			case 0x2E:
 				{
 					if(ReviceMessage.LEN != 0)
@@ -307,7 +308,7 @@ static void serial_cmd_process(void)
 				}
 				break;
 
-			/* ÎÞ·¨Ê¶±ðµÄÖ¸Áî */
+			/* æ— æ³•è¯†åˆ«çš„æŒ‡ä»¤ */
 			default:
 				{
 					err_cmd_type = serial_cmd_type;
@@ -318,7 +319,7 @@ static void serial_cmd_process(void)
 		}
 	}
 
-	/* Ö´ÐÐÍêµÄÖ¸Áî´æÈë·¢ËÍ»º´æ:Ö¸ÁîÃ»ÓÐ³ö´í */
+	/* æ‰§è¡Œå®Œçš„æŒ‡ä»¤å­˜å…¥å‘é€ç¼“å­˜:æŒ‡ä»¤æ²¡æœ‰å‡ºé”™ */
 	if(serial_cmd_status != APP_SERIAL_CMD_STATUS_ERR)
 	{
 		if(serial_cmd_status == APP_SERIAL_CMD_STATUS_IGNORE)
@@ -369,10 +370,10 @@ void app_debuglog_dump_no_space(uint8_t * p_buffer, uint32_t len)
 /******************************************************************************
   Function:App_send_data_to_clickers
   Description:
-		½«Ö¸Áî·¢ËÍµ½´ðÌâÆ÷
+		å°†æŒ‡ä»¤å‘é€åˆ°ç­”é¢˜å™¨
   Input :
-		RMessage:´®¿Ú½ÓÊÕÖ¸ÁîµÄÏûÏ¢Ö¸Õë
-		SMessage:´®¿Ú·¢ËÍÖ¸ÁîµÄÏûÏ¢Ö¸Õë
+		RMessage:ä¸²å£æŽ¥æ”¶æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
+		SMessage:ä¸²å£å‘é€æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
   Return:
   Others:None
 ******************************************************************************/
@@ -381,23 +382,28 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 	uint16_t i = 0;
 	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
 	uint8_t temp = 0;
-	uint8_t send_data_status = get_clicker_send_data_status() ;
+	uint8_t status = 0;
 
-	/* »ñÈ¡:°ü·â×°µÄ´ðÌâÆ÷->Êý¾Ý³¤¶È */
+	uint8_t send_data_status = get_clicker_send_data_status() ;
+	uint8_t single_data_status = get_single_send_data_status();
+
+	status = send_data_status | single_data_status;
+
+	/* èŽ·å–:åŒ…å°è£…çš„ç­”é¢˜å™¨->æ•°æ®é•¿åº¦ */
 	rf_var.tx_len = RMessage->LEN;
 
-	/* »ñÈ¡£º°ü·â×°µÄ´ðÌâÆ÷->Êý¾ÝÄÚÈÝ */
+	/* èŽ·å–ï¼šåŒ…å°è£…çš„ç­”é¢˜å™¨->æ•°æ®å†…å®¹ */
 	memcpy(rf_var.tx_buf, (uint8_t *)(RMessage->DATA), RMessage->LEN);
 
-	if( send_data_status == 0 )
+	if( status == 0 )
 	{
-		/* »ñÈ¡ÏÂ·¢Êý¾Ý: ¾ö¶¨ÊÇ·ñÔÝ´æÊý¾Ý */
+		/* èŽ·å–ä¸‹å‘æ•°æ®: å†³å®šæ˜¯å¦æš‚å­˜æ•°æ® */
 		switch( RMessage->DATA[6] )
 		{
 			case 0x10:
 			case 0x11:
 				{
-					/* ÔÝ´æÌâÄ¿ */
+					/* æš‚å­˜é¢˜ç›® */
 					backup_massage.HEADER = 0x5C;
 					backup_massage.TYPE = RMessage->TYPE;
 					memcpy(SMessage->SIGN, RMessage->SIGN, 4);
@@ -412,13 +418,25 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 		}
 	}
 
+	if((RMessage->DATA[1] != 0) || (RMessage->DATA[2] != 0) ||
+		 (RMessage->DATA[3] != 0) || (RMessage->DATA[4] != 0))
+	{
+		/* single send data */
+		is_open_statistic = 1;
+	  memcpy(single_send_data_uid,RMessage->DATA+1,4);
+	}
+	else
+	{
+		is_open_statistic = 0;
+	}
+
 	SMessage->HEADER = 0x5C;
 	SMessage->TYPE = RMessage->TYPE;
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
 
 	SMessage->LEN = 0x03;
 
-	if( send_data_status == 0)
+	if( status == 0)
 	{
 		*( pdata + ( i++ ) ) = 0x00; // ok
 	}
@@ -433,34 +451,41 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;
 
-	if( send_data_status == 0 )
+	if( status == 0 )
 	{
-		/* ×¼±¸·¢ËÍÊý¾Ý¹ÜÀí¿é */
+		/* å‡†å¤‡å‘é€æ•°æ®ç®¡ç†å— */
 		send_data_env_init();
 
-		/* ÏÂ·¢¼ÆÊý¼Ó1 */
+		/* ä¸‹å‘è®¡æ•°åŠ 1 */
 		revicer.sen_num++;
 
-		/* ·¢ËÍÇ°µ¼Ö¡ */
-		memcpy(nrf_communication.dtq_uid, SMessage->DATA+1, 4);
+		/* å‘é€å‰å¯¼å¸§ */
+		memcpy(nrf_communication.dtq_uid, RMessage->DATA+1, 4);
 		nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,  SEND_PRE_DELAY100US, SEND_DATA1_SUM_TABLE);
 
-		/* ·¢ËÍÊý¾ÝÖ¡ */
-		memcpy(nrf_communication.dtq_uid, SMessage->DATA+1, 4);
+		/* å‘é€æ•°æ®å¸§ */
 		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE );
 
-    /* Æô¶¯·¢ËÍÊý¾Ý×´Ì¬»ú */
-		change_clicker_send_data_status( SEND_DATA1_STATUS );
+		if( is_open_statistic == 0 )
+		{
+			/* å¯åŠ¨å‘é€æ•°æ®çŠ¶æ€æœº */
+			change_clicker_send_data_status( SEND_DATA1_STATUS );
+		}
+		else
+		{
+			/* å¯åŠ¨å•ç‹¬å‘é€æ•°æ®çŠ¶æ€æœº */
+			change_single_send_data_status(1);
+		}
 	}
 }
 
 /******************************************************************************
   Function:App_initialize_white_list
   Description:
-	  ³õÊ¼»¯°×Ãûµ¥
+	  åˆå§‹åŒ–ç™½åå•
   Input :
-		RMessage:´®¿Ú½ÓÊÕÖ¸ÁîµÄÏûÏ¢Ö¸Õë
-		SMessage:´®¿Ú·¢ËÍÖ¸ÁîµÄÏûÏ¢Ö¸Õë
+		RMessage:ä¸²å£æŽ¥æ”¶æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
+		SMessage:ä¸²å£å‘é€æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
   Return:
   Others:None
 ******************************************************************************/
@@ -495,10 +520,10 @@ void App_initialize_white_list( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 /******************************************************************************
   Function:App_open_or_close_white_list
   Description:
-	  ³õÊ¼»¯°×Ãûµ¥
+	  åˆå§‹åŒ–ç™½åå•
   Input :
-		RMessage:´®¿Ú½ÓÊÕÖ¸ÁîµÄÏûÏ¢Ö¸Õë
-		SMessage:´®¿Ú·¢ËÍÖ¸ÁîµÄÏûÏ¢Ö¸Õë
+		RMessage:ä¸²å£æŽ¥æ”¶æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
+		SMessage:ä¸²å£å‘é€æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
   Return:
   Others:None
 ******************************************************************************/
@@ -541,10 +566,10 @@ void App_open_or_close_white_list( Uart_MessageTypeDef *RMessage,
 /******************************************************************************
   Function:App_send_data_to_clickers
   Description:
-		½«Ö¸Áî·¢ËÍµ½´ðÌâÆ÷
+		å°†æŒ‡ä»¤å‘é€åˆ°ç­”é¢˜å™¨
   Input :
-		RMessage:´®¿Ú½ÓÊÕÖ¸ÁîµÄÏûÏ¢Ö¸Õë
-		SMessage:´®¿Ú·¢ËÍÖ¸ÁîµÄÏûÏ¢Ö¸Õë
+		RMessage:ä¸²å£æŽ¥æ”¶æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
+		SMessage:ä¸²å£å‘é€æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
   Return:
   Others:None
 ******************************************************************************/
@@ -583,16 +608,16 @@ void App_stop_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_Message
 /******************************************************************************
   Function:App_operate_uids_to_whitelist
   Description:
-		Ìí¼ÓUIDµ½°×Ãûµ¥
+		æ·»åŠ UIDåˆ°ç™½åå•
   Input :
-		RMessage:´®¿Ú½ÓÊÕÖ¸ÁîµÄÏûÏ¢Ö¸Õë
-		SMessage:´®¿Ú·¢ËÍÖ¸ÁîµÄÏûÏ¢Ö¸Õë
+		RMessage:ä¸²å£æŽ¥æ”¶æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
+		SMessage:ä¸²å£å‘é€æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
   Return:
   Others:None
 ******************************************************************************/
 void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
 {
-	/* »ñÈ¡ÐèÒªÌí¼ÓµÄUIDµÄ¸öÊý:×î´óÎª10*/
+	/* èŽ·å–éœ€è¦æ·»åŠ çš„UIDçš„ä¸ªæ•°:æœ€å¤§ä¸º10*/
 	uint8_t UidNum = RMessage->DATA[0];
 	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
 	uint8_t TemUid[4];
@@ -650,13 +675,13 @@ void App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageT
 /******************************************************************************
   Function:App_return_whitelist_data
   Description:
-		´òÓ¡°×Ãûµ¥ÐÅÏ¢
+		æ‰“å°ç™½åå•ä¿¡æ¯
   Input :
-		RMessage:´®¿Ú½ÓÊÕÖ¸ÁîµÄÏûÏ¢Ö¸Õë
-		SMessage:´®¿Ú·¢ËÍÖ¸ÁîµÄÏûÏ¢Ö¸Õë
-		index£º´òÓ¡°×Ãûµ¥µÄÆðÊ¼Î»ÖÃ
+		RMessage:ä¸²å£æŽ¥æ”¶æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
+		SMessage:ä¸²å£å‘é€æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
+		indexï¼šæ‰“å°ç™½åå•çš„èµ·å§‹ä½ç½®
   Return:
-    uid_p:Êä³öµÄ°×Ãûµ¥×îºóµÄÎ»ÖÃ
+    uid_p:è¾“å‡ºçš„ç™½åå•æœ€åŽçš„ä½ç½®
   Others:None
 ******************************************************************************/
 uint8_t App_return_whitelist_data( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage, uint8_t index)
@@ -696,10 +721,10 @@ uint8_t App_return_whitelist_data( Uart_MessageTypeDef *RMessage, Uart_MessageTy
 /******************************************************************************
   Function:App_open_or_close_attendance
   Description:
-		¿ªÆô»òÕß¹Ø±Õ¿¼ÇÚ
+		å¼€å¯æˆ–è€…å…³é—­è€ƒå‹¤
   Input :
-		RMessage:´®¿Ú½ÓÊÕÖ¸ÁîµÄÏûÏ¢Ö¸Õë
-		SMessage:´®¿Ú·¢ËÍÖ¸ÁîµÄÏûÏ¢Ö¸Õë
+		RMessage:ä¸²å£æŽ¥æ”¶æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
+		SMessage:ä¸²å£å‘é€æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
   Return:
   Others:None
 ******************************************************************************/
@@ -733,10 +758,10 @@ void App_open_or_close_attendance_match( Uart_MessageTypeDef *RMessage, Uart_Mes
 /******************************************************************************
   Function:App_return_device_info
   Description:
-		´òÓ¡Éè±¸ÐÅÏ¢
+		æ‰“å°è®¾å¤‡ä¿¡æ¯
   Input :
-		RMessage:´®¿Ú½ÓÊÕÖ¸ÁîµÄÏûÏ¢Ö¸Õë
-		SMessage:´®¿Ú·¢ËÍÖ¸ÁîµÄÏûÏ¢Ö¸Õë
+		RMessage:ä¸²å£æŽ¥æ”¶æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
+		SMessage:ä¸²å£å‘é€æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
   Return:
   Others:None
 ******************************************************************************/
@@ -788,10 +813,10 @@ void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef 
 /******************************************************************************
   Function:App_return_device_info
   Description:
-		´òÓ¡Éè±¸ÐÅÏ¢
+		æ‰“å°è®¾å¤‡ä¿¡æ¯
   Input :
-		RMessage:´®¿Ú½ÓÊÕÖ¸ÁîµÄÏûÏ¢Ö¸Õë
-		SMessage:´®¿Ú·¢ËÍÖ¸ÁîµÄÏûÏ¢Ö¸Õë
+		RMessage:ä¸²å£æŽ¥æ”¶æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
+		SMessage:ä¸²å£å‘é€æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
   Return:
   Others:None
 ******************************************************************************/
@@ -820,10 +845,10 @@ void App_return_systick( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMe
 /******************************************************************************
   Function:App_returnErr
   Description:
-		´òÓ¡Éè±¸ÐÅÏ¢
+		æ‰“å°è®¾å¤‡ä¿¡æ¯
   Input :
-		RMessage:´®¿Ú½ÓÊÕÖ¸ÁîµÄÏûÏ¢Ö¸Õë
-		SMessage:´®¿Ú·¢ËÍÖ¸ÁîµÄÏûÏ¢Ö¸Õë
+		RMessage:ä¸²å£æŽ¥æ”¶æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
+		SMessage:ä¸²å£å‘é€æŒ‡ä»¤çš„æ¶ˆæ¯æŒ‡é’ˆ
   Return:
   Others:None
 ******************************************************************************/
@@ -839,9 +864,9 @@ void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err
 
 	SMessage->LEN = 2;
 
-	/* ²Ù×÷Ê§°Ü */
+	/* æ“ä½œå¤±è´¥ */
 	*( pdata + ( i++ ) ) = 0x01;
-	/* ´íÎóÀàÐÍ */
+	/* é”™è¯¯ç±»åž‹ */
 	*( pdata + ( i++ ) ) = cmd_type;
 
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
