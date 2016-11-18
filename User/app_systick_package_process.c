@@ -79,8 +79,10 @@ void App_clickers_systick_process(void)
 		systick_package.XOR = XOR_Cal((uint8_t *)(&(systick_package.TYPE)), 17+6);
 		systick_package.END = 0xCA;
 
+		nrf_transmit_start(systick_package.DATA,0,NRF_DATA_IS_PRE,SEND_PRE_COUNT,
+	                   SEND_PRE_DELAY100US, SISTICK_SUM_TABLE);
 		nrf_transmit_start(systick_package.DATA, systick_package.LEN, 
-		        NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, 1);
+		        NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SISTICK_SUM_TABLE);
 
 		rf_change_systick_status(1);
 	}
