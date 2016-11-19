@@ -606,9 +606,24 @@
               <FilePath>..\User\app_show_message_process.c</FilePath>
             </File>
             <File>
+              <FileName>app_systick_package_process.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\app_systick_package_process.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_spi_send_data_process.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\app_spi_send_data_process.c</FilePath>
+            </File>
+            <File>
               <FileName>app_card_process.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\app_card_process.c</FilePath>
+            </File>
+            <File>
+              <FileName>rc500_handle_layer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\rc500_handle_layer.c</FilePath>
             </File>
             <File>
               <FileName>app_timer.c</FileName>
@@ -619,11 +634,6 @@
               <FileName>init.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\init.c</FilePath>
-            </File>
-            <File>
-              <FileName>rc500_handle_layer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\rc500_handle_layer.c</FilePath>
             </File>
             <File>
               <FileName>stm32f10x_it.c</FileName>
