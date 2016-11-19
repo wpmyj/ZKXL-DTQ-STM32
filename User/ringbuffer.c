@@ -134,7 +134,7 @@ static void update_write_status( uint8_t sel)
 
 		case BUFFERUSEING:
 			{
-				if(serial_ringbuffer_get_usage_rate(sel) >= USAGE_TATE_FULL)
+				if( Size[sel] >= BufferSize[sel]-PACKETSIZE )
 					Status[sel] = BUFFERFULL;
 				else
 					Status[sel] = BUFFERUSEING;
