@@ -14,11 +14,9 @@
 #include "rc500_handle_layer.h"
 #include "app_card_process.h"
 
-uint8_t app_card_status = 0;
 
 extern WhiteList_Typedef wl;
-extern uint8_t card_cmd_type ;
-extern uint8_t uart_rf_cmd_sign[4],uart_card_cmd_sign[4];
+Process_tcb_Typedef Card_process;
 
 void Buzze_Control(void);
 void write_rf_config(uint8_t upos, uint8_t ndef_xor, uint8_t *flg);
@@ -73,13 +71,13 @@ void App_card_process(void)
 				/* ·â×°Ð­Òé  */
 				{
 					card_message.HEADER = 0x5C;
-					switch(card_cmd_type)
+					switch(Card_process.cmd_type)
 					{
 						case 0x25: card_message.TYPE   = 0x26; break;
 						case 0x28: card_message.TYPE   = 0x29; break;
 						default:                               break;
 					}
-					memcpy(card_message.SIGN,uart_card_cmd_sign,4);
+					memcpy(card_message.SIGN,Card_process.uid,4);
 					card_message.LEN     = 0x05;
 					card_message.DATA[0] = uid_p;
 					memcpy(card_message.DATA+1,g_cSNR+5,4);
