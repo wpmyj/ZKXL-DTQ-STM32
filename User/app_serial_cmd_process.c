@@ -829,7 +829,6 @@ void App_return_systick( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMe
 
 	SMessage->HEADER = 0x5C;
 
-	card_cmd_type = RMessage->TYPE;
 	SMessage->TYPE = RMessage->TYPE;
 
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
@@ -843,6 +842,16 @@ void App_return_systick( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMe
 
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;
+
+	/* update RTC timer */
+	{
+		system_rtc_timer.year = *(uint16_t *)(RMessage->DATA);
+		system_rtc_timer.mon  = RMessage->DATA[2];
+		system_rtc_timer.date = RMessage->DATA[3];
+		system_rtc_timer.hour = RMessage->DATA[4];
+		system_rtc_timer.min  = RMessage->DATA[5];
+		system_rtc_timer.sec  = RMessage->DATA[6];
+	}
 }
 
 /******************************************************************************

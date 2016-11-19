@@ -21,8 +21,6 @@ uint16_t 					time_for_buzzer_off = 0;		  // 响了多长时间之后关
 RF_TypeDef 				rf_var;							          // 2.4G数据包缓冲
 
 uint16_t					delay_nms = 0;					      // 中断延时变量
-uint32_t 					timer_1ms = 0;					      // 喂狗定时器
-time_t						time;							            // RTC结构体
 
 bool						  flag_upload_uid_once = false;	// 是否单次上传卡号标志
 

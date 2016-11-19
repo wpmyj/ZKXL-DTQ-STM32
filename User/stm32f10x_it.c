@@ -26,7 +26,6 @@
 /* uart global variables */
 
 uint32_t clicker_test_printf_flg = 0;
-timer_t clicker_time;
 // revice part
 Uart_MessageTypeDef uart_irq_revice_massage;
 static uint32_t uart_rx_timeout = 0;
@@ -406,30 +405,6 @@ void SysTick_Handler(void)
 			uart_clear_message(&uart_irq_revice_massage);
 			flag_uart_rxing = false;
 			uart_status = UartHEADER;
-		}
-	}
-
-	if(timer_1ms++ > 1000)
-	{
-#ifdef ENABLE_WATCHDOG
-		IWDG_ReloadCounter();
-#endif 
-
-		timer_1ms = 0;
-		time.second++;
-		if(time.second >= 60)
-		{
-			time.second = 0;
-			time.minute++;
-			if(time.minute >= 60)
-			{
-				time.minute = 0;
-				time.hour++;
-				if(time.hour >= 24)
-				{
-					time.hour = 0;
-				}
-			}
 		}
 	}
 

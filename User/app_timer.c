@@ -20,6 +20,7 @@ Timer_typedef send_data1_timer,send_data2_timer,send_data3_timer;
 Timer_typedef single_send_data_timer;
 Timer_typedef spi_send_data_timer,spi_send_data_timer1;
 Timer_typedef systick_package_timer;
+RTC_timer_Typedef system_rtc_timer;
 
 /* Private function prototypes -----------------------------------------------*/
 void Delay(__IO uint32_t nTime);
@@ -333,6 +334,27 @@ void systemtick_timeout_callback( void )
 {
 	ledToggle(LGREEN);
 	system_timer_status = 0;
+
+	system_rtc_timer.ms += 100;
+	if( system_rtc_timer.ms >= 1000 )
+	{
+		system_rtc_timer.ms = 0;
+		system_rtc_timer.sec++;
+		if( system_rtc_timer.sec >= 60 )
+		{
+			system_rtc_timer.sec = 0;
+			system_rtc_timer.min++;
+			if( system_rtc_timer.min >= 60 )
+			{
+				system_rtc_timer.min = 0;
+				system_rtc_timer.hour++;
+				if( system_rtc_timer.hour >= 24 )
+				{
+					system_rtc_timer.hour = 0;
+				}
+			}
+		}
+	}
 }
 
 /******************************************************************************
@@ -346,6 +368,7 @@ void systemtick_timeout_callback( void )
 void system_timer_init( void )
 {
 	sw_create_timer(&system_timer , 100, 0, 1,&(system_timer_status), systemtick_timeout_callback);
+	memset(&system_rtc_timer, 0, sizeof(RTC_timer_Typedef));
 }
 
 /**************************************END OF FILE****************************/

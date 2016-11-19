@@ -22,13 +22,6 @@ typedef struct
 	uint8_t				tx_buf[RF_NBUF];					//2.4G发送缓存  
 }RF_TypeDef;
 
-typedef struct
-{
-	uint8_t 						hour;
-	uint8_t 						minute;
-	uint8_t 						second;
-}time_t;
-
 extern uint8_t 						NDEF_DataWrite[];
 extern uint8_t 						NDEF_DataRead[];
 extern uint16_t						NDEF_Len;
@@ -39,8 +32,6 @@ extern uint16_t 					time_for_buzzer_off;			//响了多长时间之后关
 
 extern RF_TypeDef 				rf_var;							// 2.4G数据包缓冲
 extern uint16_t						delay_nms;						// 中断延时变量
-extern uint32_t 					timer_1ms;
-extern time_t						  time;							//保持当前时间
 
 extern bool							  flag_upload_uid_once;		//是否单次上传卡号标志
 extern uint8_t						ReadNDEF_Step;					// 读取NDEF文件的步骤
@@ -81,19 +72,6 @@ typedef struct
 	uint8_t    match_status;
 }WhiteList_Typedef;
 
-typedef struct
-{
-	uint8_t  status;
-	uint32_t cnt;
-}Timer_Typedef;
-
-typedef struct 
-{
-	uint8_t hour;
-	uint8_t min;
-	uint8_t s;
-	uint16_t ms;
-}timer_t;
 
 #endif //_VARIABLE_H_
 /**
