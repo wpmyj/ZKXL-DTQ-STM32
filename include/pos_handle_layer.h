@@ -73,6 +73,11 @@ typedef struct
 	uint8_t 				END;								
 }Rf_MessageTypeDef;
 
+typedef struct
+{
+	uint8_t uid[4];
+	uint8_t cmd_type;
+}Process_tcb_Typedef;
 
 void serial_handle_layer(void);
 void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err_type );
