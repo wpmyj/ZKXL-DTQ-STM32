@@ -339,6 +339,9 @@ void systemtick_timeout_callback( void )
 	if( system_rtc_timer.ms >= 1000 )
 	{
 		system_rtc_timer.ms = 0;
+#ifdef ENABLE_WATCHDOG
+		IWDG_ReloadCounter();
+#endif
 		system_rtc_timer.sec++;
 		if( system_rtc_timer.sec >= 60 )
 		{
