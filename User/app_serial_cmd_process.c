@@ -333,7 +333,7 @@ static void serial_cmd_process(void)
 			return;
 		}
 
-		if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
+		if(FULL == buffer_get_buffer_status(SEND_RINGBUFFER))
 		{
 			DebugLog("Serial Send Buffer is full! \r\n");
 		}
