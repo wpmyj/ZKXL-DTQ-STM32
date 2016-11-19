@@ -13,7 +13,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
-#define TIMER_COUNT_MAX    10
+#define TIMER_COUNT_MAX    15
 
 typedef struct
 {
@@ -43,12 +43,23 @@ typedef struct
 	void          (*inc_cnt)( Timer_typedef *timer_id );
 }timer_list_typedef;
 
+typedef struct
+{
+	uint16_t ms;
+	uint8_t  sec;
+	uint8_t  min;
+	uint8_t  hour;
+	uint8_t  date;
+	uint8_t  mon;
+	uint8_t  year;
+}RTC_timer_Typedef;
 
 extern timer_list_typedef timer_list;
 extern Timer_typedef retransmit_timer,systick_timer;
 extern Timer_typedef send_data1_timer,send_data2_timer,send_data3_timer,single_send_data_timer;
 extern Timer_typedef spi_send_data_timer,spi_send_data_timer1;
 extern Timer_typedef systick_package_timer;
+extern RTC_timer_Typedef system_rtc_timer;
 
 /* Private functions ---------------------------------------------------------*/
 void SysClockInit(void);

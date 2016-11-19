@@ -69,9 +69,9 @@ void App_clickers_systick_process(void)
 		systick_package.DATA[ 9] = 16;
 		systick_package.DATA[10] = 11;
 		systick_package.DATA[11] = 16;
-		systick_package.DATA[12] = 17;
-		systick_package.DATA[13] = 05;
-		systick_package.DATA[14] = 16;
+		systick_package.DATA[12] = system_rtc_timer.hour;
+		systick_package.DATA[13] = system_rtc_timer.min;
+		systick_package.DATA[14] = system_rtc_timer.sec;
 		systick_package.DATA[15] = XOR_Cal(systick_package.DATA+1, 14);
 		systick_package.DATA[16] = 0xCA;
 
