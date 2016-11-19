@@ -249,7 +249,7 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 
 		nrf_communication.transmit_len = 17+16;
 
-		spi_send_data_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len, count, delay100us, 50);
+		spi_send_data_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len, count, delay100us, 10);
 	}
 }
 
