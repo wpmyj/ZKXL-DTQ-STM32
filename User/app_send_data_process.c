@@ -7,11 +7,12 @@
 #define CLICKER_SNED_DATA_STATUS_TYPE     10
 #define CLICKER_PRE_DATA_STATUS_TYPE      11
 
+Process_tcb_Typedef Send_data_process, Single_send_data_process;
+
 extern uint8_t spi_status_buffer[10][18];
 extern uint8_t spi_status_write_index, spi_status_read_index, spi_status_count;
 
 uint8_t is_open_statistic = 0;
-uint8_t single_send_data_uid[4];
 uint8_t single_send_data_status = 0;
 uint8_t single_sned_data_count = 0;
 
@@ -280,7 +281,7 @@ void clicker_send_data_statistics( uint8_t send_data_status, uint8_t uidpos )
   Return:
   Others:None
 ******************************************************************************/
-void rf_move_data_to_buffer(nrf_communication_t *Message)
+void rf_move_data_to_buffer( uint8_t *Message )
 {
 	Uart_MessageTypeDef rf_message;
 	uint8_t i = 0 ;
@@ -288,14 +289,14 @@ void rf_move_data_to_buffer(nrf_communication_t *Message)
 	rf_message.HEADER = 0x5C;
 	rf_message.TYPE = 0x10;
 
-	memcpy(rf_message.SIGN,nrf_communication.receive_buf+5,4);
+	memcpy(rf_message.SIGN,Message+5,4);
 
 	/* 获取消息的有效长度 */
-	rf_message.LEN = Message->receive_buf[14];
+	rf_message.LEN = Message[14];
 
 	for (i=0;i<rf_message.LEN;i++)
 	{
-		rf_message.DATA[i]=Message->receive_buf[i+15];
+		rf_message.DATA[i]=Message[i+15];
 	}
 
 	rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.TYPE)), i+6);
@@ -323,7 +324,7 @@ void rf_move_data_to_buffer(nrf_communication_t *Message)
 				backup_massage.DATA[7] = 0x00;
 			}
 
-			memcpy( backup_massage.DATA+1, nrf_communication.receive_buf+5, 4);
+			memcpy( backup_massage.DATA+1, Message+5, 4);
 			backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
 			nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
 				SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE);
@@ -416,15 +417,15 @@ uint8_t spi_process_revice_data( void )
 						DEBUG_BUFFER_DTATA_LOG("[DATA] uid:%02x%02x%02x%02x, ",
 							*(spi_message+5),*(spi_message+6),*(spi_message+7),*(spi_message+8));
 						DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x\r\n",(uint8_t)*(spi_message+9),
-							(uint8_t)*(nrf_communication.receive_buf+10));
+							(uint8_t)*(spi_message+10));
 
 						/* 更新接收数据帧号与包号 */
 						wl.uids[uidpos].rev_seq = spi_message[9];
 						wl.uids[uidpos].rev_num = spi_message[10];
 						/* 回复ACK */
 						nrf_transmit_start(&temp,0,NRF_DATA_IS_ACK, 2, 20, SEND_DATA_ACK_TABLE);
-						/* 有效数据复制到缓存 */
-						rf_move_data_to_buffer(&nrf_communication);
+						/* 有效数据告到PC */
+						rf_move_data_to_buffer( spi_message );
 					}
 				}
 				/* 收到的是Ack */
@@ -1038,7 +1039,7 @@ void single_send_data_result( uint8_t status, uint8_t pos )
 	memcpy(result_message.SIGN,backup_massage.SIGN,4);
 	result_message.LEN     = 0x05;
 	result_message.DATA[0] = pos;
-	memcpy(result_message.DATA+1,single_send_data_uid,4);
+	memcpy(result_message.DATA+1,Single_send_data_process.uid,4);
 	result_message.XOR = XOR_Cal(&result_message.TYPE,11);
 	result_message.END  = 0xCA;
 
@@ -1062,7 +1063,7 @@ void App_clickers_single_send_data_process( void )
 		uint8_t Is_whitelist_uid = 0, Is_revice = 0, upos = 0;
 		uint8_t temp = 0;
 
-		Is_whitelist_uid = search_uid_in_white_list( single_send_data_uid, &upos );
+		Is_whitelist_uid = search_uid_in_white_list( Single_send_data_process.uid, &upos );
 
 		/* 白名单开关状态 */
 		if(wl.switch_status == OFF)
@@ -1078,11 +1079,11 @@ void App_clickers_single_send_data_process( void )
 			if( Is_revice == 0 )
 			{
 				/* 发送前导帧 */
-				memcpy( nrf_communication.dtq_uid, single_send_data_uid, 4 );
+				memcpy( nrf_communication.dtq_uid, Single_send_data_process.uid, 4 );
 				nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
 														SEND_PRE_DELAY100US, SINGLE_SEND_DATA_ACK_TABLE);
 				/* 发送数据帧 */
-				memcpy( nrf_communication.dtq_uid, single_send_data_uid, 4 );
+				memcpy( nrf_communication.dtq_uid, Single_send_data_process.uid, 4 );
 
 				nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL,
 														SEND_DATA_COUNT, SEND_DATA_DELAY100US, SINGLE_SEND_DATA_ACK_TABLE );

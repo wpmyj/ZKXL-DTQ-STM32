@@ -15,6 +15,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "app_send_data_process.h"
+#include "app_card_process.h"
 
 /* Private variables ---------------------------------------------------------*/
 static uint8_t whitelist_print_index = 0;
@@ -27,8 +28,6 @@ extern nrf_communication_t nrf_communication;
 			 uint8_t err_cmd_type = 0;
 			 uint8_t card_cmd_type = 0;
 
-uint8_t uart_rf_cmd_sign[4];
-uint8_t uart_card_cmd_sign[4];
 
 /* 暂存题目信息，以备重发使用 */
 Uart_MessageTypeDef backup_massage;
@@ -126,7 +125,6 @@ static void serial_cmd_process(void)
 			/* 下发给答题器 */
 			case 0x10:
 				{
-					memcpy(uart_rf_cmd_sign,ReviceMessage.SIGN,4);
 					App_send_data_to_clickers( &ReviceMessage, &SendMessage);
 #ifdef ENABLE_SEND_DATA_TO_PC
 					if(ReviceMessage.DATA[6] == 0x15)
@@ -225,7 +223,6 @@ static void serial_cmd_process(void)
 					}
 					else
 					{
-						memcpy(uart_card_cmd_sign,ReviceMessage.SIGN,4);
 						App_open_or_close_attendance_match( &ReviceMessage, &SendMessage);
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 					}
@@ -423,7 +420,7 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 	{
 		/* single send data */
 		is_open_statistic = 1;
-	  memcpy(single_send_data_uid,RMessage->DATA+1,4);
+	  memcpy(Single_send_data_process.uid,RMessage->DATA+1,4);
 	}
 	else
 	{
@@ -746,10 +743,11 @@ void App_open_or_close_attendance_match( Uart_MessageTypeDef *RMessage, Uart_Mes
 		default:                               break;
 	}
 
-	card_cmd_type = RMessage->TYPE;
+	Card_process.cmd_type = RMessage->TYPE;
 	SMessage->TYPE = RMessage->TYPE;
 
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+	memcpy(Card_process.uid,RMessage->SIGN,4);
 
 	SMessage->LEN = 0x01;
 	SMessage->DATA[i++] = 0;

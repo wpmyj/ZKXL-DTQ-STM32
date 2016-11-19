@@ -114,6 +114,8 @@ typedef struct
 	uint16_t okuidlen;
 }message_tcb_tydef;
 
+extern Process_tcb_Typedef Send_data_process, Single_send_data_process;
+
 void change_clicker_send_data_status( uint8_t newstatus );
 uint8_t get_clicker_send_data_status( void );
 uint8_t spi_buffer_status_check( uint8_t status );
