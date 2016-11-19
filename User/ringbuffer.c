@@ -106,6 +106,9 @@ static void update_read_status( uint8_t sel)
 		case BUFFERFULL:
 			Status[sel] = BUFFERUSEING;
 			break;
+		case FULL:
+			Status[sel] = BUFFERFULL;
+			break;
 		default:
 			break;
 	}
@@ -139,6 +142,7 @@ static void update_write_status( uint8_t sel)
 			break;
 
 		case BUFFERFULL:
+			Status[sel] = FULL;
 			break;
 		default:
 			break;

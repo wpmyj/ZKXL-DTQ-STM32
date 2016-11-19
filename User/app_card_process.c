@@ -109,7 +109,7 @@ void App_card_process(void)
 				/* 执行完的指令存入发送缓存 */
 				if( wtrte_flash_ok == 1 )
 				{
-					if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+					if(FULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 					{
 						serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
 					}

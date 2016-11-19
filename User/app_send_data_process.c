@@ -7,8 +7,6 @@
 #define CLICKER_SNED_DATA_STATUS_TYPE     10
 #define CLICKER_PRE_DATA_STATUS_TYPE      11
 
-extern uint8_t spi_data_buffer[4][256];
-extern uint8_t spi_data_write_index, spi_data_read_index, spi_data_count;
 extern uint8_t spi_status_buffer[10][18];
 extern uint8_t spi_status_write_index, spi_status_read_index, spi_status_count;
 
@@ -304,7 +302,7 @@ void rf_move_data_to_buffer(nrf_communication_t *Message)
 	rf_message.END = 0xCA;
 
 	/* ´æÈë»º´æ */
-	if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+	if(FULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 	{
 		serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
 	}
@@ -768,7 +766,7 @@ void send_data_result( uint8_t status )
 			revice_lost_massage.END = 0xCA;
 			if(revice_lost_massage.LEN != 0)
 			{
-				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+				if(FULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 				{
 					serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_lost_massage);
 				}
@@ -799,7 +797,7 @@ void send_data_result( uint8_t status )
 			revice_ok_massage.END = 0xCA;
 			if( revice_ok_massage.LEN != 0)
 			{
-				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+				if(FULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 				{
 					serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_ok_massage);
 				}
@@ -903,15 +901,14 @@ void spi_write_temp_buffer_to_buffer()
 		memset(spi_message,0,255);
 		spi_read_data_from_buffer( SPI_IRQ_BUFFER, spi_message );
 
-		if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
+		if(FULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
 		{
 			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_message, spi_message[spi_message[14]+17]);
 
-			spi_data_count--;
 		}
 	}
 
-	if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
+	if(FULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
 	{
 		if((spi_status_count > 0) && (BUFFEREMPTY == buffer_get_buffer_status(SPI_IRQ_BUFFER)))
 		{
@@ -1045,7 +1042,7 @@ void single_send_data_result( uint8_t status, uint8_t pos )
 	result_message.XOR = XOR_Cal(&result_message.TYPE,11);
 	result_message.END  = 0xCA;
 
-	if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+	if(FULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 	{
 		serial_ringbuffer_write_data(SEND_RINGBUFFER,&result_message);
 	}
