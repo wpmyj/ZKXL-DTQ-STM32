@@ -8,6 +8,7 @@
 #define CLICKER_PRE_DATA_STATUS_TYPE      11
 
 Process_tcb_Typedef Send_data_process, Single_send_data_process;
+send_data_process_tcb_tydef send_data_process_tcb;
 
 extern uint8_t spi_status_buffer[10][18];
 extern uint8_t spi_status_write_index, spi_status_read_index, spi_status_count;
@@ -822,7 +823,7 @@ void send_data_result( uint8_t status )
 																			SEND_DATA4_SUM_TABLE);
 				if(retransmit_clickers > 0)
 				{
-					retransmit_tcb.sum = 3;
+					retransmit_tcb.sum = RETRANSMIT_SEND_DATA_COUNT;
 				}
 				else
 				{
@@ -1213,6 +1214,16 @@ void App_clickers_send_data_process( void )
 ******************************************************************************/
 void send_data_process_timer_init( void )
 {
+	/* initialize send_data_process_tcb */
+	{
+		send_data_process_tcb.pre_data_count = 30;
+		send_data_process_tcb.pre_data_delay100us = 20;
+		send_data_process_tcb.data_count = 2;
+		send_data_process_tcb.data_delay100us = 50;
+		send_data_process_tcb.rand_delayms = 800;
+		send_data_process_tcb.retransmit_count = 5;
+	}
+
 	/* create send data process timer*/
 	sw_create_timer(&send_data1_timer , SEND_DATA1_TIMEOUT, SEND_DATA1_STATUS,
 		SEND_DATA1_UPDATE_STATUS,&(clicker_send_data_status), create_status_message);

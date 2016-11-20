@@ -14,6 +14,14 @@
 #define SEND_DATA_UID_MESSAGE_SHOW
 #define SUM_DATA_STATISTICS
 //#define ENABLE_SEND_DATA_TO_PC
+#define ENABLE_SET_SEND_DATA_PARAMETER
+
+
+#ifdef 	ENABLE_SET_SEND_DATA_PARAMETER
+#define DEBUG_SET_SEND_DATA_PARAMETER					 DEBUG_LOG
+#else
+#define DEBUG_SET_SEND_DATA_PARAMETER(...)
+#endif
 
 /* 打印信息控制 */
 #ifdef 	OPEN_BUFFER_ACK_SHOW
@@ -48,29 +56,29 @@
 
 /* 空闲 */
 #define SEND_IDLE_STATUS            0
-#define SEND_PRE_TIMEOUT            50 // ms
+#define RETRANSMIT_SEND_DATA_COUNT  (send_data_process_tcb.retransmit_count)//5
 
 /* 前导帧 */
 #define SEND_PRE_STATUS             (SEND_IDLE_STATUS+1)            // 1
-#define SEND_PRE_COUNT              30
-#define SEND_PRE_DELAY100US         20  // 100us
+#define SEND_PRE_COUNT              (send_data_process_tcb.pre_data_count)//30
+#define SEND_PRE_DELAY100US         (send_data_process_tcb.pre_data_delay100us)//20  // 100us
 
 /* 数据帧 */
 #define SEND_DATA_COUNT             2
-#define SEND_DATA_DELAY100US        50
+#define SEND_DATA_DELAY100US        (send_data_process_tcb.data_delay100us)//50
 #define SEND_DATA_ACK_TABLE         2
 
 /* 广播帧 */
 #define SEND_DATA1_STATUS           (SEND_PRE_STATUS+1)             // 2
 #define SEND_DATA1_SUM_TABLE        0
-#define SEND_DATA1_TIMEOUT          800
+#define SEND_DATA1_TIMEOUT          (send_data_process_tcb.rand_delayms)//800
 #define SEND_DATA1_ACK_TABLE        3
 #define SEND_DATA1_UPDATE_STATUS    (SEND_DATA1_STATUS+1)           // 3
 
 /* 第1次重发帧 */
 #define SEND_DATA2_STATUS           (SEND_DATA1_UPDATE_STATUS+1)    // 4
 #define SEND_DATA2_SUM_TABLE        4
-#define SEND_DATA2_TIMEOUT          800
+#define SEND_DATA2_TIMEOUT          (send_data_process_tcb.rand_delayms)//800
 #define SEND_DATA2_ACK_TABLE        5
 #define SEND_DATA2_SEND_OVER_STATUS (SEND_DATA2_STATUS+1)           // 5
 #define SEND_DATA2_UPDATE_STATUS    (SEND_DATA2_SEND_OVER_STATUS+1) // 6
@@ -78,7 +86,7 @@
 /* 第2次重发帧 */
 #define SEND_DATA3_STATUS           (SEND_DATA2_UPDATE_STATUS+1)    // 7
 #define SEND_DATA3_SUM_TABLE        6
-#define SEND_DATA3_TIMEOUT          800
+#define SEND_DATA3_TIMEOUT          (send_data_process_tcb.rand_delayms)//800
 #define SEND_DATA3_ACK_TABLE        7
 #define SEND_DATA3_SEND_OVER_STATUS (SEND_DATA3_STATUS+1)           // 8
 #define SEND_DATA3_UPDATE_STATUS    (SEND_DATA3_SEND_OVER_STATUS+1) // 9
@@ -86,7 +94,7 @@
 /* 第3次重发帧 */
 #define SEND_DATA4_STATUS           (SEND_DATA3_UPDATE_STATUS+1)    // 10
 #define SEND_DATA4_SUM_TABLE        8
-#define SEND_DATA4_TIMEOUT          800
+#define SEND_DATA4_TIMEOUT          (send_data_process_tcb.rand_delayms)//800
 #define SEND_DATA4_ACK_TABLE        9
 #define SEND_DATA4_UPDATE_STATUS    (SEND_DATA4_STATUS+2)           // 12
 
@@ -94,7 +102,6 @@
 #define SINGLE_SEND_DATA_TIMEOUT    100
 #define SINGLE_SEND_DATA_COUNT_MAX  10
 #define SINGLE_SEND_DATA_ACK_TABLE  1
-
 
 typedef struct
 {
@@ -114,7 +121,18 @@ typedef struct
 	uint16_t okuidlen;
 }message_tcb_tydef;
 
+typedef struct
+{
+	uint8_t  pre_data_count;
+	uint16_t pre_data_delay100us;
+	uint8_t  data_count;
+	uint16_t data_delay100us;
+	uint16_t rand_delayms;
+	uint8_t  retransmit_count;
+}send_data_process_tcb_tydef;
+
 extern Process_tcb_Typedef Send_data_process, Single_send_data_process;
+extern send_data_process_tcb_tydef send_data_process_tcb;
 
 void change_clicker_send_data_status( uint8_t newstatus );
 uint8_t get_clicker_send_data_status( void );

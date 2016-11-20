@@ -20,14 +20,12 @@
 /* Private variables ---------------------------------------------------------*/
 static uint8_t whitelist_print_index = 0;
 
-extern uint8_t is_open_statistic,single_send_data_uid[4];
+extern uint8_t is_open_statistic;
 extern uint8_t uart_tx_status;
 extern nrf_communication_t nrf_communication;
        uint8_t serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 			 uint8_t serial_cmd_type = 0;
 			 uint8_t err_cmd_type = 0;
-			 uint8_t card_cmd_type = 0;
-
 
 /* 暂存题目信息，以备重发使用 */
 Uart_MessageTypeDef backup_massage;
@@ -51,6 +49,7 @@ void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef 
 void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err_type );
 void App_uart_message_copy( Uart_MessageTypeDef *SrcMessage, Uart_MessageTypeDef *DstMessage );
 void App_return_systick( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_send_process_parameter_set( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 
 /******************************************************************************
   Function:App_seirial_cmd_process
@@ -126,14 +125,14 @@ static void serial_cmd_process(void)
 			case 0x10:
 				{
 					App_send_data_to_clickers( &ReviceMessage, &SendMessage);
-#ifdef ENABLE_SEND_DATA_TO_PC
+          #ifdef ENABLE_SEND_DATA_TO_PC
 					if(ReviceMessage.DATA[6] == 0x15)
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_IGNORE;
 					else
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
-#else
+          #else
 					serial_cmd_status = APP_SERIAL_CMD_STATUS_IGNORE;
-#endif
+          #endif
 				}
 				break;
 
@@ -291,6 +290,26 @@ static void serial_cmd_process(void)
 				}
 				break;
 
+			case 0xA0:
+				{
+					if(ReviceMessage.LEN != 9)
+					{
+						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;
+					}
+					else
+					{
+						App_send_process_parameter_set( &ReviceMessage, &SendMessage);
+						#ifdef ENABLE_SEND_DATA_TO_PC
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+						#else
+					  serial_cmd_status = APP_SERIAL_CMD_STATUS_IGNORE;
+						#endif
+					}
+				}
+				break;
+
 			case APP_CTR_DATALEN_ERR:
 				{
 					App_returnErr(&SendMessage,err_cmd_type,APP_CTR_DATALEN_ERR);
@@ -425,6 +444,7 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 	else
 	{
 		is_open_statistic = 0;
+		memcpy(Send_data_process.uid,RMessage->DATA+1,4);
 	}
 
 	SMessage->HEADER = 0x5C;
@@ -850,6 +870,69 @@ void App_return_systick( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMe
 		system_rtc_timer.min  = RMessage->DATA[5];
 		system_rtc_timer.sec  = RMessage->DATA[6];
 	}
+}
+
+/******************************************************************************
+  Function:App_send_process_parameter_set
+  Description:
+		打印设备信息
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_send_process_parameter_set( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	uint8_t i = 0;
+	uint8_t err = 0;
+	send_data_process_tcb_tydef temp_tcb;
+
+	SMessage->HEADER = 0x5C;
+	SMessage->TYPE = RMessage->TYPE;
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+	SMessage->LEN = 0x01;
+
+	/* parameter check */
+	{
+		temp_tcb.pre_data_count   = RMessage->DATA[0];
+		DEBUG_SET_SEND_DATA_PARAMETER("pre_data_count = %d\r\n",temp_tcb.pre_data_count);
+		temp_tcb.pre_data_delay100us = *((uint16_t *)(RMessage->DATA+1));
+		DEBUG_SET_SEND_DATA_PARAMETER("pre_data_delay100us = %d\r\n",temp_tcb.pre_data_delay100us);
+		temp_tcb.data_count       = RMessage->DATA[3];
+		DEBUG_SET_SEND_DATA_PARAMETER("data_count = %d\r\n",temp_tcb.data_count);
+		temp_tcb.data_delay100us     = *((uint16_t *)(RMessage->DATA+4));;
+		DEBUG_SET_SEND_DATA_PARAMETER("data_delay100us = %d\r\n",temp_tcb.data_delay100us);
+		temp_tcb.rand_delayms     = *((uint16_t *)(RMessage->DATA+6));;
+		DEBUG_SET_SEND_DATA_PARAMETER("rand_delayms = %d\r\n",temp_tcb.rand_delayms);
+		temp_tcb.retransmit_count     = *((uint16_t *)(RMessage->DATA+8));;
+		DEBUG_SET_SEND_DATA_PARAMETER("retransmit_count = %d\r\n",temp_tcb.retransmit_count+3);
+
+		if( temp_tcb.pre_data_count == 0 )
+			err |= 1<<0;
+		if( temp_tcb.pre_data_delay100us < 10 )
+			err |= 1<<1;
+		if( temp_tcb.data_count < 2 )
+			err |= 1<<2;
+		if( temp_tcb.data_delay100us < 20 )
+			err |= 1<<3;
+		if( temp_tcb.rand_delayms < 120)
+			err |= 1<<4;
+		if( temp_tcb.retransmit_count >= 10 )
+			err |= 1<<5;
+	}
+
+	if( err == 0 )
+	{
+		memcpy(&send_data_process_tcb,&temp_tcb,sizeof(send_data_process_tcb_tydef));
+		SMessage->DATA[i++] = 0;
+	}
+	else
+	{
+		SMessage->DATA[i++] = err;
+	}
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
 }
 
 /******************************************************************************
