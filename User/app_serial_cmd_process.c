@@ -349,7 +349,7 @@ static void serial_cmd_process(void)
 			return;
 		}
 
-		if(FULL == buffer_get_buffer_status(SEND_RINGBUFFER))
+		if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
 		{
 			DebugLog("Serial Send Buffer is full! \r\n");
 		}
@@ -924,7 +924,12 @@ void App_send_process_parameter_set( Uart_MessageTypeDef *RMessage, Uart_Message
 
 	if( err == 0 )
 	{
-		memcpy(&send_data_process_tcb,&temp_tcb,sizeof(send_data_process_tcb_tydef));
+		send_data_process_tcb.pre_data_count      = temp_tcb.pre_data_count;
+		send_data_process_tcb.pre_data_delay100us = temp_tcb.pre_data_delay100us;
+		send_data_process_tcb.data_count          = temp_tcb.data_count;
+		send_data_process_tcb.data_delay100us     = temp_tcb.data_delay100us;
+		send_data_process_tcb.rand_delayms        = temp_tcb.rand_delayms;
+		send_data_process_tcb.retransmit_count    = temp_tcb.retransmit_count;
 		SMessage->DATA[i++] = 0;
 	}
 	else

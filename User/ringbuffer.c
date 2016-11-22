@@ -106,9 +106,7 @@ static void update_read_status( uint8_t sel)
 		case BUFFERFULL:
 			Status[sel] = BUFFERUSEING;
 			break;
-		case FULL:
-			Status[sel] = BUFFERFULL;
-			break;
+
 		default:
 			break;
 	}
@@ -134,16 +132,13 @@ static void update_write_status( uint8_t sel)
 
 		case BUFFERUSEING:
 			{
-				if( Size[sel] >= BufferSize[sel]-PACKETSIZE )
+				if( Size[sel] > BufferSize[sel]-PACKETSIZE )
 					Status[sel] = BUFFERFULL;
 				else
 					Status[sel] = BUFFERUSEING;
 			}
 			break;
 
-		case BUFFERFULL:
-			Status[sel] = FULL;
-			break;
 		default:
 			break;
 	}
