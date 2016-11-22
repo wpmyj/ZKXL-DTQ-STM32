@@ -161,7 +161,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 
 						if( uart_irq_revice_massage.XOR == UartMessageXor)
 						{   /* 若校验通过，则接收数据OK可用 */
-								if(FULL != buffer_get_buffer_status(REVICE_RINGBUFFER))
+								if(BUFFERFULL != buffer_get_buffer_status(REVICE_RINGBUFFER))
 								{
 									serial_ringbuffer_write_data(REVICE_RINGBUFFER,&uart_irq_revice_massage);
 								}
@@ -480,7 +480,7 @@ void RFIRQ_EXTI_IRQHandler(void)
 				*(nrf_communication.receive_buf+3) == nrf_communication.jsq_uid[2] &&
 				*(nrf_communication.receive_buf+4) == nrf_communication.jsq_uid[3])
 		{
-			if(FULL != buffer_get_buffer_status(SPI_IRQ_BUFFER))
+			if(BUFFERFULL != buffer_get_buffer_status(SPI_IRQ_BUFFER))
 			{
 				uint8_t send_data_status = get_clicker_send_data_status();
 				spi_write_data_to_buffer(SPI_IRQ_BUFFER,nrf_communication.receive_buf, send_data_status);

@@ -8,7 +8,7 @@
 #define CLICKER_PRE_DATA_STATUS_TYPE      11
 
 Process_tcb_Typedef Send_data_process, Single_send_data_process;
-send_data_process_tcb_tydef send_data_process_tcb;
+volatile send_data_process_tcb_tydef send_data_process_tcb;
 
 extern uint8_t spi_status_buffer[10][18];
 extern uint8_t spi_status_write_index, spi_status_read_index, spi_status_count;
@@ -304,7 +304,7 @@ void rf_move_data_to_buffer( uint8_t *Message )
 	rf_message.END = 0xCA;
 
 	/* 存入缓存 */
-	if(FULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+	if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 	{
 		serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
 	}
@@ -735,6 +735,7 @@ void retansmit_data( uint8_t status )
 		{
 			retransmit_env_init();
 		}
+		return ;
 	}
 }
 
@@ -845,6 +846,7 @@ void send_data_result( uint8_t status )
 		message_tcb.lostuidlen   = 0;
 		message_tcb.Is_lost_over = 1;
 		message_tcb.Is_ok_over   = 1;
+		return ;
 	}
 }
 
@@ -903,14 +905,14 @@ void spi_write_temp_buffer_to_buffer()
 		memset(spi_message,0,255);
 		spi_read_data_from_buffer( SPI_IRQ_BUFFER, spi_message );
 
-		if(FULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
+		if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
 		{
 			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_message, spi_message[spi_message[14]+17]);
 
 		}
 	}
 
-	if(FULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
+	if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
 	{
 		if((spi_status_count > 0) && (BUFFEREMPTY == buffer_get_buffer_status(SPI_IRQ_BUFFER)))
 		{
@@ -1044,7 +1046,7 @@ void single_send_data_result( uint8_t status, uint8_t pos )
 	result_message.XOR = XOR_Cal(&result_message.TYPE,11);
 	result_message.END  = 0xCA;
 
-	if(FULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+	if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 	{
 		serial_ringbuffer_write_data(SEND_RINGBUFFER,&result_message);
 	}
@@ -1195,6 +1197,7 @@ void App_clickers_send_data_process( void )
 				retransmit_env_init();	
 			}
 		}
+		return ;
 	}
 
 	/* 打印统计结果 */
@@ -1216,12 +1219,12 @@ void send_data_process_timer_init( void )
 {
 	/* initialize send_data_process_tcb */
 	{
-		send_data_process_tcb.pre_data_count = 30;
-		send_data_process_tcb.pre_data_delay100us = 20;
-		send_data_process_tcb.data_count = 2;
-		send_data_process_tcb.data_delay100us = 50;
-		send_data_process_tcb.rand_delayms = 800;
-		send_data_process_tcb.retransmit_count = 5;
+		send_data_process_tcb.pre_data_count      = 110;
+		send_data_process_tcb.pre_data_delay100us = 10;
+		send_data_process_tcb.data_count          = 2;
+		send_data_process_tcb.data_delay100us     = 50;
+		send_data_process_tcb.rand_delayms        = 500;
+		send_data_process_tcb.retransmit_count    = 5;
 	}
 
 	/* create send data process timer*/

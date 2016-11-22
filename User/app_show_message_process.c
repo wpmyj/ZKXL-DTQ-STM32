@@ -43,7 +43,7 @@ void b_print(const char *fmt, ...)
 	len = vsprintf(str,fmt,args);
 	va_end(args);
 	
-	if(buffer_get_buffer_status(PRINT_BUFFER) != FULL) 
+	if(buffer_get_buffer_status(PRINT_BUFFER) != BUFFERFULL) 
 	{                                                        
 		print_write_data_to_buffer(str,len);                   
 	}                                                        
