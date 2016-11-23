@@ -44,11 +44,17 @@ void App_card_process(void)
 			/* 处理数据 */
 			if((wl.attendance_sttaus == ON) || (wl.match_status == ON))
 			{
+
 				is_white_list_uid = add_uid_to_white_list(g_cSNR+5,&uid_p);
 				NDEF_DataWrite[6] = uid_p;
-				ndef_xor          = XOR_Cal(NDEF_DataWrite+1,6);
-				NDEF_DataWrite[7] = ndef_xor;
-				
+
+				if(wl.match_status == ON)
+				{
+					memcpy(NDEF_DataWrite+7,Card_process.studentid,20);
+					ndef_xor          = XOR_Cal(NDEF_DataWrite+1,26);
+					NDEF_DataWrite[27] = ndef_xor;
+				}
+
 				if(is_white_list_uid != OPERATION_ERR)
 				{
           // OK
@@ -75,6 +81,7 @@ void App_card_process(void)
 					{
 						case 0x25: card_message.TYPE   = 0x26; break;
 						case 0x28: card_message.TYPE   = 0x29; break;
+						case 0x41: card_message.TYPE   = 0x42; break;
 						default:                               break;
 					}
 					memcpy(card_message.SIGN,Card_process.uid,4);
@@ -88,14 +95,14 @@ void App_card_process(void)
 
 			if(is_white_list_uid != OPERATION_ERR)
 			{
-				if(wl.match_status == ON)
+				if(wl.attendance_sttaus == ON)
 				{
 					wtrte_flash_ok = 1;
 					time_for_buzzer_on = 10;
 					time_for_buzzer_off = 300;
 				}
 				
-				if(wl.attendance_sttaus == ON)
+				if(wl.match_status  == ON)
 				{
 					//写入配对时将UID传给答题器
 					write_rf_config(uid_p,ndef_xor,&wtrte_flash_ok);
@@ -110,6 +117,12 @@ void App_card_process(void)
 					if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 					{
 						serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
+					}
+
+					if(wl.match_status == ON)
+					{
+						if(Card_process.match_single == 1)
+							wl.match_status = OFF;
 					}
 				}
 			}
@@ -151,7 +164,7 @@ void write_rf_config(uint8_t upos, uint8_t ndef_xor, uint8_t *flg)
 		{
 			if(ReadNDEFfile(NDEF_DataRead, &NDEF_Len) == MI_OK)			//读出验证
 			{
-				if((NDEF_DataRead[6] == upos) && (NDEF_DataRead[7] == ndef_xor))
+				if((NDEF_DataRead[6] == upos) && (NDEF_DataRead[27] == ndef_xor))
 				{
 					time_for_buzzer_on = 10;
 					time_for_buzzer_off = 300;

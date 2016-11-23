@@ -16,6 +16,7 @@
 #include "main.h"
 #include "app_send_data_process.h"
 #include "app_card_process.h"
+#include "app_systick_package_process.h"
 
 /* Private variables ---------------------------------------------------------*/
 static uint8_t whitelist_print_index = 0;
@@ -32,6 +33,7 @@ Uart_MessageTypeDef backup_massage;
 
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
+extern Process_tcb_Typedef systick_process;
 
 /* Private functions ---------------------------------------------------------*/
 static void serial_send_data_to_pc(void);
@@ -50,6 +52,10 @@ void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err
 void App_uart_message_copy( Uart_MessageTypeDef *SrcMessage, Uart_MessageTypeDef *DstMessage );
 void App_return_systick( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_send_process_parameter_set( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_open_systick_ack( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_card_match_single( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_card_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_start_or_stop_answer( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 
 /******************************************************************************
   Function:App_seirial_cmd_process
@@ -211,8 +217,6 @@ static void serial_cmd_process(void)
 			/* 开始或者关闭考勤,开始或者关闭配对 */
 			case 0x25:
 			case 0x27:
-			case 0x28:
-			case 0x2A:
 				{
 					if(ReviceMessage.LEN != 0)
 					{
@@ -223,6 +227,37 @@ static void serial_cmd_process(void)
 					else
 					{
 						App_open_or_close_attendance_match( &ReviceMessage, &SendMessage);
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+					}
+				}
+				break;
+
+			case 0x28:
+				{
+					if(ReviceMessage.LEN != 20)
+					{
+						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;
+					}
+					else
+					{
+						App_card_match_single( &ReviceMessage, &SendMessage);
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+					}
+				}
+				break;
+			case 0x41:
+				{
+					if((ReviceMessage.LEN != 1))
+					{
+						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;
+					}
+					else
+					{
+						App_card_match( &ReviceMessage, &SendMessage);
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 					}
 				}
@@ -273,6 +308,22 @@ static void serial_cmd_process(void)
 				}
 				break;
 
+			case 0x2D:
+				{
+					if(ReviceMessage.LEN != 1)
+					{
+						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;
+					}
+					else
+					{
+						App_open_systick_ack( &ReviceMessage, &SendMessage);
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+					}
+				}
+				break;
+
 			/* 返回心跳在线状态 */
 			case 0x2E:
 				{
@@ -286,6 +337,26 @@ static void serial_cmd_process(void)
 					{
 						App_return_systick( &ReviceMessage, &SendMessage);
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+					}
+				}
+				break;
+
+			case 0x40:
+				{
+					if(ReviceMessage.LEN != 1)
+					{
+						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;
+					}
+					else
+					{
+						App_start_or_stop_answer( &ReviceMessage, &SendMessage);
+						#ifdef ENABLE_SEND_DATA_TO_PC
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+						#else
+					  serial_cmd_status = APP_SERIAL_CMD_STATUS_IGNORE;
+						#endif
 					}
 				}
 				break;
@@ -758,8 +829,6 @@ void App_open_or_close_attendance_match( Uart_MessageTypeDef *RMessage, Uart_Mes
 	{
 		case 0x25: wl.attendance_sttaus = ON;  break;
 		case 0x27: wl.attendance_sttaus = OFF; break;
-		case 0x28: wl.match_status = ON;       break;
-		case 0x2A: wl.match_status = OFF;      break;
 		default:                               break;
 	}
 
@@ -936,6 +1005,164 @@ void App_send_process_parameter_set( Uart_MessageTypeDef *RMessage, Uart_Message
 	{
 		SMessage->DATA[i++] = err;
 	}
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
+}
+
+/******************************************************************************
+  Function:App_open_systick_ack
+  Description:
+		打印设备信息
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_open_systick_ack( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	uint8_t i = 0;
+	uint8_t err = 0;
+
+	SMessage->HEADER = 0x5C;
+	SMessage->TYPE = RMessage->TYPE;
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+
+	SMessage->LEN = 0x01;
+
+	if( RMessage->DATA[0] <= 1 )
+	{
+		systick_set_ack_funcction(RMessage->DATA[0]);
+	  memcpy(systick_process.uid, RMessage->SIGN, 4);
+		systick_process.cmd_type = RMessage->TYPE;
+		/* parameter check */
+		SMessage->DATA[i++] = 0;
+	}
+	else
+	{
+		err = 1;
+	  memset(systick_process.uid, 0, 4);
+		systick_process.cmd_type = 0;
+		SMessage->DATA[i++] = err;
+	}
+
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
+}
+
+/******************************************************************************
+  Function:App_card_match
+  Description:
+		打印设备信息
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_card_match_single( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	uint8_t i = 0;
+
+	SMessage->HEADER = 0x5C;
+	Card_process.cmd_type = RMessage->TYPE;
+	SMessage->TYPE = RMessage->TYPE;
+
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+	memcpy(Card_process.uid,RMessage->SIGN,4);
+
+	SMessage->LEN = 0x01;
+
+	memcpy(Card_process.studentid,RMessage->DATA,20);
+	Card_process.match_single = 1;
+	wl.match_status = ON;
+	SMessage->DATA[i++] = 0;
+
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
+}
+
+/******************************************************************************
+  Function:App_card_match
+  Description:
+		打印设备信息
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_card_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	uint8_t i = 0;
+
+	SMessage->HEADER = 0x5C;
+	Card_process.cmd_type = RMessage->TYPE;
+	SMessage->TYPE = RMessage->TYPE;
+
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+	memcpy(Card_process.uid,RMessage->SIGN,4);
+
+	SMessage->LEN = 0x01;
+
+	if( RMessage->DATA[0] < 2 )
+	{
+		memset(Card_process.studentid,0x00,20);
+		Card_process.match_single = 0;
+		SMessage->DATA[i++] = 0;
+		if( RMessage->DATA[0] == 1 )
+		{
+			wl.match_status = ON;
+		}
+		else
+		{
+			wl.match_status = OFF;
+		}
+	}
+	else
+	{
+		memset(Card_process.studentid,0x00,20);
+		Card_process.match_single = 0;
+		SMessage->DATA[i++] = 1;
+		wl.match_status = OFF;
+	}
+
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
+}
+
+/******************************************************************************
+  Function:App_start_or_stop_answer
+  Description:
+		打印设备信息
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_start_or_stop_answer( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	uint8_t i = 0;
+
+	SMessage->HEADER = 0x5C;
+	SMessage->TYPE = RMessage->TYPE;
+
+	memcpy(Card_process.uid,RMessage->SIGN,4);
+
+	SMessage->LEN = 0x01;
+
+	if( RMessage->DATA[0] < 2 )
+	{
+		wl.start = RMessage->DATA[0];
+		SMessage->DATA[i++] = 0;
+	}
+	else
+	{
+		wl.start = OFF;
+		SMessage->DATA[i++] = 1;
+	}
+
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;
 }

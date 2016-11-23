@@ -68,6 +68,7 @@ typedef struct
 	Clicker_Typedef uids[120];
 	uint8_t    len;
 	uint8_t    switch_status;
+	uint8_t    start;
 	uint8_t    attendance_sttaus;
 	uint8_t    match_status;
 }WhiteList_Typedef;

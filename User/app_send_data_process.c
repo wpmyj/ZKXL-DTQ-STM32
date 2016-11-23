@@ -3,6 +3,7 @@
 #include "stdio.h"
 #include "app_send_data_process.h"
 #include "app_show_message_process.h"
+#include "app_systick_package_process.h"
 
 #define CLICKER_SNED_DATA_STATUS_TYPE     10
 #define CLICKER_PRE_DATA_STATUS_TYPE      11
@@ -303,15 +304,23 @@ void rf_move_data_to_buffer( uint8_t *Message )
 	rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.TYPE)), i+6);
 	rf_message.END = 0xCA;
 
-	/* 存入缓存 */
-	if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+	if((rf_message.DATA[6] == 0x10) ||
+		 (rf_message.DATA[6] == 0x11) ||
+	   (rf_message.DATA[6] == 0x12) ||
+	   (rf_message.DATA[6] == 0x13))
 	{
-		serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
+		if( wl.start == ON )
+		{
+			/* 存入缓存 */
+			if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+			{
+				serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
+			}
+		}
 	}
-
-  /* 检测是否为开机指令 */
-	if(rf_message.DATA[6] == 0x14)
+	else if(rf_message.DATA[6] == 0x14)
 	{
+		/* 检测是否为开机指令 */
 		if(rf_message.DATA[8] == 0x01)
 		{
 			uint8_t nouse_temp = 0;
@@ -331,6 +340,29 @@ void rf_move_data_to_buffer( uint8_t *Message )
 				SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE);
 			nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
 				NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE);
+		}
+		/* 检测是否为唤醒指令 */
+		if(rf_message.DATA[8] == 0x03)
+		{
+			/* 重新下发数据到答题器 */
+			if(	backup_massage.DATA[6] != 0)
+			{
+				uint8_t nouse_temp = 0;
+				memcpy( backup_massage.DATA+1, Message+5, 4);
+				backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
+				nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
+					SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE);
+				nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
+					NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE);
+			}
+		}
+	}
+	else
+	{
+		/* 存入缓存 */
+		if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+		{
+			serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
 		}
 	}
 }
@@ -387,14 +419,25 @@ uint8_t spi_process_revice_data( void )
 			/* 检测是白名单 */
 			if(Is_whitelist_uid == OPERATION_SUCCESS)
 			{
-				if( is_open_statistic == 0 )
+				if( wl.start == ON )
 				{
-					/* 统计发送状态 */
-					clicker_send_data_statistics( clicker_send_data_status, uidpos );
+					if( is_open_statistic == 0 )
+					{
+						/* 统计发送状态 */
+						clicker_send_data_statistics( clicker_send_data_status, uidpos );
+					}
+					else
+					{
+						set_index_of_white_list_pos(SINGLE_SEND_DATA_ACK_TABLE,uidpos);
+					}
 				}
-				else
+
+				if( rf_get_systick_status() == 1 )
 				{
-					set_index_of_white_list_pos(SINGLE_SEND_DATA_ACK_TABLE,uidpos);
+					if( systick_get_ack_funcction_para() == 1 )
+					{
+						set_index_of_white_list_pos(SISTICK_ACK_TABLE,uidpos);
+					}
 				}
 			}
 
@@ -415,6 +458,8 @@ uint8_t spi_process_revice_data( void )
 					if(spi_message[10] != wl.uids[uidpos].rev_num)//收到的是有效数据
 					{
 						uint8_t temp;
+						uint8_t Is_return_ack = 1;
+
 						DEBUG_BUFFER_DTATA_LOG("[DATA] uid:%02x%02x%02x%02x, ",
 							*(spi_message+5),*(spi_message+6),*(spi_message+7),*(spi_message+8));
 						DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x\r\n",(uint8_t)*(spi_message+9),
@@ -423,8 +468,22 @@ uint8_t spi_process_revice_data( void )
 						/* 更新接收数据帧号与包号 */
 						wl.uids[uidpos].rev_seq = spi_message[9];
 						wl.uids[uidpos].rev_num = spi_message[10];
-						/* 回复ACK */
-						nrf_transmit_start(&temp,0,NRF_DATA_IS_ACK, 2, 20, SEND_DATA_ACK_TABLE);
+
+						if((spi_message[6+15] == 0x10) || (spi_message[6+15] == 0x11) ||
+							 (spi_message[6+15] == 0x12) || (spi_message[6+15] == 0x13))
+						{
+							if( wl.start == ON )
+								Is_return_ack = 1;
+							else
+								Is_return_ack = 0;
+						}
+
+						if( Is_return_ack )
+						{
+								/* 回复ACK */
+								nrf_transmit_start(&temp,0,NRF_DATA_IS_ACK, 2, 20, SEND_DATA_ACK_TABLE);
+						}
+
 						/* 有效数据告到PC */
 						rf_move_data_to_buffer( spi_message );
 					}
@@ -769,7 +828,7 @@ void send_data_result( uint8_t status )
 			revice_lost_massage.END = 0xCA;
 			if(revice_lost_massage.LEN != 0)
 			{
-				if(FULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 				{
 					serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_lost_massage);
 				}
@@ -800,7 +859,7 @@ void send_data_result( uint8_t status )
 			revice_ok_massage.END = 0xCA;
 			if( revice_ok_massage.LEN != 0)
 			{
-				if(FULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 				{
 					serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_ok_massage);
 				}
@@ -1172,7 +1231,7 @@ void App_clickers_send_data_process( void )
 		if(rf_retransmit_status == 2)
 		{
 			uint8_t is_revice_over;
-			
+
 			is_revice_over = check_is_revice_over();
 			if(is_revice_over)
 			{
@@ -1194,7 +1253,7 @@ void App_clickers_send_data_process( void )
 			{
 				retransmit_tcb.count = 0;
 				change_clicker_send_data_status( SEND_DATA4_UPDATE_STATUS ); // 11
-				retransmit_env_init();	
+				retransmit_env_init();
 			}
 		}
 		return ;

@@ -51,7 +51,7 @@ typedef struct
 	uint8_t  hour;
 	uint8_t  date;
 	uint8_t  mon;
-	uint8_t  year;
+	uint16_t  year;
 }RTC_timer_Typedef;
 
 extern timer_list_typedef timer_list;
