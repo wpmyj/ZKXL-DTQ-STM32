@@ -79,7 +79,7 @@ void App_clickers_systick_process(void)
 	/* 获取当前的systick的状态 */
 	systick_current_status = rf_get_systick_status();
 
-	/* 10s 时间到 发送新的心跳包到答题器 */
+	/* 30s 时间到 发送新的心跳包到答题器 */
 	if(systick_current_status == 2)
 	{
 		if(open_systick_ack == 1)

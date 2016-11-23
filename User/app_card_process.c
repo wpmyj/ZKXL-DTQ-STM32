@@ -32,7 +32,7 @@ void write_rf_config(uint8_t upos, uint8_t ndef_xor, uint8_t *flg);
 void App_card_process(void)
 {
 	Uart_MessageTypeDef card_message;
-	uint8_t is_white_list_uid = 0,uid_p = 0,ndef_xor = 0;
+	uint8_t is_white_list_uid = 0,uid_p = 0xFF,ndef_xor = 0;
 	uint8_t cmd_process_status = 0;
 	uint8_t wtrte_flash_ok = 0;
 
@@ -44,12 +44,13 @@ void App_card_process(void)
 			/* 处理数据 */
 			if((wl.attendance_sttaus == ON) || (wl.match_status == ON))
 			{
-
-				is_white_list_uid = add_uid_to_white_list(g_cSNR+5,&uid_p);
+				search_uid_in_white_list(g_cSNR+4,&uid_p);
+				is_white_list_uid = OPERATION_SUCCESS;
 				NDEF_DataWrite[6] = uid_p;
 
 				if(wl.match_status == ON)
 				{
+					is_white_list_uid = add_uid_to_white_list(g_cSNR+4,&uid_p);
 					memcpy(NDEF_DataWrite+7,Card_process.studentid,20);
 					ndef_xor          = XOR_Cal(NDEF_DataWrite+1,26);
 					NDEF_DataWrite[27] = ndef_xor;
@@ -87,7 +88,7 @@ void App_card_process(void)
 					memcpy(card_message.SIGN,Card_process.uid,4);
 					card_message.LEN     = 0x05;
 					card_message.DATA[0] = uid_p;
-					memcpy(card_message.DATA+1,g_cSNR+5,4);
+					memcpy(card_message.DATA+1,g_cSNR+4,4);
 					card_message.XOR = XOR_Cal(&card_message.TYPE,11);
 					card_message.END  = 0xCA;
 				}
