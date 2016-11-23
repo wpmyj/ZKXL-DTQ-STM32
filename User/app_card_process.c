@@ -73,6 +73,22 @@ void App_card_process(void)
 				cmd_process_status = 1;
 			}
 
+			if(is_white_list_uid != OPERATION_ERR)
+			{
+				if(wl.attendance_sttaus == ON)
+				{
+					wtrte_flash_ok = 1;
+					time_for_buzzer_on = 10;
+					time_for_buzzer_off = 300;
+				}
+
+				if(wl.match_status  == ON)
+				{
+					//写入配对时将UID传给答题器
+					write_rf_config(uid_p,ndef_xor,&wtrte_flash_ok);
+				}
+			}
+
 			if(cmd_process_status == 1)
 			{
 				/* 封装协议  */
@@ -86,27 +102,12 @@ void App_card_process(void)
 						default:                               break;
 					}
 					memcpy(card_message.SIGN,Card_process.uid,4);
-					card_message.LEN     = 0x05;
+					card_message.LEN     = 25;
 					card_message.DATA[0] = uid_p;
 					memcpy(card_message.DATA+1,g_cSNR+4,4);
-					card_message.XOR = XOR_Cal(&card_message.TYPE,11);
+					memcpy(card_message.DATA+5,NDEF_DataRead+7,20);
+					card_message.XOR = XOR_Cal(&card_message.TYPE,31);
 					card_message.END  = 0xCA;
-				}
-			}
-
-			if(is_white_list_uid != OPERATION_ERR)
-			{
-				if(wl.attendance_sttaus == ON)
-				{
-					wtrte_flash_ok = 1;
-					time_for_buzzer_on = 10;
-					time_for_buzzer_off = 300;
-				}
-				
-				if(wl.match_status  == ON)
-				{
-					//写入配对时将UID传给答题器
-					write_rf_config(uid_p,ndef_xor,&wtrte_flash_ok);
 				}
 			}
 
@@ -118,6 +119,7 @@ void App_card_process(void)
 					if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 					{
 						serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
+						memset(NDEF_DataRead,00,50);
 					}
 
 					if(wl.match_status == ON)
@@ -174,6 +176,26 @@ void write_rf_config(uint8_t upos, uint8_t ndef_xor, uint8_t *flg)
 			}
 		}
 		/* 去除选择 */
-		Deselect();	
+		Deselect();
+	}
+}
+
+/*******************************************************************************
+  * @brief  write_RF_config
+  * @param  None
+  * @retval None
+*******************************************************************************/
+void read_rf_config(uint8_t upos, uint8_t ndef_xor, uint8_t *flg)
+{
+	if(SelectApplication() == MI_OK)		//选择应用
+	{
+		if(ReadNDEFfile(NDEF_DataRead, &NDEF_Len) == MI_OK)			//读出验证
+		{
+			time_for_buzzer_on = 10;
+			time_for_buzzer_off = 300;
+			*flg = 1;
+		}
+		/* 去除选择 */
+		Deselect();
 	}
 }
