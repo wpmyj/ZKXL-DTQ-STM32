@@ -97,7 +97,7 @@ void App_clickers_systick_process(void)
 					if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 					{
 						systick_massage.HEADER = 0x5C;
-						systick_massage.TYPE = systick_process.cmd_type;
+						systick_massage.TYPE = 0x43;
 						memcpy(systick_massage.SIGN,systick_process.uid,4);
 						systick_massage.XOR =  XOR_Cal((uint8_t *)(&(systick_massage.TYPE)),
 			                                 systick_massage.LEN+6);
