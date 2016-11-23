@@ -4,7 +4,7 @@
 uint8_t           uid_p;
 uint8_t		        uid_len = 0;					        // M1卡序列号长度
 uint8_t 	        g_cSNR[10];						        // M1卡序列号
-uint16_t          list_tcb_table[11][8] =
+uint16_t          list_tcb_table[12][8] =
 {
 	{0,0,0,0,0,0,0,0}, // [0]:UID 使用索引表
 	{0,0,0,0,0,0,0,0}, // [1]:UID 在线索引表
@@ -19,7 +19,8 @@ uint16_t          list_tcb_table[11][8] =
 
 	{0,0,0,0,0,0,0,0}, // [8]:第4次统计接收表
 	{0,0,0,0,0,0,0,0}, // [9]:第4次在线索引表
-	{0,0,0,0,0,0,0,0}  // [A]:心跳包在线索引表
+	{0,0,0,0,0,0,0,0}, // [A]:心跳包在线索引表
+	{0,0,0,0,0,0,0,0}  // [B]:心跳包ACK
 };
 
 uint8_t           rf_current_uid_index = 0;
@@ -106,6 +107,8 @@ void get_white_list_from_flash(void)
 	/* get switch_status */
 	EE_ReadVariable(WHITE_LIST_SW_POS_OF_FEE,&switch_status);
 	wl.switch_status = switch_status;
+
+	wl.start = ON;
 }
 
 /******************************************************************************
@@ -387,6 +390,8 @@ bool initialize_white_list( void )
 	for(i=0;i<8;i++)
 		list_tcb_table[0][i] = 0;
 	flash_white_list_use_table();
+
+	wl.start = ON;
 
 	return OPERATION_SUCCESS;
 }

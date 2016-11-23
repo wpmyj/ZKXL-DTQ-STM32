@@ -2,6 +2,9 @@
 #include "app_send_data_process.h"
 
 static uint8_t rf_systick_status = 0; 
+static uint8_t open_systick_ack  = 0;
+extern uint16_t list_tcb_table[11][8];
+Process_tcb_Typedef systick_process;
 
 /******************************************************************************
   Function:rf_change_systick_status
@@ -34,6 +37,33 @@ uint8_t rf_get_systick_status(void)
 }
 
 /******************************************************************************
+  Function:systick_set_ack_funcction
+  Description:
+  Input :
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void systick_set_ack_funcction( uint8_t open_or_close )
+{
+	open_systick_ack = open_or_close;
+	DebugLog("<%s> rf_systick_status = %d \r\n",__func__,open_systick_ack);
+}
+
+/******************************************************************************
+  Function:systick_set_ack_funcction
+  Description:
+  Input :
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+uint8_t systick_get_ack_funcction_para( void )
+{
+	return open_systick_ack;
+}
+
+/******************************************************************************
   Function:App_rf_check_process
   Description:
 		App RF 射频轮询处理函数
@@ -52,6 +82,40 @@ void App_clickers_systick_process(void)
 	/* 10s 时间到 发送新的心跳包到答题器 */
 	if(systick_current_status == 2)
 	{
+		if(open_systick_ack == 1)
+		{
+			Uart_MessageTypeDef  systick_massage;
+			uint8_t Is_over = 1;
+
+			while( Is_over )
+			{
+				DEBUG_UID_LOG("\r\nststick online uids:\r\n");
+				Is_over = checkout_online_uids( 0, SISTICK_ACK_TABLE, 1, systick_massage.DATA,&(systick_massage.LEN));
+				if(systick_massage.LEN != 0)
+				{
+					#ifdef ENABLE_SEND_DATA_TO_PC
+					if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+					{
+						systick_massage.HEADER = 0x5C;
+						systick_massage.TYPE = systick_process.cmd_type;
+						memcpy(systick_massage.SIGN,systick_process.uid,4);
+						systick_massage.XOR =  XOR_Cal((uint8_t *)(&(systick_massage.TYPE)),
+			                                 systick_massage.LEN+6);
+						systick_massage.END = 0xCA;
+						serial_ringbuffer_write_data(SEND_RINGBUFFER,&systick_massage);
+					}
+					#endif
+					systick_massage.LEN = 0;
+				}
+			}
+			memset( (uint8_t *)(list_tcb_table[SISTICK_ACK_TABLE]), 0x00, 16 );
+		}
+		rf_change_systick_status(3);
+		return ;
+	}
+
+	if(systick_current_status == 3)
+	{
 		systick_package.HEADER = 0x5C;
 		systick_package.TYPE   = 0x10;
 		memset(systick_package.SIGN,0x00,4);
@@ -61,14 +125,13 @@ void App_clickers_systick_process(void)
 		systick_package.DATA[ 1] = 0;
 		systick_package.DATA[ 2] = 0;
 		systick_package.DATA[ 3] = 0;
- 		systick_package.DATA[ 4] = 0;
+		systick_package.DATA[ 4] = 0;
 		systick_package.DATA[ 5] = 0x00;
 		systick_package.DATA[ 6] = 0x31;
 		systick_package.DATA[ 7] = 0x07;
-		systick_package.DATA[ 8] = 20;
-		systick_package.DATA[ 9] = 16;
-		systick_package.DATA[10] = 11;
-		systick_package.DATA[11] = 16;
+		*(uint16_t *)(systick_package.DATA+8) = system_rtc_timer.year;
+		systick_package.DATA[10] = system_rtc_timer.mon;
+		systick_package.DATA[11] = system_rtc_timer.date;
 		systick_package.DATA[12] = system_rtc_timer.hour;
 		systick_package.DATA[13] = system_rtc_timer.min;
 		systick_package.DATA[14] = system_rtc_timer.sec;
@@ -78,12 +141,22 @@ void App_clickers_systick_process(void)
 		systick_package.XOR = XOR_Cal((uint8_t *)(&(systick_package.TYPE)), 17+6);
 		systick_package.END = 0xCA;
 
+		if( open_systick_ack == 1 )
+		{
+			memset( (uint8_t *)(list_tcb_table[SISTICK_SUM_TABLE]), 0x00, 16 );
+		}
+		else
+		{
+			memset( (uint8_t *)(list_tcb_table[SISTICK_SUM_TABLE]), 0xFF, 16 );
+		}
+
 		nrf_transmit_start(systick_package.DATA,0,NRF_DATA_IS_PRE,SEND_PRE_COUNT,
-	                   SEND_PRE_DELAY100US, SISTICK_SUM_TABLE);
-		nrf_transmit_start(systick_package.DATA, systick_package.LEN, 
-		        NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SISTICK_SUM_TABLE);
+										 SEND_PRE_DELAY100US, SISTICK_SUM_TABLE);
+		nrf_transmit_start(systick_package.DATA, systick_package.LEN,
+						NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SISTICK_SUM_TABLE);
 
 		rf_change_systick_status(1);
+		return ;
 	}
 }
 

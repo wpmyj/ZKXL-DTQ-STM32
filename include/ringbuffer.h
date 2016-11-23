@@ -34,7 +34,6 @@
 #define BUFFEREMPTY          1
 #define BUFFERUSEING         2
 #define BUFFERFULL           3
-#define FULL                 4
 
 /* the threshold of buffer */
 #define USAGE_TATE_FULL      (100-PACKETSIZE*100/REVICEBUFFERSIZE)
