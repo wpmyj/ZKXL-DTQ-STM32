@@ -52,7 +52,8 @@ void App_card_process(void)
 				{
 					is_white_list_uid = add_uid_to_white_list(g_cSNR+4,&uid_p);
 					memcpy(NDEF_DataWrite+7,Card_process.studentid,20);
-					ndef_xor          = XOR_Cal(NDEF_DataWrite+1,26);
+					ndef_xor           = XOR_Cal(NDEF_DataWrite+1,26);
+					NDEF_DataWrite[6]  = uid_p;
 					NDEF_DataWrite[27] = ndef_xor;
 				}
 
@@ -174,26 +175,6 @@ void write_rf_config(uint8_t upos, uint8_t ndef_xor, uint8_t *flg)
 					*flg = 1;
 				}
 			}
-		}
-		/* 去除选择 */
-		Deselect();
-	}
-}
-
-/*******************************************************************************
-  * @brief  write_RF_config
-  * @param  None
-  * @retval None
-*******************************************************************************/
-void read_rf_config(uint8_t upos, uint8_t ndef_xor, uint8_t *flg)
-{
-	if(SelectApplication() == MI_OK)		//选择应用
-	{
-		if(ReadNDEFfile(NDEF_DataRead, &NDEF_Len) == MI_OK)			//读出验证
-		{
-			time_for_buzzer_on = 10;
-			time_for_buzzer_off = 300;
-			*flg = 1;
 		}
 		/* 去除选择 */
 		Deselect();
