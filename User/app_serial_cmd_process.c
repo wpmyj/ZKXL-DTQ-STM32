@@ -327,7 +327,7 @@ static void serial_cmd_process(void)
 			/* 返回心跳在线状态 */
 			case 0x2E:
 				{
-					if(ReviceMessage.LEN != 0)
+					if(ReviceMessage.LEN != 7)
 					{
 						err_cmd_type = serial_cmd_type;
 						serial_cmd_type = APP_CTR_DATALEN_ERR;
