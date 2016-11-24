@@ -318,36 +318,24 @@ void rf_move_data_to_buffer( uint8_t *Message )
 			}
 		}
 	}
-	else if(rf_message.DATA[6] == 0x14)
+	else
 	{
-		/* 检测是否为开机指令 */
-		if(rf_message.DATA[8] == 0x01)
+		if(rf_message.DATA[6] == 0x14)
 		{
-			uint8_t nouse_temp = 0;
-
-			/* 重新下发数据到答题器 */
-			if(	backup_massage.DATA[6] == 0)
-			{
-				backup_massage.LEN = 10;
-				backup_massage.DATA[0] = 0x5A;
-				backup_massage.DATA[6] = 0x10;
-				backup_massage.DATA[7] = 0x00;
-			}
-
-			memcpy( backup_massage.DATA+1, Message+5, 4);
-			backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
-			nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-				SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE);
-			nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
-				NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE);
-		}
-		/* 检测是否为唤醒指令 */
-		if(rf_message.DATA[8] == 0x03)
-		{
-			/* 重新下发数据到答题器 */
-			if(	backup_massage.DATA[6] != 0)
+			/* 检测是否为开机指令 */
+			if(rf_message.DATA[8] == 0x01)
 			{
 				uint8_t nouse_temp = 0;
+
+				/* 重新下发数据到答题器 */
+				if(	backup_massage.DATA[6] == 0)
+				{
+					backup_massage.LEN = 10;
+					backup_massage.DATA[0] = 0x5A;
+					backup_massage.DATA[6] = 0x10;
+					backup_massage.DATA[7] = 0x00;
+				}
+
 				memcpy( backup_massage.DATA+1, Message+5, 4);
 				backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
 				nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
@@ -355,10 +343,48 @@ void rf_move_data_to_buffer( uint8_t *Message )
 				nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
 					NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE);
 			}
+			/* 检测是否为唤醒指令 */
+			if(rf_message.DATA[8] == 0x03)
+			{
+				uint8_t Is_reviceed_uid,Is_whitelist_uid,uidpos;
+				uint8_t nouse_temp = 0;
+
+				Is_whitelist_uid = search_uid_in_white_list(Message+5,&uidpos);
+
+				if( Is_whitelist_uid == OPERATION_SUCCESS )
+				{
+					Is_reviceed_uid = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,uidpos);
+					if( Is_reviceed_uid == 0 )
+					{
+						memcpy( backup_massage.DATA+1, Message+5, 4);
+						backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
+						nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
+							SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE);
+						nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
+							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE);
+					}
+					else
+					{
+						Uart_MessageTypeDef temp_message;
+
+						temp_message.HEADER = 0x5C;
+						temp_message.END    = 0xCA;
+						temp_message.TYPE   = 0x10;
+						memcpy( temp_message.DATA+1, Message+5, 4);
+						temp_message.LEN = 10;
+						temp_message.DATA[0] = 0x5A;
+						temp_message.DATA[6] = 0x10;
+						temp_message.DATA[7] = 0x00;
+						temp_message.DATA[temp_message.DATA[7] + 8] = XOR_Cal(&temp_message.DATA[1],temp_message.DATA[7]+7);
+
+						nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
+							SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE);
+						nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
+							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE);
+					}
+				}
+			}
 		}
-	}
-	else
-	{
 		/* 存入缓存 */
 		if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 		{
@@ -419,17 +445,14 @@ uint8_t spi_process_revice_data( void )
 			/* 检测是白名单 */
 			if(Is_whitelist_uid == OPERATION_SUCCESS)
 			{
-				if( wl.start == ON )
+				if( is_open_statistic == 0 )
 				{
-					if( is_open_statistic == 0 )
-					{
-						/* 统计发送状态 */
-						clicker_send_data_statistics( clicker_send_data_status, uidpos );
-					}
-					else
-					{
-						set_index_of_white_list_pos(SINGLE_SEND_DATA_ACK_TABLE,uidpos);
-					}
+					/* 统计发送状态 */
+					clicker_send_data_statistics( clicker_send_data_status, uidpos );
+				}
+				else
+				{
+					set_index_of_white_list_pos(SINGLE_SEND_DATA_ACK_TABLE,uidpos);
 				}
 
 				if( rf_get_systick_status() == 1 )
@@ -480,8 +503,9 @@ uint8_t spi_process_revice_data( void )
 
 						if( Is_return_ack )
 						{
-								/* 回复ACK */
-								nrf_transmit_start(&temp,0,NRF_DATA_IS_ACK, 2, 20, SEND_DATA_ACK_TABLE);
+							/* 回复ACK */
+							memcpy( nrf_communication.dtq_uid, spi_message+5, 4 );
+							nrf_transmit_start(&temp,0,NRF_DATA_IS_ACK, 2, 20, SEND_DATA_ACK_TABLE);
 						}
 
 						/* 有效数据告到PC */
