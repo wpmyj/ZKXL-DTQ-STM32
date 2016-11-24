@@ -7,7 +7,7 @@
   * @brief   	platform init functions
   ******************************************************************************
   */
-  
+
 #include "main.h"
 #include "mcu_config.h"
 #include "nrf.h"
@@ -27,40 +27,40 @@ void systick_timer_init( void );
   * @brief  硬件平台初始化
   * @param  None
   * @retval None
-  * @note 	None		  
+  * @note 	None
 *******************************************************************************/
 void Platform_Init(void)
 {
 	uint8_t temp = 0;
-	
+
 	/* disable all IRQ */
 	DISABLE_ALL_IRQ();
-	
+
 	/* initialize system clock */
 	SysClockInit();
-	
+
 	/* initialize gpio port */
 	GpioInit();
-	
+
 	Usart1_Init();
 	GPIOInit_SE2431L();
-	
+
 	/* get mcu uuid */
 	get_mcu_uid();
-	
+
 	/* 配对是存入接收器器UID到答题器 */
 	NDEF_DataWrite[1] = 0x1A;
 	memcpy(NDEF_DataWrite+2,nrf_communication.jsq_uid,4);
-	
+
 	/* initialize the spi interface with nrf51822 */
-	nrf51822_spi_init();	
+	nrf51822_spi_init();
 
 	/* eeprom init and white_list init*/
 	Fee_Init(FEE_INIT_POWERUP);
 	get_white_list_from_flash();
 	DebugLog("\r\n[%s]:White list len = %d \r\n",__func__, wl.len);
 	DebugLog("[%s]:White list switch status is %d \r\n",__func__, wl.switch_status);
-	
+
 	/* init software timer */
 	sw_timer_init();
 	system_timer_init();
@@ -69,17 +69,17 @@ void Platform_Init(void)
 
 	/* 复位并初始化RC500 */
 	GPIOInit_MFRC500();
-	temp = PcdReset();															
-	
+	temp = PcdReset();
+
 	/* enable all IRQ */
 	ENABLE_ALL_IRQ();
-	
+
 	/* led 、蜂鸣器声音提示初始化完毕 */
-	//BEEP_EN();																	    
-	ledOn(LGREEN);																 
-	ledOn(LBLUE);																    
+	BEEP_EN();
+	ledOn(LGREEN);
+	ledOn(LBLUE);
 	DelayMs(200);
-	//BEEP_DISEN();
+	BEEP_DISEN();
 	ledOff(LGREEN);
 	ledOff(LBLUE);
 	IWDG_Configuration();
@@ -87,8 +87,8 @@ void Platform_Init(void)
 	DebugLog("[%s]:System clock freq is %dMHz\r\n",__func__, SystemCoreClock / 1000000);
 	DebugLog("[%s]:UID is %X%X%X%X%X%X%X%X\r\n",__func__,
 	         jsq_uid[0],jsq_uid[1],jsq_uid[2],jsq_uid[3],
-					 jsq_uid[4],jsq_uid[5],jsq_uid[6],jsq_uid[7]);           
-					 
+					 jsq_uid[4],jsq_uid[5],jsq_uid[6],jsq_uid[7]);
+
 	if(temp)
 	{
 		DebugLog("[%s]:MFRC 500 reset error\r\n",__func__);
@@ -102,10 +102,10 @@ void Platform_Init(void)
 #ifdef ENABLE_WATCHDOG
 	DebugLog("[%s]:watchdog enable\r\n",__func__);
 #else
-	DebugLog("[%s]:watchdog disable\r\n",__func__);	
+	DebugLog("[%s]:watchdog disable\r\n",__func__);
 #endif //ENABLE_WATCHDOG
 	DebugLog("[%s]:All peripherals init ok\r\n",__func__);
-	
+
 }
 
 /****************************************************************************
@@ -121,7 +121,7 @@ void Usart1_Init(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
-	
+
 	RCC_APB2PeriphClockCmd(USART1pos_CLK , ENABLE);
 
 	GPIO_InitStructure.GPIO_Pin = USART1pos_TxPin;
@@ -142,17 +142,17 @@ void Usart1_Init(void)
 
 	/* Configure USART1 */
 	USART_Init(USART1pos, &USART_InitStructure);
-	
+
 	NVIC_PriorityGroupConfig(SYSTEM_MVIC_GROUP_SET);
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = UART1_PREEMPTION_PRIORITY;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = UART1_SUB_PRIORITY;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
-	
+
 	//中断配置..Only IDLE Interrupt..
 	USART_ITConfig(USART1,USART_IT_RXNE,ENABLE);
-	
+
 	/* Enable the USART1 */
 	USART_Cmd(USART1pos, ENABLE);
 }
@@ -170,7 +170,7 @@ void Usart2_Init(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
-	
+
 	RCC_APB2PeriphClockCmd(USART2pos_CLK , ENABLE);
 
 	GPIO_InitStructure.GPIO_Pin = USART2pos_TxPin;
@@ -191,17 +191,17 @@ void Usart2_Init(void)
 
 	/* Configure USART1 */
 	USART_Init(USART2pos, &USART_InitStructure);
-	
+
 	NVIC_PriorityGroupConfig(SYSTEM_MVIC_GROUP_SET);
 	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = UART2_PREEMPTION_PRIORITY;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = UART2_SUB_PRIORITY;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
-	
+
 	//中断配置..Only IDLE Interrupt..
 	USART_ITConfig(USART2,USART_IT_RXNE,ENABLE);
-	
+
 	/* Enable the USART1 */
 	USART_Cmd(USART2pos, ENABLE);
 }
@@ -275,7 +275,7 @@ void GPIOInit_SE2431L(void)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_Init(SE2431L_CSD_PORT, &GPIO_InitStructure);
 
-	
+
 	SE2431L_Bypass();
 }
 
@@ -332,7 +332,7 @@ void GPIOInit_MFRC500(void)
     GPIO_WriteBit(MFRC500_RDWR_Port, MFRC500_RD_Pin, Bit_SET);
 
 
-    GPIO_InitStructure.GPIO_Pin = MFRC500_DATA_Pin;	
+    GPIO_InitStructure.GPIO_Pin = MFRC500_DATA_Pin;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_Init(MFRC500_DATA_Port, &GPIO_InitStructure);
