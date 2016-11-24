@@ -90,6 +90,7 @@ void App_clickers_systick_process(void)
 			while( Is_over )
 			{
 				DEBUG_UID_LOG("\r\nststick online uids:\r\n");
+				systick_massage.LEN = 0;
 				Is_over = checkout_online_uids( 0, SISTICK_ACK_TABLE, 1, systick_massage.DATA,&(systick_massage.LEN));
 				if(systick_massage.LEN != 0)
 				{
@@ -105,7 +106,6 @@ void App_clickers_systick_process(void)
 						serial_ringbuffer_write_data(SEND_RINGBUFFER,&systick_massage);
 					}
 					#endif
-					systick_massage.LEN = 0;
 				}
 			}
 			memset( (uint8_t *)(list_tcb_table[SISTICK_ACK_TABLE]), 0x00, 16 );
