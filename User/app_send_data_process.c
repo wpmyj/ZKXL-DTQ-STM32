@@ -379,7 +379,7 @@ void rf_move_data_to_buffer( uint8_t *Message )
 
 						nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
 							SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE);
-						nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
+						nrf_transmit_start(temp_message.DATA, temp_message.LEN,
 							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE);
 					}
 				}
