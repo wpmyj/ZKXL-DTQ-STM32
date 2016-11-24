@@ -352,11 +352,7 @@ static void serial_cmd_process(void)
 					else
 					{
 						App_start_or_stop_answer( &ReviceMessage, &SendMessage);
-						#ifdef ENABLE_SEND_DATA_TO_PC
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
-						#else
-					  serial_cmd_status = APP_SERIAL_CMD_STATUS_IGNORE;
-						#endif
 					}
 				}
 				break;
@@ -1156,6 +1152,11 @@ void App_start_or_stop_answer( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDe
 	{
 		wl.start = RMessage->DATA[0];
 		SMessage->DATA[i++] = 0;
+
+		if( wl.start == OFF )
+		{
+			memset(&backup_massage,0,sizeof(Uart_MessageTypeDef));
+		}
 	}
 	else
 	{
