@@ -164,7 +164,7 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 		memcpy((nrf_communication.transmit_buf + 1), nrf_communication.dtq_uid, 4);
 		memcpy((nrf_communication.transmit_buf + 5), nrf_communication.jsq_uid, 4);
 		nrf_communication.transmit_buf[9]  = revicer.sen_seq++;
-		nrf_communication.transmit_buf[10] = revicer.sen_num;
+		nrf_communication.transmit_buf[10] = revicer.sen_num++;
 		nrf_communication.transmit_buf[11] = NRF_DATA_IS_USEFUL;
 		nrf_communication.transmit_buf[12] = 0xFF;
 		nrf_communication.transmit_buf[13] = 0xFF;
