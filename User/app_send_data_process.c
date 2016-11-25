@@ -289,7 +289,7 @@ void rf_move_data_to_buffer( uint8_t *Message )
 	uint8_t i = 0 ;
 
 	rf_message.HEADER = 0x5C;
-	rf_message.TYPE = 0x10;
+	rf_message.TYPE = 0x11;
 
 	memcpy(rf_message.SIGN,Message+5,4);
 
