@@ -21,7 +21,7 @@
 #define DISABLE_ALL_IRQ()  			__set_PRIMASK(1);
 #define ENABLE_ALL_IRQ()   			__set_PRIMASK(0);
 
-#define UART_BAUD								2048000//115200
+#define UART_BAUD								115200
 
 #ifdef 	ENABLE_DEBUG_LOG
 #define DebugLog								printf
