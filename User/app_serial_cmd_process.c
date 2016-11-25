@@ -485,6 +485,8 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 		{
 			case 0x10:
 			case 0x11:
+			case 0x12:
+			case 0x13:
 				{
 					/* 暂存题目 */
 					backup_massage.HEADER = 0x5C;
