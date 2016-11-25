@@ -23,11 +23,11 @@
 #define SPI_IRQ_BUFFER       4
 
 #define PACKETSIZE           (UART_NBUF+9)
-#define REVICEBUFFERSIZE     (768)
-#define SENDBUFFERSIZE       (1024)
-#define SPIBUFFERSIZE        (2048)
-#define SPIIRQBUFFERSIZE     (1024)
-#define PRINTBUFFERSIZE      (1024*4)
+#define REVICEBUFFERSIZE     (1024)
+#define SENDBUFFERSIZE       (1024*2)
+#define SPIBUFFERSIZE        (1024*4)
+#define SPIIRQBUFFERSIZE     (1024*2)
+#define PRINTBUFFERSIZE      (1)
 #define RINGBUFFERSUM        (5)
 
 /* buffer status  */
