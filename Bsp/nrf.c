@@ -201,7 +201,7 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 	else if(nrf_data_type == NRF_DATA_IS_ACK)	//ACK数据包，发送nrf_communication.transmit_buf 内容
 	{
 		uint8_t uidpos;
-		search_uid_in_white_list(&uidpos,nrf_communication.dtq_uid);
+		search_uid_in_white_list(nrf_communication.dtq_uid,&uidpos);
 		nrf_communication.transmit_buf[0] = 0x61;
 		memcpy((nrf_communication.transmit_buf + 1), wl.uids[uidpos].uid, 4);
 		memcpy((nrf_communication.transmit_buf + 5), nrf_communication.jsq_uid, 4);
