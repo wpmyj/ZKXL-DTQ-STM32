@@ -464,13 +464,12 @@ ARM Macro Assembler    Page 8
               00000000 
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
-ork --depend=..\hex\startup_stm32f10x_md.d -o..\hex\startup_stm32f10x_md.o -I"E
-:\项目资料\1.答题器\2.研发过程资料\10.深圳出差资料\答题器\2.测试\datiqi-2016113
-0(v2.22发送测试-PC版) - release\Project\RTE" -Id:\Keil_v5\ARM\PACK\Keil\STM32F1
-xx_DFP\2.1.0\Device\Include -Id:\Keil_v5\ARM\CMSIS\Include --predefine="__MICRO
-LIB SETA 1" --predefine="__UVISION_VERSION SETA 518" --predefine="STM32F10X_MD 
-SETA 1" --list=.\_list\startup_stm32f10x_md.lst ..\Libraries\CMSIS\CM3\DeviceSu
-pport\ST\STM32F10x\startup\arm\startup_stm32f10x_md.s
+ork --depend=..\hex\startup_stm32f10x_md.d -o..\hex\startup_stm32f10x_md.o -IF:
+\My-Git\ZKXL-DTQ-JSQTY\Project\RTE -Id:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.1
+.0\Device\Include -Id:\Keil_v5\ARM\CMSIS\Include --predefine="__MICROLIB SETA 1
+" --predefine="__UVISION_VERSION SETA 518" --predefine="STM32F10X_MD SETA 1" --
+list=.\_list\startup_stm32f10x_md.lst ..\Libraries\CMSIS\CM3\DeviceSupport\ST\S
+TM32F10x\startup\arm\startup_stm32f10x_md.s
 
 
 
