@@ -400,11 +400,7 @@ void ComDeselect (void)
 		AnswerErr(11);
 	}
 }
-/*
- *********************************************************************************
- *    软件接口函数
- *********************************************************************************
- */
+
 /*********************************************************************************
 * 功	能：void FindICCard(void)
 * 输    入: NULL
@@ -415,18 +411,23 @@ uint8_t FindICCard(void)
 {
 	uint8_t len,findIC_flow = 0x01;
 	uint8_t status = 0x11;
+
 	while(findIC_flow)
 	{
 		switch(findIC_flow)
 		{
-			case 0x01:	// 打开天线
-				PcdAntennaOn();												//打开13.56M天线
-				findIC_flow = 0x02;
+			case 0x01:
+				{
+					/* 打开13.56M天线 */
+					PcdAntennaOn();
+					findIC_flow = 0x02;
+				}
 				break;
 
-			case 0x02:	//发送reqA指令
+			case 0x02:
 				memset(g_cardType, 0, 40);
-				if(PcdRequest(PICC_REQIDL,g_cardType) == MI_OK)				//请求A卡，返回卡类型，不同类型卡对应不同的UID长度
+			  /* reqA指令 :请求A卡，返回卡类型，不同类型卡对应不同的UID长度 */
+				if(PcdRequest(PICC_REQIDL,g_cardType) == MI_OK)
 				{
 					if( (g_cardType[0] & 0x40) == 0x40)
 					{	uid_len = 8;	}
@@ -435,9 +436,7 @@ uint8_t FindICCard(void)
 					findIC_flow = 0x03;
 				}
 				else
-				{
 					findIC_flow = 0x00;
-				}
 				break;
 
 			case 0x03:	//防碰撞1
@@ -463,9 +462,7 @@ uint8_t FindICCard(void)
 			case 0x05:	//防碰撞2
 				memset(respon, 0, BUF_LEN);
 				if(MI_OK == PcdAnticoll(PICC_ANTICOLL2, &g_cSNR[4]))
-				{
 					findIC_flow = 0x06;
-				}
 				else
 					findIC_flow = 0x02;
 				break;
@@ -474,13 +471,9 @@ uint8_t FindICCard(void)
 				if((MI_OK == PcdSelect2(&g_cSNR[4], respon, &len))&&((respon[0] & 0x20) == 0x20))
 				{
 					if(wl.match_status == ON)
-					{
 						findIC_flow = 0x09;
-					}
 					else
-					{
 						findIC_flow = 0x07;
-					}
 				}
 				else
 					findIC_flow = 0x02;
@@ -488,46 +481,22 @@ uint8_t FindICCard(void)
 
 			case 0x07:	//寻卡成功
 				if(SelectApplication() == MI_OK)		//选择应用
-				{
 					findIC_flow = 0x08;
-				}
 				else
-				{
 					findIC_flow = 0x02;
-				}
 				break;
 
 			case 0x08:	//寻卡成功
-				if(ReadNDEFfile(NDEF_DataRead, &NDEF_Len) == MI_OK)
-				{
+				if(ReadNDEFfile(NDEF_DataWrite, &NDEF_Len) == MI_OK)
 					findIC_flow = 0x09;
-				}
 				else
-				{
 					findIC_flow = 0x02;
-				}
 				break;
 
 			case 0x09:	//寻卡成功
-				if(flag_upload_uid_once)
-				{
-					flag_upload_uid_once = false;
-					findIC_flow = 0x0A;
-					status = MI_OK;
-				}
-				else
-				{
 					findIC_flow = 0x00;
 					status = MI_OK;
-				}
 				break;
-
-			case 0x0A:	//卡休眠
-				PcdHalt();												//使读到卡号的卡进入休眠
-				findIC_flow = 0x00;
-				break;
-			default	:
-				findIC_flow = 0x00;
 		}
 	}
 	return status;
