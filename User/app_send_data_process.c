@@ -1063,7 +1063,7 @@ void send_data_env_init(void)
 	memset(rf_online_index,0,2);
 
 	/* clear retransmit task control block*/
-	memset(&retransmit_tcb,0,9);
+	memset(&retransmit_tcb,0,sizeof(retransmit_tcb_tydef));
 
 	/* clear online check table */
 	memset(list_tcb_table[1],0,16*9);
