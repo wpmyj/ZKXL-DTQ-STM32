@@ -104,6 +104,7 @@ void App_card_process(void)
 					}
 					memcpy(card_message.SIGN,Card_process.uid,4);
 					card_message.LEN     = 25;
+					memset(card_message.DATA,0x00,25);
 					card_message.DATA[0] = uid_p;
 					memcpy(card_message.DATA+1,g_cSNR+4,4);
 					memcpy(card_message.DATA+5,NDEF_DataRead+7,20);
