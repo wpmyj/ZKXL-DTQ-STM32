@@ -51,6 +51,7 @@ void Platform_Init(void)
 	/* 配对是存入接收器器UID到答题器 */
 	NDEF_DataWrite[1] = 0x1A;
 	memcpy(NDEF_DataWrite+2,nrf_communication.jsq_uid,4);
+	memset(NDEF_DataWrite+7,0x00,20);
 
 	/* initialize the spi interface with nrf51822 */
 	nrf51822_spi_init();
