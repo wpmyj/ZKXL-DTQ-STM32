@@ -1546,41 +1546,41 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Object Name
 
-       580         40          0          0         26       2297   app_card_process.o
-        32          0          0          0          0        571   app_handle_layer.o
-      4044        238          0         32        562      14082   app_send_data_process.o
-      3772        158          0          4        747       9496   app_serial_cmd_process.o
-       148         38          0          0          0       1499   app_show_message_process.o
-       388         30          0          8       1300       2544   app_spi_send_data_process.o
-       472         30          0          2         26       2300   app_systick_package_process.o
-       900         32          0          5        318      22097   app_timer.o
-      1348         20          0          2          0       5487   eeprom.o
-       236         16         24         16          0       2102   gpio.o
-      1460         52          0          0        770      20913   init.o
-      1260         34          0          1        744       8585   m24sr_cmd.o
-        12          0          0          0          0        519   main.o
-      6764         62          0          1          0      35963   mfrc500.o
-       220         22          0          0          0       2077   misc.o
-       988         42          0          0          0       5198   nrf.o
-      3360         50          0          0          0       7672   rc500_handle_layer.o
-       968         24         20         29       9256       5318   ringbuffer.o
-        36          8        236          0       2048        988   startup_stm32f10x_md.o
-       284         10          0          0          0       2539   stm32f10x_exti.o
-      1468         34          0          0          0       8482   stm32f10x_flash.o
-       860         38          0          0          0       6009   stm32f10x_gpio.o
-       960         76          0         24        606       4374   stm32f10x_it.o
-        64          6          0          0          0       1405   stm32f10x_iwdg.o
-       936         40          0         20          0       9296   stm32f10x_rcc.o
-       780         14          0          0          0       6894   stm32f10x_spi.o
-      3610         88          0          0          0      23124   stm32f10x_tim.o
-      1032         22          0          0          0       8736   stm32f10x_usart.o
-       612         44          0         20          0     270860   system_stm32f10x.o
-         0          0          0         38        802       2255   variable.o
-       208         12         49          8          0       1490   version.o
-      1140         20          0          3       2624       7558   whitelist.o
+       580         40          0          0         26       1949   app_card_process.o
+        32          0          0          0          0        455   app_handle_layer.o
+      4044        238          0         32        562      13618   app_send_data_process.o
+      3772        158          0          4        747       9148   app_serial_cmd_process.o
+       148         38          0          0          0       1383   app_show_message_process.o
+       388         30          0          8       1300       2196   app_spi_send_data_process.o
+       472         30          0          2         26       2068   app_systick_package_process.o
+       900         32          0          5        318      21517   app_timer.o
+      1348         20          0          2          0       5139   eeprom.o
+       236         16         24         16          0       1754   gpio.o
+      1460         52          0          0        770      20449   init.o
+      1260         34          0          1        744       8121   m24sr_cmd.o
+        12          0          0          0          0        403   main.o
+      6764         62          0          1          0      35151   mfrc500.o
+       220         22          0          0          0       1845   misc.o
+       988         42          0          0          0       4850   nrf.o
+      3360         50          0          0          0       7440   rc500_handle_layer.o
+       968         24         20         29       9256       4970   ringbuffer.o
+        36          8        236          0       2048        900   startup_stm32f10x_md.o
+       284         10          0          0          0       2307   stm32f10x_exti.o
+      1468         34          0          0          0       8250   stm32f10x_flash.o
+       860         38          0          0          0       5777   stm32f10x_gpio.o
+       960         76          0         24        606       4026   stm32f10x_it.o
+        64          6          0          0          0       1289   stm32f10x_iwdg.o
+       936         40          0         20          0       8948   stm32f10x_rcc.o
+       780         14          0          0          0       6662   stm32f10x_spi.o
+      3610         88          0          0          0      22892   stm32f10x_tim.o
+      1032         22          0          0          0       8504   stm32f10x_usart.o
+       612         44          0         20          0     269468   system_stm32f10x.o
+         0          0          0         38        802       1907   variable.o
+       208         12         49          8          0       1142   version.o
+      1140         20          0          3       2624       7210   whitelist.o
 
     ----------------------------------------------------------------------
-     38944       1300        364        220      19832     502730   Object Totals
+     38944       1300        364        220      19832     491738   Object Totals
          0          0         32          0          0          0   (incl. Generated)
          2          0          3          7          3          0   (incl. Padding)
 
@@ -1637,8 +1637,8 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-     42900       1412        364        224      19832     500630   Grand Totals
-     42900       1412        364        224      19832     500630   ELF Image Totals
+     42900       1412        364        224      19832     489638   Grand Totals
+     42900       1412        364        224      19832     489638   ELF Image Totals
      42900       1412        364        224          0          0   ROM Totals
 
 ==============================================================================
