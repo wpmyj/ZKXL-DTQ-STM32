@@ -33,7 +33,6 @@ extern uint16_t 					time_for_buzzer_off;			//响了多长时间之后关
 extern RF_TypeDef 				rf_var;							// 2.4G数据包缓冲
 extern uint16_t						delay_nms;						// 中断延时变量
 
-extern bool							  flag_upload_uid_once;		//是否单次上传卡号标志
 extern uint8_t						ReadNDEF_Step;					// 读取NDEF文件的步骤
 extern uint8_t						FindCard_Step;					// 寻卡的步骤
 

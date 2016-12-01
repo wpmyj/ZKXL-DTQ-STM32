@@ -38,7 +38,7 @@ void App_card_process(void)
 
 	if((delay_nms == 0)&&((wl.attendance_sttaus == ON) || wl.match_status == ON))
 	{
-		delay_nms = 200;
+		delay_nms = 100;
 		if(FindICCard() == MI_OK)
 		{
 			/* 处理数据 */
@@ -130,6 +130,9 @@ void App_card_process(void)
 					}
 				}
 			}
+			/* 去除选择 */
+			Deselect();
+			/* 关闭天线 */
 			PcdHalt();
 		}
 	}
@@ -160,7 +163,7 @@ void Buzze_Control(void)
   * @param  None
   * @retval None
 *******************************************************************************/
-void write_rf_config(uint8_t upos, uint8_t ndef_xor, uint8_t *flg)
+void write_rf_config(uint8_t upos, uint8_t ndef_xor, uint8_t *write_ok_flg)
 {
 	if(SelectApplication() == MI_OK)		//选择应用
 	{
@@ -172,11 +175,9 @@ void write_rf_config(uint8_t upos, uint8_t ndef_xor, uint8_t *flg)
 				{
 					time_for_buzzer_on = 10;
 					time_for_buzzer_off = 300;
-					*flg = 1;
+					*write_ok_flg = 1;
 				}
 			}
 		}
-		/* 去除选择 */
-		Deselect();
 	}
 }
