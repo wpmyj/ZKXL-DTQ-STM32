@@ -129,12 +129,21 @@ void App_clickers_systick_process(void)
 		systick_package.DATA[ 5] = 0x00;
 		systick_package.DATA[ 6] = 0x31;
 		systick_package.DATA[ 7] = 0x07;
-		*(uint16_t *)(systick_package.DATA+8) = system_rtc_timer.year;
-		systick_package.DATA[10] = system_rtc_timer.mon;
-		systick_package.DATA[11] = system_rtc_timer.date;
-		systick_package.DATA[12] = system_rtc_timer.hour;
-		systick_package.DATA[13] = system_rtc_timer.min;
-		systick_package.DATA[14] = system_rtc_timer.sec;
+
+		if( system_rtc_timer.sync_flg == 1 )
+		{
+			*(uint16_t *)(systick_package.DATA+8) = system_rtc_timer.year;
+			systick_package.DATA[10] = system_rtc_timer.mon;
+			systick_package.DATA[11] = system_rtc_timer.date;
+			systick_package.DATA[12] = system_rtc_timer.hour;
+			systick_package.DATA[13] = system_rtc_timer.min;
+			systick_package.DATA[14] = system_rtc_timer.sec;
+		}
+		else
+		{
+			memset(systick_package.DATA+8,0x00,7);
+		}
+
 		systick_package.DATA[15] = XOR_Cal(systick_package.DATA+1, 14);
 		systick_package.DATA[16] = 0xCA;
 
