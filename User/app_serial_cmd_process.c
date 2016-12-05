@@ -542,15 +542,12 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 		/* 准备发送数据管理块 */
 		send_data_env_init();
 
-		/* 下发计数加1 */
-		revicer.sen_num++;
-
 		/* 发送前导帧 */
 		memcpy(nrf_communication.dtq_uid, RMessage->DATA+1, 4);
-		nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,  SEND_PRE_DELAY100US, SEND_DATA1_SUM_TABLE);
+		nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,  SEND_PRE_DELAY100US, SEND_DATA1_SUM_TABLE,PACKAGE_NUM_ADD);
 
 		/* 发送数据帧 */
-		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE );
+		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
 
 		if( is_open_statistic == 0 )
 		{

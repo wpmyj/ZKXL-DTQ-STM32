@@ -339,9 +339,9 @@ void rf_move_data_to_buffer( uint8_t *Message )
 				memcpy( backup_massage.DATA+1, Message+5, 4);
 				backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
 				nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-					SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE);
+					SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
 				nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
-					NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE);
+					NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
 			}
 			/* 检测是否为唤醒指令 */
 			if(rf_message.DATA[8] == 0x03)
@@ -359,9 +359,9 @@ void rf_move_data_to_buffer( uint8_t *Message )
 						memcpy( backup_massage.DATA+1, Message+5, 4);
 						backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
 						nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-							SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE);
+							SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
 						nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
-							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE);
+							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
 					}
 					else
 					{
@@ -378,9 +378,9 @@ void rf_move_data_to_buffer( uint8_t *Message )
 						temp_message.DATA[temp_message.DATA[7] + 8] = XOR_Cal(&temp_message.DATA[1],temp_message.DATA[7]+7);
 
 						nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-							SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE);
+							SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
 						nrf_transmit_start(temp_message.DATA, temp_message.LEN,
-							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE);
+							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
 					}
 				}
 			}
@@ -505,7 +505,7 @@ uint8_t spi_process_revice_data( void )
 						{
 							/* 回复ACK */
 							memcpy( nrf_communication.dtq_uid, spi_message+5, 4 );
-							nrf_transmit_start(&temp,0,NRF_DATA_IS_ACK, 2, 20, SEND_DATA_ACK_TABLE);
+							nrf_transmit_start(&temp,0,NRF_DATA_IS_ACK, 2, 20, SEND_DATA_ACK_TABLE,PACKAGE_NUM_SAM);
 						}
 
 						/* 有效数据告到PC */
@@ -802,14 +802,14 @@ void retansmit_data( uint8_t status )
 		/* 发送前导帧 */
 		memset(nrf_communication.dtq_uid, 0, 4);
 		nrf_transmit_start( nrf_communication.dtq_uid, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-		                    SEND_PRE_DELAY100US, retransmit_check_tables[CUR_SUM_TABLE]);
+		                    SEND_PRE_DELAY100US, retransmit_check_tables[CUR_SUM_TABLE],PACKAGE_NUM_SAM);
 		/* 发送数据帧 */
 		memset(nrf_communication.dtq_uid, 0, 4);
 
 		whitelist_checktable_or(retransmit_check_tables[PRE_ACK_TABLE],SEND_DATA_ACK_TABLE);
 
 		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL,
-		                    SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE );
+		                    SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE, PACKAGE_NUM_SAM );
 
 		/* 跟新状态，开始2次统计 */
 		change_clicker_send_data_status( after_retransmit_status );
@@ -944,12 +944,12 @@ void send_data_result( uint8_t status )
 void retransmit_data_to_next_clicker( void )
 {
 	nrf_transmit_start(rf_var.tx_buf,0,NRF_DATA_IS_PRE,SEND_PRE_COUNT,
-	                   SEND_PRE_DELAY100US,SEND_DATA4_SUM_TABLE);
+	                   SEND_PRE_DELAY100US,SEND_DATA4_SUM_TABLE,PACKAGE_NUM_SAM);
 
 	whitelist_checktable_or(SEND_DATA4_ACK_TABLE,SEND_DATA_ACK_TABLE);
 
 	nrf_transmit_start(rf_var.tx_buf,rf_var.tx_len,NRF_DATA_IS_USEFUL,SEND_DATA_COUNT,
-	                   SEND_DATA_DELAY100US,SEND_DATA_ACK_TABLE);
+	                   SEND_DATA_DELAY100US,SEND_DATA_ACK_TABLE,PACKAGE_NUM_SAM);
 
 	rf_retransmit_set_status(1);
 }
@@ -1167,12 +1167,12 @@ void App_clickers_single_send_data_process( void )
 				/* 发送前导帧 */
 				memcpy( nrf_communication.dtq_uid, Single_send_data_process.uid, 4 );
 				nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-														SEND_PRE_DELAY100US, SINGLE_SEND_DATA_ACK_TABLE);
+														SEND_PRE_DELAY100US, SINGLE_SEND_DATA_ACK_TABLE,PACKAGE_NUM_SAM);
 				/* 发送数据帧 */
 				memcpy( nrf_communication.dtq_uid, Single_send_data_process.uid, 4 );
 
 				nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL,
-														SEND_DATA_COUNT, SEND_DATA_DELAY100US, SINGLE_SEND_DATA_ACK_TABLE );
+														SEND_DATA_COUNT, SEND_DATA_DELAY100US, SINGLE_SEND_DATA_ACK_TABLE,PACKAGE_NUM_SAM);
 
 				single_sned_data_count++;
 
