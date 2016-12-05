@@ -103,6 +103,9 @@
 #define SINGLE_SEND_DATA_COUNT_MAX  10
 #define SINGLE_SEND_DATA_ACK_TABLE  1
 
+#define PACKAGE_NUM_ADD             1
+#define PACKAGE_NUM_SAM             0
+
 typedef struct
 {
 	uint8_t count;
