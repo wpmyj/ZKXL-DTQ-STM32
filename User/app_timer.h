@@ -52,6 +52,7 @@ typedef struct
 	uint8_t  date;
 	uint8_t  mon;
 	uint16_t  year;
+	uint8_t  sync_flg;
 }RTC_timer_Typedef;
 
 extern timer_list_typedef timer_list;

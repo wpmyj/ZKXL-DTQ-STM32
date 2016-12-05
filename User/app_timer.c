@@ -379,6 +379,7 @@ void system_timer_init( void )
 	system_rtc_timer.min  = 0;
 	system_rtc_timer.sec  = 0;
 	system_rtc_timer.ms   = 0;
+	system_rtc_timer.sync_flg = 0;
 }
 
 /**************************************END OF FILE****************************/

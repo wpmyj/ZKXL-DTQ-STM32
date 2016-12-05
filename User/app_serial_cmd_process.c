@@ -936,6 +936,7 @@ void App_return_systick( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMe
 		system_rtc_timer.hour = RMessage->DATA[4];
 		system_rtc_timer.min  = RMessage->DATA[5];
 		system_rtc_timer.sec  = RMessage->DATA[6];
+		system_rtc_timer.sync_flg = 1;
 	}
 }
 
