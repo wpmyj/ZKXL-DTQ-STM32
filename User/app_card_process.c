@@ -177,6 +177,7 @@ void write_rf_config(uint8_t upos, uint8_t ndef_xor, uint8_t *write_ok_flg)
 					time_for_buzzer_on = 10;
 					time_for_buzzer_off = 300;
 					*write_ok_flg = 1;
+					SendInterrupt();
 				}
 			}
 		}
