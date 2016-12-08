@@ -1112,7 +1112,7 @@ uint8_t get_single_send_data_status( void )
   Return:
   Others:None
 ******************************************************************************/
-void single_send_data_result( uint8_t status, uint8_t pos )
+void single_send_data_result( uint8_t status, uint8_t step, uint8_t pos )
 {
 	Uart_MessageTypeDef result_message;
 
@@ -1123,10 +1123,11 @@ void single_send_data_result( uint8_t status, uint8_t pos )
 
 	result_message.HEADER = 0x5C;
 	memcpy(result_message.SIGN,backup_massage.SIGN,4);
-	result_message.LEN     = 0x05;
-	result_message.DATA[0] = pos;
-	memcpy(result_message.DATA+1,Single_send_data_process.uid,4);
-	result_message.XOR = XOR_Cal(&result_message.TYPE,11);
+	result_message.LEN     = 0x06;
+	result_message.DATA[0] = step;
+	result_message.DATA[1] = pos;
+	memcpy(result_message.DATA+2,Single_send_data_process.uid,4);
+	result_message.XOR = XOR_Cal(&result_message.TYPE,12);
 	result_message.END  = 0xCA;
 
 	if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
@@ -1179,11 +1180,11 @@ void App_clickers_single_send_data_process( void )
 				if( single_sned_data_count >= SINGLE_SEND_DATA_COUNT_MAX)
 				{
 					single_send_data_status = 0;
-					single_sned_data_count = 0;
 					DEBUG_STATISTICS_LOG("send over fail\r\n");
 					clear_white_list_table(SINGLE_SEND_DATA_ACK_TABLE);
 					#ifdef ENABLE_SEND_DATA_TO_PC
-					single_send_data_result( 1, upos );
+					single_send_data_result( 1, single_sned_data_count, upos );
+					single_sned_data_count = 0;
 					#endif
 				}
 				else
@@ -1195,22 +1196,22 @@ void App_clickers_single_send_data_process( void )
 			else
 			{
 				single_send_data_status = 0;
-				single_sned_data_count = 0;
 				DEBUG_STATISTICS_LOG("OK \r\n");
 				clear_white_list_table(SINGLE_SEND_DATA_ACK_TABLE);
 				#ifdef ENABLE_SEND_DATA_TO_PC
-				single_send_data_result( 0, upos );
+				single_send_data_result( 0, single_sned_data_count, upos );
+				single_sned_data_count = 0;
 				#endif
 			}
 		}
 		else
 		{
 			single_send_data_status = 0;
-			single_sned_data_count = 0;
 			DEBUG_STATISTICS_LOG("uid is not in white list fail\r\n");
 			clear_white_list_table(SINGLE_SEND_DATA_ACK_TABLE);
 			#ifdef ENABLE_SEND_DATA_TO_PC
-			single_send_data_result( 1, upos );
+			single_send_data_result( 1, single_sned_data_count, upos );
+			single_sned_data_count = 0;
 			#endif
 		}
 	}
