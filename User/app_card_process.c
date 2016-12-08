@@ -133,7 +133,7 @@ void App_card_process(void)
 			}
 			/* 去除选择 */
 			Deselect();
-			/* 关闭天线 */
+			/* 命令卡进入休眠状态 */
 			PcdHalt();
 		}
 	}
