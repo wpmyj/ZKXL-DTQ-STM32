@@ -1184,14 +1184,14 @@ void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err
 	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
 
 	SMessage->HEADER = 0x5C;
-	SMessage->TYPE   = err_type;
+	SMessage->TYPE   = 0xE0;
 
 	memset(SMessage->SIGN, 0xFF, 4);
 
 	SMessage->LEN = 2;
 
 	/* 操作失败 */
-	*( pdata + ( i++ ) ) = 0x01;
+	*( pdata + ( i++ ) ) = err_type;
 	/* 错误类型 */
 	*( pdata + ( i++ ) ) = cmd_type;
 
