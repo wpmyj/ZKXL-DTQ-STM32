@@ -817,25 +817,43 @@ uint8_t App_return_whitelist_data( Uart_MessageTypeDef *RMessage, Uart_MessageTy
 void App_open_or_close_attendance_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
 {
 	uint8_t i = 0;
+	uint8_t card_is_busy = 0;
 
-	SMessage->HEADER = 0x5C;
+	card_is_busy = rf_get_card_status();
 
 	switch(RMessage->TYPE)
 	{
-		case 0x25: wl.attendance_sttaus = ON;  break;
-		case 0x27: wl.attendance_sttaus = OFF; break;
-		default:                               break;
+		case 0x25:
+			{
+				if(card_is_busy == 0)
+				{
+					wl.attendance_sttaus = ON;
+					memcpy(Card_process.uid,RMessage->SIGN,4);
+					Card_process.cmd_type = RMessage->TYPE;
+					SMessage->DATA[i++] = 0;
+					rf_set_card_status(1);
+				}
+				else
+				{
+					SMessage->DATA[i++] = 1;
+				}
+			}
+			break;
+		case 0x27:
+			{
+				wl.attendance_sttaus = OFF;
+				SMessage->DATA[i++] = 0;
+				rf_set_card_status(0);
+			}
+			break;
+		default:
+			break;
 	}
 
-	Card_process.cmd_type = RMessage->TYPE;
+	SMessage->HEADER = 0x5C;
 	SMessage->TYPE = RMessage->TYPE;
-
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
-	memcpy(Card_process.uid,RMessage->SIGN,4);
-
 	SMessage->LEN = 0x01;
-	SMessage->DATA[i++] = 0;
-
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;
 }
@@ -856,15 +874,6 @@ void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef 
 	uint8_t *pdata = (uint8_t *)(SMessage->DATA);
 
 	SMessage->HEADER = 0x5C;
-
-	if(RMessage->TYPE == 0x28)
-	{
-		wl.match_status = ON;
-	}
-	else
-	{
-		wl.match_status = OFF;
-	}
 
 	SMessage->TYPE = RMessage->TYPE;
 
@@ -1059,21 +1068,29 @@ void App_open_systick_ack( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *S
 void App_card_match_single( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
 {
 	uint8_t i = 0;
+	uint8_t card_is_busy = 0;
+
+	card_is_busy = rf_get_card_status();
+
+	if(card_is_busy == 0)
+	{
+		Card_process.cmd_type = RMessage->TYPE;
+		memcpy(Card_process.uid,RMessage->SIGN,4);
+		memcpy(Card_process.studentid,RMessage->DATA,20);
+		Card_process.match_single = 1;
+		wl.match_status = ON;
+		SMessage->DATA[i++] = 0;
+		rf_set_card_status(1);
+	}
+	else
+	{
+		SMessage->DATA[i++] = 1;
+	}
 
 	SMessage->HEADER = 0x5C;
-	Card_process.cmd_type = RMessage->TYPE;
 	SMessage->TYPE = RMessage->TYPE;
-
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
-	memcpy(Card_process.uid,RMessage->SIGN,4);
-
 	SMessage->LEN = 0x01;
-
-	memcpy(Card_process.studentid,RMessage->DATA,20);
-	Card_process.match_single = 1;
-	wl.match_status = ON;
-	SMessage->DATA[i++] = 0;
-
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;
 }
@@ -1090,40 +1107,50 @@ void App_card_match_single( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *
 ******************************************************************************/
 void App_card_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
 {
-	uint8_t i = 0;
+	uint8_t card_is_busy = 0;
 
-	SMessage->HEADER = 0x5C;
-	Card_process.cmd_type = RMessage->TYPE;
-	SMessage->TYPE = RMessage->TYPE;
-
-	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
-	memcpy(Card_process.uid,RMessage->SIGN,4);
-
-	SMessage->LEN = 0x01;
+	card_is_busy = rf_get_card_status();
 
 	if( RMessage->DATA[0] < 2 )
 	{
-		memset(Card_process.studentid,0x00,20);
-		Card_process.match_single = 0;
-		SMessage->DATA[i++] = 0;
 		if( RMessage->DATA[0] == 1 )
 		{
-			wl.match_status = ON;
+			if(card_is_busy == 0)
+			{
+				wl.match_status = ON;
+				memset(Card_process.studentid,0x00,20);
+				Card_process.match_single = 0;
+				memcpy(Card_process.uid,RMessage->SIGN,4);
+				Card_process.cmd_type = RMessage->TYPE;
+				SMessage->DATA[0] = 0;
+				rf_set_card_status(1);
+			}
+			else
+			{
+				SMessage->DATA[0] = 2;
+			}
 		}
 		else
 		{
 			wl.match_status = OFF;
+			memset(Card_process.studentid,0x00,20);
+			Card_process.match_single = 0;
+			SMessage->DATA[0] = 0;
 		}
 	}
 	else
 	{
 		memset(Card_process.studentid,0x00,20);
 		Card_process.match_single = 0;
-		SMessage->DATA[i++] = 1;
+		SMessage->DATA[0] = 1;
 		wl.match_status = OFF;
 	}
 
-	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->HEADER = 0x5C;
+	SMessage->TYPE = RMessage->TYPE;
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+	SMessage->LEN = 0x01;
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), SMessage->LEN+6);
 	SMessage->END = 0xCA;
 }
 

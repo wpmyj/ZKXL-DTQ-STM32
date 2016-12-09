@@ -13,7 +13,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
-#define TIMER_COUNT_MAX    15
+#define TIMER_COUNT_MAX    17
 
 typedef struct
 {
@@ -61,6 +61,7 @@ extern Timer_typedef send_data1_timer,send_data2_timer,send_data3_timer,single_s
 extern Timer_typedef spi_send_data_timer,spi_send_data_timer1;
 extern Timer_typedef systick_package_timer;
 extern RTC_timer_Typedef system_rtc_timer;
+extern Timer_typedef card_buzzer_timer;
 
 /* Private functions ---------------------------------------------------------*/
 void SysClockInit(void);
