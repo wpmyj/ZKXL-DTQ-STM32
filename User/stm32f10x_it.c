@@ -407,21 +407,6 @@ void SysTick_Handler(void)
 			uart_status = UartHEADER;
 		}
 	}
-
-	if(time_for_buzzer_on > 1)									//蜂鸣器开关延时时间
-	{
-		time_for_buzzer_on--;
-	}
-
-	if((time_for_buzzer_on == 0)&&(time_for_buzzer_off > 0))	//蜂鸣器响延时
-	{
-		time_for_buzzer_off--;
-	}
-
-	if(delay_nms)
-	{
-		delay_nms --;
-	}
 }
 
 /******************************************************************************/

@@ -27,11 +27,8 @@ extern uint8_t 						NDEF_DataRead[];
 extern uint16_t						NDEF_Len;
 
 extern bool 						  gbf_hse_setup_fail;				//外部16M晶振起振标志
-extern uint8_t 						time_for_buzzer_on;				//多长时间之后开始响
-extern uint16_t 					time_for_buzzer_off;			//响了多长时间之后关
 
 extern RF_TypeDef 				rf_var;							// 2.4G数据包缓冲
-extern uint16_t						delay_nms;						// 中断延时变量
 
 extern uint8_t						ReadNDEF_Step;					// 读取NDEF文件的步骤
 extern uint8_t						FindCard_Step;					// 寻卡的步骤
