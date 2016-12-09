@@ -250,8 +250,14 @@ void App_card_process(void)
 			serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
 			memset(NDEF_DataRead,00,50);
 		}
-
-		rf_set_card_status(12);
+		if(is_white_list_uid != OPERATION_ERR)
+		{
+			rf_set_card_status(12);
+		}
+		else
+		{
+			rf_set_card_status(14);
+		}
 	}
 
 	if( card_current_status == 12 )
