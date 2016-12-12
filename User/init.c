@@ -15,6 +15,7 @@
 #include "app_send_data_process.h"
 #include "app_systick_package_process.h"
 #include "app_spi_send_data_process.h"
+#include "app_card_process.h"
 
 /* Private variables ---------------------------------------------------------*/
 spi_cmd_type_t 					 spi_cmd_type;
@@ -67,6 +68,7 @@ void Platform_Init(void)
 	system_timer_init();
 	send_data_process_timer_init();
 	systick_package_timer_init();
+	card_timer_init();
 
 	/* 复位并初始化RC500 */
 	GPIOInit_MFRC500();
