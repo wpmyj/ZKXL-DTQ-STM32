@@ -150,7 +150,12 @@ void App_card_process(void)
 	{
 		/* ¶ÁÈ¡Êý¾Ý */
 		if(ReadNDEFfile(NDEF_DataWrite, &NDEF_Len) == MI_OK)
-			rf_set_card_status(8);
+		{
+			if(wl.attendance_sttaus == ON)
+				rf_set_card_status(10);
+			if(wl.match_status == ON)
+				rf_set_card_status(8);
+		}
 		else
 			rf_set_card_status(1);
 		return;
@@ -234,7 +239,7 @@ void App_card_process(void)
 		memcpy(card_message.SIGN,Card_process.uid,4);
 		card_message.LEN     = 25;
 		memset(card_message.DATA,0x00,25);
-		card_message.DATA[0] = uid_p;
+		card_message.DATA[0] = uid_pos;
 		memcpy(card_message.DATA+1,g_cSNR+4,4);
 		memcpy(card_message.DATA+5,NDEF_DataRead+7,20);
 		card_message.XOR = XOR_Cal(&card_message.TYPE,31);
