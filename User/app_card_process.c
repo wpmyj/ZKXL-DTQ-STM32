@@ -157,7 +157,17 @@ void App_card_process(void)
 				rf_set_card_status(8);
 		}
 		else
-			rf_set_card_status(1);
+		{
+			if(Card_process.match_single == 1)
+			{
+				rf_set_card_status(0);
+				Card_process.match_single = 0;
+			}
+			else
+			{
+				rf_set_card_status(1);
+			}
+		}
 		return;
 	}
 
@@ -215,12 +225,6 @@ void App_card_process(void)
 		else
 		{
 			rf_set_card_status(1);
-		}
-
-		if(wl.match_status == ON)
-		{
-			if(Card_process.match_single == 1)
-				wl.match_status = OFF;
 		}
 		return;
 	}
