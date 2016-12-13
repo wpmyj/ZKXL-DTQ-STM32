@@ -241,7 +241,10 @@ void App_card_process(void)
 		memset(card_message.DATA,0x00,25);
 		card_message.DATA[0] = uid_pos;
 		memcpy(card_message.DATA+1,g_cSNR+4,4);
-		memcpy(card_message.DATA+5,NDEF_DataRead+7,20);
+		if(wl.attendance_sttaus == ON)
+				memcpy(card_message.DATA+5,NDEF_DataWrite+7,20);
+		if(wl.match_status == ON)
+				memcpy(card_message.DATA+5,NDEF_DataRead+7,20);
 		card_message.XOR = XOR_Cal(&card_message.TYPE,31);
 		card_message.END  = 0xCA;
 		rf_set_card_status(11);
