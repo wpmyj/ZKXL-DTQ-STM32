@@ -303,7 +303,13 @@ void App_card_process(void)
 		/* ¹Ø±Õ·äÃùÆ÷ */
 		BEEP_DISEN();
 		second_find_card_flg = 1;
-		rf_set_card_status(1);
+		if(Card_process.match_single == 1)
+		{
+			rf_set_card_status(0);
+			Card_process.match_single = 0;
+		}
+		else
+			rf_set_card_status(1);
 	}
 	
 	if( card_current_status == 15 )
