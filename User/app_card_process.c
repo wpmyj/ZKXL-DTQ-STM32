@@ -145,10 +145,12 @@ void App_card_process(void)
 			if(second_find_card_flg == 1)
 			{
 				rf_set_card_status(15);
+				sw_clear_timer(&second_find_card_timer);
 			}
 			else
 			{
 				rf_set_card_status(7);
+				second_find_card_flg = 0;
 			}
 		}
 		else
@@ -308,7 +310,7 @@ void App_card_process(void)
 	{
 		uint8_t status = MI_OK;
 		uint8_t count = 0;
-		second_find_card_flg = 0;
+
 		/* ÃüÁî¿¨½øÈëÐÝÃß×´Ì¬ */
 		status = PcdHalt();
 		while( status != MI_OK )
@@ -339,5 +341,6 @@ void App_card_process(void)
 ******************************************************************************/
 void card_timer_init( void )
 {
-	sw_create_timer(&card_buzzer_timer , 300, 13, 14,&(cmd_process_status), NULL);
+	sw_create_timer(&card_buzzer_timer ,      300, 13, 14,&(cmd_process_status), NULL);
+	sw_create_timer(&second_find_card_timer ,  30, 1 ,  2,&(second_find_card_flg), NULL);
 }
