@@ -180,7 +180,6 @@ void App_card_process(void)
 				rf_set_card_status(1);
 			}
 		}
-		return;
 	}
 
 	if( card_current_status == 8 )
@@ -209,7 +208,6 @@ void App_card_process(void)
 			App_returnErr(&card_message,Card_process.cmd_type,0xFD);
 			rf_set_card_status(11);
 		}
-		return;
 	}
 
 	if( card_current_status == 9 )
