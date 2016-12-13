@@ -1135,6 +1135,7 @@ void App_card_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessag
 			wl.match_status = OFF;
 			memset(Card_process.studentid,0x00,20);
 			Card_process.match_single = 0;
+			rf_set_card_status(0);
 			SMessage->DATA[0] = 0;
 		}
 	}
@@ -1170,7 +1171,7 @@ void App_start_or_stop_answer( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDe
 
 	SMessage->HEADER = 0x5C;
 	SMessage->TYPE = RMessage->TYPE;
-
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
 	memcpy(Card_process.uid,RMessage->SIGN,4);
 
 	SMessage->LEN = 0x01;

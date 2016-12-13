@@ -18,6 +18,7 @@ extern WhiteList_Typedef wl;
 
 static uint8_t cmd_process_status = 0;
 static uint8_t len;
+static uint8_t second_find_card_flg = 0;
 Uart_MessageTypeDef card_message;
 uint8_t is_white_list_uid = 0, uid_pos = 0xFF,ndef_xor = 0;
 Process_tcb_Typedef Card_process;
@@ -140,7 +141,16 @@ void App_card_process(void)
 	{
 		/* Ñ°¿¨³É¹¦,Ñ¡ÔñÓ¦ÓÃ */
 		if(SelectApplication() == MI_OK)
-			rf_set_card_status(7);
+		{
+			if(second_find_card_flg == 1)
+			{
+				rf_set_card_status(15);
+			}
+			else
+			{
+				rf_set_card_status(7);
+			}
+		}
 		else
 			rf_set_card_status(1);
 		return;
@@ -252,6 +262,7 @@ void App_card_process(void)
 		card_message.XOR = XOR_Cal(&card_message.TYPE,31);
 		card_message.END  = 0xCA;
 		rf_set_card_status(11);
+		return;
 	}
 
 	if( card_current_status == 11 )
@@ -270,25 +281,44 @@ void App_card_process(void)
 		{
 			rf_set_card_status(14);
 		}
+		return;
 	}
 
 	if( card_current_status == 12 )
 	{
 		/* ·¢ËÍÖÐ¶ÏÐÅºÅ */
 		SendInterrupt();
+		/* È¥³ýÑ¡Ôñ */
+		Deselect();
 		rf_set_card_status(13);
 		/* ´ò¿ª·äÃùÆ÷ */
 		BEEP_EN();
+		return;
 	}
 
 	if( card_current_status == 14 )
 	{
-		/* È¥³ýÑ¡Ôñ */
-		Deselect();
-		/* ÃüÁî¿¨½øÈëÐÝÃß×´Ì¬ */
-		PcdHalt();
 		/* ¹Ø±Õ·äÃùÆ÷ */
 		BEEP_DISEN();
+		second_find_card_flg = 1;
+		rf_set_card_status(1);
+	}
+	
+	if( card_current_status == 15 )
+	{
+		uint8_t status = MI_OK;
+		uint8_t count = 0;
+		second_find_card_flg = 0;
+		/* ÃüÁî¿¨½øÈëÐÝÃß×´Ì¬ */
+		status = PcdHalt();
+		while( status != MI_OK )
+		{
+			status = PcdHalt();
+			count++;
+			if( count >= 10 )
+				break;
+		}
+
 		if(Card_process.match_single == 1)
 		{
 			rf_set_card_status(0);
@@ -296,6 +326,7 @@ void App_card_process(void)
 		}
 		else
 			rf_set_card_status(1);
+		return;
 	}
 }
 
