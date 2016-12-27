@@ -12,6 +12,7 @@
 #include "main.h"
 /* Private variables ---------------------------------------------------------*/
 static __IO uint32_t TimingDelay;
+__IO uint32_t PowerOnTime;
 timer_list_typedef timer_list;
 uint8_t system_timer_status;
 
@@ -20,7 +21,7 @@ Timer_typedef send_data1_timer,send_data2_timer,send_data3_timer;
 Timer_typedef single_send_data_timer;
 Timer_typedef spi_send_data_timer,spi_send_data_timer1;
 Timer_typedef systick_package_timer;
-Timer_typedef card_buzzer_timer,second_find_card_timer;
+Timer_typedef card_buzzer_timer,card_second_find_timer;
 RTC_timer_Typedef system_rtc_timer;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -81,6 +82,7 @@ void TimingDelay_Decrement(void)
   {
     TimingDelay--;
   }
+	PowerOnTime++;
 }
 
 /*******************************************************************************

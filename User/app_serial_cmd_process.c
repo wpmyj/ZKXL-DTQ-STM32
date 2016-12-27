@@ -86,8 +86,16 @@ static void serial_send_data_to_pc(void)
 {
 	if( uart_tx_status == 0)
 	{
-		/* enable interrupt Start send data*/
-		USART_ITConfig(USART1pos, USART_IT_TXE, ENABLE);
+		if(BUFFEREMPTY == buffer_get_buffer_status(SEND_RINGBUFFER))
+		{
+			USART_ITConfig(USART1pos,USART_IT_TXE,DISABLE);
+			return;
+		}
+		else
+		{
+			/* enable interrupt Start send data*/
+			USART_ITConfig(USART1pos, USART_IT_TXE, ENABLE);
+		}
   }
 }
 
