@@ -50,6 +50,7 @@ void ComWriteNDEFfile (uint16_t NbByteToWrite, uint8_t *pDataToWrite);
 void ComDeselect (void);
 
 uint8_t FindICCard(void);
+uint8_t FindICCardAndUpdateData(void);
 uint8_t SelectApplication(void);
 uint8_t SendInterrupt(void);
 uint8_t ReadCCfile(uint8_t *CCfileData, uint8_t *CCfileLen);
