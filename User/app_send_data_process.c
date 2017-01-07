@@ -478,36 +478,36 @@ uint8_t spi_process_revice_data( void )
 				if(spi_message[11] == NRF_DATA_IS_USEFUL)
 				{
 					/* 返回ACK的包号和上次发送的是否相同 */
+					uint8_t temp;
+					uint8_t Is_return_ack = 1;
+
+					DEBUG_BUFFER_DTATA_LOG("[DATA] uid:%02x%02x%02x%02x, ",
+						*(spi_message+5),*(spi_message+6),*(spi_message+7),*(spi_message+8));
+					DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x\r\n",(uint8_t)*(spi_message+9),
+						(uint8_t)*(spi_message+10));
+
+					/* 更新接收数据帧号与包号 */
+					wl.uids[uidpos].rev_seq = spi_message[9];
+					wl.uids[uidpos].rev_num = spi_message[10];
+
+					if((spi_message[6+15] == 0x10) || (spi_message[6+15] == 0x11) ||
+						 (spi_message[6+15] == 0x12) || (spi_message[6+15] == 0x13))
+					{
+						if( wl.start == ON )
+							Is_return_ack = 1;
+						else
+							Is_return_ack = 0;
+					}
+
+					if( Is_return_ack )
+					{
+						/* 回复ACK */
+						memcpy( nrf_communication.dtq_uid, spi_message+5, 4 );
+						nrf_transmit_start(&temp,0,NRF_DATA_IS_ACK, 2, 20, SEND_DATA_ACK_TABLE,PACKAGE_NUM_SAM);
+					}
+					/* 上次发送的是否相同,不同才提交数据*/
 					if(spi_message[10] != wl.uids[uidpos].rev_num)//收到的是有效数据
 					{
-						uint8_t temp;
-						uint8_t Is_return_ack = 1;
-
-						DEBUG_BUFFER_DTATA_LOG("[DATA] uid:%02x%02x%02x%02x, ",
-							*(spi_message+5),*(spi_message+6),*(spi_message+7),*(spi_message+8));
-						DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x\r\n",(uint8_t)*(spi_message+9),
-							(uint8_t)*(spi_message+10));
-
-						/* 更新接收数据帧号与包号 */
-						wl.uids[uidpos].rev_seq = spi_message[9];
-						wl.uids[uidpos].rev_num = spi_message[10];
-
-						if((spi_message[6+15] == 0x10) || (spi_message[6+15] == 0x11) ||
-							 (spi_message[6+15] == 0x12) || (spi_message[6+15] == 0x13))
-						{
-							if( wl.start == ON )
-								Is_return_ack = 1;
-							else
-								Is_return_ack = 0;
-						}
-
-						if( Is_return_ack )
-						{
-							/* 回复ACK */
-							memcpy( nrf_communication.dtq_uid, spi_message+5, 4 );
-							nrf_transmit_start(&temp,0,NRF_DATA_IS_ACK, 2, 20, SEND_DATA_ACK_TABLE,PACKAGE_NUM_SAM);
-						}
-
 						/* 有效数据告到PC */
 						rf_move_data_to_buffer( spi_message );
 					}
