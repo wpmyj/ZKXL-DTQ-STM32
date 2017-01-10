@@ -79,6 +79,7 @@ typedef struct
 	uint8_t cmd_type;
 	uint8_t studentid[20];
 	uint8_t match_single;
+	uint8_t retransmit;
 }Process_tcb_Typedef;
 
 void serial_handle_layer(void);

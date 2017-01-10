@@ -23,6 +23,7 @@ static uint8_t whitelist_print_index = 0;
 
 extern uint8_t is_open_statistic;
 extern uint8_t uart_tx_status;
+extern uint16_t list_tcb_table[12][8];
 extern nrf_communication_t nrf_communication;
        uint8_t serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 			 uint8_t serial_cmd_type = 0;
@@ -137,6 +138,7 @@ static void serial_cmd_process(void)
 		{
 			/* 下发给答题器 */
 			case 0x10:
+			case 0x13:
 				{
 					App_send_data_to_clickers( &ReviceMessage, &SendMessage);
           #ifdef ENABLE_SEND_DATA_TO_PC
@@ -480,49 +482,68 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 
 	status = send_data_status | single_data_status;
 
-	/* 获取:包封装的答题器->数据长度 */
-	rf_var.tx_len = RMessage->LEN;
-
-	/* 获取：包封装的答题器->数据内容 */
-	memcpy(rf_var.tx_buf, (uint8_t *)(RMessage->DATA), RMessage->LEN);
-
-	if( status == 0 )
+	if(RMessage->TYPE == 0x10)
 	{
-		/* 获取下发数据: 决定是否暂存数据 */
-		switch( RMessage->DATA[6] )
-		{
-			case 0x10:
-			case 0x11:
-			case 0x12:
-			case 0x13:
-			case 0x14: /* 增加对一键关机指令的支持 */
-				{
-					/* 暂存题目 */
-					backup_massage.HEADER = 0x5C;
-					backup_massage.TYPE = RMessage->TYPE;
-					memcpy(SMessage->SIGN, RMessage->SIGN, 4);
-					backup_massage.LEN = RMessage->LEN;
-					memcpy( backup_massage.DATA, (uint8_t *)(RMessage->DATA), RMessage->LEN );
-					backup_massage.XOR = RMessage->XOR;
-					backup_massage.END = 0xCA;
-				}
-				break;
+		/* 获取:包封装的答题器->数据长度 */
+		rf_var.tx_len = RMessage->LEN;
 
-			default: break;
+		/* 获取：包封装的答题器->数据内容 */
+		memcpy(rf_var.tx_buf, (uint8_t *)(RMessage->DATA), RMessage->LEN);
+
+		if( status == 0 )
+		{
+			/* 获取下发数据: 决定是否暂存数据 */
+			switch( RMessage->DATA[6] )
+			{
+				case 0x10:
+				case 0x11:
+				case 0x12:
+				case 0x13:
+				case 0x14: /* 增加对一键关机指令的支持 */
+					{
+						/* 暂存题目 */
+						backup_massage.HEADER = 0x5C;
+						backup_massage.TYPE = RMessage->TYPE;
+						memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+						backup_massage.LEN = RMessage->LEN;
+						memcpy( backup_massage.DATA, (uint8_t *)(RMessage->DATA), RMessage->LEN );
+						backup_massage.XOR = RMessage->XOR;
+						backup_massage.END = 0xCA;
+					}
+					break;
+
+				default: break;
+			}
+		}
+
+		if((RMessage->DATA[1] != 0) || (RMessage->DATA[2] != 0) ||
+			 (RMessage->DATA[3] != 0) || (RMessage->DATA[4] != 0))
+		{
+			/* single send data */
+			is_open_statistic = 1;
+			memcpy(Single_send_data_process.uid,RMessage->DATA+1,4);
+		}
+		else
+		{
+			is_open_statistic = 0;
+			memcpy(Send_data_process.uid,RMessage->DATA+1,4);
 		}
 	}
 
-	if((RMessage->DATA[1] != 0) || (RMessage->DATA[2] != 0) ||
-		 (RMessage->DATA[3] != 0) || (RMessage->DATA[4] != 0))
+	if( RMessage->TYPE == 0x13 )
 	{
-		/* single send data */
-		is_open_statistic = 1;
-	  memcpy(Single_send_data_process.uid,RMessage->DATA+1,4);
+		if(backup_massage.LEN != 0)
+		{
+			Send_data_process.retransmit = 1;
+		}
+		else
+		{
+			status = 1;
+		}
 	}
 	else
 	{
-		is_open_statistic = 0;
-		memcpy(Send_data_process.uid,RMessage->DATA+1,4);
+		Send_data_process.retransmit = 0;
 	}
 
 	SMessage->HEADER = 0x5C;
@@ -548,15 +569,29 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 
 	if( status == 0 )
 	{
-		/* 准备发送数据管理块 */
-		send_data_env_init();
+		if(Send_data_process.retransmit == 0)
+		{
+			memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
+			/* 准备发送数据管理块 */
+			send_data_env_init();
+		}
+		else
+		{
+			/* 获取:包封装的答题器->数据长度 */
+			rf_var.tx_len = backup_massage.LEN;
+
+			/* 获取：包封装的答题器->数据内容 */
+			memcpy(rf_var.tx_buf, backup_massage.DATA, backup_massage.LEN);
+		}
 
 		/* 发送前导帧 */
 		memcpy(nrf_communication.dtq_uid, RMessage->DATA+1, 4);
-		nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,  SEND_PRE_DELAY100US, SEND_DATA1_SUM_TABLE,PACKAGE_NUM_ADD);
+		nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
+		    SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
 
 		/* 发送数据帧 */
-		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL,
+		    SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
 
 		if( is_open_statistic == 0 )
 		{
