@@ -495,6 +495,7 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 			case 0x11:
 			case 0x12:
 			case 0x13:
+			case 0x14: /* 增加对一键关机指令的支持 */
 				{
 					/* 暂存题目 */
 					backup_massage.HEADER = 0x5C;

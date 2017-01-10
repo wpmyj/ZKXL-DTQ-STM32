@@ -328,20 +328,33 @@ void rf_move_data_to_buffer( uint8_t *Message )
 				uint8_t nouse_temp = 0;
 
 				/* 重新下发数据到答题器 */
-				if(	backup_massage.DATA[6] == 0)
+				if(( backup_massage.DATA[6] == 0 ) || ( backup_massage.DATA[6] == 0x14 ))
 				{
-					backup_massage.LEN = 10;
-					backup_massage.DATA[0] = 0x5A;
-					backup_massage.DATA[6] = 0x10;
-					backup_massage.DATA[7] = 0x00;
-				}
+					Uart_MessageTypeDef temp_message;
+					temp_message.HEADER = 0x5C;
+					temp_message.END    = 0xCA;
+					temp_message.TYPE   = 0x10;
+					memcpy( temp_message.DATA+1, Message+5, 4);
+					temp_message.LEN = 10;
+					temp_message.DATA[0] = 0x5A;
+					temp_message.DATA[6] = 0x10;
+					temp_message.DATA[7] = 0x00;
+					temp_message.DATA[temp_message.DATA[7] + 8] = XOR_Cal(&temp_message.DATA[1],temp_message.DATA[7]+7);
 
-				memcpy( backup_massage.DATA+1, Message+5, 4);
-				backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
-				nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-					SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
-				nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
-					NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+					nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
+						SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+					nrf_transmit_start(temp_message.DATA, temp_message.LEN,
+						NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+				}
+				else
+				{
+					memcpy( backup_massage.DATA+1, Message+5, 4);
+					backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
+					nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
+						SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+					nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
+						NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+				}
 			}
 			/* 检测是否为唤醒指令 */
 			if(rf_message.DATA[8] == 0x03)
@@ -366,7 +379,6 @@ void rf_move_data_to_buffer( uint8_t *Message )
 					else
 					{
 						Uart_MessageTypeDef temp_message;
-
 						temp_message.HEADER = 0x5C;
 						temp_message.END    = 0xCA;
 						temp_message.TYPE   = 0x10;
@@ -376,7 +388,6 @@ void rf_move_data_to_buffer( uint8_t *Message )
 						temp_message.DATA[6] = 0x10;
 						temp_message.DATA[7] = 0x00;
 						temp_message.DATA[temp_message.DATA[7] + 8] = XOR_Cal(&temp_message.DATA[1],temp_message.DATA[7]+7);
-
 						nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
 							SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
 						nrf_transmit_start(temp_message.DATA, temp_message.LEN,
@@ -486,10 +497,6 @@ uint8_t spi_process_revice_data( void )
 					DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x\r\n",(uint8_t)*(spi_message+9),
 						(uint8_t)*(spi_message+10));
 
-					/* 更新接收数据帧号与包号 */
-					wl.uids[uidpos].rev_seq = spi_message[9];
-					wl.uids[uidpos].rev_num = spi_message[10];
-
 					if((spi_message[6+15] == 0x10) || (spi_message[6+15] == 0x11) ||
 						 (spi_message[6+15] == 0x12) || (spi_message[6+15] == 0x13))
 					{
@@ -508,6 +515,9 @@ uint8_t spi_process_revice_data( void )
 					/* 上次发送的是否相同,不同才提交数据*/
 					if(spi_message[10] != wl.uids[uidpos].rev_num)//收到的是有效数据
 					{
+						/* 更新接收数据帧号与包号 */
+						wl.uids[uidpos].rev_seq = spi_message[9];
+						wl.uids[uidpos].rev_num = spi_message[10];
 						/* 有效数据告到PC */
 						rf_move_data_to_buffer( spi_message );
 					}
