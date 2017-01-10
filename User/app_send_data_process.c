@@ -254,6 +254,27 @@ void whitelist_checktable_or(uint8_t table1, uint8_t table2)
 }
 
 /******************************************************************************
+  Function:whitelist_checktable_and
+  Description:
+		白名单在线状态表与函数,剔除在线状态
+  Input :
+		table1：之前状态表1
+		table2：之前状态表2
+  Output:
+		table：与操作之后的表格
+  Return:
+  Others:None
+******************************************************************************/
+void whitelist_checktable_and(uint8_t table1, uint8_t table2, uint8_t table)
+{
+	uint8_t i = 0;
+	for(i=0;i<8;i++)
+	{
+		list_tcb_table[table][i] = ~(list_tcb_table[table1][i] & list_tcb_table[table2][i]) & 0x7FFF;
+	}
+}
+
+/******************************************************************************
   Function:clicker_send_data_statistics
   Description:
 		App RF 统计函数
@@ -326,11 +347,19 @@ void rf_move_data_to_buffer( uint8_t *Message )
 			if(rf_message.DATA[8] == 0x01)
 			{
 				uint8_t nouse_temp = 0;
+				uint8_t Is_whitelist_uid,uidpos;
+				Is_whitelist_uid = search_uid_in_white_list(Message+5,&uidpos);
+				if(Is_whitelist_uid == OPERATION_SUCCESS)
+				{
+						whitelist_checktable_and( 0, SEND_DATA_ACK_TABLE, SEND_PRE_TABLE );
+						set_index_of_white_list_pos(SEND_PRE_TABLE,uidpos);	
+				}
 
 				/* 重新下发数据到答题器 */
 				if(( backup_massage.DATA[6] == 0 ) || ( backup_massage.DATA[6] == 0x14 ))
 				{
 					Uart_MessageTypeDef temp_message;
+
 					temp_message.HEADER = 0x5C;
 					temp_message.END    = 0xCA;
 					temp_message.TYPE   = 0x10;
@@ -342,7 +371,7 @@ void rf_move_data_to_buffer( uint8_t *Message )
 					temp_message.DATA[temp_message.DATA[7] + 8] = XOR_Cal(&temp_message.DATA[1],temp_message.DATA[7]+7);
 
 					nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-						SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+						SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
 					nrf_transmit_start(temp_message.DATA, temp_message.LEN,
 						NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
 				}
@@ -351,7 +380,7 @@ void rf_move_data_to_buffer( uint8_t *Message )
 					memcpy( backup_massage.DATA+1, Message+5, 4);
 					backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
 					nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-						SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+						SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
 					nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
 						NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
 				}
@@ -363,16 +392,22 @@ void rf_move_data_to_buffer( uint8_t *Message )
 				uint8_t nouse_temp = 0;
 
 				Is_whitelist_uid = search_uid_in_white_list(Message+5,&uidpos);
+				if( Is_whitelist_uid == OPERATION_SUCCESS )
+				{
+						whitelist_checktable_and( 0, SEND_DATA_ACK_TABLE, SEND_PRE_TABLE );
+						set_index_of_white_list_pos(SEND_PRE_TABLE,uidpos);	
+				}
 
 				if( Is_whitelist_uid == OPERATION_SUCCESS )
 				{
 					Is_reviceed_uid = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,uidpos);
+					printf("Is_reviceed_uid = %d\r\n",Is_reviceed_uid);
 					if( Is_reviceed_uid == 0 )
 					{
 						memcpy( backup_massage.DATA+1, Message+5, 4);
 						backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
 						nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-							SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+							SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
 						nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
 							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
 					}
@@ -389,7 +424,7 @@ void rf_move_data_to_buffer( uint8_t *Message )
 						temp_message.DATA[7] = 0x00;
 						temp_message.DATA[temp_message.DATA[7] + 8] = XOR_Cal(&temp_message.DATA[1],temp_message.DATA[7]+7);
 						nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-							SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+							SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
 						nrf_transmit_start(temp_message.DATA, temp_message.LEN,
 							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
 					}
@@ -810,9 +845,10 @@ void retansmit_data( uint8_t status )
 		checkout_retransmit_clickers( retransmit_check_tables[PRE_SUM_TABLE] ,retransmit_check_tables[PRE_ACK_TABLE],
 		                     retransmit_check_tables[CUR_SUM_TABLE] );
 		/* 发送前导帧 */
+		whitelist_checktable_and( 0, SEND_DATA_ACK_TABLE, SEND_PRE_TABLE );
 		memset(nrf_communication.dtq_uid, 0, 4);
 		nrf_transmit_start( nrf_communication.dtq_uid, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-		                    SEND_PRE_DELAY100US, retransmit_check_tables[CUR_SUM_TABLE],PACKAGE_NUM_SAM);
+		                    SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_SAM);
 		/* 发送数据帧 */
 		memset(nrf_communication.dtq_uid, 0, 4);
 
@@ -953,8 +989,9 @@ void send_data_result( uint8_t status )
 ******************************************************************************/
 void retransmit_data_to_next_clicker( void )
 {
+	whitelist_checktable_and( 0, SEND_DATA_ACK_TABLE, SEND_PRE_TABLE );
 	nrf_transmit_start(rf_var.tx_buf,0,NRF_DATA_IS_PRE,SEND_PRE_COUNT,
-	                   SEND_PRE_DELAY100US,SEND_DATA_ACK_TABLE,PACKAGE_NUM_SAM);
+	                   SEND_PRE_DELAY100US,SEND_PRE_TABLE,PACKAGE_NUM_SAM);
 
 	whitelist_checktable_or(SEND_DATA4_ACK_TABLE,SEND_DATA_ACK_TABLE);
 
@@ -1077,7 +1114,7 @@ void send_data_env_init(void)
 
 	/* clear online check table */
 	memset(list_tcb_table[SINGLE_SEND_DATA_ACK_TABLE],0,16);
-	memset(list_tcb_table[SEND_DATA1_ACK_TABLE],0,16*9);
+	memset(list_tcb_table[SEND_DATA1_ACK_TABLE],0,16*10);
 
 	/* clear count of clicker */
 	sum_clicker_count = 0;
@@ -1177,9 +1214,10 @@ void App_clickers_single_send_data_process( void )
 			if( Is_revice == 0 )
 			{
 				/* 发送前导帧 */
+				whitelist_checktable_and( 0, SINGLE_SEND_DATA_ACK_TABLE, SEND_PRE_TABLE );
 				memcpy( nrf_communication.dtq_uid, Single_send_data_process.uid, 4 );
 				nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-														SEND_PRE_DELAY100US, SINGLE_SEND_DATA_ACK_TABLE,PACKAGE_NUM_SAM);
+														SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_SAM);
 				/* 发送数据帧 */
 				memcpy( nrf_communication.dtq_uid, Single_send_data_process.uid, 4 );
 
