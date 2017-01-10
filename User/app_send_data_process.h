@@ -62,6 +62,7 @@
 #define SEND_PRE_STATUS             (SEND_IDLE_STATUS+1)            // 1
 #define SEND_PRE_COUNT              (send_data_process_tcb.pre_data_count)
 #define SEND_PRE_DELAY100US         (send_data_process_tcb.pre_data_delay100us)
+#define SEND_PRE_TABLE              12
 
 /* สýพÝึก */
 #define SEND_DATA_COUNT             2
@@ -143,6 +144,7 @@ uint8_t spi_buffer_status_check( uint8_t status );
 void rf_retransmit_set_status(uint8_t new_status);
 uint8_t get_rf_retransmit_status(void);
 void whitelist_checktable_or(uint8_t table1, uint8_t table2);
+void whitelist_checktable_and(uint8_t table1, uint8_t table2, uint8_t table);
 void clicker_send_data_statistics( uint8_t send_data_status, uint8_t uidpos );
 bool checkout_online_uids(uint8_t src_table, uint8_t check_table, uint8_t mode, uint8_t *puid,uint8_t *len);
 uint8_t spi_process_revice_data( void );

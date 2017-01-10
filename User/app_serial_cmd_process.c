@@ -23,7 +23,7 @@ static uint8_t whitelist_print_index = 0;
 
 extern uint8_t is_open_statistic;
 extern uint8_t uart_tx_status;
-extern uint16_t list_tcb_table[12][8];
+extern uint16_t list_tcb_table[13][8];
 extern nrf_communication_t nrf_communication;
        uint8_t serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 			 uint8_t serial_cmd_type = 0;
@@ -584,10 +584,11 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 			memcpy(rf_var.tx_buf, backup_massage.DATA, backup_massage.LEN);
 		}
 
+		whitelist_checktable_and( 0, SEND_DATA_ACK_TABLE, SEND_PRE_TABLE );
 		/* 发送前导帧 */
 		memcpy(nrf_communication.dtq_uid, RMessage->DATA+1, 4);
 		nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-		    SEND_PRE_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+		    SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
 
 		/* 发送数据帧 */
 		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL,
