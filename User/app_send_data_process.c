@@ -954,7 +954,7 @@ void send_data_result( uint8_t status )
 void retransmit_data_to_next_clicker( void )
 {
 	nrf_transmit_start(rf_var.tx_buf,0,NRF_DATA_IS_PRE,SEND_PRE_COUNT,
-	                   SEND_PRE_DELAY100US,SEND_DATA4_SUM_TABLE,PACKAGE_NUM_SAM);
+	                   SEND_PRE_DELAY100US,SEND_DATA_ACK_TABLE,PACKAGE_NUM_SAM);
 
 	whitelist_checktable_or(SEND_DATA4_ACK_TABLE,SEND_DATA_ACK_TABLE);
 
@@ -1076,7 +1076,8 @@ void send_data_env_init(void)
 	memset(&retransmit_tcb,0,sizeof(retransmit_tcb_tydef));
 
 	/* clear online check table */
-	memset(list_tcb_table[1],0,16*9);
+	memset(list_tcb_table[SINGLE_SEND_DATA_ACK_TABLE],0,16);
+	memset(list_tcb_table[SEND_DATA1_ACK_TABLE],0,16*9);
 
 	/* clear count of clicker */
 	sum_clicker_count = 0;
