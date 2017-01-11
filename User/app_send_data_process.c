@@ -270,7 +270,7 @@ void whitelist_checktable_and(uint8_t table1, uint8_t table2, uint8_t table)
 	uint8_t i = 0;
 	for(i=0;i<8;i++)
 	{
-		list_tcb_table[table][i] = ~(list_tcb_table[table1][i] & list_tcb_table[table2][i]) & 0x7FFF;
+		list_tcb_table[table][i] = list_tcb_table[table1][i] & (~list_tcb_table[table2][i]);
 	}
 }
 
@@ -696,7 +696,15 @@ void get_send_data_table_message(uint8_t status)
 			{
 				DEBUG_STATISTICS_LOG("Statistic : %d\r\n",revicer.data_statistic_count++);
 				DEBUG_STATISTICS_LOG("First Statistic:");
-				result_check_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
+				if(Send_data_process.retransmit == 1)
+				{
+					whitelist_checktable_and(0, SEND_DATA_ACK_TABLE, SEND_PRE_TABLE);
+					result_check_tables[PRE_SUM_TABLE] = SEND_PRE_TABLE;
+				}
+				else
+				{
+					result_check_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
+				}
 				result_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
 				after_result_status = SEND_DATA2_STATUS;
 			}
@@ -705,6 +713,11 @@ void get_send_data_table_message(uint8_t status)
 		case SEND_DATA2_UPDATE_STATUS:
 			{
 				DEBUG_STATISTICS_LOG("\r\nSecond Statistic:");
+				if(Send_data_process.retransmit == 1)
+				{
+					whitelist_checktable_and(SEND_PRE_TABLE, SEND_DATA1_ACK_TABLE,
+						SEND_DATA2_SUM_TABLE);
+				}
 				result_check_tables[PRE_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
 				result_check_tables[PRE_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
 				after_result_status = SEND_DATA3_STATUS;
