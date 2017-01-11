@@ -286,12 +286,24 @@ void clicker_send_data_statistics( uint8_t send_data_status, uint8_t uidpos )
 {
 	switch(send_data_status)
 	{
-		case SEND_DATA1_STATUS :          set_index_of_white_list_pos(SEND_DATA1_ACK_TABLE,uidpos); break;
+		case SEND_DATA1_STATUS :
+			set_index_of_white_list_pos(SEND_DATA1_ACK_TABLE,uidpos);
+			set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
+		break;
 		case SEND_DATA2_STATUS :
-		case SEND_DATA2_SEND_OVER_STATUS: set_index_of_white_list_pos(SEND_DATA2_ACK_TABLE,uidpos); break;
+		case SEND_DATA2_SEND_OVER_STATUS: 
+			set_index_of_white_list_pos(SEND_DATA2_ACK_TABLE,uidpos);
+			set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
+		break;
 		case SEND_DATA3_STATUS :
-		case SEND_DATA3_SEND_OVER_STATUS: set_index_of_white_list_pos(SEND_DATA3_ACK_TABLE,uidpos); break;
-		case SEND_DATA4_STATUS :          set_index_of_white_list_pos(SEND_DATA4_ACK_TABLE,uidpos); break;
+		case SEND_DATA3_SEND_OVER_STATUS: 
+			set_index_of_white_list_pos(SEND_DATA3_ACK_TABLE,uidpos);
+			set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
+		break;
+		case SEND_DATA4_STATUS :
+			set_index_of_white_list_pos(SEND_DATA4_ACK_TABLE,uidpos);
+			set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
+		break;
 		default:break;
 	}
 }
@@ -401,7 +413,6 @@ void rf_move_data_to_buffer( uint8_t *Message )
 				if( Is_whitelist_uid == OPERATION_SUCCESS )
 				{
 					Is_reviceed_uid = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,uidpos);
-					printf("Is_reviceed_uid = %d\r\n",Is_reviceed_uid);
 					if( Is_reviceed_uid == 0 )
 					{
 						memcpy( backup_massage.DATA+1, Message+5, 4);
