@@ -1,0 +1,15 @@
+.\objects\led.o: ..\user\led.c
+.\objects\led.o: ..\user\led.h
+.\objects\led.o: ..\components\drivers_nrf\hal\nrf_gpio.h
+.\objects\led.o: C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf.h
+.\objects\led.o: C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51.h
+.\objects\led.o: ..\components\toolchain\CMSIS\Include\core_cm0.h
+.\objects\led.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\objects\led.o: ..\components\toolchain\CMSIS\Include\core_cmInstr.h
+.\objects\led.o: ..\components\toolchain\CMSIS\Include\cmsis_armcc.h
+.\objects\led.o: ..\components\toolchain\CMSIS\Include\core_cmFunc.h
+.\objects\led.o: C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\system_nrf51.h
+.\objects\led.o: C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51_bitfields.h
+.\objects\led.o: C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51_deprecated.h
+.\objects\led.o: C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\compiler_abstraction.h
+.\objects\led.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
