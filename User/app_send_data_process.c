@@ -395,6 +395,7 @@ void rf_move_data_to_buffer( uint8_t *Message )
 						SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
 					nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
 						NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+					set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
 				}
 			}
 			/* ¼ì²âÊÇ·ñÎª»½ÐÑÖ¸Áî */
@@ -421,6 +422,7 @@ void rf_move_data_to_buffer( uint8_t *Message )
 							SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
 						nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
 							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+						set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
 					}
 					else
 					{
