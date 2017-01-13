@@ -9,16 +9,16 @@
 #define WHITE_LIST_USE_TABLE_POS_OF_FEE   (483)
 
 
-#define OPERATION_NOUSE            (2)
-#define OPERATION_ERR              (1)
-#define OPERATION_SUCCESS          (0)
+#define OPERATION_NOUSE                   (2)
+#define OPERATION_ERR                     (1)
+#define OPERATION_SUCCESS                 (0)
 
 #define UID_USE_TABLE                     (0)
 #define UID_ONLINE_TABLE                  (1)
 #define UID_ONLINE_TEMP_TABLE             (2)
 
 #ifdef 	ENABLE_DEBUG_LOG
-#define WhiteListDebug								printf
+#define WhiteListDebug								    printf
 #else
 #define WhiteListDebug(...)
 #endif

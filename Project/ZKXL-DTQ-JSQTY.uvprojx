@@ -476,11 +476,6 @@
               <FilePath>..\include\main.h</FilePath>
             </File>
             <File>
-              <FileName>mcu_config.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\include\mcu_config.h</FilePath>
-            </File>
-            <File>
               <FileName>mfrc500.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\include\mfrc500.h</FilePath>
@@ -545,6 +540,21 @@
               <FileType>5</FileType>
               <FilePath>..\include\pos_handle_layer.h</FilePath>
             </File>
+            <File>
+              <FileName>board.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\board.h</FilePath>
+            </File>
+            <File>
+              <FileName>zl_rp551_main_e.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\zl_rp551_main_e.h</FilePath>
+            </File>
+            <File>
+              <FileName>zl_rp551_main_f.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\zl_rp551_main_f.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -574,6 +584,11 @@
               <FileName>gpio.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Bsp\gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>baord.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Bsp\baord.c</FilePath>
             </File>
           </Files>
         </Group>

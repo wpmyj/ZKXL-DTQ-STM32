@@ -11,6 +11,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stdlib.h"
+#include "board.h"
 
 extern void app_handle_layer(void);
 
