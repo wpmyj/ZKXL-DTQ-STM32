@@ -21,6 +21,7 @@ void 	WriteRC(uint16_t Address,uint16_t value);
 void 	PcdAntennaOn(void);                                        	  	 	 /*开启RC500天线发射*/
 void 	PcdAntennaOff(void);                                       	  	 	 /*关闭RC500天线发射*/
 uint8_t PcdReset(void);                                            	  		 /*复位并初始化RC500*/
+uint8_t mfrc500_init(void);
 
 uint8_t PcdRequest(uint8_t req_code,uint8_t *pTagType);               		 /*寻卡*/
 uint8_t PcdAnticoll(uint8_t antiFlag, uint8_t *snr);                         /*防冲撞*/

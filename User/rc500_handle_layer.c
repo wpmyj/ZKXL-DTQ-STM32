@@ -413,6 +413,7 @@ uint8_t FindICCard(void)
 	uint8_t len,findIC_flow = 0x01;
 	uint8_t status = 0x11;
 	memset(NDEF_DataWrite+7,0x00,20);
+	//printf("findIC_flow = %d \r\n",findIC_flow);
 	while(findIC_flow)
 	{
 		switch(findIC_flow)

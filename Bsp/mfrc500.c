@@ -9,32 +9,152 @@
   */
  
 #include "main.h"
+#include "board.h"
+
+//#define ENABLE_MF1702NL_DEBUG_LOG
+
+#ifdef 	ENABLE_MF1702NL_DEBUG_LOG
+#define DEBUG_MF1702NL_LOG							     printf
+#else
+#define DEBUG_MF1702NL_LOG(...)
+#endif
 
 bool g_bIblock = false;
+#ifdef 	ENABLE_MF1702NL_DEBUG_LOG
 
-/********************************************************************
-*    配置 MFRC500 DATA Port 为输入模式
-*********************************************************************/
-void MFRC500_DATA_Port_config_input()
+typedef struct
 {
-  GPIO_InitTypeDef GPIO_InitStructure;
-  GPIO_InitStructure.GPIO_Pin = MFRC500_DATA_Pin;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-  GPIO_Init(MFRC500_DATA_Port, &GPIO_InitStructure);
+	uint8_t addr;
+	uint8_t WR_OR_RD;
+	uint8_t wr_value;
+	uint8_t rd_value;
+}Rc500RegDebug_Typedef;
+
+
+Rc500RegDebug_Typedef RegData[150];
+uint8_t RegCount = 0;
+uint8_t StartFlg = 0;
+uint8_t PrintfFlg = 0;
+
+#endif
+
+void MRC500_DEBUG_START(uint8_t *str)
+{
+#ifdef 	ENABLE_MF1702NL_DEBUG_LOG
+	DEBUG_MF1702NL_LOG("%s",str);
+	if(PrintfFlg == 0)
+	{
+		StartFlg = 1;
+		RegCount = 0;
+	}
+#endif
 }
 
-/*********************************************************************
-*    配置 MFRC500 DATA Port 为输出模式
-**********************************************************************/
-void MFRC500_DATA_Port_config_output()
+void MRC500_DEBUG_END(void)
 {
-  GPIO_InitTypeDef GPIO_InitStructure;
-  GPIO_InitStructure.GPIO_Pin = MFRC500_DATA_Pin;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_Init(MFRC500_DATA_Port, &GPIO_InitStructure);
+#ifdef 	ENABLE_MF1702NL_DEBUG_LOG
+	StartFlg = 0;
+	PrintfFlg = 1;
+	if(PrintfFlg == 1)
+	{
+		uint8_t index = 0;
+		for( index = 0; index<RegCount; index++ )
+		{
+			DEBUG_MF1702NL_LOG("index = %4d Addr = %4x ,OP = %d WR = %4x ,RD = %4x \r\n",
+			index,RegData[index].addr,
+			RegData[index].WR_OR_RD,RegData[index].wr_value,RegData[index].rd_value);
+		}
+		PrintfFlg = 0;
+	}
+#endif
 }
+
+/*******************************************************************************
+  * @brief  初始化mfrc500接口寄存器
+  * @param  None
+  * @retval 读出的值
+  * @note 	None		  
+*******************************************************************************/
+void mfrc500_gpio_init(void)
+{
+#ifdef ZL_RP551_MAIN_E
+	GPIO_InitTypeDef GPIO_InitStructure;
+
+	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable,ENABLE);
+
+	GPIO_InitStructure.GPIO_Pin = MFRC500_PD_Pin|MFRC500_ALE_Pin|MFRC500_CS_Pin|MFRC500_IRQ_Pin;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(MFRC500_CTL_PORT, &GPIO_InitStructure);
+	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_PD_Pin, Bit_RESET);
+	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_ALE_Pin, Bit_RESET);
+	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_CS_Pin, Bit_SET);
+	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_IRQ_Pin, Bit_RESET);
+
+	GPIO_InitStructure.GPIO_Pin = MFRC500_WR_Pin;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(MFRC500_WR_PORT, &GPIO_InitStructure);
+	GPIO_WriteBit(MFRC500_WR_PORT, MFRC500_WR_Pin, Bit_SET);
+
+	GPIO_InitStructure.GPIO_Pin = MFRC500_RD_Pin;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(MFRC500_RD_PORT, &GPIO_InitStructure);
+	GPIO_WriteBit(MFRC500_RD_PORT, MFRC500_RD_Pin, Bit_SET);
+
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10|\
+																GPIO_Pin_11| GPIO_Pin_12| GPIO_Pin_13|\
+																GPIO_Pin_14| GPIO_Pin_15;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(MFRC500_DATA_Port, &GPIO_InitStructure);
+	GPIO_WriteBit(MFRC500_DATA_Port, GPIO_InitStructure.GPIO_Pin, Bit_RESET);
+#endif
+
+#ifdef ZL_RP551_MAIN_F
+GPIO_InitTypeDef GPIO_InitStructure;
+	
+	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable,ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC , ENABLE);
+
+  /* Configure MFRC500 PIN */
+	GPIO_InitStructure.GPIO_Pin = MFRC500_PD_Pin | MFRC500_ALE_Pin | MFRC500_CS_Pin | MFRC500_IRQ_Pin;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(MFRC500_CTL_PORT, &GPIO_InitStructure);
+	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_PD_Pin, Bit_RESET);
+	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_ALE_Pin, Bit_RESET);
+	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_CS_Pin, Bit_SET);
+	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_IRQ_Pin, Bit_RESET);
+
+	GPIO_InitStructure.GPIO_Pin = MFRC500_WR_Pin;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(MFRC500_WR_PORT, &GPIO_InitStructure);
+	GPIO_WriteBit(MFRC500_WR_PORT, MFRC500_WR_Pin, Bit_SET);
+
+	GPIO_InitStructure.GPIO_Pin = MFRC500_RD_Pin;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(MFRC500_RD_PORT, &GPIO_InitStructure);
+	GPIO_WriteBit(MFRC500_RD_PORT, MFRC500_RD_Pin, Bit_SET);
+
+  GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_11 |GPIO_Pin_12;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+	GPIO_WriteBit(GPIOB, GPIO_InitStructure.GPIO_Pin, Bit_RESET);
+
+  GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_10 | GPIO_Pin_11 |GPIO_Pin_12;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+  GPIO_Init(GPIOC, &GPIO_InitStructure);
+	GPIO_WriteBit(GPIOC, GPIO_InitStructure.GPIO_Pin, Bit_RESET);
+#endif
+}
+
 /*******************************************************************************
   * @brief  读RC500寄存器
   * @param  Address=寄存器地址
@@ -44,29 +164,36 @@ void MFRC500_DATA_Port_config_output()
 uint8_t ReadRC(uint8_t Address)
 {
 	u8 value;
-	u16 temp;
-	
-	ALE(Bit_RESET);		   //ALE =0	
+
+	ALE(Bit_RESET);		 //ALE =0	
 	CS(Bit_SET);		   //CS = 1
-    RD(Bit_SET);		   //RD = 1
+  RD(Bit_SET);		   //RD = 1
 	WR(Bit_SET);		   //WR = 1
-	temp = GPIO_ReadOutputData(MFRC500_DATA_Port) & 0xff; //取低8位
-	WR_DATA((Address << 8)|temp);		   //PB[8:15] = DATA
+	WR_DATA( Address );//PB[8:15] = DATA
 
 	ALE(Bit_SET);		   //ALE = 1	
 	Delay10us(3);	
-	ALE(Bit_RESET);		   //ALE = 0
-	MFRC500_DATA_Port_config_input();	 
+	ALE(Bit_RESET);		 //ALE = 0
+	MFRC500_DATA_IN();	 
 
-	CS(Bit_RESET);		   //CS = 0
-	RD(Bit_RESET);		   //RD = 0
+	CS(Bit_RESET);		 //CS = 0
+	RD(Bit_RESET);		 //RD = 0
 	Delay3us();
-	value = RD_DATA();	   //value = PB[8:15] 	
+	value = RD_DATA(); //value = PB[8:15] 	
 	Delay3us();
 	RD(Bit_SET);		   //RD = 1	
 	CS(Bit_SET);		   //CS = 1	
-	MFRC500_DATA_Port_config_output();
-	
+	MFRC500_DATA_OUT();
+#ifdef 	ENABLE_MF1702NL_DEBUG_LOG
+	if(StartFlg == 1)
+	{
+		RegData[RegCount].addr = Address;
+		RegData[RegCount].WR_OR_RD = 1;
+		RegData[RegCount].rd_value = value;
+		RegData[RegCount].wr_value = 0;
+		RegCount++;
+	}
+#endif
 	return value;
 }
 /*******************************************************************************
@@ -78,20 +205,27 @@ uint8_t ReadRC(uint8_t Address)
 *******************************************************************************/
 void WriteRC(uint16_t Address,uint16_t value)
 {
-  	u16 temp;
 	ALE(Bit_SET);  			//ALE = 1
-	temp = GPIO_ReadOutputData(MFRC500_DATA_Port) & 0xff;
-	WR_DATA((Address << 8)|temp); 		//PB[8:15] = DATA 
+	WR_DATA( Address );	//PB[8:15] = DATA 
 	Delay10us(2);
 	ALE(Bit_RESET);			//ALE = 0
 	Delay10us(2);
 	CS(Bit_RESET);			//CS = 0
-	temp = GPIO_ReadOutputData(MFRC500_DATA_Port) & 0xff;
-	WR_DATA((value << 8)|temp);   		//PB[8:15] = DATA
-	WR(Bit_RESET);      	//WR = 0
+	WR_DATA( value );   //PB[8:15] = DATA
+	WR(Bit_RESET);      //WR = 0
 	Delay10us(2);
-	WR(Bit_SET);		   //WR = 1
-	CS(Bit_SET);		   //CS = 1
+	WR(Bit_SET);		    //WR = 1
+	CS(Bit_SET);		    //CS = 1
+#ifdef 	ENABLE_MF1702NL_DEBUG_LOG
+	if(StartFlg == 1)
+	{
+		RegData[RegCount].addr = Address;
+		RegData[RegCount].WR_OR_RD = 0;
+		RegData[RegCount].wr_value = value;
+		RegData[RegCount].rd_value = 0;
+		RegCount++;
+	}
+#endif
 }
 /*******************************************************************************
   * @brief  置RC500寄存器位
@@ -324,10 +458,12 @@ void PcdAntennaOn(void)
   * @retval status=错误状态
   * @note 	注意:RC500上电后应延时500ms才能可靠初始化  
 *******************************************************************************/
-uint8_t PcdReset(void)
+uint8_t mfrc500_init(void)
 {
 	uint8_t status=MI_OK;
 	uint16_t  i=0x2000;
+  /* 初始化GPIO */
+	mfrc500_gpio_init();
 
 	PD(Bit_RESET);
 	Delay10us(2500);
@@ -335,7 +471,7 @@ uint8_t PcdReset(void)
 	Delay10us(1000);
 	PD(Bit_RESET);
 	Delay10us(300);
-
+  MRC500_DEBUG_START("mfrc500_init\r\n");
 	while ((ReadRC(RegCommand) & 0x3F) && i--)
 	{
 	}
@@ -372,6 +508,14 @@ uint8_t PcdReset(void)
 		WriteRC(RegCwConductance,0x3f) ;
 		PcdAntennaOff();
 	}
+	MRC500_DEBUG_END();
+	MRC500_DEBUG_START("mfrc500_init check\r\n");
+	{
+		uint8_t i = 0;
+		for(i= 0x10; i<0x30;i++)
+			ReadRC(i);
+	}
+	MRC500_DEBUG_END();
 	return status;
 }
 /*******************************************************************************

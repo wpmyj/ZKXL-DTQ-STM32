@@ -450,11 +450,11 @@ void USART1pos_IRQHandler(void)
 }
 
 uint8_t irq_flag;
-void RFIRQ_EXTI_IRQHandler(void)
+void NRF1_RFIRQ_EXTI_IRQHandler(void)
 {
-	if(EXTI_GetITStatus(EXTI_LINE_RFIRQ) != RESET)
+	if(EXTI_GetITStatus(NRF1_EXTI_LINE_RFIRQ) != RESET)
 	{
-		EXTI_ClearITPendingBit(EXTI_LINE_RFIRQ);
+		EXTI_ClearITPendingBit(NRF1_EXTI_LINE_RFIRQ);
 
 		/* ¶ÁÈ¡Êý¾Ý */
 		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_communication.receive_len,
