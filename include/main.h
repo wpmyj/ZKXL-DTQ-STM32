@@ -14,10 +14,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "board.h"
 #include "stm32f10x.h"
 #include "define.h"
 #include "variable.h"
-#include "mcu_config.h"
 #include "init.h"
 #include "hal_uart.h"
 #include "misc_func.h"

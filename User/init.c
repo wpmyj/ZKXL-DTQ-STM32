@@ -9,7 +9,6 @@
   */
 
 #include "main.h"
-#include "mcu_config.h"
 #include "nrf.h"
 #include "app_timer.h"
 #include "app_send_data_process.h"
@@ -18,9 +17,9 @@
 #include "app_card_process.h"
 
 /* Private variables ---------------------------------------------------------*/
-spi_cmd_type_t 					 spi_cmd_type;
-nrf_communication_t			 nrf_communication;
-extern WhiteList_Typedef wl;
+spi_cmd_type_t 			   spi_cmd_type;
+nrf_communication_t	       nrf_communication;
+extern WhiteList_Typedef   wl;
 extern nrf_communication_t nrf_communication;
 
 void systick_timer_init( void );
@@ -209,56 +208,6 @@ void Usart2_Init(void)
 	USART_Cmd(USART2pos, ENABLE);
 }
 
-void uart_send_char( uint8_t ch )
-{
-	/* Write a character to the USART */
-	USART_SendData(USART1pos, (u8) ch);
-
-	/* Loop until the end of transmission */
-	while(!(USART_GetFlagStatus(USART1pos, USART_FLAG_TXE) == SET))
-	{
-	}
-}
-/*******************************************************************************
-* Function Name   : int fputc(int ch, FILE *f)
-* Description     : Retargets the C library printf function to the USART.printf重定向
-* Input           : None
-* Output          : None
-* Return          : None
-*******************************************************************************/
-int fputc(int ch, FILE *f)
-{
-	/* Write a character to the USART */
-	USART_SendData(USART1pos, (u8) ch);
-
-	/* Loop until the end of transmission */
-	while(!(USART_GetFlagStatus(USART1pos, USART_FLAG_TXE) == SET))
-	{
-	}
-
-	return ch;
-}
-
-/*******************************************************************************
-* Function Name   : int fgetc(FILE *f)
-* Description     : Retargets the C library printf function to the USART.fgetc重定向
-* Input           : None
-* Output          : None
-* Return          : 读取到的字符
-*******************************************************************************/
-int fgetc(FILE *f)
-{
-	/* Loop until received a char */
-	while(!(USART_GetFlagStatus(USART1pos, USART_FLAG_RXNE) == SET))
-	{
-	}
-
-	/* Read a character from the USART and RETURN */
-	return (USART_ReceiveData(USART1pos));
-}
-
-/* SPI Functions ------------------------------------------------------------ */
-
 void GPIOInit_SE2431L(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -303,8 +252,6 @@ void SE2431L_TX(void)
 	GPIO_SetBits(SE2431L_CTX_PORT, SE2431L_CTX_PIN);
 }
 
-
-
 void GPIOInit_MFRC500(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -341,7 +288,6 @@ void GPIOInit_MFRC500(void)
     GPIO_Init(MFRC500_DATA_Port, &GPIO_InitStructure);
     GPIO_WriteBit(MFRC500_DATA_Port, MFRC500_DATA_Pin, Bit_RESET);
 }
-
 
 /* Private functions ---------------------------------------------------------*/
 static uint8_t hal_nrf_rw(SPI_TypeDef* SPIx, uint8_t value)
@@ -433,24 +379,5 @@ uint8_t uesb_nrf_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8
 	}
 }
 
-/*********************************************************************************
-**功	能：异或计算函数
-**输    入: data	待计算的数据块
-**		  : length	数据块长度
-**返	回：异或计算结果
-**备	注：NULL
-*********************************************************************************/
-uint8_t XOR_Cal(uint8_t *data, uint16_t length)
-{
-	uint8_t temp_xor;
-	uint16_t i;
-
-	temp_xor = *data;
-	for(i = 1;i < length; i++)
-	{
-		temp_xor = temp_xor ^ *(data+i);
-	}
-	return temp_xor;
-}
 /**************************************END OF FILE****************************/
 

@@ -3,69 +3,7 @@
 
 #include <stdint.h>
 #include "stm32f10x_spi.h"
-/* SPI configuration defines -------------------------------------------------*/
-#define SPI_MISO_PORT              		GPIOA
-#define SPI_MISO_CLK               		RCC_APB2Periph_GPIOA
-#define SPI_MISO_PIN               		GPIO_Pin_6
-
-#define SPI_MOSI_PORT              		GPIOA
-#define SPI_MOSI_CLK               		RCC_APB2Periph_GPIOA
-#define SPI_MOSI_PIN               		GPIO_Pin_7
-
-#define SPI_SCK_PORT              		GPIOA
-#define SPI_SCK_CLK               		RCC_APB2Periph_GPIOA
-#define SPI_SCK_PIN               		GPIO_Pin_5
-
-#define SPI_CSN_PORT              		GPIOA
-#define SPI_CSN_CLK               		RCC_APB2Periph_GPIOA
-#define SPI_CSN_PIN               		GPIO_Pin_4
-
-#define SPI_CE_PORT              		  GPIOC
-#define SPI_CE_CLK               		  RCC_APB2Periph_GPIOC
-#define SPI_CE_PIN               		  GPIO_Pin_4
-
-#define SPI_IRQ_PORT              		GPIOC
-#define SPI_IRQ_CLK               		RCC_APB2Periph_GPIOC
-#define SPI_IRQ_PIN               		GPIO_Pin_5
-
-#define EXTI_LINE_RFIRQ 				      EXTI_Line5
-#define RFIRQ_PinSource 				      GPIO_PinSource5
-#define RFIRQ_PortSource 				      GPIO_PortSourceGPIOC
-#define RFIRQ_EXTI_IRQn					      EXTI9_5_IRQn
-#define RFIRQ_EXTI_IRQHandler			    EXTI9_5_IRQHandler
-
-#define SPI_CSN_PORT_2              	GPIOB
-#define SPI_CSN_CLK_2               	RCC_APB2Periph_GPIOB
-#define SPI_CSN_PIN_2               	GPIO_Pin_3
-
-#define SPI_CE_PORT_2              		GPIOB
-#define SPI_CE_CLK_2               		RCC_APB2Periph_GPIOB
-#define SPI_CE_PIN_2               		GPIO_Pin_5
-
-#define SPI_IRQ_PORT_2              	GPIOB
-#define SPI_IRQ_CLK_2               	RCC_APB2Periph_GPIOB
-#define SPI_IRQ_PIN_2               	GPIO_Pin_3
-
-#define EXTI_LINE_RFIRQ_2 				    EXTI_Line3
-#define RFIRQ_PinSource_2 				    GPIO_PinSource3
-#define RFIRQ_PortSource_2 				    GPIO_PortSourceGPIOB
-#define RFIRQ_EXTI_IRQn_2				      EXTI3_IRQn
-#define RFIRQ_EXTI_IRQHandler_2			  EXTI3_IRQHandler
-
-#define SPI_CSN_HIGH()			          GPIO_SetBits(SPI_CSN_PORT, SPI_CSN_PIN)
-#define SPI_CSN_LOW()			            GPIO_ResetBits(SPI_CSN_PORT, SPI_CSN_PIN)
-#define SPI_CSN_HIGH_2()		          GPIO_SetBits(SPI_CSN_PORT_2, SPI_CSN_PIN_2)
-#define SPI_CSN_LOW_2()			          GPIO_ResetBits(SPI_CSN_PORT_2, SPI_CSN_PIN_2)
-
-#define CSN_LOW() 		                GPIOA->BRR = GPIO_Pin_4
-#define CSN_HIGH() 		                GPIOA->BSRR = GPIO_Pin_4
-#define CE_LOW() 		                  GPIOC->BRR = GPIO_Pin_4
-#define CE_HIGH() 		                GPIOC->BSRR = GPIO_Pin_4
-
-#define CSN_LOW_2() 	                GPIOB->BRR = GPIO_Pin_3
-#define CSN_HIGH_2() 	                GPIOB->BSRR = GPIO_Pin_3
-#define CE_LOW_2() 		                GPIOC->BRR = GPIO_Pin_4
-#define CE_HIGH_2() 	                GPIOC->BSRR = GPIO_Pin_4
+#include "board.h"
 
 /* nrf configuration define---------------------------------------------------*/
 #define NRF_MAX_NUMBER_OF_RETRANSMITS		(3)				//最大重发次数
