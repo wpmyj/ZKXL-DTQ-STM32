@@ -17,7 +17,7 @@
 #include "app_card_process.h"
 
 /* Private variables ---------------------------------------------------------*/
-spi_cmd_type_t 			   spi_cmd_type;
+spi_cmd_type_t 			       spi_cmd_type;
 nrf_communication_t	       nrf_communication;
 extern WhiteList_Typedef   wl;
 extern nrf_communication_t nrf_communication;
@@ -43,7 +43,6 @@ void Platform_Init(void)
 	GpioInit();
 
 	Usart1_Init();
-	GPIOInit_SE2431L();
 
 	/* get mcu uuid */
 	get_mcu_uid();
@@ -59,8 +58,6 @@ void Platform_Init(void)
 	/* eeprom init and white_list init*/
 	Fee_Init(FEE_INIT_POWERUP);
 	get_white_list_from_flash();
-	DebugLog("\r\n[%s]:White list len = %d \r\n",__func__, wl.len);
-	DebugLog("[%s]:White list switch status is %d \r\n",__func__, wl.switch_status);
 
 	/* init software timer */
 	sw_timer_init();
@@ -70,8 +67,7 @@ void Platform_Init(void)
 	card_timer_init();
 
 	/* 复位并初始化RC500 */
-	GPIOInit_MFRC500();
-	temp = PcdReset();
+	mfrc500_init();
 
 	/* enable all IRQ */
 	ENABLE_ALL_IRQ();
@@ -85,29 +81,6 @@ void Platform_Init(void)
 	ledOff(LGREEN);
 	ledOff(LBLUE);
 	IWDG_Configuration();
-
-	DebugLog("[%s]:System clock freq is %dMHz\r\n",__func__, SystemCoreClock / 1000000);
-	DebugLog("[%s]:UID is %X%X%X%X%X%X%X%X\r\n",__func__,
-	         jsq_uid[0],jsq_uid[1],jsq_uid[2],jsq_uid[3],
-					 jsq_uid[4],jsq_uid[5],jsq_uid[6],jsq_uid[7]);
-
-	if(temp)
-	{
-		DebugLog("[%s]:MFRC 500 reset error\r\n",__func__);
-	}
-	else
-	{
-		/* 初始化后关闭天线 */
-		PcdAntennaOff();
-		DebugLog("[%s]:MFRC 500 reset ok\r\n",__func__);
-	}
-#ifdef ENABLE_WATCHDOG
-	DebugLog("[%s]:watchdog enable\r\n",__func__);
-#else
-	DebugLog("[%s]:watchdog disable\r\n",__func__);
-#endif //ENABLE_WATCHDOG
-	DebugLog("[%s]:All peripherals init ok\r\n",__func__);
-
 }
 
 /****************************************************************************
@@ -208,6 +181,7 @@ void Usart2_Init(void)
 	USART_Cmd(USART2pos, ENABLE);
 }
 
+#ifdef ZL_RP551_MAIN_E
 void GPIOInit_SE2431L(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -226,7 +200,6 @@ void GPIOInit_SE2431L(void)
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_Init(SE2431L_CSD_PORT, &GPIO_InitStructure);
-
 
 	SE2431L_Bypass();
 }
@@ -251,43 +224,7 @@ void SE2431L_TX(void)
 	GPIO_SetBits(SE2431L_CSD_PORT, SE2431L_CSD_PIN);
 	GPIO_SetBits(SE2431L_CTX_PORT, SE2431L_CTX_PIN);
 }
-
-void GPIOInit_MFRC500(void)
-{
-	GPIO_InitTypeDef GPIO_InitStructure;
-
-	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable,ENABLE);
-	 /* Configure MFRC500 PIN */
-    GPIO_InitStructure.GPIO_Pin = MFRC500_PD_Pin|MFRC500_ALE_Pin|MFRC500_CS_Pin|MFRC500_IRQ_Pin;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_Init(MFRC500_Control_Port, &GPIO_InitStructure);
-    GPIO_WriteBit(MFRC500_Control_Port, MFRC500_PD_Pin, Bit_RESET);
-    GPIO_WriteBit(MFRC500_Control_Port, MFRC500_ALE_Pin, Bit_RESET);
-    GPIO_WriteBit(MFRC500_Control_Port, MFRC500_CS_Pin, Bit_SET);
-    GPIO_WriteBit(MFRC500_Control_Port, MFRC500_IRQ_Pin, Bit_RESET);
-
-    GPIO_InitStructure.GPIO_Pin = MFRC500_WR_Pin;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_Init(MFRC500_RDWR_Port, &GPIO_InitStructure);
-    GPIO_WriteBit(MFRC500_RDWR_Port, MFRC500_WR_Pin, Bit_SET);
-   // GPIO_WriteBit(MFRC500_RDWR_Port, MFRC500_RD_Pin, Bit_SET);
-
-    GPIO_InitStructure.GPIO_Pin = MFRC500_RD_Pin;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_Init(MFRC500_RDWR_Port, &GPIO_InitStructure);
-  //  GPIO_WriteBit(MFRC500_RDWR_Port, MFRC500_WR_Pin, Bit_SET);
-    GPIO_WriteBit(MFRC500_RDWR_Port, MFRC500_RD_Pin, Bit_SET);
-
-
-    GPIO_InitStructure.GPIO_Pin = MFRC500_DATA_Pin;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_Init(MFRC500_DATA_Port, &GPIO_InitStructure);
-    GPIO_WriteBit(MFRC500_DATA_Port, MFRC500_DATA_Pin, Bit_RESET);
-}
+#endif
 
 /* Private functions ---------------------------------------------------------*/
 static uint8_t hal_nrf_rw(SPI_TypeDef* SPIx, uint8_t value)
@@ -312,11 +249,12 @@ uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_da
 	spi_cmd_type.data[1] = 0xFF;
 	temp_data = (uint8_t *)&spi_cmd_type;
 
-	CSN_LOW();	//开始SPI传输
+	NRF1_CSN_LOW();	//开始SPI传输
 	memset(retval, 0, BUFFER_SIZE_MAX);
 	for(i=0; i<spi_cmd_type.data_len+3; i++)
 	{
 		retval[i] = hal_nrf_rw(SPIx, *(temp_data+i));
+
 		//printf("%2x ",retval[i]);
 		if(i ==  2 && retval[2] != 0x00 && retval[2] != 0xFF)
 		{
@@ -331,7 +269,7 @@ uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_da
 		}
 	}
 	//printf("\r\n");
-	CSN_HIGH();	//关闭SPI传输
+	NRF1_CSN_HIGH();	//关闭SPI传输
 
 	memcpy(rx_data, &retval[4],*rx_data_len);
 	//DELAY_FUNC(DELAY_TIME);
@@ -361,13 +299,19 @@ uint8_t uesb_nrf_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8
 	spi_cmd_type.data[spi_cmd_type.data_len-2] = XOR_Cal((uint8_t *)&spi_cmd_type, spi_cmd_type.data_len+2);
 	temp_data = (uint8_t *)&spi_cmd_type;
 
-	CSN_LOW_2();	//开始SPI传输
+	NRF2_CSN_LOW();	//开始SPI传输
 	memset(retval, 0, BUFFER_SIZE_MAX);
 	for(i=0; i<spi_cmd_type.data_len+3; i++)
 	{
-		retval[i] = hal_nrf_rw(SPI1, *(temp_data+i));
+#ifdef ZL_RP551_MAIN_E
+	retval[i] = hal_nrf_rw(SPI1, *(temp_data+i));
+#endif
+
+#ifdef ZL_RP551_MAIN_F
+		retval[i] = hal_nrf_rw(SPI2, *(temp_data+i));
+#endif
 	}
-	CSN_HIGH_2();	//关闭SPI传输
+	NRF2_CSN_HIGH();	//关闭SPI传输
 
 	if(retval[0] != 0) 									//若接收到数据校验正确
 	{

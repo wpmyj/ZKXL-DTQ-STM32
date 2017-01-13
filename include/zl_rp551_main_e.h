@@ -10,42 +10,6 @@
 
 #ifndef _ZL_RP551_MAIN_E_H_
 #define _ZL_RP551_MAIN_E_H_
-/* board name defines --------------------------------------------------------*/
-/* NVIC defines ---------------------------------------------------------------*/
-/* set system nvic group */
-#define SYSTEM_MVIC_GROUP_SET         NVIC_PriorityGroup_2
-
-/* Peripheral interrupt preemption set */
-#define UART1_PREEMPTION_PRIORITY     1
-#define UART2_PREEMPTION_PRIORITY     1
-#define NRF_PREEMPTION_PRIORITY       0
-#define TIM3_PREEMPTION_PRIORITY      0
-
-/* Peripheral interrupt response set */
-#define UART1_SUB_PRIORITY            1
-#define UART2_SUB_PRIORITY            1
-#define NRF_SUB_PRIORITY              0 
-#define TIM3_SUB_PRIORITY             1
-
-/* USART defines -------------------------------------------------------------*/
-/* USART defines -------------------------------------------------------------*/
-#define USART1pos                     USART1
-#define USART1pos_GPIO                GPIOA
-#define USART1pos_CLK                 RCC_APB2Periph_USART1
-#define USART1pos_GPIO_CLK            RCC_APB2Periph_GPIOA
-#define USART1pos_RxPin               GPIO_Pin_10
-#define USART1pos_TxPin               GPIO_Pin_9
-#define USART1pos_IRQn                USART1_IRQn
-#define USART1pos_IRQHandler          USART1_IRQHandler
-
-#define USART2pos                     USART2
-#define USART2pos_GPIO                GPIOA
-#define USART2pos_CLK                 RCC_APB1Periph_USART2
-#define USART2pos_GPIO_CLK            RCC_APB2Periph_GPIOA
-#define USART2pos_RxPin               GPIO_Pin_3
-#define USART2pos_TxPin               GPIO_Pin_2
-#define USART2pos_IRQn                USART2_IRQn
-#define USART2pos_IRQHandler          USART2_IRQHandler
 
 /* LNA defines ---------------------------------------------------------------*/
 #define SE2431L_CTX_PORT              GPIOC    
@@ -83,11 +47,11 @@
 #define SPI_IRQ_CLK                    RCC_APB2Periph_GPIOC
 #define SPI_IRQ_PIN                    GPIO_Pin_5
 
-#define EXTI_LINE_RFIRQ                EXTI_Line5
+#define NRF1_EXTI_LINE_RFIRQ           EXTI_Line5
 #define RFIRQ_PinSource                GPIO_PinSource5
 #define RFIRQ_PortSource               GPIO_PortSourceGPIOC
 #define RFIRQ_EXTI_IRQn                EXTI9_5_IRQn
-#define RFIRQ_EXTI_IRQHandler          EXTI9_5_IRQHandler
+#define NRF1_RFIRQ_EXTI_IRQHandler     EXTI9_5_IRQHandler
 
 #define SPI_CSN_PORT_2                 GPIOB
 #define SPI_CSN_CLK_2                  RCC_APB2Periph_GPIOB
@@ -112,13 +76,13 @@
 #define SPI_CSN_HIGH_2()               GPIO_SetBits(SPI_CSN_PORT_2, SPI_CSN_PIN_2)
 #define SPI_CSN_LOW_2()                GPIO_ResetBits(SPI_CSN_PORT_2, SPI_CSN_PIN_2)
 
-#define CSN_LOW()                      GPIOA->BRR  = GPIO_Pin_4
-#define CSN_HIGH()                     GPIOA->BSRR = GPIO_Pin_4
+#define NRF1_CSN_LOW()                 GPIOA->BRR  = GPIO_Pin_4
+#define NRF1_CSN_HIGH()                GPIOA->BSRR = GPIO_Pin_4
 #define CE_LOW()                       GPIOC->BRR  = GPIO_Pin_4
 #define CE_HIGH()                      GPIOC->BSRR = GPIO_Pin_4
 
-#define CSN_LOW_2()                    GPIOB->BRR  = GPIO_Pin_3
-#define CSN_HIGH_2()                   GPIOB->BSRR = GPIO_Pin_3
+#define NRF2_CSN_LOW()                 GPIOB->BRR  = GPIO_Pin_3
+#define NRF2_CSN_HIGH()                GPIOB->BSRR = GPIO_Pin_3
 #define CE_LOW_2()                     GPIOC->BRR  = GPIO_Pin_4
 #define CE_HIGH_2()                    GPIOC->BSRR = GPIO_Pin_4
 
@@ -136,19 +100,20 @@
 #define MFRC500_RD_Port                GPIOA
 #define MFRC500_RD_Pin                 GPIO_Pin_15
 #define MFRC500_DATA_Port              GPIOB
-#define MFRC500_DATA_Pin              (GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10|\
-                                       GPIO_Pin_11| GPIO_Pin_12| GPIO_Pin_13|\
-                                       GPIO_Pin_14| GPIO_Pin_15 )
-#define  MFRC500_Control_Port          GPIOC
-#define  MFRC500_RDWR_Port             GPIOA
 
-#define ALE(n)                         GPIO_WriteBit(MFRC500_Control_Port, MFRC500_ALE_Pin, n)
-#define CS(n)                          GPIO_WriteBit(MFRC500_Control_Port, MFRC500_CS_Pin, n)
-#define RD(n)                          GPIO_WriteBit(MFRC500_RDWR_Port, MFRC500_RD_Pin, n)
-#define WR(n)                          GPIO_WriteBit(MFRC500_RDWR_Port, MFRC500_WR_Pin, n)
-#define PD(n)                          GPIO_WriteBit(MFRC500_Control_Port, MFRC500_PD_Pin, n)
-#define WR_DATA(n)                     GPIO_Write(MFRC500_DATA_Port, (uint16_t)(n))
-#define RD_DATA()                     (uint8_t)(GPIO_ReadInputData(MFRC500_DATA_Port) >> 8)
+#define MFRC500_CTL_PORT               GPIOC
+#define MFRC500_WR_PORT                GPIOA
+#define MFRC500_RD_PORT                GPIOA
+
+#define ALE(n)                         GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_ALE_Pin, n)
+#define CS(n)                          GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_CS_Pin, n)
+#define RD(n)                          GPIO_WriteBit(MFRC500_RD_PORT, MFRC500_RD_Pin, n)
+#define WR(n)                          GPIO_WriteBit(MFRC500_WR_PORT, MFRC500_WR_Pin, n)
+#define PD(n)                          GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_PD_Pin, n)
+#define WR_DATA(n)                     {GPIOB->ODR &= 0xFFFF00FF;GPIOB->ODR |= (n &0xFF)<<8;}
+#define RD_DATA()                      (uint8_t)(((GPIOB->IDR) & 0x0000FF00)>>8)
+#define MFRC500_DATA_IN()              {GPIOB->CRH &= 0x00000000;GPIOB->CRH |= 0x44444444;}
+#define MFRC500_DATA_OUT()             {GPIOB->CRH &= 0x00000000;GPIOB->CRH |= 0x33333333;}
 
 /* LED defines ---------------------------------------------------------------*/
 #define LEDn                           4
