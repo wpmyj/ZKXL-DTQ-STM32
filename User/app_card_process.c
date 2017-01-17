@@ -145,7 +145,7 @@ void App_card_process(void)
 				case 0x41: card_message.TYPE   = 0x42; break;
 				default:                               break;
 			}
-			memcpy(card_message.SIGN,Card_process.uid,4);
+			memcpy(card_message.SIGN,Card_process.sign,4);
 			card_message.LEN     = 25;
 			memset(card_message.DATA,0x00,25);
 			card_message.DATA[0] = uid_pos;
@@ -161,6 +161,7 @@ void App_card_process(void)
 
 		if( card_message_err == 2 )
 		{
+			memcpy(card_message.SIGN,Card_process.sign,4);
 			App_returnErr(&card_message,Card_process.cmd_type,0xFD);
 		}
 

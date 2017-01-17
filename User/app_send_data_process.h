@@ -106,6 +106,9 @@
 
 #define PACKAGE_NUM_ADD             1
 #define PACKAGE_NUM_SAM             0
+#define REQUEST_TABLE               13
+#define REQUEST_TEMP_PRE_TABLE      14
+#define REQUEST_TEMP_ACK_TABLE      15
 
 typedef struct
 {

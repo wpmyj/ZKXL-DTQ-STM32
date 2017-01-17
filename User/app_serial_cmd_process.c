@@ -23,7 +23,7 @@ static uint8_t whitelist_print_index = 0;
 
 extern uint8_t is_open_statistic;
 extern uint8_t uart_tx_status;
-extern uint16_t list_tcb_table[13][8];
+extern uint16_t list_tcb_table[16][8];
 extern nrf_communication_t nrf_communication;
        uint8_t serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 			 uint8_t serial_cmd_type = 0;
@@ -534,7 +534,13 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 	{
 		if(backup_massage.LEN != 0)
 		{
+			uint8_t i;
 			Send_data_process.retransmit = 1;
+			for(i=3;i<10;i++)
+			{
+				memset(list_tcb_table[i],0x00,16);
+			}
+			memcpy(list_tcb_table[REQUEST_TABLE],list_tcb_table[SEND_DATA_ACK_TABLE],16);
 		}
 		else
 		{
@@ -549,6 +555,7 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 	SMessage->HEADER = 0x5C;
 	SMessage->TYPE = RMessage->TYPE;
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+	memcpy(Send_data_process.sign,RMessage->SIGN, 4);
 
 	SMessage->LEN = 0x03;
 
@@ -1217,7 +1224,7 @@ void App_start_or_stop_answer( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDe
 	SMessage->HEADER = 0x5C;
 	SMessage->TYPE = RMessage->TYPE;
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
-	memcpy(Card_process.uid,RMessage->SIGN,4);
+	memcpy(Card_process.sign,RMessage->SIGN,4);
 
 	SMessage->LEN = 0x01;
 

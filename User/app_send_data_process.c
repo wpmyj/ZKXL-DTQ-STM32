@@ -17,13 +17,15 @@ extern uint8_t spi_status_write_index, spi_status_read_index, spi_status_count;
 uint8_t is_open_statistic = 0;
 uint8_t single_send_data_status = 0;
 uint8_t single_sned_data_count = 0;
+uint8_t request_data_status = 0;
 
 uint8_t clicker_send_data_status = 0;
 static uint8_t pre_status = 0;
 static uint8_t sum_clicker_count = 0;
 
 extern nrf_communication_t nrf_communication;
-extern uint16_t list_tcb_table[10][8];
+extern uint16_t list_tcb_table[16][8];
+
 
 extern Uart_MessageTypeDef backup_massage;
 extern uint8_t sum_clicker_count;
@@ -320,11 +322,14 @@ void rf_move_data_to_buffer( uint8_t *Message )
 {
 	Uart_MessageTypeDef rf_message;
 	uint8_t i = 0 ;
-
+	uint8_t nouse_temp = 0;
+	uint8_t Is_whitelist_uid,uidpos;
+	Is_whitelist_uid = search_uid_in_white_list(Message+5,&uidpos);
+	
 	rf_message.HEADER = 0x5C;
 	rf_message.TYPE = 0x11;
 
-	memcpy(rf_message.SIGN,Message+5,4);
+	memcpy(rf_message.SIGN,Send_data_process.sign,4);
 
 	/* 获取消息的有效长度 */
 	rf_message.LEN = Message[14];
@@ -344,10 +349,16 @@ void rf_move_data_to_buffer( uint8_t *Message )
 	{
 		if( wl.start == ON )
 		{
-			/* 存入缓存 */
-			if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+			if(Message[10] != wl.uids[uidpos].rev_num)//收到的是有效数据
 			{
-				serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
+				/* 更新接收数据帧号与包号 */
+				wl.uids[uidpos].rev_seq = Message[9];
+				wl.uids[uidpos].rev_num = Message[10];	
+				/* 存入缓存 */
+				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+				{
+					serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
+				}
 			}
 		}
 	}
@@ -358,17 +369,8 @@ void rf_move_data_to_buffer( uint8_t *Message )
 			/* 检测是否为开机指令 */
 			if(rf_message.DATA[8] == 0x01)
 			{
-				uint8_t nouse_temp = 0;
-				uint8_t Is_whitelist_uid,uidpos;
-				Is_whitelist_uid = search_uid_in_white_list(Message+5,&uidpos);
-				if(Is_whitelist_uid == OPERATION_SUCCESS)
-				{
-						whitelist_checktable_and( 0, SEND_DATA_ACK_TABLE, SEND_PRE_TABLE );
-						set_index_of_white_list_pos(SEND_PRE_TABLE,uidpos);	
-				}
-
 				/* 重新下发数据到答题器 */
-				if(( backup_massage.DATA[6] == 0 ) || ( backup_massage.DATA[6] == 0x14 ))
+				if(( backup_massage.DATA[6] == 0x14 ) || ( backup_massage.DATA[6] == 0 ) )
 				{
 					Uart_MessageTypeDef temp_message;
 
@@ -382,39 +384,36 @@ void rf_move_data_to_buffer( uint8_t *Message )
 					temp_message.DATA[7] = 0x00;
 					temp_message.DATA[temp_message.DATA[7] + 8] = XOR_Cal(&temp_message.DATA[1],temp_message.DATA[7]+7);
 
+					memcpy(list_tcb_table[REQUEST_TEMP_PRE_TABLE],list_tcb_table[SEND_PRE_TABLE],16);
+					memcpy(list_tcb_table[REQUEST_TEMP_ACK_TABLE],list_tcb_table[SEND_DATA_ACK_TABLE],16);
+					set_index_of_white_list_pos( REQUEST_TEMP_PRE_TABLE, uidpos );
+					clear_index_of_white_list_pos( REQUEST_TEMP_ACK_TABLE, uidpos );
+					
 					nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-						SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
+						SEND_PRE_DELAY100US, REQUEST_TEMP_PRE_TABLE,PACKAGE_NUM_ADD);
 					nrf_transmit_start(temp_message.DATA, temp_message.LEN,
-						NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+						NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, REQUEST_TEMP_ACK_TABLE,PACKAGE_NUM_ADD);
 				}
 				else
 				{
-					memcpy( backup_massage.DATA+1, Message+5, 4);
-					backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
-					nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-						SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
-					nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
-						NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
-					set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
-				}
-			}
-			/* 检测是否为唤醒指令 */
-			if(rf_message.DATA[8] == 0x03)
-			{
-				uint8_t Is_reviceed_uid,Is_whitelist_uid,uidpos;
-				uint8_t nouse_temp = 0;
-
-				Is_whitelist_uid = search_uid_in_white_list(Message+5,&uidpos);
-				if( Is_whitelist_uid == OPERATION_SUCCESS )
-				{
-						whitelist_checktable_and( 0, SEND_DATA_ACK_TABLE, SEND_PRE_TABLE );
-						set_index_of_white_list_pos(SEND_PRE_TABLE,uidpos);	
-				}
-
-				if( Is_whitelist_uid == OPERATION_SUCCESS )
-				{
-					Is_reviceed_uid = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,uidpos);
-					if( Is_reviceed_uid == 0 )
+					uint8_t Is_reviceed_uid = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,uidpos);
+					if( Is_reviceed_uid == 1 )
+					{
+						memcpy(list_tcb_table[REQUEST_TEMP_PRE_TABLE],list_tcb_table[SEND_PRE_TABLE],16);
+						memcpy(list_tcb_table[REQUEST_TEMP_ACK_TABLE],list_tcb_table[SEND_DATA_ACK_TABLE],16);
+						set_index_of_white_list_pos( REQUEST_TEMP_PRE_TABLE, uidpos );
+						clear_index_of_white_list_pos( REQUEST_TEMP_ACK_TABLE, uidpos );
+						
+						memcpy( backup_massage.DATA+1, Message+5, 4);
+						backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
+						nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
+							SEND_PRE_DELAY100US, REQUEST_TEMP_PRE_TABLE,PACKAGE_NUM_ADD);
+						nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
+							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, REQUEST_TEMP_ACK_TABLE,PACKAGE_NUM_ADD);
+						request_data_status = 1;
+						sw_clear_timer(&request_data_timer);
+					}
+					else
 					{
 						memcpy( backup_massage.DATA+1, Message+5, 4);
 						backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
@@ -422,7 +421,28 @@ void rf_move_data_to_buffer( uint8_t *Message )
 							SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
 						nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
 							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
-						set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
+						request_data_status = 1;
+						sw_clear_timer(&request_data_timer);
+					}			
+				}
+			}
+
+			/* 检测是否为唤醒指令 */
+			if(rf_message.DATA[8] == 0x03)
+			{
+				if( Is_whitelist_uid == OPERATION_SUCCESS )
+				{
+					uint8_t Is_reviceed_uid = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,uidpos);
+					if(( Is_reviceed_uid == 0 ) && ( backup_massage.DATA[6] != 0 ))
+					{
+						memcpy( backup_massage.DATA+1, Message+5, 4);
+						backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
+						nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
+							SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
+						nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
+							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+						request_data_status = 1;
+						sw_clear_timer(&request_data_timer);
 					}
 					else
 					{
@@ -435,19 +455,33 @@ void rf_move_data_to_buffer( uint8_t *Message )
 						temp_message.DATA[0] = 0x5A;
 						temp_message.DATA[6] = 0x10;
 						temp_message.DATA[7] = 0x00;
+						
+						memcpy(list_tcb_table[REQUEST_TEMP_PRE_TABLE],list_tcb_table[SEND_PRE_TABLE],16);
+						memcpy(list_tcb_table[REQUEST_TEMP_ACK_TABLE],list_tcb_table[SEND_DATA_ACK_TABLE],16);
+						set_index_of_white_list_pos( REQUEST_TEMP_PRE_TABLE, uidpos );
+						clear_index_of_white_list_pos( REQUEST_TEMP_ACK_TABLE, uidpos );
+						
 						temp_message.DATA[temp_message.DATA[7] + 8] = XOR_Cal(&temp_message.DATA[1],temp_message.DATA[7]+7);
 						nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-							SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
+							SEND_PRE_DELAY100US, REQUEST_TEMP_PRE_TABLE,PACKAGE_NUM_ADD);
 						nrf_transmit_start(temp_message.DATA, temp_message.LEN,
-							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
+							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, REQUEST_TEMP_ACK_TABLE,PACKAGE_NUM_ADD);
 					}
 				}
 			}
-		}
-		/* 存入缓存 */
-		if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+		}		
+		
+		if(Message[10] != wl.uids[uidpos].rev_num)//收到的是有效数据
 		{
-			serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
+			/* 更新接收数据帧号与包号 */
+			wl.uids[uidpos].rev_seq = Message[9];
+			wl.uids[uidpos].rev_num = Message[10];	
+		
+			/* 存入缓存 */
+			if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+			{
+				serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
+			}
 		}
 	}
 }
@@ -501,28 +535,6 @@ uint8_t spi_process_revice_data( void )
 				wl.uids[uidpos].firstrev = 0;
 			}
 
-			/* 检测是白名单 */
-			if(Is_whitelist_uid == OPERATION_SUCCESS)
-			{
-				if( is_open_statistic == 0 )
-				{
-					/* 统计发送状态 */
-					clicker_send_data_statistics( clicker_send_data_status, uidpos );
-				}
-				else
-				{
-					set_index_of_white_list_pos(SINGLE_SEND_DATA_ACK_TABLE,uidpos);
-				}
-
-				if( rf_get_systick_status() == 1 )
-				{
-					if( systick_get_ack_funcction_para() == 1 )
-					{
-						set_index_of_white_list_pos(SISTICK_ACK_TABLE,uidpos);
-					}
-				}
-			}
-
 			/* 白名单开关状态 */
 			if(wl.switch_status == OFF)
 			{
@@ -560,15 +572,9 @@ uint8_t spi_process_revice_data( void )
 						memcpy( nrf_communication.dtq_uid, spi_message+5, 4 );
 						nrf_transmit_start(&temp,0,NRF_DATA_IS_ACK, 2, 20, SEND_DATA_ACK_TABLE,PACKAGE_NUM_SAM);
 					}
-					/* 上次发送的是否相同,不同才提交数据*/
-					if(spi_message[10] != wl.uids[uidpos].rev_num)//收到的是有效数据
-					{
-						/* 更新接收数据帧号与包号 */
-						wl.uids[uidpos].rev_seq = spi_message[9];
-						wl.uids[uidpos].rev_num = spi_message[10];
-						/* 有效数据告到PC */
-						rf_move_data_to_buffer( spi_message );
-					}
+
+					/* 有效数据告到PC */
+					rf_move_data_to_buffer( spi_message );
 				}
 				/* 收到的是Ack */
 				else if(spi_message[11] == NRF_DATA_IS_ACK)
@@ -577,6 +583,53 @@ uint8_t spi_process_revice_data( void )
 						*(spi_message+5),*(spi_message+6),*(spi_message+7),*(spi_message+8));
 					DEBUG_BUFFER_ACK_LOG("seq:%2x, pac:%2x \r\n",(uint8_t)*(spi_message+9),
 						(uint8_t)*(spi_message+10));
+
+					/* 发送定时统计*/
+					if( is_open_statistic == 0 )
+					{
+						clicker_send_data_statistics( clicker_send_data_status, uidpos );
+					}
+					else
+					{
+						set_index_of_white_list_pos(SINGLE_SEND_DATA_ACK_TABLE,uidpos);
+					}
+
+          /* 心跳定时统计 */
+					if( rf_get_systick_status() == 1 )
+					{
+						if( systick_get_ack_funcction_para() == 1 )
+						{
+							set_index_of_white_list_pos(SISTICK_ACK_TABLE,uidpos);
+						}
+					}
+
+          /* 请求数据定时统计 */
+					if( request_data_status == 1 )
+					{
+						uint8_t Is_reviceed_uid = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,uidpos);
+						if( Is_reviceed_uid == 0 )
+						{
+							Uart_MessageTypeDef result_message;
+
+							result_message.TYPE   = 0x31;
+							result_message.HEADER = 0x5C;
+							memcpy(result_message.SIGN,backup_massage.SIGN,4);
+							result_message.LEN     = 0x06;
+							result_message.DATA[0] = 0x00;
+							result_message.DATA[1] = uidpos;
+							memcpy(result_message.DATA+2,spi_message+5,4);
+							result_message.XOR = XOR_Cal(&result_message.TYPE,12);
+							result_message.END  = 0xCA;
+
+							if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+							{
+								clear_index_of_white_list_pos(SEND_PRE_TABLE,uidpos);
+								set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
+								serial_ringbuffer_write_data(SEND_RINGBUFFER,&result_message);
+							}
+						}
+					}
+
 					/* 重复接收的数据，返回包号和上次一样的*/
 					if(wl.uids[uidpos].rev_num != spi_message[10])
 					{
@@ -697,29 +750,25 @@ void get_send_data_table_message(uint8_t status)
 		case SEND_DATA1_UPDATE_STATUS:
 			{
 				DEBUG_STATISTICS_LOG("Statistic : %d\r\n",revicer.data_statistic_count++);
-				DEBUG_STATISTICS_LOG("First Statistic:");
+				DEBUG_STATISTICS_LOG("First Statistic:\r\n");
 				if(Send_data_process.retransmit == 1)
 				{
-					whitelist_checktable_and(0, SEND_DATA_ACK_TABLE, SEND_PRE_TABLE);
+					whitelist_checktable_and(0, REQUEST_TABLE, SEND_PRE_TABLE);
 					result_check_tables[PRE_SUM_TABLE] = SEND_PRE_TABLE;
+					result_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
 				}
 				else
 				{
 					result_check_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
+					result_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
 				}
-				result_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
 				after_result_status = SEND_DATA2_STATUS;
 			}
 			break;
 
 		case SEND_DATA2_UPDATE_STATUS:
 			{
-				DEBUG_STATISTICS_LOG("\r\nSecond Statistic:");
-				if(Send_data_process.retransmit == 1)
-				{
-					whitelist_checktable_and(SEND_PRE_TABLE, SEND_DATA1_ACK_TABLE,
-						SEND_DATA2_SUM_TABLE);
-				}
+				DEBUG_STATISTICS_LOG("\r\nSecond Statistic:\r\n");
 				result_check_tables[PRE_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
 				result_check_tables[PRE_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
 				after_result_status = SEND_DATA3_STATUS;
@@ -727,7 +776,7 @@ void get_send_data_table_message(uint8_t status)
 			break;
 		case SEND_DATA3_UPDATE_STATUS:
 			{
-				DEBUG_STATISTICS_LOG("\r\nThird Statistic:");
+				DEBUG_STATISTICS_LOG("\r\nThird Statistic:\r\n");
 				result_check_tables[PRE_SUM_TABLE] = SEND_DATA3_SUM_TABLE;
 				result_check_tables[PRE_ACK_TABLE] = SEND_DATA3_ACK_TABLE;
 				after_result_status = SEND_DATA4_STATUS;
@@ -758,11 +807,19 @@ void get_retransmit_messsage( uint8_t status )
 		case SEND_DATA2_STATUS:
 			{
 				DEBUG_DATA_DETAIL_LOG("\r\n\r\n[1].retransmit:\r\n");
-				retransmit_check_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
-				retransmit_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
+				if(Send_data_process.retransmit == 1)
+				{
+					retransmit_check_tables[PRE_SUM_TABLE] = SEND_PRE_TABLE;
+					retransmit_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
+				}
+				else
+				{
+					retransmit_check_tables[PRE_SUM_TABLE] = SEND_DATA1_SUM_TABLE;
+					retransmit_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
+				}
 				retransmit_check_tables[CUR_SUM_TABLE] = SEND_DATA2_SUM_TABLE;
 				retransmit_check_tables[CUR_ACK_TABLE] = SEND_DATA2_ACK_TABLE;
-				after_retransmit_status                = SEND_DATA2_SEND_OVER_STATUS;
+				after_retransmit_status = SEND_DATA2_SEND_OVER_STATUS;
 			}
 			break;
 
@@ -916,7 +973,7 @@ void send_data_result( uint8_t status )
 
 #ifdef ENABLE_SEND_DATA_TO_PC
 			revice_lost_massage.HEADER = 0x5C;
-			memset(revice_lost_massage.SIGN,0,4);
+			memcpy(revice_lost_massage.SIGN,Send_data_process.sign,4);
 			revice_lost_massage.TYPE = 0x30;
 			revice_lost_massage.LEN = revice_lost_massage.LEN+1;
 			revice_lost_massage.DATA[0] = status / 3;
@@ -947,7 +1004,7 @@ void send_data_result( uint8_t status )
 
 #ifdef ENABLE_SEND_DATA_TO_PC
 			revice_ok_massage.HEADER = 0x5C;
-			memset(revice_ok_massage.SIGN,0,4);
+			memcpy(revice_ok_massage.SIGN,Send_data_process.sign,4);
 			revice_ok_massage.TYPE = 0x31;
 			revice_ok_massage.LEN = revice_ok_massage.LEN+1;
 			revice_ok_massage.DATA[0] = status / 3;
@@ -1140,7 +1197,7 @@ void send_data_env_init(void)
 
 	/* clear online check table */
 	memset(list_tcb_table[SINGLE_SEND_DATA_ACK_TABLE],0,16);
-	memset(list_tcb_table[SEND_DATA1_ACK_TABLE],0,16*10);
+	memset(list_tcb_table[SEND_DATA1_ACK_TABLE],0,16*13);
 
 	/* clear count of clicker */
 	sum_clicker_count = 0;
@@ -1396,6 +1453,9 @@ void send_data_process_timer_init( void )
 
   /* create retransmit timer */
 	sw_create_timer(&retransmit_timer, SEND_DATA4_TIMEOUT, 1, 2, &(retransmit_tcb.status), NULL);
+
+  /* create request timer */
+	sw_create_timer(&request_data_timer, SEND_DATA1_TIMEOUT, 1, 2, &request_data_status, NULL);
 
 	/* create single send data timer */
 	sw_create_timer(&single_send_data_timer, SINGLE_SEND_DATA_TIMEOUT, 1, 2,
