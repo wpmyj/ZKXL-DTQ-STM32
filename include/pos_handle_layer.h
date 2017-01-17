@@ -76,6 +76,7 @@ typedef struct
 typedef struct
 {
 	uint8_t uid[4];
+	uint8_t sign[4];
 	uint8_t cmd_type;
 	uint8_t studentid[20];
 	uint8_t match_single;

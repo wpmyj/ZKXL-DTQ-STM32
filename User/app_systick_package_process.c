@@ -3,7 +3,7 @@
 
 static uint8_t rf_systick_status = 0; 
 static uint8_t open_systick_ack  = 0;
-extern uint16_t list_tcb_table[13][8];
+extern uint16_t list_tcb_table[16][8];
 Process_tcb_Typedef systick_process;
 
 /******************************************************************************
