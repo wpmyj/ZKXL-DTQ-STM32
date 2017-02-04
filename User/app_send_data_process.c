@@ -321,9 +321,7 @@ void rf_move_data_to_buffer( uint8_t *Message )
 {
 	Uart_MessageTypeDef rf_message;
 	uint8_t i = 0 ;
-	uint8_t nouse_temp = 0;
-	uint8_t Is_whitelist_uid,uidpos;
-	Is_whitelist_uid = search_uid_in_white_list(Message+5,&uidpos);
+	uint8_t uidpos;
 	
 	rf_message.HEADER = 0x5C;
 	rf_message.TYPE = 0x11;
@@ -344,142 +342,22 @@ void rf_move_data_to_buffer( uint8_t *Message )
 	if((rf_message.DATA[6] == 0x10) ||
 		 (rf_message.DATA[6] == 0x11) ||
 	   (rf_message.DATA[6] == 0x12) ||
-	   (rf_message.DATA[6] == 0x13))
+	   (rf_message.DATA[6] == 0x13) ||
+		 (rf_message.DATA[6] == 0x14))
 	{
 		if( wl.start == ON )
 		{
+			uint8_t Is_whitelist_uid = search_uid_in_white_list(Message+5,&uidpos);
 			if(Message[10] != wl.uids[uidpos].rev_num)//收到的是有效数据
 			{
-				/* 更新接收数据帧号与包号 */
-				wl.uids[uidpos].rev_seq = Message[9];
-				wl.uids[uidpos].rev_num = Message[10];	
 				/* 存入缓存 */
 				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 				{
 					serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
+					/* 更新接收数据帧号与包号 */
+					wl.uids[uidpos].rev_seq = Message[9];
+					wl.uids[uidpos].rev_num = Message[10];	
 				}
-			}
-		}
-	}
-	else
-	{
-		if(rf_message.DATA[6] == 0x14)
-		{
-			/* 检测是否为开机指令 */
-			if(rf_message.DATA[8] == 0x01)
-			{
-				/* 重新下发数据到答题器 */
-				if(( backup_massage.DATA[6] == 0x14 ) || ( backup_massage.DATA[6] == 0 ) )
-				{
-					Uart_MessageTypeDef temp_message;
-
-					temp_message.HEADER = 0x5C;
-					temp_message.END    = 0xCA;
-					temp_message.TYPE   = 0x10;
-					memcpy( temp_message.DATA+1, Message+5, 4);
-					temp_message.LEN = 10;
-					temp_message.DATA[0] = 0x5A;
-					temp_message.DATA[6] = 0x10;
-					temp_message.DATA[7] = 0x00;
-					temp_message.DATA[temp_message.DATA[7] + 8] = XOR_Cal(&temp_message.DATA[1],temp_message.DATA[7]+7);
-
-					memcpy(list_tcb_table[REQUEST_TEMP_PRE_TABLE],list_tcb_table[SEND_PRE_TABLE],16);
-					memcpy(list_tcb_table[REQUEST_TEMP_ACK_TABLE],list_tcb_table[SEND_DATA_ACK_TABLE],16);
-					set_index_of_white_list_pos( REQUEST_TEMP_PRE_TABLE, uidpos );
-					clear_index_of_white_list_pos( REQUEST_TEMP_ACK_TABLE, uidpos );
-					
-					nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-						SEND_PRE_DELAY100US, REQUEST_TEMP_PRE_TABLE,PACKAGE_NUM_ADD);
-					nrf_transmit_start(temp_message.DATA, temp_message.LEN,
-						NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, REQUEST_TEMP_ACK_TABLE,PACKAGE_NUM_ADD);
-				}
-				else
-				{
-					uint8_t Is_reviceed_uid = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,uidpos);
-					if( Is_reviceed_uid == 1 )
-					{
-						memcpy(list_tcb_table[REQUEST_TEMP_PRE_TABLE],list_tcb_table[SEND_PRE_TABLE],16);
-						memcpy(list_tcb_table[REQUEST_TEMP_ACK_TABLE],list_tcb_table[SEND_DATA_ACK_TABLE],16);
-						set_index_of_white_list_pos( REQUEST_TEMP_PRE_TABLE, uidpos );
-						clear_index_of_white_list_pos( REQUEST_TEMP_ACK_TABLE, uidpos );
-						
-						memcpy( backup_massage.DATA+1, Message+5, 4);
-						backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
-						nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-							SEND_PRE_DELAY100US, REQUEST_TEMP_PRE_TABLE,PACKAGE_NUM_ADD);
-						nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
-							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, REQUEST_TEMP_ACK_TABLE,PACKAGE_NUM_ADD);
-						retranmist_data_status = 1;
-						sw_clear_timer(&request_data_timer);
-					}
-					else
-					{
-						memcpy( backup_massage.DATA+1, Message+5, 4);
-						backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
-						nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-							SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
-						nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
-							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
-						retranmist_data_status = 1;
-						sw_clear_timer(&request_data_timer);
-					}			
-				}
-			}
-
-			/* 检测是否为唤醒指令 */
-			if(rf_message.DATA[8] == 0x03)
-			{
-				if( Is_whitelist_uid == OPERATION_SUCCESS )
-				{
-					uint8_t Is_reviceed_uid = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,uidpos);
-					if(( Is_reviceed_uid == 0 ) && ( backup_massage.DATA[6] != 0 ))
-					{
-						memcpy( backup_massage.DATA+1, Message+5, 4);
-						backup_massage.DATA[backup_massage.DATA[7] + 8] = XOR_Cal(&backup_massage.DATA[1],backup_massage.DATA[7]+7);
-						nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-							SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
-						nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
-							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
-						retranmist_data_status = 1;
-						sw_clear_timer(&request_data_timer);
-					}
-					else
-					{
-						Uart_MessageTypeDef temp_message;
-						temp_message.HEADER = 0x5C;
-						temp_message.END    = 0xCA;
-						temp_message.TYPE   = 0x10;
-						memcpy( temp_message.DATA+1, Message+5, 4);
-						temp_message.LEN = 10;
-						temp_message.DATA[0] = 0x5A;
-						temp_message.DATA[6] = 0x10;
-						temp_message.DATA[7] = 0x00;
-						
-						memcpy(list_tcb_table[REQUEST_TEMP_PRE_TABLE],list_tcb_table[SEND_PRE_TABLE],16);
-						memcpy(list_tcb_table[REQUEST_TEMP_ACK_TABLE],list_tcb_table[SEND_DATA_ACK_TABLE],16);
-						set_index_of_white_list_pos( REQUEST_TEMP_PRE_TABLE, uidpos );
-						clear_index_of_white_list_pos( REQUEST_TEMP_ACK_TABLE, uidpos );
-						
-						temp_message.DATA[temp_message.DATA[7] + 8] = XOR_Cal(&temp_message.DATA[1],temp_message.DATA[7]+7);
-						nrf_transmit_start( &nouse_temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-							SEND_PRE_DELAY100US, REQUEST_TEMP_PRE_TABLE,PACKAGE_NUM_ADD);
-						nrf_transmit_start(temp_message.DATA, temp_message.LEN,
-							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, REQUEST_TEMP_ACK_TABLE,PACKAGE_NUM_ADD);
-					}
-				}
-			}
-		}		
-		
-		if(Message[10] != wl.uids[uidpos].rev_num)//收到的是有效数据
-		{
-			/* 更新接收数据帧号与包号 */
-			wl.uids[uidpos].rev_seq = Message[9];
-			wl.uids[uidpos].rev_num = Message[10];	
-		
-			/* 存入缓存 */
-			if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
-			{
-				serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
 			}
 		}
 	}
@@ -498,7 +376,7 @@ uint8_t spi_process_revice_data( void )
 	uint8_t spi_message[255];
 	uint8_t spi_message_type = 0;
 	bool    Is_whitelist_uid = OPERATION_ERR;
-	uint8_t uidpos = 0;
+	uint8_t uidpos = 0xFF;
 	uint8_t clicker_send_data_status = 0;
 
 	if(buffer_get_buffer_status(SPI_REVICE_BUFFER) != BUFFEREMPTY)
@@ -650,13 +528,6 @@ uint8_t spi_process_revice_data( void )
 
   						/* 统计收到包数 */
 							wl.uids[uidpos].recv_package_num++;
-//						printf("clickers : %02x%02x%02x%02x, revice = %08x, lost = %08x, \r\n",
-//						wl.uids[uidpos].uid[0],wl.uids[uidpos].uid[1],wl.uids[uidpos].uid[2],
-//						wl.uids[uidpos].uid[3],
-//						wl.uids[uidpos].recv_package_num,
-//						wl.uids[uidpos].lost_package_num
-//						);
-//						wl.uids[uidpos].rev_num = spi_message[10];
 						}
 					}
 				}
@@ -1420,6 +1291,24 @@ void App_clickers_send_data_process( void )
 
 	/* 上报之后，重新广播发送 */
 	retansmit_data( current_status );
+	
+	if( retranmist_data_status == 2 ) 
+	{
+		memcpy(list_tcb_table[REQUEST_TABLE],list_tcb_table[SEND_DATA_ACK_TABLE],16);
+
+		/* 发送前导帧 */
+		whitelist_checktable_and( 0, SEND_DATA_ACK_TABLE, SEND_PRE_TABLE );
+		memset(nrf_data.dtq_uid, 0, 4);
+		nrf_transmit_start( nrf_data.dtq_uid, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
+		                    SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_SAM);
+		/* 发送数据帧 */
+		memset(nrf_data.dtq_uid, 0, 4);
+		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL,
+		                    SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE, PACKAGE_NUM_SAM );
+		
+		retranmist_data_status = 1;
+		sw_clear_timer(&request_data_timer);
+	}
 }
 
 /******************************************************************************
