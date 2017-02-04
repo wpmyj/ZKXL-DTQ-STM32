@@ -5,6 +5,15 @@
 #include "pos_handle_layer.h"
 #include "rc500_handle_layer.h"
 
+//#define OPEN_CARD_DEBUG_SHOW
+
+/* 打印信息控制 */
+#ifdef 	OPEN_CARD_DEBUG_SHOW
+#define DEBUG_CARD_DEBUG_LOG							     DEBUG_LOG
+#else
+#define DEBUG_CARD_DEBUG_LOG(...)
+#endif
+
 extern Process_tcb_Typedef Card_process;
 
 void Buzze_Control(void);

@@ -1,7 +1,7 @@
 #ifndef	__APP_SHOW_MESSAGE_PROCESS_H_
 #define	__APP_SHOW_MESSAGE_PROCESS_H_
 
-//#define USE_BUFFER_FOR_PRINT
+#define USE_BUFFER_FOR_PRINT
 
 #define READ_STRING_LEN                        30
 
