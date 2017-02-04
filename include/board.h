@@ -48,8 +48,8 @@
 #define USART2pos_IRQn                USART2_IRQn
 #define USART2pos_IRQHandler          USART2_IRQHandler
 
-//#define ZL_RP551_MAIN_E
-#define ZL_RP551_MAIN_F
+#define ZL_RP551_MAIN_E
+//#define ZL_RP551_MAIN_F
 
 #if !defined (ZL_RP551_MAIN_E) && !defined (ZL_RP551_MAIN_F)
  #error "Please select board used in your application (in board.h file)"

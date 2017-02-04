@@ -103,10 +103,10 @@ typedef struct
 {
 	uint8_t	 						      dtq_uid[4];				//此答题器UID
 	uint8_t							      jsq_uid[4];				//与之配对的接收器UID
-	uint8_t							      receive_len;
-	uint8_t							      transmit_len;
-	uint8_t							      receive_buf[NRF_TOTAL_DATA_LEN];		//接收数据反冲区
-	uint8_t							      transmit_buf[NRF_TOTAL_DATA_LEN];		//发送数据反冲区
+	uint8_t							      rlen;
+	uint8_t							      tlen;
+	uint8_t							      rbuf[NRF_TOTAL_DATA_LEN];		//接收数据反冲区
+	uint8_t							      tbuf[NRF_TOTAL_DATA_LEN];		//发送数据反冲区
 }nrf_communication_t;
 
 typedef struct

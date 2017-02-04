@@ -109,6 +109,7 @@
 #define REQUEST_TABLE               13
 #define REQUEST_TEMP_PRE_TABLE      14
 #define REQUEST_TEMP_ACK_TABLE      15
+#define RETRANSMIT_DATA_TIME_UNIT   3000
 
 typedef struct
 {

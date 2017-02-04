@@ -18,9 +18,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 spi_cmd_type_t 			       spi_cmd_type;
-nrf_communication_t	       nrf_communication;
+nrf_communication_t	       nrf_data;
 extern WhiteList_Typedef   wl;
-extern nrf_communication_t nrf_communication;
 
 void systick_timer_init( void );
 /*******************************************************************************
@@ -31,8 +30,6 @@ void systick_timer_init( void );
 *******************************************************************************/
 void Platform_Init(void)
 {
-	uint8_t temp = 0;
-
 	/* disable all IRQ */
 	DISABLE_ALL_IRQ();
 
@@ -49,7 +46,7 @@ void Platform_Init(void)
 
 	/* 配对是存入接收器器UID到答题器 */
 	NDEF_DataWrite[1] = 0x1C;
-	memcpy(NDEF_DataWrite+2,nrf_communication.jsq_uid,4);
+	memcpy(NDEF_DataWrite+2,nrf_data.jsq_uid,4);
 	memset(NDEF_DataWrite+7,0x00,20);
 
 	/* initialize the spi interface with nrf51822 */
