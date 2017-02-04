@@ -656,7 +656,7 @@ uint8_t spi_process_revice_data( void )
 //						wl.uids[uidpos].recv_package_num,
 //						wl.uids[uidpos].lost_package_num
 //						);
-							wl.uids[uidpos].rev_num = spi_message[10];
+//						wl.uids[uidpos].rev_num = spi_message[10];
 						}
 					}
 				}

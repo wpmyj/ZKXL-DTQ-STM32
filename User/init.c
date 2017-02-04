@@ -70,7 +70,9 @@ void Platform_Init(void)
 	ENABLE_ALL_IRQ();
 
 	/* led 、蜂鸣器声音提示初始化完毕 */
-	//BEEP_EN();
+#ifndef OPEN_SILENT_MODE
+	BEEP_EN();
+#endif
 	ledOn(LGREEN);
 	ledOn(LBLUE);
 	DelayMs(200);
