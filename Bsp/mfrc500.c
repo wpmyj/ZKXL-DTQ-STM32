@@ -22,22 +22,38 @@ uint8_t SelectApplication (void)
 	uint8_t len = 0;
 	uint8_t status = 0;
 	memset(respon, 0, BUF_LEN);
-	if( status = PcdRATS(respon, &len), ( (MI_OK == status) && (respon[0] == 0x05) && (respon[1] == 0x78) && (respon[4] == 0x02) ) )
+	status = PcdRATS(respon, &len);
+	
+	if( (MI_OK == status) && (respon[0] == 0x05) && (respon[1] == 0x78) && (respon[4] == 0x02) )
 	{
-		memset(respon, 0, BUF_LEN);
-		if( status = PcdPPS(respon, &len), ( (MI_OK == status) && (respon[0] == 0xD0) ) )
-		{
-			memset(respon, 0, BUF_LEN);
-			if( status = PcdSelectApplication(respon, &len), ( (MI_OK == status) && (respon[1] == 0x90) && (respon[2] == 0x00) ) )
-			{	return status;		}
-			else
-			{	return 0x11; 		}
-		}
-		else
-		{	return 0x11; 	}
 	}
 	else
-	{    return 0x11;   }
+	{
+		return 0x11;
+	}
+	
+	memset(respon, 0, BUF_LEN);
+	len = 0;
+	status = PcdPPS(respon, &len);
+	if( (MI_OK == status) && (respon[0] == 0xD0) )
+	{
+	}
+	else
+	{
+		return 0x11;
+	}
+	
+	memset(respon, 0, BUF_LEN);
+	len = 0;
+	status = PcdSelectApplication(respon, &len);
+	if( (MI_OK == status) && (respon[1] == 0x90) && (respon[2] == 0x00) )
+	{
+		return MI_OK;
+	}
+	else
+	{
+		return 0x11;
+	}
 }
 
 /*********************************************************************************
@@ -51,27 +67,34 @@ uint8_t ForceReadCCfile (void)
 	uint8_t len = 0;
 	uint16_t NDEF_DataRead = 0;
 	uint8_t status = 0;
+
 	memset(respon, 0, BUF_LEN);
-	if( status = PcdSelectCCfile(respon, &len), ( (MI_OK == status) && (respon[1] == 0x90) && (respon[2] == 0x00) ) )
+	status = PcdSelectCCfile(respon, &len);
+	if( (MI_OK == status) && (respon[1] == 0x90) && (respon[2] == 0x00) )
 	{
-		memset(respon, 0, BUF_LEN);
-		if( status = PcdReadCCfileLength(respon, &len), (MI_OK == status) )
-		{
-			NDEF_DataRead = (uint16_t)( (respon[1] << 8) | (respon[2]) );
-			memset(respon, 0, BUF_LEN);
-			if( status = PcdReadCCfile(0x0000, NDEF_DataRead, respon, &len), (MI_OK == status) )
-			{
-				return (MI_OK);
-			}
-			else
-			{
-				return (1);
-			}
-		}
-		else
-		{
-			return (1);
-		}
+	}
+	else
+	{
+		return (1);
+	}
+
+	memset(respon, 0, BUF_LEN);
+	len = 0;
+	status = PcdReadCCfileLength(respon, &len);
+	if( MI_OK == status )
+	{
+		NDEF_DataRead = (uint16_t)( (respon[1] << 8) | (respon[2]) );
+	}
+	else
+	{
+		return (1);
+	}
+	
+	memset(respon, 0, BUF_LEN);
+	status = PcdReadCCfile(0x0000, NDEF_DataRead, respon, &len);
+	if( MI_OK == status )
+	{
+		return MI_OK;
 	}
 	else
 	{
@@ -98,6 +121,7 @@ uint8_t ReadNDEFfile (uint8_t *NDEFfile_Data, uint16_t *NDEFfile_len)
 	}
 	
 	memset(respon, 0, BUF_LEN);
+	len = 0;
 	status = PcdSelectNDEFfile(respon, &len);
 	//printf("PcdSelectNDEFfile status = %x respon = %02x %02x %02x %02x\r\n",\
     status,respon[0],respon[1],respon[2],respon[3]);
@@ -110,6 +134,7 @@ uint8_t ReadNDEFfile (uint8_t *NDEFfile_Data, uint16_t *NDEFfile_len)
 	}
 	
 	memset(respon, 0, BUF_LEN);
+	len = 0;
 	//MRC500_DEBUG_START("PcdReadNDEFfileLength \r\n");
 	status = PcdReadNDEFfileLength(respon, &len);
 	//MRC500_DEBUG_END();
@@ -126,6 +151,7 @@ uint8_t ReadNDEFfile (uint8_t *NDEFfile_Data, uint16_t *NDEFfile_len)
 	}
 	NDEF_DataRead_Len = 28;
 	memset(respon, 0, BUF_LEN);
+	len = 0;
 	//MRC500_DEBUG_START("ReadNDEFfile \r\n");
 	status = PcdReadNDEFfile(0x0000, NDEF_DataRead_Len + 2, respon, &len);
 	//MRC500_DEBUG_END();
@@ -179,7 +205,6 @@ uint8_t WriteNDEFfile1( uint8_t *pDataToWrite )
 	status = PcdWriteNDEFfile(0x0000, 0x02, EraseLen, respon, &len);
 	if( (MI_OK == status) && (respon[1] == 0x90) && (respon[2] == 0x00) )
 	{
-		
 	}
 	else
 	{
@@ -230,27 +255,44 @@ uint8_t SendInterrupt (void)
 	uint8_t len = 0;
 	uint8_t status = 0;
 	memset(respon, 0, BUF_LEN);
-	if( status = ForceReadCCfile(), (MI_OK == status) )
+	status = ForceReadCCfile();
+	
+	if(MI_OK != status) 
 	{
-		if( status = PcdSelectSystemfile(respon, &len), ( (MI_OK == status) && (respon[1] == 0x90) && (respon[2] == 0x00) ) )
-		{
-			memset(respon, 0, BUF_LEN);
-			if( status = PcdReadSystemfile(0x0004, 0x01, respon, &len), ( (MI_OK == status) && ((respon[1] & 0x40 ) == 0x40) ) )
-			{
-				memset(respon, 0, BUF_LEN);
-				if( status = PcdSendInterrupt(respon, &len), ( (MI_OK == status) && (respon[1] == 0x90) && (respon[2] == 0x00) ) )
-				{	return status;		}
-				else
-				{	return 0x11; 		}
-			}
-			else
-			{	return 0x11; 	}
-		}
-		else
-		{  	return 0x11;   }
+		return 0x11;
+	}
+	
+	status = PcdSelectSystemfile(respon, &len);
+	if(( (MI_OK == status) && (respon[1] == 0x90) && (respon[2] == 0x00) )) 
+	{
 	}
 	else
-	{  	return 0x11;  }
+	{
+		return 0x11;
+	}
+	
+	memset(respon, 0, BUF_LEN);
+	len = 0;
+	status = PcdReadSystemfile(0x0004, 0x01, respon, &len);
+	if( (MI_OK == status) && ((respon[1] & 0x40 ) == 0x40) )
+	{
+	}
+	else
+	{
+		return 0x11;
+	}
+	
+	memset(respon, 0, BUF_LEN);
+	len = 0;
+	status = PcdSendInterrupt(respon, &len);
+	if( (MI_OK == status) && (respon[1] == 0x90) && (respon[2] == 0x00) ) 
+	{
+		return MI_OK;
+	}
+	else
+	{
+		return 0x11;
+	}
 }
 
 /*********************************************************************************
@@ -264,10 +306,15 @@ uint8_t Deselect (void)
 	uint8_t len = 0;
 	uint8_t status = 0;
 	memset(respon, 0, BUF_LEN);
-
-	if( status = PcdDeselect(respon, &len), ( (MI_OK == status) && (respon[0] == 0xC2) && (respon[1] == 0xE0) && (respon[2] == 0xB4)) )
-	{  	return status;	}
+	status = PcdDeselect(respon, &len);
+	
+	if( (MI_OK == status) && (respon[0] == 0xC2) && (respon[1] == 0xE0) && (respon[2] == 0xB4) )
+	{
+		return MI_OK;
+	}
 	else
-	{   return 0x11;  	}
+	{
+		return 0x11;
+	}
 }
 /**************************************END OF FILE****************************/
