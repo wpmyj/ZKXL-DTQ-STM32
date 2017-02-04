@@ -11,7 +11,7 @@
 #define _DEFINE_H_
 
 /* Defines ------------------------------------------------------------------*/
-
+#define OPEN_SILENT_MODE
 #define ENABLE_WATCHDOG					(1)
 //#define ENABLE_OUTPUT_MODE_NORMOL		
 //#define ENABLE_DEBUG_LOG			

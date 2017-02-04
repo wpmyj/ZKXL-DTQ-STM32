@@ -280,8 +280,11 @@ void App_card_process(void)
 		{
 			if( card_message_err != 2 )
 			{
-				//BEEP_EN();
+				#ifdef OPEN_SILENT_MODE
 				ledOn(LGREEN);
+				#else
+				BEEP_EN();
+				#endif
 				PcdHalt();
 				PcdAntennaOff();
 			}
@@ -332,8 +335,11 @@ void App_card_process(void)
 
 	if( card_current_status == 5 )
 	{
-		//BEEP_DISEN();
+		#ifdef OPEN_SILENT_MODE
 		ledOff(LGREEN);
+		#else
+		BEEP_DISEN();
+		#endif
 		rf_set_card_status(1);
 		find_card_ok = 1;
 		#ifdef SHOW_CARD_PROCESS_TIME

@@ -29,7 +29,6 @@
 #define TIM3_SUB_PRIORITY             1
 
 /* USART defines -------------------------------------------------------------*/
-/* USART defines -------------------------------------------------------------*/
 #define USART1pos                     USART1
 #define USART1pos_GPIO                GPIOA
 #define USART1pos_CLK                 RCC_APB2Periph_USART1
