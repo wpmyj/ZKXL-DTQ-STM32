@@ -38,7 +38,7 @@ Uart_MessageTypeDef uart_irq_send_massage;
 uint8_t uart_tx_status      = 0;
 
 /* uart global variables */
-extern nrf_communication_t	nrf_communication;
+extern nrf_communication_t	nrf_data;
 
 /* rf systick data */
 uint8_t spi_status_buffer[SPI_DATA_IRQ_BUFFER_BLOCK_COUNT][18];
@@ -457,18 +457,17 @@ void NRF1_RFIRQ_EXTI_IRQHandler(void)
 		EXTI_ClearITPendingBit(NRF1_EXTI_LINE_RFIRQ);
 
 		/* 读取数据 */
-		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_communication.receive_len,
-		                                         nrf_communication.receive_buf);
+		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_data.rlen, nrf_data.rbuf);
 		/* 进行 UID 校验,判断是否发送给自己的数据 */
-		if( *(nrf_communication.receive_buf+1) == nrf_communication.jsq_uid[0] &&
-			  *(nrf_communication.receive_buf+2) == nrf_communication.jsq_uid[1] &&
-				*(nrf_communication.receive_buf+3) == nrf_communication.jsq_uid[2] &&
-				*(nrf_communication.receive_buf+4) == nrf_communication.jsq_uid[3])
+		if( *(nrf_data.rbuf+1) == nrf_data.jsq_uid[0] &&
+			  *(nrf_data.rbuf+2) == nrf_data.jsq_uid[1] &&
+				*(nrf_data.rbuf+3) == nrf_data.jsq_uid[2] &&
+				*(nrf_data.rbuf+4) == nrf_data.jsq_uid[3])
 		{
 			if(BUFFERFULL != buffer_get_buffer_status(SPI_IRQ_BUFFER))
 			{
 				uint8_t send_data_status = get_clicker_send_data_status();
-				spi_write_data_to_buffer(SPI_IRQ_BUFFER,nrf_communication.receive_buf, send_data_status);
+				spi_write_data_to_buffer(SPI_IRQ_BUFFER,nrf_data.rbuf, send_data_status);
 			}
 			else
 			{

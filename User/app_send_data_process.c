@@ -17,15 +17,14 @@ extern uint8_t spi_status_write_index, spi_status_read_index, spi_status_count;
 uint8_t is_open_statistic = 0;
 uint8_t single_send_data_status = 0;
 uint8_t single_sned_data_count = 0;
-uint8_t request_data_status = 0;
+uint8_t retranmist_data_status = 0;
 
 uint8_t clicker_send_data_status = 0;
 static uint8_t pre_status = 0;
 static uint8_t sum_clicker_count = 0;
 
-extern nrf_communication_t nrf_communication;
+extern nrf_communication_t nrf_data;
 extern uint16_t list_tcb_table[16][8];
-
 
 extern Uart_MessageTypeDef backup_massage;
 extern uint8_t sum_clicker_count;
@@ -410,7 +409,7 @@ void rf_move_data_to_buffer( uint8_t *Message )
 							SEND_PRE_DELAY100US, REQUEST_TEMP_PRE_TABLE,PACKAGE_NUM_ADD);
 						nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
 							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, REQUEST_TEMP_ACK_TABLE,PACKAGE_NUM_ADD);
-						request_data_status = 1;
+						retranmist_data_status = 1;
 						sw_clear_timer(&request_data_timer);
 					}
 					else
@@ -421,7 +420,7 @@ void rf_move_data_to_buffer( uint8_t *Message )
 							SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
 						nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
 							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
-						request_data_status = 1;
+						retranmist_data_status = 1;
 						sw_clear_timer(&request_data_timer);
 					}			
 				}
@@ -441,7 +440,7 @@ void rf_move_data_to_buffer( uint8_t *Message )
 							SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
 						nrf_transmit_start(backup_massage.DATA, backup_massage.LEN,
 							NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_ADD);
-						request_data_status = 1;
+						retranmist_data_status = 1;
 						sw_clear_timer(&request_data_timer);
 					}
 					else
@@ -569,7 +568,7 @@ uint8_t spi_process_revice_data( void )
 					if( Is_return_ack )
 					{
 						/* 回复ACK */
-						memcpy( nrf_communication.dtq_uid, spi_message+5, 4 );
+						memcpy( nrf_data.dtq_uid, spi_message+5, 4 );
 						nrf_transmit_start(&temp,0,NRF_DATA_IS_ACK, 2, 20, SEND_DATA_ACK_TABLE,PACKAGE_NUM_SAM);
 					}
 
@@ -604,7 +603,7 @@ uint8_t spi_process_revice_data( void )
 					}
 
           /* 请求数据定时统计 */
-					if( request_data_status == 1 )
+					if( retranmist_data_status == 1 )
 					{
 						uint8_t Is_reviceed_uid = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,uidpos);
 						if( Is_reviceed_uid == 0 )
@@ -929,11 +928,11 @@ void retansmit_data( uint8_t status )
 		                     retransmit_check_tables[CUR_SUM_TABLE] );
 		/* 发送前导帧 */
 		whitelist_checktable_and( 0, SEND_DATA_ACK_TABLE, SEND_PRE_TABLE );
-		memset(nrf_communication.dtq_uid, 0, 4);
-		nrf_transmit_start( nrf_communication.dtq_uid, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
+		memset(nrf_data.dtq_uid, 0, 4);
+		nrf_transmit_start( nrf_data.dtq_uid, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
 		                    SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_SAM);
 		/* 发送数据帧 */
-		memset(nrf_communication.dtq_uid, 0, 4);
+		memset(nrf_data.dtq_uid, 0, 4);
 
 		whitelist_checktable_or(retransmit_check_tables[PRE_ACK_TABLE],SEND_DATA_ACK_TABLE);
 
@@ -1298,11 +1297,11 @@ void App_clickers_single_send_data_process( void )
 			{
 				/* 发送前导帧 */
 				whitelist_checktable_and( 0, SINGLE_SEND_DATA_ACK_TABLE, SEND_PRE_TABLE );
-				memcpy( nrf_communication.dtq_uid, Single_send_data_process.uid, 4 );
+				memcpy( nrf_data.dtq_uid, Single_send_data_process.uid, 4 );
 				nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
 														SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_SAM);
 				/* 发送数据帧 */
-				memcpy( nrf_communication.dtq_uid, Single_send_data_process.uid, 4 );
+				memcpy( nrf_data.dtq_uid, Single_send_data_process.uid, 4 );
 
 				nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL,
 														SEND_DATA_COUNT, SEND_DATA_DELAY100US, SINGLE_SEND_DATA_ACK_TABLE,PACKAGE_NUM_SAM);
@@ -1455,7 +1454,7 @@ void send_data_process_timer_init( void )
 	sw_create_timer(&retransmit_timer, SEND_DATA4_TIMEOUT, 1, 2, &(retransmit_tcb.status), NULL);
 
   /* create request timer */
-	sw_create_timer(&request_data_timer, SEND_DATA1_TIMEOUT, 1, 2, &request_data_status, NULL);
+	sw_create_timer(&request_data_timer, RETRANSMIT_DATA_TIME_UNIT, 1, 2, &retranmist_data_status, NULL);
 
 	/* create single send data timer */
 	sw_create_timer(&single_send_data_timer, SINGLE_SEND_DATA_TIMEOUT, 1, 2,
