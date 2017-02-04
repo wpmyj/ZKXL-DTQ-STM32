@@ -212,13 +212,23 @@ void App_card_process(void)
 			if(is_white_list_uid != OPERATION_ERR)
 			{
 				card_message_err  = 1;
-				NDEF_DataWrite[0] = 0;
-				NDEF_DataWrite[1] = 7;
+				NDEF_DataWrite[0]  = 0;
+				NDEF_DataWrite[1]  = 0x1C;
 				memcpy(NDEF_DataWrite+2,revicer.uid,4);
-				NDEF_DataWrite[6] = uid_pos;
-				ndef_xor          = XOR_Cal(NDEF_DataWrite,7);
-				NDEF_DataWrite[7] = ndef_xor;
-
+				NDEF_DataWrite[6]  = uid_pos;
+				if( Card_process.cmd_type == 0x28 )
+				{
+					memcpy(NDEF_DataWrite+7,Card_process.studentid,20);
+				}
+				ndef_xor           = XOR_Cal(NDEF_DataWrite+1,26);
+				NDEF_DataWrite[27] = ndef_xor;
+				{
+					uint8_t i;
+					DEBUG_CARD_DATA_LOG("WR:");
+					for(i=0;i<28;i++)
+						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataWrite[i]);
+					DEBUG_CARD_DATA_LOG("\r\n");
+				}
 				status = WriteNDEFfile1((uint8_t *)&NDEF_DataWrite);
 				DEBUG_CARD_DEBUG_LOG("WriteNDEFfile1 status = %d\r\n",status);
 				#ifdef SHOW_CARD_PROCESS_TIME
@@ -248,7 +258,13 @@ void App_card_process(void)
 					rf_set_card_status(1);
 					return;
 				}
-
+				{
+					uint8_t i;
+					DEBUG_CARD_DATA_LOG("RD:");
+					for(i=0;i<28;i++)
+						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataRead[i]);
+					DEBUG_CARD_DATA_LOG("\r\n");
+				}
 				status = SendInterrupt();
 				DEBUG_CARD_DEBUG_LOG("SendInterrupt status = %d\r\n",status);
 				#ifdef SHOW_CARD_PROCESS_TIME
@@ -325,8 +341,11 @@ void App_card_process(void)
 			{
 				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 				{
-					serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
 					memset(NDEF_DataRead,00,50);
+					memset(NDEF_DataWrite,00,28);
+					#ifndef 	OPEN_CARD_DATA_SHOW
+					serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
+					#endif
 				}
 			}
 		}

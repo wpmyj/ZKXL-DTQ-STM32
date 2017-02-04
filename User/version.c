@@ -31,6 +31,7 @@ const uint8_t company[16] = {
 uint8_t  jsq_uid[8];
 
 extern nrf_communication_t nrf_data;
+extern Revicer_Typedef   revicer;
 /*******************************************************************************
   * @brief  Get stm32 MCU.
   * @param  None
@@ -59,4 +60,6 @@ void get_mcu_uid(void)
 	nrf_data.jsq_uid[1] = (jsq_uid[3]&0x0F)|((jsq_uid[2]<<4)&0xF0);
 	nrf_data.jsq_uid[2] = (jsq_uid[5]&0x0F)|((jsq_uid[4]<<4)&0xF0);
 	nrf_data.jsq_uid[3] = (jsq_uid[7]&0x0F)|((jsq_uid[6]<<4)&0xF0);
+	
+	memcpy(revicer.uid,nrf_data.jsq_uid,4);
 }

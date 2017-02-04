@@ -6,7 +6,7 @@
 #include "rc500_handle_layer.h"
 
 //#define OPEN_CARD_DEBUG_SHOW
-
+  #define OPEN_CARD_DATA_SHOW
 
 
 /* 打印信息控制 */
@@ -16,6 +16,11 @@
 #define DEBUG_CARD_DEBUG_LOG(...)
 #endif
 
+#ifdef 	OPEN_CARD_DATA_SHOW
+#define DEBUG_CARD_DATA_LOG							     DEBUG_LOG
+#else
+#define DEBUG_CARD_DATA_LOG(...)
+#endif
 
 extern Process_tcb_Typedef Card_process;
 

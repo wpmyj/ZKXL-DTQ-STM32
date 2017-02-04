@@ -27,7 +27,7 @@
 #define SENDBUFFERSIZE       (1024*2)
 #define SPIBUFFERSIZE        (1024*2)
 #define SPIIRQBUFFERSIZE     (1024*2)
-#define PRINTBUFFERSIZE      (1)
+#define PRINTBUFFERSIZE      (1024)
 #define RINGBUFFERSUM        (5)
 
 /* buffer status  */
