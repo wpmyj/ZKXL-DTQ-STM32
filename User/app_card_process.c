@@ -14,10 +14,17 @@
 #include "rc500_handle_layer.h"
 #include "app_card_process.h"
 
+#define SHOW_CARD_PROCESS_TIME
+
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
-extern __IO uint32_t PowerOnTime;
 Process_tcb_Typedef Card_process;
+
+#ifdef SHOW_CARD_PROCESS_TIME
+extern __IO uint32_t     PowerOnTime;
+uint32_t StartTime,EndTime;
+#endif
+
 
 static Uart_MessageTypeDef card_message;
 static uint8_t card_process_status = 0;
@@ -229,6 +236,10 @@ void App_card_process(void)
 						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataWrite[i]);
 					DEBUG_CARD_DATA_LOG("\r\n");
 				}
+				#ifdef SHOW_CARD_PROCESS_TIME
+				EndTime = PowerOnTime - StartTime;
+				printf("UseTime:WriteNDEFfile0 = %d \r\n",EndTime);
+				#endif
 				status = WriteNDEFfile1((uint8_t *)&NDEF_DataWrite);
 				DEBUG_CARD_DEBUG_LOG("WriteNDEFfile1 status = %d\r\n",status);
 				#ifdef SHOW_CARD_PROCESS_TIME
@@ -258,13 +269,29 @@ void App_card_process(void)
 					rf_set_card_status(1);
 					return;
 				}
+				else
 				{
 					uint8_t i;
 					DEBUG_CARD_DATA_LOG("RD:");
 					for(i=0;i<28;i++)
 						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataRead[i]);
 					DEBUG_CARD_DATA_LOG("\r\n");
+				
+					if((NDEF_DataRead[6] != NDEF_DataWrite[6]) || (NDEF_DataRead[27] != NDEF_DataWrite[27]))
+					{
+						delete_uid_from_white_list(g_cSNR+4);
+						PcdHalt();
+						mfrc500_init();
+						rf_set_card_status(1);
+						return;
+					}
+					else
+					{
+						memset(NDEF_DataRead,00,50);
+						memset(NDEF_DataWrite,00,28);
+					}
 				}
+
 				status = SendInterrupt();
 				DEBUG_CARD_DEBUG_LOG("SendInterrupt status = %d\r\n",status);
 				#ifdef SHOW_CARD_PROCESS_TIME
@@ -341,8 +368,6 @@ void App_card_process(void)
 			{
 				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 				{
-					memset(NDEF_DataRead,00,50);
-					memset(NDEF_DataWrite,00,28);
 					#ifndef 	OPEN_CARD_DATA_SHOW
 					serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
 					#endif

@@ -179,7 +179,7 @@ uint8_t ReadNDEFfile (uint8_t *NDEFfile_Data, uint16_t *NDEFfile_len)
 uint8_t WriteNDEFfile1( uint8_t *pDataToWrite )
 {
 	uint8_t len = 0;
-	uint8_t EraseLen[2] = {0x00, 0x00};
+	//uint8_t EraseLen[2] = {0x00, 0x00};
 	uint8_t status = 0;
 	uint8_t i = 0;
 
@@ -192,6 +192,7 @@ uint8_t WriteNDEFfile1( uint8_t *pDataToWrite )
 	
 	/* Select NDEFfile  */
 	memset(respon, 0, BUF_LEN);
+	len = 0;
 	status = PcdSelectNDEFfile(respon, &len);
 	if((MI_OK == status) && (respon[1] == 0x90) && (respon[2] == 0x00))
 	{
@@ -200,17 +201,7 @@ uint8_t WriteNDEFfile1( uint8_t *pDataToWrite )
 	{
 		return 11;
 	}
-	
-	/* Erase NDEFfile Len  */
-	status = PcdWriteNDEFfile(0x0000, 0x02, EraseLen, respon, &len);
-	if( (MI_OK == status) && (respon[1] == 0x90) && (respon[2] == 0x00) )
-	{
-	}
-	else
-	{
-		return 11;
-	}
-	
+
 	#define NbByteToWrite_LEN 2
 //printf("NbByteToWrite = %d\r\n",NbByteToWrite);
 	for( i = 0; i<NbByteToWrite;  )
@@ -219,10 +210,12 @@ uint8_t WriteNDEFfile1( uint8_t *pDataToWrite )
 
 		if( (i+NbByteToWrite_LEN) > NbByteToWrite )
 				write_len = NbByteToWrite-i;
-//	printf("write data: %02x %02x ",*(pDataToWrite+i),*(pDataToWrite+i+1));
+	//printf("write data: %02x %02x ",*(pDataToWrite+i),*(pDataToWrite+i+1));
+		len = 0;
+		memset(respon, 0, BUF_LEN);
 		status = PcdWriteNDEFfile(i, write_len, pDataToWrite+i, respon, &len);
-//		printf("index = %02d PcdWriteNDEFfile2 status = %x respon = %02x %02x %02x %02x\r\n",
-//			i, status,respon[0],respon[1],respon[2],respon[3]);
+  //printf("index = %02d PcdWriteNDEFfile2 status = %x respon = %02x %02x %02x %02x\r\n",\
+			i, status,respon[0],respon[1],respon[2],respon[3]);
 		if( (MI_OK == status) && (respon[1] == 0x90) && (respon[2] == 0x00) )
 		{
 			i = i+write_len;
@@ -232,16 +225,7 @@ uint8_t WriteNDEFfile1( uint8_t *pDataToWrite )
 			return 11;
 		}
 	}
-	
-	/* Update NDEFfile Len  */
-	status = PcdWriteNDEFfile(0x0000, 0x02, pDataToWrite, respon, &len);
-	if( (MI_OK == status) && (respon[1] == 0x90) && (respon[2] == 0x00) )
-	{
-	}
-	else
-	{
-		return 11;
-	}
+
 	return MI_OK;
 }
 /*********************************************************************************
