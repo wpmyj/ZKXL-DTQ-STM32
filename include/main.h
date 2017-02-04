@@ -34,6 +34,7 @@
 #include "whitelist.h"
 #include "pos_handle_layer.h"
 #include "ringbuffer.h"
+#include "app_show_message_process.h"
 
 #endif //_MAIN_H_
 /**
