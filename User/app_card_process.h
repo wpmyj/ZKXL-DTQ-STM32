@@ -6,7 +6,7 @@
 #include "rc500_handle_layer.h"
 
 //#define OPEN_CARD_DEBUG_SHOW
-//#define OPEN_CARD_DATA_SHOW
+#define OPEN_CARD_DATA_SHOW
 
 
 /* 打印信息控制 */

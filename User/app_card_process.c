@@ -99,6 +99,7 @@ void App_card_process(void)
 	  MRC500_DEBUG_END();
 		if( status == MI_OK )
 		{
+			DEBUG_CARD_DEBUG_LOG("PcdRequest status = %d\r\n",status);
 			if(find_card_ok == 1)
 			{
 				sw_clear_timer(&card_second_find_timer);
@@ -121,6 +122,7 @@ void App_card_process(void)
 		}
 		else
 		{
+			DEBUG_CARD_DEBUG_LOG("PcdRequest status = %d\r\n",status);
 			return;
 		}
 		/* ·ÀÅö×²1 */
@@ -175,7 +177,6 @@ void App_card_process(void)
 		DEBUG_CARD_DEBUG_LOG("SelectApplication status = %d\r\n",status);
 		if( status != MI_OK )
 		{
-			PcdHalt();
 			mfrc500_init();
 			rf_set_card_status(1);
 			return;
@@ -191,12 +192,11 @@ void App_card_process(void)
 			DEBUG_CARD_DEBUG_LOG("ReadNDEFfile status = %d\r\n",status);
 			if( status != MI_OK )
 			{
-				PcdHalt();
 				mfrc500_init();
 				rf_set_card_status(1);
 				return;
 			}
-			
+
 			is_white_list_uid = search_uid_in_white_list(g_cSNR+4,&read_uid_pos);
 			if(is_white_list_uid == OPERATION_ERR)
 			{
@@ -252,7 +252,7 @@ void App_card_process(void)
 					rf_set_card_status(1);
 					return;
 				}
-				
+
 				status = ReadNDEFfile(NDEF_DataRead, &NDEF_Len);
 				DEBUG_CARD_DEBUG_LOG("ReadNDEFfile status = %d\r\n",status);
 				#ifdef SHOW_CARD_PROCESS_TIME
@@ -311,7 +311,7 @@ void App_card_process(void)
 			rf_set_card_status(3);
 		}
 	}
-	
+
 	if( card_current_status == 3 )
 	{
 		if(wtrte_flash_ok == 1)
@@ -323,6 +323,7 @@ void App_card_process(void)
 				#else
 				BEEP_EN();
 				#endif
+				Deselect();
 				PcdHalt();
 				PcdAntennaOff();
 			}
@@ -370,9 +371,14 @@ void App_card_process(void)
 			{
 				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 				{
-					#ifndef 	OPEN_CARD_DATA_SHOW
+					#ifdef OPEN_CARD_DATA_SHOW 
+					if( wl.attendance_sttaus == ON )
+						serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
+					#else
 					serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
 					#endif
+						
+			
 				}
 			}
 		}
