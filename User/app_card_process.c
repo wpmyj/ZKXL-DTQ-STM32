@@ -14,8 +14,8 @@
 #include "rc500_handle_layer.h"
 #include "app_card_process.h"
 
-#define SHOW_CARD_PROCESS_TIME
-
+//#define SHOW_CARD_PROCESS_TIME
+extern uint8_t g_cSNR[10];	
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
 Process_tcb_Typedef Card_process;
@@ -25,21 +25,21 @@ extern __IO uint32_t     PowerOnTime;
 uint32_t StartTime,EndTime;
 #endif
 
-
 static Uart_MessageTypeDef card_message;
 static uint8_t card_process_status = 0;
-
+static uint8_t is_white_list_uid = 0, ndef_wr_xor = 0, ndef_rd_xor = 0xFF;
 /* 返回卡类型 */
-uint8_t g_cardType[40] = {0x00};	
-uint8_t g_uid_len      = 0;
-extern uint8_t g_cSNR[10];						        // M1卡序列号
-uint8_t respon[BUF_LEN + 20] = {0x00};	
-uint8_t NDEF_DataWrite[30]   = {0x00};
-uint8_t NDEF_DataRead[0xFF]  = {0x00};
-uint16_t NDEF_Len = 0;
-static uint8_t wtrte_flash_ok = 0;
-static uint8_t uid_pos = 0xFF, card_message_err = 0;
-static uint8_t find_card_ok = 0;
+uint8_t g_cardType[40];	
+uint8_t respon[BUF_LEN + 20];	
+uint8_t NDEF_DataWrite[30];
+uint8_t NDEF_DataRead[0xFF];
+uint16_t NDEF_Len               = 0;
+static uint8_t g_uid_len        = 0;
+static uint8_t wtrte_flash_ok   = 0;
+static uint8_t read_uid_pos     = 0xFF;
+static uint8_t write_uid_pos    = 0xFF;
+static uint8_t card_message_err = 0;
+static uint8_t find_card_ok     = 0;
 /******************************************************************************
   Function:rf_set_card_status
   Description:
@@ -81,7 +81,6 @@ void App_card_process(void)
 {
 	/* 获取当前状态 */
 	uint8_t card_current_status = 0;
-	uint8_t is_white_list_uid = 0,ndef_xor = 0;
 	
 	card_current_status = rf_get_card_status();
 
@@ -198,10 +197,10 @@ void App_card_process(void)
 				return;
 			}
 			
-			is_white_list_uid = search_uid_in_white_list(g_cSNR+4,&uid_pos);
+			is_white_list_uid = search_uid_in_white_list(g_cSNR+4,&read_uid_pos);
 			if(is_white_list_uid == OPERATION_ERR)
 			{
-				uid_pos = 0xFF;
+				read_uid_pos = 0xFF;
 			}
 			card_message_err = 1;
 			wtrte_flash_ok = 1;
@@ -209,12 +208,13 @@ void App_card_process(void)
 			EndTime = PowerOnTime - StartTime;
 			printf("UseTime:ReadNDEFfile = %d \r\n",EndTime);
 			#endif
+			rf_set_card_status(3);
 		}
 
 		/* 配对指令 */
 		if( wl.match_status == ON )
 		{
-			is_white_list_uid = add_uid_to_white_list(g_cSNR+4,&uid_pos);
+			is_white_list_uid = add_uid_to_white_list(g_cSNR+4,&write_uid_pos);
 
 			if(is_white_list_uid != OPERATION_ERR)
 			{
@@ -222,16 +222,16 @@ void App_card_process(void)
 				NDEF_DataWrite[0]  = 0;
 				NDEF_DataWrite[1]  = 0x1C;
 				memcpy(NDEF_DataWrite+2,revicer.uid,4);
-				NDEF_DataWrite[6]  = uid_pos;
+				NDEF_DataWrite[6]  = write_uid_pos;
 				if( Card_process.cmd_type == 0x28 )
 				{
 					memcpy(NDEF_DataWrite+7,Card_process.studentid,20);
 				}
-				ndef_xor           = XOR_Cal(NDEF_DataWrite+1,26);
-				NDEF_DataWrite[27] = ndef_xor;
+				ndef_wr_xor        = XOR_Cal(NDEF_DataWrite+1,26);
+				NDEF_DataWrite[27] = ndef_wr_xor;
 				{
 					uint8_t i;
-					DEBUG_CARD_DATA_LOG("WR:");
+					DEBUG_CARD_DATA_LOG("NDEF_DataWrite:");
 					for(i=0;i<28;i++)
 						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataWrite[i]);
 					DEBUG_CARD_DATA_LOG("\r\n");
@@ -248,8 +248,6 @@ void App_card_process(void)
 				#endif
 				if( status != MI_OK )
 				{
-					delete_uid_from_white_list(g_cSNR+4);
-					PcdHalt();
 					mfrc500_init();
 					rf_set_card_status(1);
 					return;
@@ -263,8 +261,6 @@ void App_card_process(void)
 				#endif
 				if( status != MI_OK )
 				{
-					delete_uid_from_white_list(g_cSNR+4);
-					PcdHalt();
 					mfrc500_init();
 					rf_set_card_status(1);
 					return;
@@ -272,15 +268,15 @@ void App_card_process(void)
 				else
 				{
 					uint8_t i;
-					DEBUG_CARD_DATA_LOG("RD:");
+					DEBUG_CARD_DATA_LOG("NDEF_DataRead :");
 					for(i=0;i<28;i++)
 						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataRead[i]);
 					DEBUG_CARD_DATA_LOG("\r\n");
-				
-					if((NDEF_DataRead[6] != NDEF_DataWrite[6]) || (NDEF_DataRead[27] != NDEF_DataWrite[27]))
+					ndef_rd_xor        = XOR_Cal(NDEF_DataRead+1,26);
+					if((NDEF_DataRead[6]  != NDEF_DataWrite[6])  || 
+						 (NDEF_DataRead[27] != NDEF_DataWrite[27]) || 
+					   (NDEF_DataRead[27] != ndef_rd_xor))
 					{
-						delete_uid_from_white_list(g_cSNR+4);
-						PcdHalt();
 						mfrc500_init();
 						rf_set_card_status(1);
 						return;
@@ -289,6 +285,7 @@ void App_card_process(void)
 					{
 						memset(NDEF_DataRead,00,50);
 						memset(NDEF_DataWrite,00,28);
+						DEBUG_CARD_DATA_LOG("NDEF_DataRead and NDEF_DataWrite Clear!\r\n");
 					}
 				}
 
@@ -300,8 +297,6 @@ void App_card_process(void)
 				#endif
 				if( status != MI_OK )
 				{
-					delete_uid_from_white_list(g_cSNR+4);
-					PcdHalt();
 					mfrc500_init();
 					rf_set_card_status(1);
 					return;
@@ -346,7 +341,14 @@ void App_card_process(void)
 			memcpy(card_message.SIGN,Card_process.sign,4);
 			card_message.LEN     = 25;
 			memset(card_message.DATA,0x00,25);
-			card_message.DATA[0] = uid_pos;
+			if( wl.attendance_sttaus == ON )
+			{
+				card_message.DATA[0] = read_uid_pos;
+			}
+			if( wl.match_status == ON )
+			{
+				card_message.DATA[0] = write_uid_pos;
+			}
 			memcpy(card_message.DATA+1,g_cSNR+4,4);
 			memcpy(card_message.DATA+5,NDEF_DataRead+7,20);
 			if( Card_process.cmd_type == 0x25 )
