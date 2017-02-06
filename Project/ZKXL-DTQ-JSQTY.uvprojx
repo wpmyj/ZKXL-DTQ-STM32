@@ -476,16 +476,6 @@
               <FilePath>..\include\main.h</FilePath>
             </File>
             <File>
-              <FileName>misc_func.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\include\misc_func.h</FilePath>
-            </File>
-            <File>
-              <FileName>rc500_handle_layer.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\include\rc500_handle_layer.h</FilePath>
-            </File>
-            <File>
               <FileName>stm32f10x_conf.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\include\stm32f10x_conf.h</FilePath>
@@ -529,11 +519,6 @@
               <FileName>whitelist.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\include\whitelist.h</FilePath>
-            </File>
-            <File>
-              <FileName>pos_handle_layer.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\include\pos_handle_layer.h</FilePath>
             </File>
             <File>
               <FileName>board.h</FileName>

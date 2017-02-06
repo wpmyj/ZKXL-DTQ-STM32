@@ -49,7 +49,8 @@ uint8_t PcdAnticoll(uint8_t antiFlag, uint8_t *snr);
 uint8_t PcdSelect1(uint8_t *snr, uint8_t *res);
 uint8_t PcdSelect2(uint8_t *snr, uint8_t *res);
 uint8_t SelectApplication (void);
-uint8_t WriteNDEFfile1( uint8_t *pDataToWrite );
+uint8_t ReadNDEFfile (uint8_t *NDEFfile_Data, uint16_t *NDEFfile_len);
+uint8_t WriteNDEFfile( uint8_t *pDataToWrite );
 uint8_t SendInterrupt (void);
 uint8_t Deselect (void);
 

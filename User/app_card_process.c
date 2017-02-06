@@ -10,8 +10,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "pos_handle_layer.h"
-#include "rc500_handle_layer.h"
+#include "app_serial_cmd_process.h"
 #include "app_card_process.h"
 
 //#define SHOW_CARD_PROCESS_TIME
@@ -240,7 +239,7 @@ void App_card_process(void)
 				EndTime = PowerOnTime - StartTime;
 				printf("UseTime:WriteNDEFfile0 = %d \r\n",EndTime);
 				#endif
-				status = WriteNDEFfile1((uint8_t *)&NDEF_DataWrite);
+				status = WriteNDEFfile((uint8_t *)&NDEF_DataWrite);
 				DEBUG_CARD_DEBUG_LOG("WriteNDEFfile1 status = %d\r\n",status);
 				#ifdef SHOW_CARD_PROCESS_TIME
 				EndTime = PowerOnTime - StartTime;

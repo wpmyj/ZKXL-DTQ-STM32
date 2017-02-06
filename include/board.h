@@ -66,6 +66,9 @@
 #include "zl_rp551_main_f.h"
 #endif
 
+/* platform misc functions's declaritions */
+uint8_t XOR_Cal(uint8_t *data, uint16_t length);
+
 #endif //_BOARD_H_
 
 /**************************************END OF FILE****************************/
