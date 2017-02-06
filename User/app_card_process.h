@@ -2,8 +2,7 @@
 #define __APP_CARD_PROCESS_H_
 
 #include "main.h"
-#include "pos_handle_layer.h"
-#include "rc500_handle_layer.h"
+#include "app_serial_cmd_process.h"
 
 //#define OPEN_CARD_DEBUG_SHOW
 //#define OPEN_CARD_DATA_SHOW

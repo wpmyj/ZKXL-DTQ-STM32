@@ -176,7 +176,7 @@ uint8_t ReadNDEFfile (uint8_t *NDEFfile_Data, uint16_t *NDEFfile_len)
   Return:
   Others:None
 ******************************************************************************/
-uint8_t WriteNDEFfile1( uint8_t *pDataToWrite )
+uint8_t WriteNDEFfile( uint8_t *pDataToWrite )
 {
 	uint8_t len = 0;
 	//uint8_t EraseLen[2] = {0x00, 0x00};

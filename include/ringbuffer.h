@@ -12,7 +12,7 @@
 #define __RINGBUFFER_H_
 
 #include "stm32f10x.h"
-#include "pos_handle_layer.h"
+#include "app_serial_cmd_process.h"
 
 /* Private define ------------------------------------------------------------*/
 /* Set parameter of budffer */

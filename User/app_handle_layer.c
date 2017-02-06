@@ -10,8 +10,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "pos_handle_layer.h"
-#include "rc500_handle_layer.h"
+#include "app_serial_cmd_process.h"
 #include "app_send_data_process.h"
 #include "app_show_message_process.h"
 #include "app_card_process.h"
