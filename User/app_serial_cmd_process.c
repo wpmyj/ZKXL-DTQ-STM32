@@ -500,11 +500,13 @@ void App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeD
 				case 0x12:
 				case 0x13:
 				case 0x14: /* 增加对一键关机指令的支持 */
+				case 0x17: /* 增加对清屏指令的支持 */
 					{
 						/* 暂存题目 */
 						backup_massage.HEADER = 0x5C;
 						backup_massage.TYPE = RMessage->TYPE;
 						memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+						memcpy(backup_massage.SIGN, RMessage->SIGN, 4);
 						backup_massage.LEN = RMessage->LEN;
 						memcpy( backup_massage.DATA, (uint8_t *)(RMessage->DATA), RMessage->LEN );
 						backup_massage.XOR = RMessage->XOR;
