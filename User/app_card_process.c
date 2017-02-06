@@ -377,8 +377,6 @@ void App_card_process(void)
 					#else
 					serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
 					#endif
-						
-			
 				}
 			}
 		}

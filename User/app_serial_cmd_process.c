@@ -732,6 +732,7 @@ void App_stop_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_Message
 		memset( rf_var.tx_buf, 0,rf_var.tx_len);
 
 		change_clicker_send_data_status( 0 );
+		send_data_env_init();
 	}
 
 	*( pdata + ( i++ ) ) = 0x00;

@@ -230,6 +230,10 @@ void clear_uid_check_table( void )
 	clear_white_list_table(9);
 	DEBUG_STATISTICS_LOG("\r\nSum count:%d\r\n",sum_clicker_count);
 	sum_clicker_count = 0;
+	{
+		retranmist_data_status = 1;
+		sw_clear_timer(&request_data_timer);
+	}
 }
 
 /******************************************************************************
@@ -1080,6 +1084,9 @@ void send_data_env_init(void)
 
 	single_send_data_status = 0;
 	single_sned_data_count  = 0;
+	
+	retranmist_data_status = 0;
+	sw_clear_timer(&request_data_timer);
 }
 
 /******************************************************************************
