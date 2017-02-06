@@ -187,13 +187,33 @@ void App_card_process(void)
 		/* ¿¼ÇÚÖ¸Áî */
 		if( wl.attendance_sttaus == ON )
 		{
-			status = ReadNDEFfile(NDEF_DataWrite, &NDEF_Len);
+			status = ReadNDEFfile(NDEF_DataRead, &NDEF_Len);
 			DEBUG_CARD_DEBUG_LOG("ReadNDEFfile status = %d\r\n",status);
 			if( status != MI_OK )
 			{
 				mfrc500_init();
 				rf_set_card_status(1);
 				return;
+			}
+			else
+			{
+				ndef_wr_xor = XOR_Cal(NDEF_DataRead+1,26);
+				if(NDEF_DataRead[27] != ndef_wr_xor)
+				{
+					mfrc500_init();
+					rf_set_card_status(1);
+					return;
+				}
+				else
+				{
+					uint8_t i;
+					DEBUG_CARD_DATA_LOG("NDEF_DataRead :");
+					for(i=0;i<28;i++)
+						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataRead[i]);
+					DEBUG_CARD_DATA_LOG("\r\n");
+					memset(NDEF_DataRead,00,28);
+					DEBUG_CARD_DATA_LOG("NDEF_DataRead Clear!\r\n");
+				}
 			}
 
 			is_white_list_uid = search_uid_in_white_list(g_cSNR+4,&read_uid_pos);
@@ -228,13 +248,6 @@ void App_card_process(void)
 				}
 				ndef_wr_xor        = XOR_Cal(NDEF_DataWrite+1,26);
 				NDEF_DataWrite[27] = ndef_wr_xor;
-				{
-					uint8_t i;
-					DEBUG_CARD_DATA_LOG("NDEF_DataWrite:");
-					for(i=0;i<28;i++)
-						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataWrite[i]);
-					DEBUG_CARD_DATA_LOG("\r\n");
-				}
 				#ifdef SHOW_CARD_PROCESS_TIME
 				EndTime = PowerOnTime - StartTime;
 				printf("UseTime:WriteNDEFfile0 = %d \r\n",EndTime);
@@ -251,7 +264,14 @@ void App_card_process(void)
 					rf_set_card_status(1);
 					return;
 				}
-
+				else
+				{
+					uint8_t i;
+					DEBUG_CARD_DATA_LOG("NDEF_DataWrite:");
+					for(i=0;i<28;i++)
+						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataWrite[i]);
+					DEBUG_CARD_DATA_LOG("\r\n");
+				}
 				status = ReadNDEFfile(NDEF_DataRead, &NDEF_Len);
 				DEBUG_CARD_DEBUG_LOG("ReadNDEFfile status = %d\r\n",status);
 				#ifdef SHOW_CARD_PROCESS_TIME
@@ -318,7 +338,7 @@ void App_card_process(void)
 			if( card_message_err != 2 )
 			{
 				#ifdef OPEN_SILENT_MODE
-				ledOn(LGREEN);
+				ledOn(LBLUE);
 				#else
 				BEEP_EN();
 				#endif
@@ -351,10 +371,6 @@ void App_card_process(void)
 			}
 			memcpy(card_message.DATA+1,g_cSNR+4,4);
 			memcpy(card_message.DATA+5,NDEF_DataRead+7,20);
-			if( Card_process.cmd_type == 0x25 )
-			{
-				memcpy(card_message.DATA+5,NDEF_DataWrite+7,20);
-			}
 			card_message.XOR = XOR_Cal(&card_message.TYPE,31);
 			card_message.END  = 0xCA;	
 		}
@@ -370,10 +386,7 @@ void App_card_process(void)
 			{
 				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 				{
-					#ifdef OPEN_CARD_DATA_SHOW 
-					if( wl.attendance_sttaus == ON )
-						serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
-					#else
+					#ifndef OPEN_CARD_DATA_SHOW 
 					serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
 					#endif
 				}
@@ -385,7 +398,7 @@ void App_card_process(void)
 	if( card_current_status == 5 )
 	{
 		#ifdef OPEN_SILENT_MODE
-		ledOff(LGREEN);
+		ledOff(LBLUE);
 		#else
 		BEEP_DISEN();
 		#endif
