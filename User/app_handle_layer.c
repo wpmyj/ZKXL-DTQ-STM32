@@ -38,7 +38,7 @@ void app_handle_layer(void)
 	App_card_process();
 
 	/*clickers systick process */
-	App_clickers_systick_process();
+	//App_clickers_systick_process();
 	
 	/*printf message show process */
 	message_show_process();

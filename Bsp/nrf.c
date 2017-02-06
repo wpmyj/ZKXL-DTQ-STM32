@@ -342,7 +342,8 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 #ifdef OPEN_ACT_TABLE_SHOW
 		{
 			int i = 0;
-			printf("ACK TABLE[%d]:",sel_table);
+			printf("Seq:%2x Pac:%2x ",revicer.pre_seq-1,revicer.sen_num);
+			printf("ACK TABLE[%2d]:",sel_table);
 			for(i=0;i<8;i++)
 			{
 				printf("%04x ",list_tcb_table[sel_table][i]);
@@ -397,7 +398,8 @@ void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_da
 #ifdef OPEN_ACT_TABLE_SHOW
 		{
 			int i = 0;
-			printf("\r\nSUM TABLE[%d]:",sel_table);
+			printf("Seq:%2x Pac:%2x ",revicer.pre_seq-1,revicer.sen_num);
+			printf("SUM TABLE[%2d]:",sel_table);
 			for(i=0;i<8;i++)
 			{
 				printf("%04x ",list_tcb_table[sel_table][i]);
