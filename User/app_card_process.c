@@ -254,6 +254,10 @@ void App_card_process(void)
 				{
 					memcpy(NDEF_DataWrite+7,Card_process.studentid,20);
 				}
+				if( Card_process.cmd_type == 0x41 )
+				{
+					memset(NDEF_DataWrite+7, 0x00, 20);
+				}
 				ndef_wr_xor        = XOR_Cal(NDEF_DataWrite+1,26);
 				NDEF_DataWrite[27] = ndef_wr_xor;
 
@@ -354,12 +358,6 @@ void App_card_process(void)
 						rf_set_card_status(1);
 						return;
 					}
-					else
-					{
-						memset(NDEF_DataRead ,00,28);
-						memset(NDEF_DataWrite,00,28);
-						DEBUG_CARD_DATA_LOG("NDEF_DataRead and NDEF_DataWrite Clear!\r\n");
-					}
 				}
 
 				status = SendInterrupt();
@@ -444,6 +442,7 @@ void App_card_process(void)
 				{
 					#ifndef OPEN_CARD_DATA_SHOW 
 					serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
+					DEBUG_CARD_DATA_LOG("NDEF_DataRead and NDEF_DataWrite Clear!\r\n");
 					#endif
 				}
 			}
@@ -459,6 +458,14 @@ void App_card_process(void)
 		BEEP_DISEN();
 		#endif
 		rf_set_card_status(1);
+		memset(NDEF_DataRead ,00,28);
+		memset(NDEF_DataWrite,00,28);
+		if( Card_process.cmd_type == 0x28 )
+		{
+			memcpy(NDEF_DataWrite+7,Card_process.studentid,20);
+			wl.match_status = OFF;
+			rf_set_card_status(0);
+		}
 		find_card_ok = 1;
 		#ifdef SHOW_CARD_PROCESS_TIME
 		EndTime = PowerOnTime - StartTime;
