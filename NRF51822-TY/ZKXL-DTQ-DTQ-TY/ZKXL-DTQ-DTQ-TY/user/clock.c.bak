@@ -1,0 +1,112 @@
+
+/*-------------------------------- Include File -----------------------------------------*/
+#include "clock.h"
+/*-------------------------------- Macro definition -------------------------------------*/
+
+/*-------------------------------- Local Variable ----------------------------------------*/
+
+clock_struct_t				clock_struct;
+
+/*-------------------------------- Gocal Variable ----------------------------------------*/
+clock_struct_t				*CLOCK = &clock_struct;
+/*-------------------------------- Function Declaration ----------------------------------*/
+static void adc_event_handler(nrf_drv_adc_evt_t const * p_event);
+static void adc_read_buf(nrf_adc_value_t *buf);
+static void adc_start_sample(void);
+static void adc_update(void);
+/*----------------------------------------------------------------------------------------*/
+
+void ADC_init(void)
+{
+    ret_code_t ret_code;
+    nrf_drv_adc_config_t config = NRF_DRV_ADC_DEFAULT_CONFIG;
+	
+    ret_code = nrf_drv_adc_init(&config, adc_event_handler);
+    APP_ERROR_CHECK(ret_code);
+
+    nrf_drv_adc_channel_enable(&m_channel_config);
+	
+	/* ADC结构体参数初始化 */
+	ADC->ok_flg 		= false;
+	ADC->update_flg 	= false;
+	ADC->read_buf 		= adc_read_buf;
+	ADC->start    		= adc_start_sample;
+	ADC->update   		= adc_update;
+
+}
+
+static void adc_read_buf(nrf_adc_value_t *buf)
+{
+	*buf = adc_buffer[0];
+}
+
+
+static void adc_start_sample(void)
+{
+	nrf_drv_adc_buffer_convert(adc_buffer,ADC_BUFFER_SIZE);
+	nrf_drv_adc_sample();
+}
+                            
+
+/**< Channel instance. Default configuration used. */
+
+/**
+ * @brief ADC interrupt handler.
+ */
+static void adc_event_handler(nrf_drv_adc_evt_t const * p_event)
+{
+	uint16_t value,tmp;
+    if (p_event->type == NRF_DRV_ADC_EVT_DONE)
+    {
+        ADC->ok_flg = true;			//读取结果放在adc_buffer[ADC_BUFFER_SIZE]中 
+		
+//		value = 3600 * adc_buffer[0] / 1024;
+//		
+//		tmp = value / 1000;
+//		LCD_diplay_segment(4,tmp);
+//		
+//		tmp = value % 1000;
+//		tmp = tmp / 100;
+//		LCD_diplay_segment(3,tmp);
+//		
+//		tmp = value % 100;
+//		tmp = tmp / 10;
+//		LCD_diplay_segment(2,tmp);
+//		
+//		tmp = value % 10;
+//		LCD_diplay_segment(1,tmp);	
+    }
+}
+
+static void adc_update(void)
+{
+	uint16_t adc_value;
+	if(ADC->update_flg)
+	{
+		ADC->update_flg = false;
+		ADC->start();
+	}
+	
+	if(ADC->ok_flg)
+	{
+		ADC->ok_flg = false;
+		adc_value = 3600 * adc_buffer[0] / 1024;	//单位：mV
+		tmp_debug("[ADC]value:%d \r\n",adc_value);
+		
+		/* LCD显示电池电量 */
+		if(adc_value > 3100)
+			LCD->battery(BATTERY_LEVEL_3);
+		else if(adc_value > 3000)
+			LCD->battery(BATTERY_LEVEL_2);
+		else if(adc_value > 2900)
+			LCD->battery(BATTERY_LEVEL_1);
+		else
+			LCD->battery(BATTERY_LEVEL_0);
+	}
+}
+
+
+
+
+
+

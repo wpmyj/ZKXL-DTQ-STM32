@@ -1,0 +1,30 @@
+#ifndef __CLOCK_H
+#define	__CLOCK_H
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+
+#include "define.h"
+
+
+
+
+typedef struct 
+{
+	bool				ok_flg;					
+	bool				update_flg;
+	
+	void				(*start)(void);
+	void				(*update)(void);
+	void				(*read_buf)(nrf_adc_value_t *buf);
+}clock_struct_t;
+
+
+extern clock_struct_t				*CLOCK;
+
+void CLOCK_init(void);
+
+
+#endif 
+

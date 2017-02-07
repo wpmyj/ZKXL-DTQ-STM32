@@ -14,26 +14,26 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "board.h"
 #include "stm32f10x.h"
 #include "define.h"
 #include "variable.h"
-#include "mcu_config.h"
 #include "init.h"
 #include "hal_uart.h"
-#include "misc_func.h"
 #include "stm32f10x_it.h"
 #include "mfrc500.h"
 #include "m24sr_cmd.h"
 #include "define.h"
 
-#include "delay.h"
+#include "app_timer.h"
 #include "eeprom.h"
 #include "gpio.h"
 #include "version.h"
 #include "nrf.h"
 #include "whitelist.h"
-#include "pos_handle_layer.h"
+#include "app_serial_cmd_process.h"
 #include "ringbuffer.h"
+#include "app_show_message_process.h"
 
 #endif //_MAIN_H_
 /**

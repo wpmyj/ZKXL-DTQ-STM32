@@ -11,7 +11,7 @@
 #define _DEFINE_H_
 
 /* Defines ------------------------------------------------------------------*/
-
+//#define OPEN_SILENT_MODE
 #define ENABLE_WATCHDOG					(1)
 //#define ENABLE_OUTPUT_MODE_NORMOL		
 //#define ENABLE_DEBUG_LOG			
@@ -21,7 +21,7 @@
 #define DISABLE_ALL_IRQ()  			__set_PRIMASK(1);
 #define ENABLE_ALL_IRQ()   			__set_PRIMASK(0);
 
-#define UART_BAUD								(115200)
+#define UART_BAUD								1152000
 
 #ifdef 	ENABLE_DEBUG_LOG
 #define DebugLog								printf
@@ -31,7 +31,6 @@
 /* Uart Message configuration */
 #define UART_NBUF								(240)
 #define RF_NBUF									(UART_NBUF)
-
 
 #endif //_DEFINE_H_
 /**

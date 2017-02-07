@@ -9,16 +9,16 @@
 #define WHITE_LIST_USE_TABLE_POS_OF_FEE   (483)
 
 
-#define OPERATION_NOUSE            (2)
-#define OPERATION_ERR              (1)
-#define OPERATION_SUCCESS          (0)
+#define OPERATION_NOUSE                   (2)
+#define OPERATION_ERR                     (1)
+#define OPERATION_SUCCESS                 (0)
 
 #define UID_USE_TABLE                     (0)
 #define UID_ONLINE_TABLE                  (1)
 #define UID_ONLINE_TEMP_TABLE             (2)
 
 #ifdef 	ENABLE_DEBUG_LOG
-#define WhiteListDebug								printf
+#define WhiteListDebug								    printf
 #else
 #define WhiteListDebug(...)
 #endif
@@ -29,12 +29,6 @@ typedef enum
 	ON 	= 1
 } Switch_State;
 
-//extern white_list_t			white_list[MAX_WHITE_LEN];		// 白名单列表
-extern uint8_t						white_len;						// 白名单长度
-extern Switch_State				white_on_off;					// 白名单开关
-extern Switch_State				attendance_on_off;		// 考勤开关 
-extern Switch_State				match_on_off;					// 配对开关 
-extern uint16_t						match_number;					// 配对序号
 extern uint8_t            uid_p;
 extern uint8_t		        uid_len;					    // M1卡序列号长度
 extern uint8_t 	          g_cSNR[10];						// M1卡序列号
@@ -55,14 +49,15 @@ bool store_len_to_fee(uint8_t len);
 uint8_t get_len_of_white_list(void);
 bool store_switch_status_to_fee(uint8_t switch_status);
 uint8_t get_switch_status_of_white_list(void);
-void get_white_list_use_table(void);
+void get_white_list_from_flash(void);
 void flash_white_list_use_table(void);
-void get_white_list_use_table(void);
 void set_index_of_white_list_pos( uint8_t use_or_online, uint8_t index );
 void clear_index_of_white_list_pos( uint8_t use_or_online, uint8_t index );
 bool get_nouse_pos_of_white_list( uint8_t *pos);
-bool get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[]);
+bool get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[], uint8_t *uidpos );
 void clear_white_list_online_table(void);
 bool get_index_of_white_list_pos_status( uint8_t use_or_online, uint8_t index );
 void copy_online_to_store_table( void );
+void clear_white_list_table(uint8_t sel_table);
+void clear_current_uid_index( void );
 #endif // __WHITE_LIST_H_

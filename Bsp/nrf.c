@@ -10,8 +10,8 @@
 
 #include "main.h"
 #include "nrf.h"
-
-
+#include "app_send_data_process.h"
+#include "app_spi_send_data_process.h"
 
 #ifdef NRF_DEBUG
 #define nrf_debug  printf
@@ -19,11 +19,158 @@
 #define nrf_debug(...)
 #endif
 
-extern nrf_communication_t nrf_communication;
-extern uint8_t 					   dtq_to_jsq_sequence;
-extern uint8_t 					   jsq_to_dtq_sequence;
-extern uint8_t 					   dtq_to_jsq_packnum;
-extern uint8_t 					   jsq_to_dtq_packnum;
+extern nrf_communication_t nrf_data;
+extern uint16_t            list_tcb_table[13][8];
+extern WhiteList_Typedef wl;
+extern Revicer_Typedef   revicer;
+
+#ifdef ZL_RP551_MAIN_F
+void nrf1_spi_init(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+	SPI_InitTypeDef  SPI_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+	EXTI_InitTypeDef EXTI_InitStructure;
+
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);  
+	
+	/* Configure SPI_MISO Pin */
+	GPIO_InitStructure.GPIO_Pin   = NRF1_SPI_MISO_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+	GPIO_Init(NRF1_SPI_MISO_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI_MOSI Pin */
+	GPIO_InitStructure.GPIO_Pin   = NRF1_SPI_MOSI_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+	GPIO_Init(NRF1_SPI_MOSI_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI_SCK Pin */
+	GPIO_InitStructure.GPIO_Pin   = NRF1_SPI_SCK_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+	GPIO_Init(NRF1_SPI_SCK_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI_CSN Pin */								//CSN 配置
+	GPIO_InitStructure.GPIO_Pin   = NRF1_SPI_CSN_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(NRF1_SPI_CSN_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI_CE Pin */
+	GPIO_InitStructure.GPIO_Pin   = NRF1_SPI_CE_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(NRF1_SPI_CE_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI_IRQ Pin */
+	GPIO_InitStructure.GPIO_Pin   = NRF1_SPI_IRQ_PIN;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+	GPIO_Init(NRF1_SPI_IRQ_PORT, &GPIO_InitStructure);
+
+	/* NRF1_SPI相关参数配置 */
+	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
+	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
+	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
+	/* 空闲为低 */
+	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
+	/* 第一个电平读取信号  模式0 */
+	SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
+	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
+	/* 不超过2M */
+	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_32;
+	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
+	SPI_InitStructure.SPI_CRCPolynomial = 7;
+
+	SPI_Init(SPI1, &SPI_InitStructure);
+
+  /* Connect EXTI5 Line to PC.05 pin */
+  GPIO_EXTILineConfig(NRF1_RFIRQ_PortSource, GPIO_PinSource5);
+	
+	EXTI_InitStructure.EXTI_Line    = NRF1_EXTI_LINE_RFIRQ;
+	EXTI_InitStructure.EXTI_Mode    = EXTI_Mode_Interrupt;
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+	EXTI_Init(&EXTI_InitStructure);
+
+	/* NRF1_SPI中断配置 */
+	NVIC_PriorityGroupConfig(SYSTEM_MVIC_GROUP_SET);
+	NVIC_InitStructure.NVIC_IRQChannel = NRF1_RFIRQ_EXTI_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NRF1_PREEMPTION_PRIORITY;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = NRF_SUB_PRIORITY;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+
+	SPI_Cmd(SPI1, ENABLE);
+	NRF1_CSN_HIGH();		
+}
+
+void nrf2_spi_init(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+	SPI_InitTypeDef  SPI_InitStructure;
+
+
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);      
+	
+	/* Configure SPI_MISO Pin */
+	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_MISO_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+	GPIO_Init(NRF2_SPI_MISO_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI_MOSI Pin */
+	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_MOSI_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+	GPIO_Init(NRF2_SPI_MOSI_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI_SCK Pin */
+	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_SCK_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+	GPIO_Init(NRF2_SPI_SCK_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI_CSN Pin */								//CSN 配置
+	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_CSN_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(NRF2_SPI_CSN_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI_CE Pin */
+	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_CE_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(NRF2_SPI_CE_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI_IRQ Pin */
+	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_IRQ_PIN;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+	GPIO_Init(NRF2_SPI_IRQ_PORT, &GPIO_InitStructure);
+
+	/* NRF2_SPI相关参数配置 */
+	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
+	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
+	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
+	/* 空闲为低 */
+	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
+	/* 第一个电平读取信号  模式0 */
+	SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
+	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
+	/* 不超过2M */
+	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
+	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
+	SPI_InitStructure.SPI_CRCPolynomial = 7;
+
+	SPI_Init(SPI2, &SPI_InitStructure);
+
+	SPI_Cmd(SPI2, ENABLE);
+	NRF2_CSN_HIGH();		
+}
+#endif
 /******************************************************************************
   Function:my_nrf_transmit_start
   Description:
@@ -38,6 +185,7 @@ extern uint8_t 					   jsq_to_dtq_packnum;
 ******************************************************************************/
 void nrf51822_spi_init(void)
 {
+#ifdef ZL_RP551_MAIN_E
 	GPIO_InitTypeDef GPIO_InitStructure;
 	SPI_InitTypeDef  SPI_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
@@ -100,7 +248,7 @@ void nrf51822_spi_init(void)
 	/* SPI中断配置 */
 	NVIC_PriorityGroupConfig(SYSTEM_MVIC_GROUP_SET);
 	NVIC_InitStructure.NVIC_IRQChannel = RFIRQ_EXTI_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NRF_PREEMPTION_PRIORITY;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NRF1_PREEMPTION_PRIORITY;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = NRF_SUB_PRIORITY;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
@@ -108,13 +256,21 @@ void nrf51822_spi_init(void)
 	GPIO_EXTILineConfig(RFIRQ_PortSource, RFIRQ_PinSource);
 	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
 	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
-	EXTI_InitStructure.EXTI_Line = EXTI_LINE_RFIRQ;
+	EXTI_InitStructure.EXTI_Line = NRF1_EXTI_LINE_RFIRQ;
 	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
 	EXTI_Init(&EXTI_InitStructure);
 
 	SPI_Cmd(SPI1, ENABLE);
-	SPI_CSN_HIGH();		//片选拉高，禁止SPI
-	SPI_CSN_HIGH_2();	//别忘，浪费我半天时间
+	SPI_CSN_HIGH();	
+	SPI_CSN_HIGH_2();	
+
+	GPIOInit_SE2431L();
+#endif
+
+#ifdef ZL_RP551_MAIN_F
+	nrf1_spi_init();
+	nrf2_spi_init();
+#endif
 }
 
 
@@ -145,7 +301,7 @@ void TIM3_Int_Init(u16 arr,u16 psc)
 }
 
 /******************************************************************************
-  Function:my_nrf_transmit_start
+  Function:nrf_transmit_start
   Description:
   Input:	data_buff：	   要发送的数组
 			data_buff_len：要发送的数组长度
@@ -155,114 +311,110 @@ void TIM3_Int_Init(u16 arr,u16 psc)
   Return:
   Others:注意：通信方式限制，若向同一UID答题器下发数据，时间要间隔3S以上
 ******************************************************************************/
-void my_nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_data_type, uint8_t send_mdoe)
+void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_data_type,
+												uint8_t count, uint8_t delay100us, uint8_t sel_table, uint8_t Is_pack_add)
 {
-	if(nrf_data_type != NRF_DATA_IS_ACK)		//有效数据包，发送nrf_communication.transmit_buf内容
+	if(Is_pack_add == 1)
 	{
-		nrf_communication.transmit_ing_flag = true;
-		nrf_communication.transmit_ok_flag = false;
-		nrf_communication.transmit_buf[0]  = 0x61;
-		memcpy((nrf_communication.transmit_buf + 1), nrf_communication.dtq_uid, 4);
-		memcpy((nrf_communication.transmit_buf + 5), nrf_communication.jsq_uid, 4);
-		nrf_communication.transmit_buf[9]  = jsq_to_dtq_sequence;
-		nrf_communication.transmit_buf[10] = jsq_to_dtq_packnum;
-		nrf_communication.transmit_buf[11] = NRF_DATA_IS_USEFUL;
-		nrf_communication.transmit_buf[12] = 0xFF;
-		nrf_communication.transmit_buf[13] = 0xFF;
+		revicer.sen_num++;
+	}
+
+	if(nrf_data_type == NRF_DATA_IS_USEFUL)		//有效数据包，发送nrf_data.tbuf内容
+	{
+		/* data header */
+		nrf_data.tbuf[0]  = 0x61;
+		memcpy((nrf_data.tbuf + 1), nrf_data.dtq_uid, 4);
+		memcpy((nrf_data.tbuf + 5), nrf_data.jsq_uid, 4);
+		nrf_data.tbuf[9]  = revicer.sen_seq++;
+		nrf_data.tbuf[10] = revicer.sen_num;
+		nrf_data.tbuf[11] = NRF_DATA_IS_USEFUL;
+		nrf_data.tbuf[12] = 0xFF;
+		nrf_data.tbuf[13] = 0xFF;
 
 		/* len */
-		nrf_communication.transmit_buf[14] = data_buff_len;
+		nrf_data.tbuf[14] = data_buff_len;
 
 		/* get data */
-		memcpy((nrf_communication.transmit_buf + 15), data_buff, data_buff_len);	//有效数据从第10位开始放
+		memcpy((nrf_data.tbuf + 15), data_buff, data_buff_len);	//有效数据从第10位开始放
 
-		nrf_communication.transmit_buf[15 + data_buff_len] = XOR_Cal(nrf_communication.transmit_buf+1,14+data_buff_len);
-		nrf_communication.transmit_buf[16 + data_buff_len] = 0x21;
-
-		nrf_communication.transmit_len = data_buff_len + 17;
-		
-		/* 开始通讯之前先发2次，之后开启定时判断重发机制 */
-		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
-		uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
-
-		if(send_mdoe)
-			TIM_Cmd(TIM3, ENABLE);
-	}
-	else if(nrf_data_type == NRF_DATA_IS_ACK)	//ACK数据包，发送nrf_communication.software_ack_buf 内容
-	{
-		int i ;
-		nrf_communication.software_ack_buf[0] = 0x61;
-		memcpy((nrf_communication.software_ack_buf + 1), nrf_communication.dtq_uid, 4);
-		memcpy((nrf_communication.software_ack_buf + 5), nrf_communication.jsq_uid, 4);
-		nrf_communication.software_ack_buf[9]  = dtq_to_jsq_sequence;
-		nrf_communication.software_ack_buf[10] = dtq_to_jsq_packnum;
-		nrf_communication.software_ack_buf[11] = NRF_DATA_IS_ACK;
-		nrf_communication.software_ack_buf[12] = 0xFF;
-		nrf_communication.software_ack_buf[13] = 0xFF;
-		nrf_communication.software_ack_buf[14] = 0;
-		nrf_communication.software_ack_buf[15] = XOR_Cal(nrf_communication.software_ack_buf+1,14);
-		nrf_communication.software_ack_buf[16] = 0x21;
-		
-		nrf_communication.software_ack_len = 17;
-
-		uesb_nrf_write_tx_payload(nrf_communication.software_ack_buf,nrf_communication.software_ack_len);
-	}
-	else{;}
-
-}
-
-
-/******************************************************************************
-  Function:my_nrf_transmit_tx_success_handler
-  Description:向答题器发送数据后，收到答题器返回的软件ACK
-  Input:None
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-void my_nrf_transmit_tx_success_handler(void)
-{
-	nrf_debug("nrf_debug，发送成功，包号：%02X	\n",jsq_to_dtq_sequence);
-}
-
-
-/******************************************************************************
-  Function:my_nrf_transmit_tx_success_handler
-  Description:向答题器发送数据后，达到最大重发次数后，未收到答题器返回的软件ACK
-  Input:None
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-void my_nrf_transmit_tx_failed_handler(void)
-{
-	nrf_debug("nrf_debug，发送失败，包号：%02X	\n",jsq_to_dtq_sequence);
-}
-
-
-/******************************************************************************
-  Function:my_nrf_transmit_tx_success_handler
-  Description:收到答题器下发下来的数据
-  Input:None
-  Output:
-  Return:
-  Others:答题器下发的数据完整保存在rf_var.rx_buf（包括包头0x5A、包尾0xCA、XOR校验、
-         有效数据等），根据需要自行处理
-******************************************************************************/
-void my_nrf_receive_success_handler(void)
-{
-#ifdef ENABLE_RF_DATA_SHOW
-	uint8_t i;
-	nrf_debug("nrf_debug，收到答题器下发有效数据。打印如下：\r\n");
-	for(i = 0; i < rf_var.rx_len; i++)
-	{
-		nrf_debug("%02X ", rf_var.rx_buf[i]);
-		if((i+1)%20 == 0)
-			nrf_debug("\r\n");
-	}
-	nrf_debug("\r\n");
-
+		/* 检测是否为定向重发帧，如果是则加入状态索引表 */
+		memcpy(nrf_data.tbuf+15 + data_buff_len, list_tcb_table[sel_table], 16);
+#ifdef OPEN_ACT_TABLE_SHOW
+		{
+			int i = 0;
+			printf("Seq:%2x Pac:%2x ",revicer.pre_seq-1,revicer.sen_num);
+			printf("ACK TABLE[%2d]:",sel_table);
+			for(i=0;i<8;i++)
+			{
+				printf("%04x ",list_tcb_table[sel_table][i]);
+			}
+			printf("\r\n");
+		}
 #endif
+
+		/* xor data */
+		nrf_data.tbuf[15+16 + data_buff_len] = XOR_Cal(nrf_data.tbuf+1,14+data_buff_len+16);
+		nrf_data.tbuf[16+16 + data_buff_len] = 0x21;
+
+		nrf_data.tlen = data_buff_len + 17+16;
+
+		/* 开始通讯之前先发2次，之后开启定时判断重发机制 */
+		spi_send_data_write_tx_payload(nrf_data.tbuf,nrf_data.tlen,count,delay100us,1);
+	}
+	else if(nrf_data_type == NRF_DATA_IS_ACK)	//ACK数据包，发送nrf_data.tbuf 内容
+	{
+		uint8_t uidpos;
+		search_uid_in_white_list(nrf_data.dtq_uid,&uidpos);
+		nrf_data.tbuf[0] = 0x61;
+		memcpy((nrf_data.tbuf + 1), wl.uids[uidpos].uid, 4);
+		memcpy((nrf_data.tbuf + 5), nrf_data.jsq_uid, 4);
+		nrf_data.tbuf[9]  = wl.uids[uidpos].rev_num;
+		nrf_data.tbuf[10] = wl.uids[uidpos].rev_seq;
+		nrf_data.tbuf[11] = NRF_DATA_IS_ACK;
+		nrf_data.tbuf[12] = 0xFF;
+		nrf_data.tbuf[13] = 0xFF;
+		nrf_data.tbuf[14] = 0;
+		nrf_data.tbuf[15] = XOR_Cal(nrf_data.tbuf+1,14);
+		nrf_data.tbuf[16] = 0x21;
+
+		nrf_data.tlen = 17;
+
+	  spi_send_data_write_tx_payload(nrf_data.tbuf,nrf_data.tlen,count,delay100us,1);
+	}
+	else if( nrf_data_type == NRF_DATA_IS_PRE )
+	{
+		nrf_data.tbuf[0] = 0x61;
+		memcpy((nrf_data.tbuf + 1), nrf_data.dtq_uid, 4);
+		memcpy((nrf_data.tbuf + 5), nrf_data.jsq_uid, 4);
+		nrf_data.tbuf[9]  = revicer.pre_seq++;
+		nrf_data.tbuf[10] = revicer.sen_num;
+		nrf_data.tbuf[11] = NRF_DATA_IS_PRE;
+		nrf_data.tbuf[12] = 0xFF;
+		nrf_data.tbuf[13] = 0xFF;
+		/* len */
+		nrf_data.tbuf[14] = 0;
+		/* get data */
+		memcpy(nrf_data.tbuf+15 + data_buff_len, list_tcb_table[sel_table], 16);
+#ifdef OPEN_ACT_TABLE_SHOW
+		{
+			int i = 0;
+			printf("Seq:%2x Pac:%2x ",revicer.pre_seq-1,revicer.sen_num);
+			printf("SUM TABLE[%2d]:",sel_table);
+			for(i=0;i<8;i++)
+			{
+				printf("%04x ",list_tcb_table[sel_table][i]);
+			}
+			printf("\r\n");
+		}
+#endif
+
+		nrf_data.tbuf[15+16 + data_buff_len] = XOR_Cal(nrf_data.tbuf+1,14+data_buff_len+16);
+		nrf_data.tbuf[16+16 + data_buff_len] = 0x21;
+
+		nrf_data.tlen = 17+16;
+
+		spi_send_data_write_tx_payload(nrf_data.tbuf,nrf_data.tlen, count, delay100us, 10);
+	}
 }
 
 /**************************************END OF FILE****************************/

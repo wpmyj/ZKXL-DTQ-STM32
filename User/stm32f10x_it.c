@@ -22,13 +22,13 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
+#include "app_send_data_process.h"
 /* uart global variables */
+
+uint32_t clicker_test_printf_flg = 0;
 // revice part
 Uart_MessageTypeDef uart_irq_revice_massage;
 static uint32_t uart_rx_timeout = 0;
-static uint32_t rf_tx_time_cnt = 0;
-static uint32_t rf_tx_timeout_cnt = 0;
 
 static bool     flag_uart_rxing = false;
 static uint8_t  uart_status     = UartHEADER;
@@ -38,44 +38,12 @@ Uart_MessageTypeDef uart_irq_send_massage;
 uint8_t uart_tx_status      = 0;
 
 /* uart global variables */
-extern nrf_communication_t	nrf_communication;
-extern uint8_t 					    dtq_to_jsq_sequence;
-extern uint8_t 			        jsq_to_dtq_sequence;
-extern uint8_t 					    dtq_to_jsq_packnum;
-extern uint8_t 			        jsq_to_dtq_packnum;
-extern uint8_t              sign_buffer[4];
+extern nrf_communication_t	nrf_data;
 
 /* rf systick data */
-volatile uint8_t rf_systick_status = 0; // 0 = IDLE
-/******************************************************************************
-  Function:rf_change_systick_status
-  Description:
-		修改systick的状态
-  Input :
-		rf_status: systick的新状态
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-void rf_change_systick_status(uint8_t rf_status)
-{
-	rf_systick_status = rf_status;
-	DebugLog("<%s> rf_systick_status = %d \r\n",__func__,rf_systick_status);
-}
+uint8_t spi_status_buffer[SPI_DATA_IRQ_BUFFER_BLOCK_COUNT][18];
+uint8_t spi_status_write_index = 0, spi_status_read_index = 0, spi_status_count = 0;
 
-/******************************************************************************
-  Function:rf_get_systick_status
-  Description:
-		获取systick的状态
-  Input :
-  Output:systick的新状态
-  Return:
-  Others:None
-******************************************************************************/
-uint8_t rf_get_systick_status(void)
-{
-	return rf_systick_status ;
-}
 /******************************************************************************
   Function:uart_clear_message
   Description:
@@ -287,42 +255,6 @@ void uart_send_data_state_machine( void )
 	}
 }
 
-/******************************************************************************
-  Function:App_rf_check_process
-  Description:
-		App RF 消息缓存处理函数
-  Input :
-  Return:
-  Others:None
-******************************************************************************/
-void rf_move_data_to_buffer(nrf_communication_t *Message)
-{
-	Uart_MessageTypeDef rf_message;
-	uint8_t i = 0 ;
-
-	rf_message.HEADER = 0x5C;
-	rf_message.TYPE = 0x10;
-
-	memcpy(rf_message.SIGN,nrf_communication.receive_buf+5,4);
-
-	/* 获取消息的有效长度 */
-	rf_message.LEN = Message->receive_buf[14];
-
-	for (i=0;i<rf_message.LEN;i++)
-	{
-		rf_message.DATA[i]=Message->receive_buf[i+15];
-	}
-
-	rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.TYPE)), i+6);
-	rf_message.END = 0xCA;
-
-	/* 存入缓存 */
-	if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
-	{
-		serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
-	}
-}
-
 /** @addtogroup STM32F10x_StdPeriph_Examples
   * @{
   */
@@ -461,92 +393,20 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
+	Timer_list_handler();
+
 	TimingDelay_Decrement();
-
-	if(get_clicker_send_data_status() == 3)
-	{
-		clicker_send_data_time_set(1);
-		if(clicker_send_data_time_set(2) == 300)
-		{
-			clicker_send_data_time_set(0);
-			change_clicker_send_data_status(4);
-		}
-	}
-	
-	if(rf_systick_status == 3)
-	{
-		rf_tx_time_cnt++;
-
-		/* 5S 产生心跳包 同时计数器清零 */
-		if(rf_tx_time_cnt >= 5000)
-		{
-			rf_change_systick_status(4);
-			rf_tx_time_cnt = 0;
-		}
-	}
-
-	if(rf_systick_status == 1)
-	{
-		rf_tx_timeout_cnt++;
-		/* 1S 结束在线状态统计，清零超时基数器 */
-		if(rf_tx_timeout_cnt >= 1000)
-		{
-			rf_change_systick_status(2);
-			change_clicker_send_data_status(2);
-			rf_tx_timeout_cnt = 0;
-		}
-	}
 
 	if(flag_uart_rxing)												//串口接收超时计数器
 	{
 		uart_rx_timeout++;
-		if(uart_rx_timeout>5)										//5msc超时后重新开始接收
+		if(uart_rx_timeout>5)										//5ms超时后重新开始接收
 		{
 			uart_clear_message(&uart_irq_revice_massage);
 			flag_uart_rxing = false;
 			uart_status = UartHEADER;
 		}
 	}
-
-	if(timer_1ms++ > 1000)
-	{
-#ifdef ENABLE_WATCHDOG
-		IWDG_ReloadCounter();													//定时喂狗
-#endif //ENABLE_WATCHDOG
-		timer_1ms = 0;
-		time.second++;
-		if(time.second >= 60)
-		{
-			time.second = 0;
-			time.minute++;
-			if(time.minute >= 60)
-			{
-				time.minute = 0;
-				time.hour++;
-				if(time.hour >= 24)
-				{
-					time.hour = 0;
-				}
-			}
-		}
-	}
-
-	if(time_for_buzzer_on > 1)									//蜂鸣器开关延时时间
-	{
-		time_for_buzzer_on--;
-	}
-
-	if((time_for_buzzer_on == 0)&&(time_for_buzzer_off > 0))	//蜂鸣器响延时
-	{
-		time_for_buzzer_off--;
-	}
-
-	if(delay_nms)
-	{
-		delay_nms --;
-	}
-
-
 }
 
 /******************************************************************************/
@@ -589,175 +449,35 @@ void USART1pos_IRQHandler(void)
 	}
 }
 
-bool search_uid_in_white_list(uint8_t *g_uid , uint8_t *position);
-
 uint8_t irq_flag;
-
-void RFIRQ_EXTI_IRQHandler(void)
+void NRF1_RFIRQ_EXTI_IRQHandler(void)
 {
-	bool    Is_whitelist_uid = OPERATION_ERR;
-	uint8_t uidpos = 0;
-
-	if(EXTI_GetITStatus(EXTI_LINE_RFIRQ) != RESET)
+	if(EXTI_GetITStatus(NRF1_EXTI_LINE_RFIRQ) != RESET)
 	{
-		EXTI_ClearITPendingBit(EXTI_LINE_RFIRQ);
+		EXTI_ClearITPendingBit(NRF1_EXTI_LINE_RFIRQ);
 
-		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_communication.receive_len, nrf_communication.receive_buf);		//读取数据
-
-		/* 白名单开启，检测是否为白名单的内容 */
-		Is_whitelist_uid = search_uid_in_white_list(nrf_communication.receive_buf+5,&uidpos);
-
-		if(Is_whitelist_uid == OPERATION_SUCCESS)
+		/* 读取数据 */
+		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_data.rlen, nrf_data.rbuf);
+		/* 进行 UID 校验,判断是否发送给自己的数据 */
+		if( *(nrf_data.rbuf+1) == nrf_data.jsq_uid[0] &&
+			  *(nrf_data.rbuf+2) == nrf_data.jsq_uid[1] &&
+				*(nrf_data.rbuf+3) == nrf_data.jsq_uid[2] &&
+				*(nrf_data.rbuf+4) == nrf_data.jsq_uid[3])
 		{
-			uint8_t systick_current_status = 0, clicker_send_data_current_status = 0;
-
-			/* 获取当前的systick的状态 */
-			systick_current_status = rf_get_systick_status();
-			clicker_send_data_current_status = get_clicker_send_data_status();
-			
-			if(systick_current_status == 1)
+			if(BUFFERFULL != buffer_get_buffer_status(SPI_IRQ_BUFFER))
 			{
-				set_index_of_white_list_pos(1,uidpos);
+				uint8_t send_data_status = get_clicker_send_data_status();
+				spi_write_data_to_buffer(SPI_IRQ_BUFFER,nrf_data.rbuf, send_data_status);
 			}
-			
-			if((clicker_send_data_current_status == 2)|(clicker_send_data_current_status == 3))
+			else
 			{
-				set_index_of_white_list_pos(5,uidpos);
+				DEBUG_BUFFER_ACK_LOG("spi irq buffer full \r\n");
 			}
-		}
-		
-		/* 白名单是否关闭 */
-		if(white_on_off == OFF)
-		{
-			/* 白名单关闭数据透传 */
-			Is_whitelist_uid = OPERATION_SUCCESS;
-		}
-
-		/* 白名单匹配 */
-		if(Is_whitelist_uid == OPERATION_SUCCESS)
-		{
-			/* get uid */
-			memcpy(sign_buffer   ,nrf_communication.receive_buf+5 ,4);
-			memcpy(nrf_communication.dtq_uid,nrf_communication.receive_buf+5 ,4);
-
-			/* 收到的是ACK */
-			if(nrf_communication.receive_buf[11] == NRF_DATA_IS_ACK)
-			{
-//			printf("NRF_DATA_IS_ACK\r\n");
-//			printf("sequence num = %2x \r\n",(uint8_t)*(nrf_communication.receive_buf+9));
-//			printf("package  num = %2x \r\n",(uint8_t)*(nrf_communication.receive_buf+10));
-//			printf("UID = %2x%2x%2x%2x",*(nrf_communication.receive_buf+5),*(nrf_communication.receive_buf+6),*(nrf_communication.receive_buf+7),*(nrf_communication.receive_buf+8));
-				/* 返回ACK的包号和上次发送的是否相同 */
-				if(nrf_communication.receive_buf[10] == jsq_to_dtq_packnum)
-				{
-					nrf_communication.transmit_ok_flag = true;
-//				jsq_to_dtq_packnum++;
-//				printf("irq_debug, same sequence %02X  \n",nrf_communication.receive_buf[10]);
-//				for(i = 0; i < nrf_communication.receive_len; i++)
-//				{
-//					printf("%02X ", nrf_communication.receive_buf[i]);
-//				}printf("\r\n");
-				}
-				else
-				{
-					//my_nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK);
-				}
-			}
-			else//收到的是有效数据
-			{
-//				printf("NRF_DATA_NOT_ACK\r\n");
-//				printf("sequence num = %2x \r\n",(uint8_t)*(nrf_communication.receive_buf+9));
-//				printf("package  num = %2x \r\n",(uint8_t)*(nrf_communication.receive_buf+10));
-
-				/* 重复接收的数据，返回包号和上次一样的ACK */
-				if(dtq_to_jsq_packnum == nrf_communication.receive_buf[10])
-				{
-          /* 判断是否为加强针，回复ACK */
-					if(dtq_to_jsq_sequence != nrf_communication.receive_buf[9])
-					{
-						dtq_to_jsq_sequence = nrf_communication.receive_buf[9];
-						dtq_to_jsq_packnum = nrf_communication.receive_buf[10];
-						
-						my_nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK,1);
-					}
-				}
-				else//有效数据，返回ACK
-				{
-//				printf("irq_debug dtq_to_jsq_sequence = %02X  \r\n",nrf_communication.receive_buf[10]);
-//				for(i = 0; i < nrf_communication.receive_len; i++)
-//				{
-//					printf("%02X ", nrf_communication.receive_buf[i]);
-//				}
-//				printf("\r\n");
-					/* 有效数据复制到缓存 */
-					rf_move_data_to_buffer(&nrf_communication);
-					/* 更新接收数据帧号与包号 */
-					dtq_to_jsq_sequence = nrf_communication.receive_buf[9];
-					dtq_to_jsq_packnum = nrf_communication.receive_buf[10];
-					/* 回复ACK */
-					my_nrf_transmit_start(&dtq_to_jsq_sequence,0,NRF_DATA_IS_ACK,1);
-					/* 用户接收到数据处理函数 */
-					my_nrf_receive_success_handler();
-				}
-			}
-		}
-		else //白名单不匹配，滤掉
-		{
-//			printf("UID = %2x%2x%2x%2x \r\n",
-//		       *(nrf_communication.receive_buf+1),*(nrf_communication.receive_buf+2),
-//		       *(nrf_communication.receive_buf+2),*(nrf_communication.receive_buf+3));
-//		  printf("Update:The Clickers not register! \r\n ");
 		}
 	}
 	ledToggle(LBLUE);
 }
 
-
-//软件模拟ACK通信，处理定时器
-void TIM3_IRQHandler(void)   //TIM3中断
-{
-	if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET)  //检查TIM3更新中断发生与否
-	{
-		TIM_ClearITPendingBit(TIM3, TIM_IT_Update  );  //清除TIMx更新中断标志
-		//irq_debug("定时器3中断  ");
-
-		nrf_communication.number_of_retransmits++;
-		if( true == nrf_communication.transmit_ing_flag )		//正在传输
-		{
-			if( true == nrf_communication.transmit_ok_flag ) 	//收到有效ACK,发送成功
-			{
-				my_nrf_transmit_tx_success_handler();			//用户发送成功处理函数
-				nrf_communication.transmit_ing_flag = false;
-				nrf_communication.transmit_ok_flag = true;
-				nrf_communication.number_of_retransmits = 0;
-				TIM_Cmd(TIM3, DISABLE); 						//停止定时器
-				//irq_debug("irq_debug:transmit succeed,sequence:	%02X \r\n",jsq_to_dtq_sequence);
-			}
-			else if( nrf_communication.number_of_retransmits > NRF_MAX_NUMBER_OF_RETRANSMITS )	//达到最大重发次数，发送失败
-			{
-				my_nrf_transmit_tx_failed_handler();			//用户发送失败处理函数
-				nrf_communication.transmit_ing_flag = false;
-				nrf_communication.transmit_ok_flag = false;
-				nrf_communication.number_of_retransmits = 0;
-				TIM_Cmd(TIM3, DISABLE);
-				//irq_debug("irq_debug:transmit  failure,sequence: %02X \r\n",jsq_to_dtq_sequence);
-			}
-			else
-			{
-				jsq_to_dtq_sequence++;
-				nrf_communication.transmit_buf[9] = jsq_to_dtq_sequence;
-				nrf_communication.transmit_buf[15 + rf_var.tx_len] = XOR_Cal(nrf_communication.transmit_buf+1,14+rf_var.tx_len);
-				uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
-			}
-		}
-		else	//定时器第一次发送数据
-		{
-			nrf_communication.transmit_ing_flag = true;
-			nrf_communication.transmit_ok_flag = false;
-			uesb_nrf_write_tx_payload(nrf_communication.transmit_buf,nrf_communication.transmit_len);
-		}
-	}
-}
 /**
   * @}
   */

@@ -1,0 +1,10 @@
+--cpu Cortex-M0
+".\objects\main.o"
+".\objects\led.o"
+".\objects\nrf_delay.o"
+".\objects\system_nrf51.o"
+".\objects\arm_startup_nrf51.o"
+--strict --scatter ".\Objects\drl51822project.sct"
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list ".\Listings\drl51822project.map" -o .\Objects\drl51822project.axf

@@ -1,0 +1,1200 @@
+Dependencies for Project 'drl51822project', Target 'Target 1': (DO NOT MODIFY !)
+F (..\user\main.c)(0x58771D95)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\main.o --omf_browse .\main.crf --depend .\main.d)
+I (..\user\define.h)(0x586B0DCE)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+I (..\user\radio.h)(0x5872F533)
+I (..\components\properitary_rf\esb\nrf_esb.h)(0x586B0DC2)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\user\uart.h)(0x586B0DCE)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\user\my_misc_fun.h)(0x586B0DCE)
+I (..\user\timer.h)(0x5876122F)
+I (..\components\libraries\timer\app_timer.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\user\ringbuffer.h)(0x5875CD79)
+I (..\user\my_wdt.h)(0x586B0DCE)
+I (..\components\drivers_nrf\wdt\nrf_drv_wdt.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_wdt.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\user\lcd.h)(0x5875CC84)
+I (..\user\rtc.h)(0x586B0DCE)
+I (..\user\key.h)(0x586B0DCE)
+I (..\components\drivers_nrf\gpiote\nrf_drv_gpiote.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpiote.h)(0x586B0DC0)
+I (..\user\adc.h)(0x58759EFC)
+I (..\components\drivers_nrf\adc\nrf_drv_adc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (..\user\application.h)(0x586B0DCE)
+I (..\user\power.h)(0x58744DEA)
+I (..\user\clock.h)(0x586B0DCE)
+I (..\components\drivers_nrf\clock\nrf_drv_clock.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_clock.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+I (..\user\nfc.h)(0x586B0DCE)
+I (..\user\iic.h)(0x586B0DCE)
+I (..\user\m24sr_cmd.h)(0x586B0DCE)
+F (..\user\m24sr_cmd.c)(0x586B0DCE)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\m24sr_cmd.o --omf_browse .\m24sr_cmd.crf --depend .\m24sr_cmd.d)
+I (..\user\m24sr_cmd.h)(0x586B0DCE)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\user\nfc.h)(0x586B0DCE)
+I (..\user\iic.h)(0x586B0DCE)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+I (..\user\define.h)(0x586B0DCE)
+I (..\user\radio.h)(0x5872F533)
+I (..\components\properitary_rf\esb\nrf_esb.h)(0x586B0DC2)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\user\uart.h)(0x586B0DCE)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\user\my_misc_fun.h)(0x586B0DCE)
+I (..\user\timer.h)(0x5876122F)
+I (..\components\libraries\timer\app_timer.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\user\ringbuffer.h)(0x5875CD79)
+I (..\user\my_wdt.h)(0x586B0DCE)
+I (..\components\drivers_nrf\wdt\nrf_drv_wdt.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_wdt.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\user\lcd.h)(0x5875CC84)
+I (..\user\rtc.h)(0x586B0DCE)
+I (..\user\key.h)(0x586B0DCE)
+I (..\components\drivers_nrf\gpiote\nrf_drv_gpiote.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpiote.h)(0x586B0DC0)
+I (..\user\adc.h)(0x58759EFC)
+I (..\components\drivers_nrf\adc\nrf_drv_adc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (..\user\application.h)(0x586B0DCE)
+I (..\user\power.h)(0x58744DEA)
+I (..\user\clock.h)(0x586B0DCE)
+I (..\components\drivers_nrf\clock\nrf_drv_clock.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_clock.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+F (..\user\nfc.c)(0x586B0DCE)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\nfc.o --omf_browse .\nfc.crf --depend .\nfc.d)
+I (..\user\nfc.h)(0x586B0DCE)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\user\iic.h)(0x586B0DCE)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+I (..\user\m24sr_cmd.h)(0x586B0DCE)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\user\define.h)(0x586B0DCE)
+I (..\user\radio.h)(0x5872F533)
+I (..\components\properitary_rf\esb\nrf_esb.h)(0x586B0DC2)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\user\uart.h)(0x586B0DCE)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\user\my_misc_fun.h)(0x586B0DCE)
+I (..\user\timer.h)(0x5876122F)
+I (..\components\libraries\timer\app_timer.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\user\ringbuffer.h)(0x5875CD79)
+I (..\user\my_wdt.h)(0x586B0DCE)
+I (..\components\drivers_nrf\wdt\nrf_drv_wdt.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_wdt.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\user\lcd.h)(0x5875CC84)
+I (..\user\rtc.h)(0x586B0DCE)
+I (..\user\key.h)(0x586B0DCE)
+I (..\components\drivers_nrf\gpiote\nrf_drv_gpiote.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpiote.h)(0x586B0DC0)
+I (..\user\adc.h)(0x58759EFC)
+I (..\components\drivers_nrf\adc\nrf_drv_adc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (..\user\application.h)(0x586B0DCE)
+I (..\user\power.h)(0x58744DEA)
+I (..\user\clock.h)(0x586B0DCE)
+I (..\components\drivers_nrf\clock\nrf_drv_clock.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_clock.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+F (..\user\iic.c)(0x586B0DCE)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\iic.o --omf_browse .\iic.crf --depend .\iic.d)
+I (..\user\iic.h)(0x586B0DCE)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+F (..\user\lcd.c)(0x5874BBC7)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\lcd.o --omf_browse .\lcd.crf --depend .\lcd.d)
+I (..\user\lcd.h)(0x5875CC84)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (..\user\define.h)(0x586B0DCE)
+I (..\user\radio.h)(0x5872F533)
+I (..\components\properitary_rf\esb\nrf_esb.h)(0x586B0DC2)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\user\uart.h)(0x586B0DCE)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\user\my_misc_fun.h)(0x586B0DCE)
+I (..\user\timer.h)(0x5876122F)
+I (..\components\libraries\timer\app_timer.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\user\ringbuffer.h)(0x5875CD79)
+I (..\user\my_wdt.h)(0x586B0DCE)
+I (..\components\drivers_nrf\wdt\nrf_drv_wdt.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_wdt.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\user\rtc.h)(0x586B0DCE)
+I (..\user\key.h)(0x586B0DCE)
+I (..\components\drivers_nrf\gpiote\nrf_drv_gpiote.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpiote.h)(0x586B0DC0)
+I (..\user\adc.h)(0x58759EFC)
+I (..\components\drivers_nrf\adc\nrf_drv_adc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (..\user\application.h)(0x586B0DCE)
+I (..\user\power.h)(0x58744DEA)
+I (..\user\clock.h)(0x586B0DCE)
+I (..\components\drivers_nrf\clock\nrf_drv_clock.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_clock.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+I (..\user\nfc.h)(0x586B0DCE)
+I (..\user\iic.h)(0x586B0DCE)
+I (..\user\m24sr_cmd.h)(0x586B0DCE)
+F (..\user\rtc.c)(0x586B0DCE)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\rtc.o --omf_browse .\rtc.crf --depend .\rtc.d)
+I (..\user\rtc.h)(0x586B0DCE)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (..\user\lcd.h)(0x5875CC84)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\user\define.h)(0x586B0DCE)
+I (..\user\radio.h)(0x5872F533)
+I (..\components\properitary_rf\esb\nrf_esb.h)(0x586B0DC2)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\user\uart.h)(0x586B0DCE)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\user\my_misc_fun.h)(0x586B0DCE)
+I (..\user\timer.h)(0x5876122F)
+I (..\components\libraries\timer\app_timer.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\user\ringbuffer.h)(0x5875CD79)
+I (..\user\my_wdt.h)(0x586B0DCE)
+I (..\components\drivers_nrf\wdt\nrf_drv_wdt.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_wdt.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\user\key.h)(0x586B0DCE)
+I (..\components\drivers_nrf\gpiote\nrf_drv_gpiote.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpiote.h)(0x586B0DC0)
+I (..\user\adc.h)(0x58759EFC)
+I (..\components\drivers_nrf\adc\nrf_drv_adc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (..\user\application.h)(0x586B0DCE)
+I (..\user\power.h)(0x58744DEA)
+I (..\user\clock.h)(0x586B0DCE)
+I (..\components\drivers_nrf\clock\nrf_drv_clock.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_clock.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+I (..\user\nfc.h)(0x586B0DCE)
+I (..\user\iic.h)(0x586B0DCE)
+I (..\user\m24sr_cmd.h)(0x586B0DCE)
+F (..\user\key.c)(0x5875CCDF)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\key.o --omf_browse .\key.crf --depend .\key.d)
+I (..\user\key.h)(0x586B0DCE)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (..\components\libraries\timer\app_timer.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\user\uart.h)(0x586B0DCE)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (..\user\define.h)(0x586B0DCE)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+I (..\user\radio.h)(0x5872F533)
+I (..\components\properitary_rf\esb\nrf_esb.h)(0x586B0DC2)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\user\my_misc_fun.h)(0x586B0DCE)
+I (..\user\timer.h)(0x5876122F)
+I (..\user\ringbuffer.h)(0x5875CD79)
+I (..\user\my_wdt.h)(0x586B0DCE)
+I (..\components\drivers_nrf\wdt\nrf_drv_wdt.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_wdt.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\user\lcd.h)(0x5875CC84)
+I (..\user\rtc.h)(0x586B0DCE)
+I (..\user\adc.h)(0x58759EFC)
+I (..\components\drivers_nrf\adc\nrf_drv_adc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (..\user\application.h)(0x586B0DCE)
+I (..\user\power.h)(0x58744DEA)
+I (..\user\clock.h)(0x586B0DCE)
+I (..\components\drivers_nrf\clock\nrf_drv_clock.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_clock.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+I (..\user\nfc.h)(0x586B0DCE)
+I (..\user\iic.h)(0x586B0DCE)
+I (..\user\m24sr_cmd.h)(0x586B0DCE)
+I (..\components\drivers_nrf\gpiote\nrf_drv_gpiote.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpiote.h)(0x586B0DC0)
+F (..\user\radio.c)(0x58772300)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\radio.o --omf_browse .\radio.crf --depend .\radio.d)
+I (..\user\radio.h)(0x5872F533)
+I (..\components\properitary_rf\esb\nrf_esb.h)(0x586B0DC2)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\user\uart.h)(0x586B0DCE)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\user\my_misc_fun.h)(0x586B0DCE)
+I (..\user\timer.h)(0x5876122F)
+I (..\components\libraries\timer\app_timer.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\user\ringbuffer.h)(0x5875CD79)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (..\user\my_wdt.h)(0x586B0DCE)
+I (..\components\drivers_nrf\wdt\nrf_drv_wdt.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_wdt.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\user\lcd.h)(0x5875CC84)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+I (..\user\define.h)(0x586B0DCE)
+I (..\user\key.h)(0x586B0DCE)
+I (..\components\drivers_nrf\gpiote\nrf_drv_gpiote.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpiote.h)(0x586B0DC0)
+I (..\user\rtc.h)(0x586B0DCE)
+I (..\user\adc.h)(0x58759EFC)
+I (..\components\drivers_nrf\adc\nrf_drv_adc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (..\user\application.h)(0x586B0DCE)
+I (..\user\power.h)(0x58744DEA)
+I (..\user\clock.h)(0x586B0DCE)
+I (..\components\drivers_nrf\clock\nrf_drv_clock.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_clock.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+I (..\user\nfc.h)(0x586B0DCE)
+I (..\user\iic.h)(0x586B0DCE)
+I (..\user\m24sr_cmd.h)(0x586B0DCE)
+F (..\user\adc.c)(0x5875CE85)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\adc.o --omf_browse .\adc.crf --depend .\adc.d)
+I (..\user\adc.h)(0x58759EFC)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\drivers_nrf\adc\nrf_drv_adc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\user\define.h)(0x586B0DCE)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+I (..\user\radio.h)(0x5872F533)
+I (..\components\properitary_rf\esb\nrf_esb.h)(0x586B0DC2)
+I (..\user\uart.h)(0x586B0DCE)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\user\my_misc_fun.h)(0x586B0DCE)
+I (..\user\timer.h)(0x5876122F)
+I (..\components\libraries\timer\app_timer.h)(0x586B0DC4)
+I (..\user\ringbuffer.h)(0x5875CD79)
+I (..\user\my_wdt.h)(0x586B0DCE)
+I (..\components\drivers_nrf\wdt\nrf_drv_wdt.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_wdt.h)(0x586B0DC0)
+I (..\user\lcd.h)(0x5875CC84)
+I (..\user\rtc.h)(0x586B0DCE)
+I (..\user\key.h)(0x586B0DCE)
+I (..\components\drivers_nrf\gpiote\nrf_drv_gpiote.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpiote.h)(0x586B0DC0)
+I (..\user\application.h)(0x586B0DCE)
+I (..\user\power.h)(0x58744DEA)
+I (..\user\clock.h)(0x586B0DCE)
+I (..\components\drivers_nrf\clock\nrf_drv_clock.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_clock.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+I (..\user\nfc.h)(0x586B0DCE)
+I (..\user\iic.h)(0x586B0DCE)
+I (..\user\m24sr_cmd.h)(0x586B0DCE)
+F (..\user\define.c)(0x586B0DCE)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\define.o --omf_browse .\define.crf --depend .\define.d)
+I (..\user\define.h)(0x586B0DCE)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+I (..\user\radio.h)(0x5872F533)
+I (..\components\properitary_rf\esb\nrf_esb.h)(0x586B0DC2)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\user\uart.h)(0x586B0DCE)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\user\my_misc_fun.h)(0x586B0DCE)
+I (..\user\timer.h)(0x5876122F)
+I (..\components\libraries\timer\app_timer.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\user\ringbuffer.h)(0x5875CD79)
+I (..\user\my_wdt.h)(0x586B0DCE)
+I (..\components\drivers_nrf\wdt\nrf_drv_wdt.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_wdt.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\user\lcd.h)(0x5875CC84)
+I (..\user\rtc.h)(0x586B0DCE)
+I (..\user\key.h)(0x586B0DCE)
+I (..\components\drivers_nrf\gpiote\nrf_drv_gpiote.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpiote.h)(0x586B0DC0)
+I (..\user\adc.h)(0x58759EFC)
+I (..\components\drivers_nrf\adc\nrf_drv_adc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (..\user\application.h)(0x586B0DCE)
+I (..\user\power.h)(0x58744DEA)
+I (..\user\clock.h)(0x586B0DCE)
+I (..\components\drivers_nrf\clock\nrf_drv_clock.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_clock.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+I (..\user\nfc.h)(0x586B0DCE)
+I (..\user\iic.h)(0x586B0DCE)
+I (..\user\m24sr_cmd.h)(0x586B0DCE)
+F (..\user\timer.c)(0x587724E7)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\timer.o --omf_browse .\timer.crf --depend .\timer.d)
+I (..\user\timer.h)(0x5876122F)
+I (..\components\libraries\timer\app_timer.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\user\radio.h)(0x5872F533)
+I (..\components\properitary_rf\esb\nrf_esb.h)(0x586B0DC2)
+I (..\user\uart.h)(0x586B0DCE)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\user\my_misc_fun.h)(0x586B0DCE)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (..\user\define.h)(0x586B0DCE)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+I (..\user\key.h)(0x586B0DCE)
+I (..\components\drivers_nrf\gpiote\nrf_drv_gpiote.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpiote.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\user\lcd.h)(0x5875CC84)
+I (..\user\rtc.h)(0x586B0DCE)
+I (..\user\adc.h)(0x58759EFC)
+I (..\components\drivers_nrf\adc\nrf_drv_adc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\user\application.h)(0x586B0DCE)
+I (..\user\power.h)(0x58744DEA)
+I (..\user\clock.h)(0x586B0DCE)
+I (..\components\drivers_nrf\clock\nrf_drv_clock.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_clock.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+I (..\user\nfc.h)(0x586B0DCE)
+I (..\user\iic.h)(0x586B0DCE)
+I (..\user\m24sr_cmd.h)(0x586B0DCE)
+I (..\user\ringbuffer.h)(0x5875CD79)
+I (..\user\my_wdt.h)(0x586B0DCE)
+I (..\components\drivers_nrf\wdt\nrf_drv_wdt.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_wdt.h)(0x586B0DC0)
+F (..\user\ringbuffer.c)(0x5875CD27)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\ringbuffer.o --omf_browse .\ringbuffer.crf --depend .\ringbuffer.d)
+I (..\user\ringbuffer.h)(0x5875CD79)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+F (..\user\application.c)(0x587724E6)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\application.o --omf_browse .\application.crf --depend .\application.d)
+I (..\user\application.h)(0x586B0DCE)
+I (..\user\define.h)(0x586B0DCE)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+I (..\user\radio.h)(0x5872F533)
+I (..\components\properitary_rf\esb\nrf_esb.h)(0x586B0DC2)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\user\uart.h)(0x586B0DCE)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\user\my_misc_fun.h)(0x586B0DCE)
+I (..\user\timer.h)(0x5876122F)
+I (..\components\libraries\timer\app_timer.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\user\ringbuffer.h)(0x5875CD79)
+I (..\user\my_wdt.h)(0x586B0DCE)
+I (..\components\drivers_nrf\wdt\nrf_drv_wdt.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_wdt.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\user\lcd.h)(0x5875CC84)
+I (..\user\rtc.h)(0x586B0DCE)
+I (..\user\key.h)(0x586B0DCE)
+I (..\components\drivers_nrf\gpiote\nrf_drv_gpiote.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpiote.h)(0x586B0DC0)
+I (..\user\adc.h)(0x58759EFC)
+I (..\components\drivers_nrf\adc\nrf_drv_adc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (..\user\power.h)(0x58744DEA)
+I (..\user\clock.h)(0x586B0DCE)
+I (..\components\drivers_nrf\clock\nrf_drv_clock.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_clock.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+I (..\user\nfc.h)(0x586B0DCE)
+I (..\user\iic.h)(0x586B0DCE)
+I (..\user\m24sr_cmd.h)(0x586B0DCE)
+F (..\user\uart.c)(0x586B0DCE)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\uart.o --omf_browse .\uart.crf --depend .\uart.d)
+I (..\user\uart.h)(0x586B0DCE)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+F (..\user\power.c)(0x587724E7)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\power.o --omf_browse .\power.crf --depend .\power.d)
+I (..\user\power.h)(0x58744DEA)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\user\define.h)(0x586B0DCE)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+I (..\user\radio.h)(0x5872F533)
+I (..\components\properitary_rf\esb\nrf_esb.h)(0x586B0DC2)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\user\uart.h)(0x586B0DCE)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\user\my_misc_fun.h)(0x586B0DCE)
+I (..\user\timer.h)(0x5876122F)
+I (..\components\libraries\timer\app_timer.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\user\ringbuffer.h)(0x5875CD79)
+I (..\user\my_wdt.h)(0x586B0DCE)
+I (..\components\drivers_nrf\wdt\nrf_drv_wdt.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_wdt.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\user\lcd.h)(0x5875CC84)
+I (..\user\rtc.h)(0x586B0DCE)
+I (..\user\key.h)(0x586B0DCE)
+I (..\components\drivers_nrf\gpiote\nrf_drv_gpiote.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpiote.h)(0x586B0DC0)
+I (..\user\adc.h)(0x58759EFC)
+I (..\components\drivers_nrf\adc\nrf_drv_adc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (..\user\application.h)(0x586B0DCE)
+I (..\user\clock.h)(0x586B0DCE)
+I (..\components\drivers_nrf\clock\nrf_drv_clock.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_clock.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+I (..\user\nfc.h)(0x586B0DCE)
+I (..\user\iic.h)(0x586B0DCE)
+I (..\user\m24sr_cmd.h)(0x586B0DCE)
+F (..\user\clock.c)(0x58772504)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\clock.o --omf_browse .\clock.crf --depend .\clock.d)
+I (..\user\clock.h)(0x586B0DCE)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\drivers_nrf\clock\nrf_drv_clock.h)(0x586B0DBE)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\components\drivers_nrf\hal\nrf_clock.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+I (..\user\define.h)(0x586B0DCE)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+I (..\user\radio.h)(0x5872F533)
+I (..\components\properitary_rf\esb\nrf_esb.h)(0x586B0DC2)
+I (..\user\uart.h)(0x586B0DCE)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\user\my_misc_fun.h)(0x586B0DCE)
+I (..\user\timer.h)(0x5876122F)
+I (..\components\libraries\timer\app_timer.h)(0x586B0DC4)
+I (..\user\ringbuffer.h)(0x5875CD79)
+I (..\user\my_wdt.h)(0x586B0DCE)
+I (..\components\drivers_nrf\wdt\nrf_drv_wdt.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_wdt.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (..\user\lcd.h)(0x5875CC84)
+I (..\user\rtc.h)(0x586B0DCE)
+I (..\user\key.h)(0x586B0DCE)
+I (..\components\drivers_nrf\gpiote\nrf_drv_gpiote.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpiote.h)(0x586B0DC0)
+I (..\user\adc.h)(0x58759EFC)
+I (..\components\drivers_nrf\adc\nrf_drv_adc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (..\user\application.h)(0x586B0DCE)
+I (..\user\power.h)(0x58744DEA)
+I (..\user\nfc.h)(0x586B0DCE)
+I (..\user\iic.h)(0x586B0DCE)
+I (..\user\m24sr_cmd.h)(0x586B0DCE)
+F (..\user\simple_uart.c)(0x586B0DCE)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\simple_uart.o --omf_browse .\simple_uart.crf --depend .\simple_uart.d)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+F (..\components\drivers_nrf\delay\nrf_delay.c)(0x586B0DC0)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\nrf_delay.o --omf_browse .\nrf_delay.crf --depend .\nrf_delay.d)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+F (..\components\properitary_rf\esb\nrf_esb.c)(0x586B0DC2)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\nrf_esb.o --omf_browse .\nrf_esb.crf --depend .\nrf_esb.d)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\components\properitary_rf\esb\nrf_esb.h)(0x586B0DC2)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\properitary_rf\esb\nrf_esb_error_codes.h)(0x586B0DC2)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_macros.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+F (..\components\libraries\timer\app_timer.c)(0x586B0DC4)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\app_timer.o --omf_browse .\app_timer.crf --depend .\app_timer.d)
+I (..\components\libraries\timer\app_timer.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x569DEA3A)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_soc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\components\libraries\util\sdk_macros.h)(0x586B0DC4)
+F (..\components\libraries\util\app_error.c)(0x586B0DC4)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\app_error.o --omf_browse .\app_error.crf --depend .\app_error.d)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+F (..\components\libraries\util\nrf_assert.c)(0x586B0DC4)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\nrf_assert.o --omf_browse .\nrf_assert.crf --depend .\nrf_assert.d)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+F (..\components\libraries\util\app_error_weak.c)(0x586B0DC4)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\app_error_weak.o --omf_browse .\app_error_weak.crf --depend .\app_error_weak.d)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+F (..\components\drivers_nrf\common\nrf_drv_common.c)(0x586B0DC0)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\nrf_drv_common.o --omf_browse .\nrf_drv_common.crf --depend .\nrf_drv_common.d)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+F (..\components\libraries\util\app_util_platform.c)(0x586B0DC4)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\app_util_platform.o --omf_browse .\app_util_platform.crf --depend .\app_util_platform.d)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+F (..\components\drivers_nrf\gpiote\nrf_drv_gpiote.c)(0x586B0DC0)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\nrf_drv_gpiote.o --omf_browse .\nrf_drv_gpiote.crf --depend .\nrf_drv_gpiote.d)
+I (..\components\drivers_nrf\gpiote\nrf_drv_gpiote.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_gpiote.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\user\key.h)(0x586B0DCE)
+I (..\components\libraries\timer\app_timer.h)(0x586B0DC4)
+I (..\user\uart.h)(0x586B0DCE)
+I (..\user\simple_uart.h)(0x586B0DCE)
+I (..\user\define.h)(0x586B0DCE)
+I (..\components\drivers_nrf\delay\nrf_delay.h)(0x586B0DC0)
+I (..\user\radio.h)(0x5872F533)
+I (..\components\properitary_rf\esb\nrf_esb.h)(0x586B0DC2)
+I (..\components\libraries\util\sdk_common.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
+I (..\components\libraries\util\sdk_os.h)(0x586B0DC4)
+I (..\user\my_misc_fun.h)(0x586B0DCE)
+I (..\user\timer.h)(0x5876122F)
+I (..\user\ringbuffer.h)(0x5875CD79)
+I (..\user\my_wdt.h)(0x586B0DCE)
+I (..\components\drivers_nrf\wdt\nrf_drv_wdt.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_wdt.h)(0x586B0DC0)
+I (..\user\lcd.h)(0x5875CC84)
+I (..\user\rtc.h)(0x586B0DCE)
+I (..\user\adc.h)(0x58759EFC)
+I (..\components\drivers_nrf\adc\nrf_drv_adc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (..\user\application.h)(0x586B0DCE)
+I (..\user\power.h)(0x58744DEA)
+I (..\user\clock.h)(0x586B0DCE)
+I (..\components\drivers_nrf\clock\nrf_drv_clock.h)(0x586B0DBE)
+I (..\components\drivers_nrf\hal\nrf_clock.h)(0x586B0DC0)
+I (..\user\nfc.h)(0x586B0DCE)
+I (..\user\iic.h)(0x586B0DCE)
+I (..\user\m24sr_cmd.h)(0x586B0DCE)
+F (..\components\drivers_nrf\adc\nrf_drv_adc.c)(0x586B0DC0)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\nrf_drv_adc.o --omf_browse .\nrf_drv_adc.crf --depend .\nrf_drv_adc.d)
+I (..\components\drivers_nrf\adc\nrf_drv_adc.h)(0x586B0DC0)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+F (..\components\drivers_nrf\hal\nrf_adc.c)(0x586B0DC0)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\nrf_adc.o --omf_browse .\nrf_adc.crf --depend .\nrf_adc.d)
+I (..\components\drivers_nrf\hal\nrf_adc.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+F (..\components\drivers_nrf\clock\nrf_drv_clock.c)(0x586B0DBE)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\nrf_drv_clock.o --omf_browse .\nrf_drv_clock.crf --depend .\nrf_drv_clock.d)
+I (..\components\drivers_nrf\clock\nrf_drv_clock.h)(0x586B0DBE)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (..\components\libraries\util\sdk_errors.h)(0x586B0DC4)
+I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x586B0DC0)
+I (..\components\libraries\util\nrf_assert.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\libraries\util\app_error.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (..\components\libraries\util\nordic_common.h)(0x586B0DC4)
+I (..\components\libraries\util\nrf_log.h)(0x586B0DC4)
+I (d:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x569DEA3A)
+I (..\components\libraries\util\app_util.h)(0x586B0DC4)
+I (..\components\libraries\util\app_error_weak.h)(0x586B0DC4)
+I (..\components\drivers_nrf\hal\nrf_clock.h)(0x586B0DC0)
+I (d:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
+I (..\components\drivers_nrf\config\nrf_drv_config.h)(0x586B0DC0)
+I (..\components\drivers_nrf\config\nrf_drv_config_validation.h)(0x586B0DC0)
+I (..\components\drivers_nrf\common\nrf_drv_common.h)(0x586B0DC0)
+I (..\components\libraries\util\app_util_platform.h)(0x586B0DC4)
+F (..\components\toolchain\system_nrf51.c)(0x586B0DB8)(-c --cpu Cortex-M0 -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I ..\components\drivers_nrf\hal -I ..\components\toolchain\CMSIS\Include -I ..\components\drivers_nrf\delay -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util -I ..\components\toolchain -I ..\components\libraries\timer -I ..\components\libraries\scheduler -I ..\components\drivers_nrf\spi_slave -I ..\components\drivers_nrf\common -I ..\components\drivers_nrf\config -I ..\components\drivers_nrf\gpiote -I ..\components\libraries\button -I ..\components\drivers_nrf\wdt -I ..\components\drivers_nrf\clock -I ..\components\drivers_nrf\adc -I ..\user --c99-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51 -DNRF_LOG_USES_RTT="1" -DBOARD_PCA10028 -DNRF_LOG_USES_UART="1" -DNRF51 -DSWI_DISABLE0 -DNRF51-o .\system_nrf51.o --omf_browse .\system_nrf51.crf --depend .\system_nrf51.d)
+I (d:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x569DEA3A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h)(0x5788560A)
+I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x586B0DB8)
+I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x586B0DB8)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h)(0x5788560C)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h)(0x5788560A)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h)(0x5788560E)
+I (d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h)(0x5788560C)
+I (..\components\toolchain\system_nrf51.h)(0x586B0DB8)
+F (..\components\toolchain\arm\arm_startup_nrf51.s)(0x586B0DB8)(--cpu Cortex-M0 -g --apcs=interwork --pd "__MICROLIB SETA 1"-I C:\Users\john\Desktop\ZKXL-DTQ-DTQ-TY\ZKXL-DTQ-DTQ-TY\board\RTE-I d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include-I d:\Keil_v5\ARM\CMSIS\Include--pd "__UVISION_VERSION SETA 518" --pd "NRF51 SETA 1"--list .\arm_startup_nrf51.lst --xref -o .\arm_startup_nrf51.o --depend .\arm_startup_nrf51.d)
+F (..\user\iic.h)(0x586B0DCE)()
+F (..\user\simple_uart.h)(0x586B0DCE)()
+F (..\user\my_spi.h)(0x586B0DCE)()
+F (..\user\my_misc_fun.h)(0x586B0DCE)()
+F (..\user\m24sr_cmd.h)(0x586B0DCE)()
+F (..\user\nfc.h)(0x586B0DCE)()
