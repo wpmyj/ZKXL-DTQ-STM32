@@ -191,6 +191,7 @@ void App_card_process(void)
 			DEBUG_CARD_DEBUG_LOG("ReadNDEFfile status = %d\r\n",status);
 			if( status != MI_OK )
 			{
+				memset(NDEF_DataRead,00,28);
 				mfrc500_init();
 				rf_set_card_status(1);
 				return;
@@ -200,6 +201,13 @@ void App_card_process(void)
 				ndef_wr_xor = XOR_Cal(NDEF_DataRead+1,26);
 				if(NDEF_DataRead[27] != ndef_wr_xor)
 				{
+					uint8_t i;
+					DEBUG_CARD_DATA_LOG("NDEF_DataRead :");
+					for(i=0;i<28;i++)
+						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataRead[i]);
+					DEBUG_CARD_DATA_LOG("\r\n");
+					memset(NDEF_DataRead,00,28);
+					DEBUG_CARD_DATA_LOG("NDEF_DataRead XOR ERROR!\r\n");
 					mfrc500_init();
 					rf_set_card_status(1);
 					return;
@@ -248,6 +256,46 @@ void App_card_process(void)
 				}
 				ndef_wr_xor        = XOR_Cal(NDEF_DataWrite+1,26);
 				NDEF_DataWrite[27] = ndef_wr_xor;
+
+				/* 重新写入数据检测 */
+				status = ReadNDEFfile(NDEF_DataRead, &NDEF_Len);
+				DEBUG_CARD_DEBUG_LOG("ReadNDEFfile0 status = %d\r\n",status);
+				#ifdef SHOW_CARD_PROCESS_TIME
+				EndTime = PowerOnTime - StartTime;
+				printf("UseTime:ReadNDEFfile0 = %d \r\n",EndTime);
+				#endif
+				if( status != MI_OK )
+				{
+					memset(NDEF_DataRead ,00,28);
+					memset(NDEF_DataWrite,00,28);
+					mfrc500_init();
+					rf_set_card_status(1);
+					return;
+				}
+				else
+				{
+					uint8_t i;
+					DEBUG_CARD_DATA_LOG("NDEF_DataRead :");
+					for(i=0;i<28;i++)
+						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataRead[i]);
+					DEBUG_CARD_DATA_LOG("\r\n");
+					ndef_rd_xor        = XOR_Cal(NDEF_DataRead+1,26);
+					if((NDEF_DataRead[6]  != NDEF_DataWrite[6])  || 
+						 (NDEF_DataRead[27] != NDEF_DataWrite[27]) || 
+					   (NDEF_DataRead[27] != ndef_rd_xor))
+					{
+						/* 需要重新写入数据 */
+					}
+					else
+					{
+						/* 无需写入新数据,直接进入下一流程 */
+						card_message_err = 1;
+						wtrte_flash_ok = 1;
+						rf_set_card_status(3);
+						return;
+					}
+				}
+
 				#ifdef SHOW_CARD_PROCESS_TIME
 				EndTime = PowerOnTime - StartTime;
 				printf("UseTime:WriteNDEFfile0 = %d \r\n",EndTime);
@@ -260,6 +308,7 @@ void App_card_process(void)
 				#endif
 				if( status != MI_OK )
 				{
+					memset(NDEF_DataWrite,00,28);
 					mfrc500_init();
 					rf_set_card_status(1);
 					return;
@@ -280,6 +329,8 @@ void App_card_process(void)
 				#endif
 				if( status != MI_OK )
 				{
+					memset(NDEF_DataRead ,00,28);
+					memset(NDEF_DataWrite,00,28);
 					mfrc500_init();
 					rf_set_card_status(1);
 					return;
@@ -296,13 +347,15 @@ void App_card_process(void)
 						 (NDEF_DataRead[27] != NDEF_DataWrite[27]) || 
 					   (NDEF_DataRead[27] != ndef_rd_xor))
 					{
+						memset(NDEF_DataRead ,00,28);
+						memset(NDEF_DataWrite,00,28);
 						mfrc500_init();
 						rf_set_card_status(1);
 						return;
 					}
 					else
 					{
-						memset(NDEF_DataRead,00,50);
+						memset(NDEF_DataRead ,00,28);
 						memset(NDEF_DataWrite,00,28);
 						DEBUG_CARD_DATA_LOG("NDEF_DataRead and NDEF_DataWrite Clear!\r\n");
 					}
@@ -316,6 +369,8 @@ void App_card_process(void)
 				#endif
 				if( status != MI_OK )
 				{
+					memset(NDEF_DataRead,00,28);
+					memset(NDEF_DataWrite,00,28);
 					mfrc500_init();
 					rf_set_card_status(1);
 					return;
