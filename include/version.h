@@ -5,9 +5,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* Software version */
-#define MAIN_VERSION          0x02
-#define SUB_VERSION_1         0x00
-#define SUB_VERSION_2         0x05
+#define MAIN_VERSION          0x00
+#define SUB_VERSION_1         0x02
+#define SUB_VERSION_2         0x01
 
 extern uint8_t             jsq_uid[8];
 extern const uint8_t       software[3];

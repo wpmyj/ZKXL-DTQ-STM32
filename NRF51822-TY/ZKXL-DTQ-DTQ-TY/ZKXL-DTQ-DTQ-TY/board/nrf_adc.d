@@ -1,0 +1,15 @@
+.\nrf_adc.o: ..\components\drivers_nrf\hal\nrf_adc.c
+.\nrf_adc.o: ..\components\drivers_nrf\hal\nrf_adc.h
+.\nrf_adc.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+.\nrf_adc.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+.\nrf_adc.o: d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h
+.\nrf_adc.o: d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h
+.\nrf_adc.o: ..\components\toolchain\CMSIS\Include\core_cm0.h
+.\nrf_adc.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\nrf_adc.o: ..\components\toolchain\CMSIS\Include\core_cmInstr.h
+.\nrf_adc.o: ..\components\toolchain\CMSIS\Include\cmsis_armcc.h
+.\nrf_adc.o: ..\components\toolchain\CMSIS\Include\core_cmFunc.h
+.\nrf_adc.o: d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h
+.\nrf_adc.o: d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h
+.\nrf_adc.o: d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h
+.\nrf_adc.o: d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h

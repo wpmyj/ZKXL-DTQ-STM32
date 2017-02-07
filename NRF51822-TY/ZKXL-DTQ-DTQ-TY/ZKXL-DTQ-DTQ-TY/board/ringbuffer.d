@@ -1,0 +1,17 @@
+.\ringbuffer.o: ..\user\ringbuffer.c
+.\ringbuffer.o: ..\user\ringbuffer.h
+.\ringbuffer.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\ringbuffer.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+.\ringbuffer.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\ringbuffer.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\ringbuffer.o: ..\components\drivers_nrf\delay\nrf_delay.h
+.\ringbuffer.o: d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf.h
+.\ringbuffer.o: d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51.h
+.\ringbuffer.o: ..\components\toolchain\CMSIS\Include\core_cm0.h
+.\ringbuffer.o: ..\components\toolchain\CMSIS\Include\core_cmInstr.h
+.\ringbuffer.o: ..\components\toolchain\CMSIS\Include\cmsis_armcc.h
+.\ringbuffer.o: ..\components\toolchain\CMSIS\Include\core_cmFunc.h
+.\ringbuffer.o: d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\system_nrf51.h
+.\ringbuffer.o: d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_bitfields.h
+.\ringbuffer.o: d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\nrf51_deprecated.h
+.\ringbuffer.o: d:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.7.1\Device\Include\compiler_abstraction.h

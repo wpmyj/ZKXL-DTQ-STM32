@@ -45,7 +45,8 @@ void RFIRQ_EXTI_IRQHandler(void);
 
 uint8_t rf_get_systick_status(void);
 void rf_change_systick_status(uint8_t rf_status);
-
+void rf_retransmit_set_status(uint8_t new_status);
+uint8_t get_rf_retransmit_status(void);
 #endif /* __STM32F10x_IT_H */
 
 /******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/

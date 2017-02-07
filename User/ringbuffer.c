@@ -8,25 +8,28 @@
   ******************************************************************************
   */
 #include "ringbuffer.h"
+#include "string.h"
 
 /* Private variables ---------------------------------------------------------*/
 static uint8_t  UartReviceBuffer[REVICEBUFFERSIZE];
 static uint8_t  UartSendBuffer[SENDBUFFERSIZE];
-const uint32_t  BufferSize[2] = {REVICEBUFFERSIZE,SENDBUFFERSIZE};
-static uint8_t *pUartBuffer[2] = {UartReviceBuffer,UartSendBuffer};
-static uint16_t UartBufferTop[2]    = { 0, 0 };
-static uint16_t UartBufferBottom[2] = { 0, 0 };
-static uint32_t UartBufferSize[2]   = { 0, 0 };
-static uint8_t  UartBufferStatus[2] = { BUFFEREMPTY, BUFFEREMPTY};
+static uint8_t  SpireviceBuffer[SPIBUFFERSIZE];
+static uint8_t  SpiIrqBuffer[SPIIRQBUFFERSIZE];
+static uint8_t  PrintBuffer[PRINTBUFFERSIZE];
+const uint32_t  BufferSize[RINGBUFFERSUM]      = {REVICEBUFFERSIZE,SENDBUFFERSIZE,SPIBUFFERSIZE,PRINTBUFFERSIZE,SPIIRQBUFFERSIZE};
+static uint8_t *pBuffer[RINGBUFFERSUM]         = {UartReviceBuffer,UartSendBuffer,SpireviceBuffer,PrintBuffer,SpiIrqBuffer};
+static volatile uint16_t Top[RINGBUFFERSUM]    = { 0, 0, 0, 0, 0 };
+static volatile uint16_t Bottom[RINGBUFFERSUM] = { 0, 0, 0, 0, 0 };
+static volatile int32_t  Size[RINGBUFFERSUM]   = { 0, 0, 0, 0, 0 };
+static volatile uint8_t  Status[RINGBUFFERSUM] = { BUFFEREMPTY, BUFFEREMPTY, BUFFEREMPTY,BUFFEREMPTY, BUFFEREMPTY};
 
 /* Private functions ---------------------------------------------------------*/
-static void    buffer_read_change_status( uint8_t sel_buffer) ;
-static void    buffer_write_change_status( uint8_t sel_buffer) ;
-static void    buffer_update_write_index( uint8_t sel_buffer, uint8_t Len );
-static void    buffer_update_read_index( uint8_t sel_buffer, uint8_t Len );
-static void    buffer_clear_element( uint8_t sel_buffer );
-static uint8_t buffer_get_data_from_buffer(uint8_t sel_buffer, uint16_t index);
-static void    buffer_store_data_to_buffer(uint8_t sel_buffer, uint16_t index,uint8_t data);
+static void    update_read_status( uint8_t sel) ;
+static void    update_write_status( uint8_t sel) ;
+static void    update_top( uint8_t sel, uint8_t Len );
+static void    update_bottom( uint8_t sel, uint8_t Len );
+static uint8_t get(uint8_t sel, uint16_t index);
+static void    set(uint8_t sel, uint16_t index,uint8_t data);
 
 /******************************************************************************
   Function:buffer_get_buffer_status
@@ -36,184 +39,136 @@ static void    buffer_store_data_to_buffer(uint8_t sel_buffer, uint16_t index,ui
   Return:
   Others:None
 ******************************************************************************/
-uint8_t buffer_get_buffer_status( uint8_t sel_buffer )
+uint8_t buffer_get_buffer_status( uint8_t sel )
 {
-		return UartBufferStatus[sel_buffer];
+	return Status[sel];
 }
 
 /******************************************************************************
-  Function:buffer_get_data_from_buffer
+  Function:get
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-uint8_t buffer_get_data_from_buffer( uint8_t sel_buffer, uint16_t index )
+uint8_t get( uint8_t sel, uint16_t index )
 {
-	if( index < BufferSize[sel_buffer] )
-		return pUartBuffer[sel_buffer][index];
-	else
-		return pUartBuffer[sel_buffer][index-BufferSize[sel_buffer]];
+	uint8_t data = pBuffer[sel][index % BufferSize[sel]];
+	pBuffer[sel][index % BufferSize[sel]] = 0;
+	return  data;
 }
 
 /******************************************************************************
-  Function:buffer_store_data_to_buffer
+  Function:set
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-void buffer_store_data_to_buffer( uint8_t sel_buffer, uint16_t index, uint8_t data)
+void set( uint8_t sel, uint16_t index, uint8_t data)
 {
-	if( index < BufferSize[sel_buffer] )
-		pUartBuffer[sel_buffer][index] = data;
-	else 
-		pUartBuffer[sel_buffer][index-BufferSize[sel_buffer]] = data;
+	pBuffer[sel][index % BufferSize[sel]] = data;
 }
 
 
 /******************************************************************************
-  Function:buffer_read_change_status
+  Function:update_read_status
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-static void buffer_read_change_status( uint8_t sel_buffer) 
+static void update_read_status( uint8_t sel)
 {
-	uint8_t bufferstatus = 0;
-	
-	bufferstatus = buffer_get_buffer_status(sel_buffer);
+	uint8_t bufferstatus = buffer_get_buffer_status(sel);
 
 	switch(bufferstatus)
 	{
 		case BUFFEREMPTY:
 			break;
-		
 		case BUFFERUSEING:
 			{
-				if(serial_ringbuffer_get_usage_rate(sel_buffer) <= USAGE_TATE_EREMPTY)
-					UartBufferStatus[sel_buffer] = BUFFEREMPTY;
+				if(Size[sel] > 0)
+					Status[sel] = BUFFERUSEING;
+				else if(Size[sel] == 0)
+					Status[sel] = BUFFEREMPTY;
 				else
-					UartBufferStatus[sel_buffer] = BUFFERUSEING;
+				{
+					Status[sel] = BUFFEREMPTY;
+					Top[sel]    = 0;
+					Bottom[sel] = 0;
+				}
 			}
 			break;
-			
 		case BUFFERFULL:
-			{
-					UartBufferStatus[sel_buffer] = BUFFERUSEING;
-			}
+			Status[sel] = BUFFERUSEING;
 			break;
-			
+
 		default:
 			break;
 	}
 }
 
 /******************************************************************************
-  Function:buffer_write_change_status
+  Function:update_write_status
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-static void buffer_write_change_status( uint8_t sel_buffer) 
+static void update_write_status( uint8_t sel)
 {
-	uint8_t bufferstatus = 0;
-	
-	bufferstatus = buffer_get_buffer_status(sel_buffer);
-	
+	uint8_t bufferstatus = buffer_get_buffer_status(sel);
+
 	switch(bufferstatus)
 	{
 		case BUFFEREMPTY:
-			{
-					UartBufferStatus[sel_buffer] = BUFFERUSEING;
-			}
+			Status[sel] = BUFFERUSEING;
 			break;
-		
+
 		case BUFFERUSEING:
 			{
-				if(serial_ringbuffer_get_usage_rate(sel_buffer) >= USAGE_TATE_FULL)
-					UartBufferStatus[sel_buffer] = BUFFERFULL;
+				if( Size[sel] > BufferSize[sel]-PACKETSIZE )
+					Status[sel] = BUFFERFULL;
 				else
-					UartBufferStatus[sel_buffer] = BUFFERUSEING;
+					Status[sel] = BUFFERUSEING;
 			}
 			break;
-			
-		case BUFFERFULL:
-			break;
-			
+
 		default:
 			break;
 	}
 }
 /******************************************************************************
-  Function:buffer_update_write_index
+  Function:update_top
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-static void buffer_update_write_index( uint8_t sel_buffer, uint8_t Len )
-{ 
-    uint16_t tmp = 0;
-	
-	UartBufferSize[sel_buffer] += Len; 
-	  
-	tmp = UartBufferTop[sel_buffer] + Len;
-	  
-	if(tmp > BufferSize[sel_buffer])
-		UartBufferTop[sel_buffer] = tmp - BufferSize[sel_buffer];
-	else
-		UartBufferTop[sel_buffer] = tmp;
+static void update_top( uint8_t sel, uint8_t Len )
+{
+	Size[sel] += Len;
+	Top[sel] = (Top[sel] + Len) % BufferSize[sel];
 }
 
 /******************************************************************************
-  Function:buffer_update_read_index
+  Function:update_bottom
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-static void buffer_update_read_index( uint8_t sel_buffer, uint8_t Len )
+static void update_bottom( uint8_t sel, uint8_t Len )
 {
-  uint16_t tmp = 0;
-	
-	UartBufferSize[sel_buffer] -= Len;
-	  
-	tmp = UartBufferBottom[sel_buffer] + Len;
-	  
-	if(tmp > BufferSize[sel_buffer])
-		UartBufferBottom[sel_buffer] = tmp - BufferSize[sel_buffer];
-	else
-		UartBufferBottom[sel_buffer] = tmp;
-}
-
-/******************************************************************************
-  Function:buffer_clear_element
-  Description:
-  Input:None
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-static void buffer_clear_element( uint8_t sel_buffer )
-{
-	uint8_t i;
-	uint8_t MessageLen = buffer_get_data_from_buffer( sel_buffer,
-												UartBufferBottom[sel_buffer]+6 ) + 9;
-	
-	for(i=0;i<MessageLen;i++)
-	{
-		buffer_store_data_to_buffer(sel_buffer,
-				UartBufferBottom[sel_buffer]+i,0);
-	}
+	Size[sel] -= Len;
+	Bottom[sel] = (Bottom[sel] + Len) % BufferSize[sel];
 }
 
 /******************************************************************************
@@ -224,61 +179,24 @@ static void buffer_clear_element( uint8_t sel_buffer )
   Return:
   Others:None
 ******************************************************************************/
-void serial_ringbuffer_write_data(uint8_t sel_buffer, Uart_MessageTypeDef *data)
+void serial_ringbuffer_write_data(uint8_t sel, Uart_MessageTypeDef *data)
 {
 	uint8_t i;
 	uint8_t *pdata = (uint8_t *)data;
 	uint8_t MessageLen = *(pdata+6) + 6;
-	
+
 	for(i=0;i<=MessageLen;i++)
 	{
-		buffer_store_data_to_buffer(sel_buffer, 
-			UartBufferTop[sel_buffer]+i,*pdata);
+		set(sel,Top[sel]+i,*pdata);
 		pdata++;
 	}
-	
-	buffer_store_data_to_buffer(sel_buffer, 
-		UartBufferTop[sel_buffer]+i+0,data->XOR);
-	
-	buffer_store_data_to_buffer(sel_buffer, 
-		UartBufferTop[sel_buffer]+i+1,data->END);
-	
-	buffer_update_write_index( sel_buffer, MessageLen+3);
-	
-	buffer_write_change_status(sel_buffer);
-}
 
-/******************************************************************************
-  Function:serial_ringbuffer_write_data
-  Description:
-  Input:None
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-void serial_ringbuffer_write_data1(uint8_t sel_buffer, uint8_t *data)
-{
-	uint8_t i;
-	uint8_t *pdata = (uint8_t *)data;
-	uint8_t MessageLen = *(pdata+6) + 6;
-	
-	for(i=0;i<=MessageLen;i++)
-	{
-		buffer_store_data_to_buffer(sel_buffer, 
-			UartBufferTop[sel_buffer]+i,*pdata);
-		pdata++;
-	}
-	
-	buffer_store_data_to_buffer(sel_buffer, 
-			UartBufferTop[sel_buffer]+i+0,*pdata++);
-	buffer_store_data_to_buffer(sel_buffer, 
-			UartBufferTop[sel_buffer]+i+1,*pdata++);
-	
-	buffer_update_write_index( sel_buffer, MessageLen+3);
-	
-	buffer_write_change_status(sel_buffer);
-}
+	set(sel,Top[sel]+i+0,data->XOR);
+	set(sel,Top[sel]+i+1,data->END);
 
+	update_top( sel, MessageLen+3);
+	update_write_status(sel);
+}
 /******************************************************************************
   Function:serial_ringbuffer_read_data
   Description:
@@ -287,86 +205,141 @@ void serial_ringbuffer_write_data1(uint8_t sel_buffer, uint8_t *data)
   Return:
   Others:None
 ******************************************************************************/
-void serial_ringbuffer_read_data( uint8_t sel_buffer, Uart_MessageTypeDef *data )
+void serial_ringbuffer_read_data( uint8_t sel, Uart_MessageTypeDef *data )
 {
 		uint8_t i;
 	  uint8_t *pdata = (uint8_t *)data;
-	
-	  uint8_t MessageLen = buffer_get_data_from_buffer( sel_buffer,
-														UartBufferBottom[sel_buffer]+6) + 6;
-		
+
+	  uint8_t MessageLen = get( sel,Bottom[sel]+6) + 6;
+
 		for(i=0;i<=MessageLen;i++)
 		{
-			*pdata = buffer_get_data_from_buffer(sel_buffer, 
-									UartBufferBottom[sel_buffer]+i);
+			*pdata = get(sel,Bottom[sel]+i);
 			pdata++;
 		}
-		
-		data->XOR = buffer_get_data_from_buffer(sel_buffer, 
-										UartBufferBottom[sel_buffer]+i+0);
-		
-		data->END = buffer_get_data_from_buffer(sel_buffer, 
-										UartBufferBottom[sel_buffer]+i+1);
-		
-		buffer_clear_element(sel_buffer);
-		
-		buffer_update_read_index(sel_buffer, MessageLen+3);
-		
-		buffer_read_change_status(sel_buffer);
+		data->LEN = MessageLen - 6;
+		data->XOR = get(sel,Bottom[sel]+i+0);
+		data->END = get(sel,Bottom[sel]+i+1);
+
+		update_bottom(sel, MessageLen+3);
+		update_read_status(sel);
 }
 
 /******************************************************************************
-  Function:serial_ringbuffer_read_data1
+  Function:App_rf_check_process
+  Description:
+		spi RF 消息缓存处理函数
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void spi_write_data_to_buffer( uint8_t sel, uint8_t SpiMessage[], uint8_t status )
+{
+	uint8_t Len, *pdata, i;
+
+	Len = SpiMessage[14];
+	pdata = SpiMessage;
+
+	for(i=0;i<Len+17;i++)
+	{
+		set(sel,Top[sel]+i,*pdata);
+		pdata++;
+	}
+
+	set(sel,Top[sel]+i++,status);
+
+	update_top( sel, Len+17+1);
+	update_write_status(sel);
+}
+
+/******************************************************************************
+  Function:App_rf_check_process
+  Description:
+		spi RF 消息读取处理函数
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void spi_read_data_from_buffer( uint8_t sel, uint8_t SpiMessage[] )
+{
+	uint8_t *pdata, i;
+	uint8_t MessageLen = get( sel,Bottom[sel]+14) + 17;
+
+	pdata = SpiMessage;
+
+	for(i=0;i<=MessageLen;i++)
+	{
+		*pdata = get(sel,Bottom[sel]+i);
+		pdata++;
+	}
+
+	SpiMessage[14] = MessageLen - 17;
+
+	update_bottom(sel, MessageLen+1);
+	update_read_status(sel);
+}
+
+/******************************************************************************
+  Function:serial_ringbuffer_get_usage_rate
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-void serial_ringbuffer_read_data1( uint8_t sel_buffer, uint8_t *data )
+uint8_t serial_ringbuffer_get_usage_rate(uint8_t sel)
 {
-		uint8_t i;
-	  uint8_t *pdata = (uint8_t *)data;
-	
-	  uint8_t MessageLen = buffer_get_data_from_buffer( sel_buffer,
-														UartBufferBottom[sel_buffer]+6) + 6;
-		
-		for(i=0;i<=MessageLen;i++)
-		{
-			*pdata = buffer_get_data_from_buffer(sel_buffer, 
-			             UartBufferBottom[sel_buffer]+i);
-			pdata++;
-		}
-		
-		*pdata++ = buffer_get_data_from_buffer(sel_buffer, 
-		               UartBufferBottom[sel_buffer]+i+0);
-		
-		*pdata++ = buffer_get_data_from_buffer(sel_buffer, 
-		                UartBufferBottom[sel_buffer]+i+1);
-		
-		buffer_clear_element(sel_buffer);
-		
-		buffer_update_read_index(sel_buffer, MessageLen+3);
-		
-		buffer_read_change_status(sel_buffer);
+	return (Size[sel]*100/BufferSize[sel]);
 }
 
-
 /******************************************************************************
-  Function:serial_ringbuffer_read_data1
+  Function:print_write_data_to_buffer
   Description:
-  Input:None
-  Output:
+		存储打印数据到缓存
+  Input :
   Return:
   Others:None
 ******************************************************************************/
-uint8_t serial_ringbuffer_get_usage_rate(uint8_t sel_buffer)
+void print_write_data_to_buffer( char *str, uint8_t len )
 {
-	uint8_t usage_rate = 0;
-	
-	usage_rate = UartBufferSize[sel_buffer]*100/BufferSize[sel_buffer];
-	
-	return usage_rate;
+	char *pdata;
+  uint8_t	i;
+
+	pdata = str;
+
+	for(i=0;i<len;i++)
+	{
+		set(PRINT_BUFFER,Top[PRINT_BUFFER]+i,*pdata);
+		pdata++;
+	}
+
+	update_top( PRINT_BUFFER, len);
+	update_write_status(PRINT_BUFFER);
+}
+
+/******************************************************************************
+  Function:print_write_data_to_buffer
+  Description:
+		从缓存中读取打印数据
+  Input :
+  Return:
+  Others:None
+******************************************************************************/
+void print_read_data_to_buffer( uint8_t *str ,uint8_t size)
+{
+	uint8_t Len, *pdata, i;
+
+	Len = Size[PRINT_BUFFER] > size ? size : Size[PRINT_BUFFER];
+	pdata = str;
+
+	for(i=0;i<Len;i++)
+	{
+		*pdata = get(PRINT_BUFFER,Bottom[PRINT_BUFFER]+i);
+		pdata++;
+	}
+
+	update_bottom(PRINT_BUFFER, Len);
+	update_read_status(PRINT_BUFFER);
 }
 
 /**************************************END OF FILE****************************/
