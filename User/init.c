@@ -67,7 +67,7 @@ void Platform_Init(void)
 #ifndef OPEN_SILENT_MODE
 	BEEP_EN();
 #endif
-	ledOn(LGREEN);
+	ledOn(LRED);
 	ledOn(LBLUE);
 	DelayMs(200);
 	BEEP_DISEN();
