@@ -475,15 +475,6 @@ uint8_t spi_process_revice_data( void )
 						set_index_of_white_list_pos(SINGLE_SEND_DATA_ACK_TABLE,uidpos);
 					}
 
-          /* 心跳定时统计 */
-					if( rf_get_systick_status() == 1 )
-					{
-						if( systick_get_ack_funcction_para() == 1 )
-						{
-							set_index_of_white_list_pos(SISTICK_ACK_TABLE,uidpos);
-						}
-					}
-
           /* 请求数据定时统计 */
 					if( retranmist_data_status == 1 )
 					{

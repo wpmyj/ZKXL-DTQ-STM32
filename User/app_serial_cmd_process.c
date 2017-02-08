@@ -53,7 +53,6 @@ void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err
 void App_uart_message_copy( Uart_MessageTypeDef *SrcMessage, Uart_MessageTypeDef *DstMessage );
 void App_return_systick( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_send_process_parameter_set( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
-void App_open_systick_ack( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_card_match_single( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_card_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_start_or_stop_answer( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
@@ -313,22 +312,6 @@ static void serial_cmd_process(void)
 					else
 					{
 						App_return_device_info( &ReviceMessage, &SendMessage);
-						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
-					}
-				}
-				break;
-
-			case 0x2D:
-				{
-					if(ReviceMessage.LEN != 1)
-					{
-						err_cmd_type = serial_cmd_type;
-						serial_cmd_type = APP_CTR_DATALEN_ERR;
-						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;
-					}
-					else
-					{
-						App_open_systick_ack( &ReviceMessage, &SendMessage);
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 					}
 				}
@@ -1065,47 +1048,6 @@ void App_send_process_parameter_set( Uart_MessageTypeDef *RMessage, Uart_Message
 	{
 		SMessage->DATA[i++] = err;
 	}
-	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
-	SMessage->END = 0xCA;
-}
-
-/******************************************************************************
-  Function:App_open_systick_ack
-  Description:
-		打印设备信息
-  Input :
-		RMessage:串口接收指令的消息指针
-		SMessage:串口发送指令的消息指针
-  Return:
-  Others:None
-******************************************************************************/
-void App_open_systick_ack( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
-{
-	uint8_t i = 0;
-	uint8_t err = 0;
-
-	SMessage->HEADER = 0x5C;
-	SMessage->TYPE = RMessage->TYPE;
-	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
-
-	SMessage->LEN = 0x01;
-
-	if( RMessage->DATA[0] <= 1 )
-	{
-		systick_set_ack_funcction(RMessage->DATA[0]);
-	  memcpy(systick_process.uid, RMessage->SIGN, 4);
-		systick_process.cmd_type = RMessage->TYPE;
-		/* parameter check */
-		SMessage->DATA[i++] = 0;
-	}
-	else
-	{
-		err = 1;
-	  memset(systick_process.uid, 0, 4);
-		systick_process.cmd_type = 0;
-		SMessage->DATA[i++] = err;
-	}
-
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;
 }
