@@ -68,7 +68,7 @@ void App_clickers_systick_process(void)
 		nrf_transmit_start(systick_package.DATA,0,NRF_DATA_IS_PRE,SEND_PRE_COUNT,
 										 SEND_PRE_DELAY100US, SISTICK_SUM_TABLE,PACKAGE_NUM_ADD);
 		nrf_transmit_start(systick_package.DATA, systick_package.LEN,
-						NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SISTICK_SUM_TABLE,PACKAGE_NUM_ADD);
+						NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SISTICK_SUM_TABLE,PACKAGE_NUM_SAM);
 
 		system_rtc_timer.sync_flg = 0;
 	}
