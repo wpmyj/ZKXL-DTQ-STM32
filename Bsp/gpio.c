@@ -13,21 +13,21 @@
 GPIO_TypeDef *GPIO_PORT[LEDn] = {
 	LED1_GPIO_PORT,  
 	LED2_GPIO_PORT, 
-	LGREEN_GPIO_PORT, 
+	LRED_GPIO_PORT, 
 	LBLUE_GPIO_PORT
 };
 
 const uint16_t GPIO_PIN[LEDn] = {
 	LED1_GPIO_PIN, 
 	LED2_GPIO_PIN, 
-	LGREEN_GPIO_PIN, 
+	LRED_GPIO_PIN, 
 	LBLUE_GPIO_PIN
 };
 
 const uint32_t GPIO_CLK[LEDn] = {
 	LED1_GPIO_CLK, 
 	LED2_GPIO_CLK, 
-	LGREEN_GPIO_CLK, 
+	LRED_GPIO_CLK, 
 	LBLUE_GPIO_CLK
 };
 
@@ -67,7 +67,7 @@ void ledOn(Led_TypeDef Led)
 {
 	if((Led == LED1) || (Led == LED2))
 		GPIO_PORT[Led]->BRR = GPIO_PIN[Led];
-	else if((Led == LGREEN) || (Led == LBLUE))
+	else if((Led == LRED) || (Led == LBLUE))
 		GPIO_PORT[Led]->BSRR = GPIO_PIN[Led];
 }
 
@@ -83,7 +83,7 @@ void ledOff(Led_TypeDef Led)
 {
 	if((Led == LED1) || (Led == LED2))
 		GPIO_PORT[Led]->BSRR = GPIO_PIN[Led];
-	else if((Led == LGREEN) || (Led == LBLUE))
+	else if((Led == LRED) || (Led == LBLUE))
 		GPIO_PORT[Led]->BRR = GPIO_PIN[Led];
 }
 
@@ -122,7 +122,7 @@ void GPIOInit_BEEP(void)
 void GpioInit(void)
 {
 	/* Initialize Led function */
-	ledInit(LGREEN);
+	ledInit(LRED);
 	ledInit(LBLUE);
 	
 	/* Initialize beep function */

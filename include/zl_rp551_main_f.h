@@ -113,9 +113,9 @@
 #define LED2_GPIO_PORT                 GPIOC
 #define LED2_GPIO_CLK                  RCC_APB2Periph_GPIOC
 #define LED2_GPIO_PIN                  GPIO_Pin_2
-#define LGREEN_GPIO_PORT               GPIOA
-#define LGREEN_GPIO_CLK                RCC_APB2Periph_GPIOA
-#define LGREEN_GPIO_PIN                GPIO_Pin_1
+#define LRED_GPIO_PORT                 GPIOA
+#define LRED_GPIO_CLK                  RCC_APB2Periph_GPIOA
+#define LRED_GPIO_PIN                  GPIO_Pin_1
 #define LBLUE_GPIO_PORT                GPIOA
 #define LBLUE_GPIO_CLK                 RCC_APB2Periph_GPIOA
 #define LBLUE_GPIO_PIN                 GPIO_Pin_0
