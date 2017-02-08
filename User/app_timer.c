@@ -336,7 +336,6 @@ void sw_clear_timer( Timer_typedef *timer_id )
 ******************************************************************************/
 void systemtick_timeout_callback( void )
 {
-	ledToggle(LGREEN);
 	system_timer_status = 0;
 
 	system_rtc_timer.ms += 100;
