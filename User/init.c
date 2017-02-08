@@ -71,7 +71,6 @@ void Platform_Init(void)
 	ledOn(LBLUE);
 	DelayMs(200);
 	BEEP_DISEN();
-	ledOff(LGREEN);
 	ledOff(LBLUE);
 	IWDG_Configuration();
 }
