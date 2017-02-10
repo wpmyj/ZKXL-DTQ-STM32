@@ -866,7 +866,7 @@ void App_open_or_close_attendance_match( Uart_MessageTypeDef *RMessage, Uart_Mes
 				if(card_is_busy == 0)
 				{
 					wl.attendance_sttaus = ON;
-					memcpy(Card_process.uid,RMessage->SIGN,4);
+					memcpy(Card_process.sign,RMessage->SIGN,4);
 					Card_process.cmd_type = RMessage->TYPE;
 					SMessage->DATA[i++] = 0;
 					rf_set_card_status(1);
@@ -879,9 +879,12 @@ void App_open_or_close_attendance_match( Uart_MessageTypeDef *RMessage, Uart_Mes
 			break;
 		case 0x27:
 			{
-				wl.attendance_sttaus = OFF;
-				SMessage->DATA[i++] = 0;
-				rf_set_card_status(0);
+				if( Card_process.cmd_type == 0x25 )
+				{
+					wl.attendance_sttaus = OFF;
+					SMessage->DATA[i++] = 0;
+					rf_set_card_status(0);
+				}
 			}
 			break;
 		default:
@@ -1072,7 +1075,7 @@ void App_card_match_single( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *
 	if(card_is_busy == 0)
 	{
 		Card_process.cmd_type = RMessage->TYPE;
-		memcpy(Card_process.uid,RMessage->SIGN,4);
+		memcpy(Card_process.sign,RMessage->SIGN,4);
 		memcpy(Card_process.studentid,RMessage->DATA,20);
 		Card_process.match_single = 1;
 		wl.match_status = ON;
@@ -1129,11 +1132,14 @@ void App_card_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessag
 		}
 		else
 		{
-			wl.match_status = OFF;
-			memset(Card_process.studentid,0x00,20);
-			Card_process.match_single = 0;
-			rf_set_card_status(0);
-			SMessage->DATA[0] = 0;
+			if( Card_process.cmd_type == 0x41 )
+			{
+				wl.match_status = OFF;
+				memset(Card_process.studentid,0x00,20);
+				Card_process.match_single = 0;
+				rf_set_card_status(0);
+				SMessage->DATA[0] = 0;
+			}
 		}
 	}
 	else
