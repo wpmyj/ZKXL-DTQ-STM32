@@ -219,7 +219,7 @@ void App_card_process(void)
 					for(i=0;i<28;i++)
 						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataRead[i]);
 					DEBUG_CARD_DATA_LOG("\r\n");
-					memset(NDEF_DataRead,00,28);
+					//memset(NDEF_DataRead,00,28);
 					DEBUG_CARD_DATA_LOG("NDEF_DataRead Clear!\r\n");
 				}
 			}
