@@ -16,6 +16,7 @@
 #define UID_USE_TABLE                     (0)
 #define UID_ONLINE_TABLE                  (1)
 #define UID_ONLINE_TEMP_TABLE             (2)
+#define UID_TABLE_NUM                     (17)
 
 #ifdef 	ENABLE_DEBUG_LOG
 #define WhiteListDebug								    printf

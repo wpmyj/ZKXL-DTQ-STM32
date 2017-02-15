@@ -8,6 +8,7 @@
 #define CLICKER_SNED_DATA_STATUS_TYPE     10
 #define CLICKER_PRE_DATA_STATUS_TYPE      11
 
+uint8_t ClickerAnswer[120][30];
 Process_tcb_Typedef Send_data_process, Single_send_data_process;
 volatile send_data_process_tcb_tydef send_data_process_tcb;
 
@@ -24,7 +25,7 @@ static uint8_t pre_status = 0;
 static uint8_t sum_clicker_count = 0;
 
 extern nrf_communication_t nrf_data;
-extern uint16_t list_tcb_table[16][8];
+extern uint16_t list_tcb_table[UID_TABLE_NUM][8];
 
 extern Uart_MessageTypeDef backup_massage;
 extern uint8_t sum_clicker_count;
@@ -357,7 +358,15 @@ void rf_move_data_to_buffer( uint8_t *Message )
 				/* 存入缓存 */
 				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 				{
-					serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
+					//serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
+					set_index_of_white_list_pos(CLICKER_ANSWER_TABLE,uidpos);
+					memcpy(ClickerAnswer[uidpos],&system_rtc_timer,7);
+					ClickerAnswer[uidpos][7] = system_rtc_timer.ms % 256;
+					ClickerAnswer[uidpos][8] = system_rtc_timer.ms / 256;
+					if(rf_message.DATA[8] <= 10)
+					{
+						memcpy(ClickerAnswer[uidpos]+9,rf_message.DATA+8,rf_message.DATA[7]);
+					}
 					/* 更新接收数据帧号与包号 */
 					wl.uids[uidpos].rev_seq = Message[9];
 					wl.uids[uidpos].rev_num = Message[10];	
@@ -481,23 +490,23 @@ uint8_t spi_process_revice_data( void )
 						uint8_t Is_reviceed_uid = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,uidpos);
 						if( Is_reviceed_uid == 0 )
 						{
-							Uart_MessageTypeDef result_message;
+//							Uart_MessageTypeDef result_message;
 
-							result_message.TYPE   = 0x31;
-							result_message.HEADER = 0x5C;
-							memcpy(result_message.SIGN,backup_massage.SIGN,4);
-							result_message.LEN     = 0x06;
-							result_message.DATA[0] = 0x00;
-							result_message.DATA[1] = uidpos;
-							memcpy(result_message.DATA+2,spi_message+5,4);
-							result_message.XOR = XOR_Cal(&result_message.TYPE,12);
-							result_message.END  = 0xCA;
+//							result_message.TYPE   = 0x31;
+//							result_message.HEADER = 0x5C;
+//							memcpy(result_message.SIGN,backup_massage.SIGN,4);
+//							result_message.LEN     = 0x06;
+//							result_message.DATA[0] = 0x00;
+//							result_message.DATA[1] = uidpos;
+//							memcpy(result_message.DATA+2,spi_message+5,4);
+//							result_message.XOR = XOR_Cal(&result_message.TYPE,12);
+//							result_message.END  = 0xCA;
 
 							if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 							{
 								clear_index_of_white_list_pos(SEND_PRE_TABLE,uidpos);
 								set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
-								serial_ringbuffer_write_data(SEND_RINGBUFFER,&result_message);
+								//serial_ringbuffer_write_data(SEND_RINGBUFFER,&result_message);
 							}
 						}
 					}
@@ -1062,7 +1071,7 @@ void send_data_env_init(void)
 
 	/* clear online check table */
 	memset(list_tcb_table[SINGLE_SEND_DATA_ACK_TABLE],0,16);
-	memset(list_tcb_table[SEND_DATA1_ACK_TABLE],0,16*13);
+	memset(list_tcb_table[SEND_DATA1_ACK_TABLE],0,16*(UID_TABLE_NUM-SEND_DATA1_ACK_TABLE));
 
 	/* clear count of clicker */
 	sum_clicker_count = 0;

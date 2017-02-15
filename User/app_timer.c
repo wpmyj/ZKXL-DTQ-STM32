@@ -338,7 +338,7 @@ void systemtick_timeout_callback( void )
 {
 	system_timer_status = 0;
 
-	system_rtc_timer.ms += 100;
+	system_rtc_timer.ms += 50;
 	if( system_rtc_timer.ms >= 1000 )
 	{
 		system_rtc_timer.ms = 0;
@@ -373,7 +373,7 @@ void systemtick_timeout_callback( void )
 ******************************************************************************/
 void system_timer_init( void )
 {
-	sw_create_timer(&system_timer , 100, 0, 1,&(system_timer_status), systemtick_timeout_callback);
+	sw_create_timer(&system_timer , 50, 0, 1,&(system_timer_status), systemtick_timeout_callback);
 
 	system_rtc_timer.year = 2016;
 	system_rtc_timer.mon  = 0;

@@ -23,7 +23,7 @@ static uint8_t whitelist_print_index = 0;
 
 extern uint8_t is_open_statistic;
 extern uint8_t uart_tx_status;
-extern uint16_t list_tcb_table[16][8];
+extern uint16_t list_tcb_table[UID_TABLE_NUM][8];
 extern nrf_communication_t nrf_data;
        uint8_t serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 			 uint8_t serial_cmd_type = 0;
@@ -35,7 +35,7 @@ Uart_MessageTypeDef backup_massage;
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
 extern Process_tcb_Typedef systick_process;
-
+extern uint8_t ClickerAnswer[120][30];
 /* Private functions ---------------------------------------------------------*/
 static void serial_send_data_to_pc(void);
 static void serial_cmd_process(void);
@@ -56,6 +56,7 @@ void App_send_process_parameter_set( Uart_MessageTypeDef *RMessage, Uart_Message
 void App_card_match_single( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_card_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_start_or_stop_answer( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_get_clicker_answers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 
 /******************************************************************************
   Function:App_seirial_cmd_process
@@ -140,14 +141,14 @@ static void serial_cmd_process(void)
 			case 0x13:
 				{
 					App_send_data_to_clickers( &ReviceMessage, &SendMessage);
-          #ifdef ENABLE_SEND_DATA_TO_PC
+          //#ifdef ENABLE_SEND_DATA_TO_PC
 					if(ReviceMessage.DATA[6] == 0x15)
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_IGNORE;
 					else
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
-          #else
-					serial_cmd_status = APP_SERIAL_CMD_STATUS_IGNORE;
-          #endif
+          //#else
+					//serial_cmd_status = APP_SERIAL_CMD_STATUS_IGNORE;
+          //#endif
 				}
 				break;
 
@@ -167,7 +168,24 @@ static void serial_cmd_process(void)
 					}
 				}
 				break;
-
+			/* 停止下发数据 */
+			case 0x14:
+				{
+					if(ReviceMessage.LEN != 0)
+					{
+						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;
+					}
+					else
+					{
+						App_get_clicker_answers( &ReviceMessage, &SendMessage);
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+						//serial_cmd_status = APP_SERIAL_CMD_STATUS_IGNORE;
+					}
+				}
+				break;
+	
 			/* 添加或者删除白名单 */
 			case 0x20:
 			case 0x21:
@@ -1204,6 +1222,74 @@ void App_start_or_stop_answer( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDe
 	}
 
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
+}
+
+/******************************************************************************
+  Function:App_start_or_stop_answer
+  Description:
+		打印设备信息
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_get_clicker_answers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	uint8_t i = 0;
+	uint8_t len = 0;
+	uint8_t is_use_pos = 0,is_online_pos = 0;
+	uint8_t *pdata = SMessage->DATA;
+
+	SMessage->HEADER = 0x5C;
+	SMessage->TYPE = RMessage->TYPE;
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+	memcpy(Card_process.sign,RMessage->SIGN,4);
+
+	for( i = 0; (i<120)&&(len<239-14); i++)
+	{
+		is_use_pos = get_index_of_white_list_pos_status(SEND_DATA1_SUM_TABLE,i);
+		if(is_use_pos == 1)
+		{
+			is_online_pos = get_index_of_white_list_pos_status(CLICKER_ANSWER_TABLE,i);
+			if(is_online_pos == 1)
+			{
+				uint8_t answer_len = 0;
+//				uint8_t answer_index = 0;
+				uint8_t answer_num = 0;
+				memcpy(pdata,wl.uids[i].uid,4);
+//			  printf("uID:%02x%02x%02x%02x ", \
+//				wl.uids[i].uid[0],wl.uids[i].uid[1],wl.uids[i].uid[2],wl.uids[i].uid[3]); 
+				pdata = pdata + 4;
+				answer_num = ClickerAnswer[i][9];
+				answer_len = 10 + answer_num*2;
+				memcpy(pdata,ClickerAnswer[i],answer_len);
+//				printf("Time:%4d-%02d-%02d ",*(uint16_t *)(ClickerAnswer[i]),ClickerAnswer[i][2],ClickerAnswer[i][3]);
+//				printf("%02d:%02d:%02d:%03d ", 
+//				ClickerAnswer[i][4],ClickerAnswer[i][5],ClickerAnswer[i][6],*(uint16_t *)(ClickerAnswer[i]+7));
+//				printf("Num:%02x ", ClickerAnswer[i][9]);
+//				for(answer_index = 0; answer_index < answer_num*2; )
+//				{
+//					printf(" Q:%02x",*(ClickerAnswer[i]+10+answer_index));
+//					printf(" A:%02x",*(ClickerAnswer[i]+10+answer_index+1));
+//					answer_index = answer_index+2;
+//				}
+//				printf("\r\n");
+				pdata = pdata + answer_len;
+				len = len + 4 + answer_len;
+			}
+		}
+	}
+	SMessage->LEN = len;
+//	{
+//		uint8_t i;
+//		for(i=0;i<SMessage->LEN;i++)
+//		{
+//			printf(" %02x",SMessage->DATA[i]);
+//		}
+//	}
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), SMessage->LEN+6);
 	SMessage->END = 0xCA;
 }
 

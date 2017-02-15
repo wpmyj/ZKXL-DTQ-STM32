@@ -2,8 +2,8 @@
 #include "nrf.h"
 
 static uint8_t spi_send_data_status = 0;
-static uint8_t spi_send_data_buffer[5][260];
-static uint8_t spi_send_data_buffer_len[4];
+static uint8_t spi_send_data_buffer[SPI_SEND_DATA_BUFFER_COUNT_MAX+1][260];
+static uint8_t spi_send_data_buffer_len[SPI_SEND_DATA_BUFFER_COUNT_MAX];
 static uint8_t spi_send_data_write_index, spi_send_data_read_index, spi_send_data_count;
 
 /******************************************************************************

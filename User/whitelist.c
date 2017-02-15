@@ -4,7 +4,7 @@
 uint8_t           uid_p;
 uint8_t		        uid_len = 0;					        // M1卡序列号长度
 uint8_t 	        g_cSNR[10];						        // M1卡序列号
-uint16_t          list_tcb_table[16][8] =
+uint16_t          list_tcb_table[UID_TABLE_NUM][8] =
 {
 	{0,0,0,0,0,0,0,0}, // [0]:UID 使用索引表
 	{0,0,0,0,0,0,0,0}, // [1]:UID 在线索引表
@@ -24,7 +24,8 @@ uint16_t          list_tcb_table[16][8] =
 	{0,0,0,0,0,0,0,0}, // [C]:PRE 
 	{0,0,0,0,0,0,0,0}, // [D]:REQUST
   {0,0,0,0,0,0,0,0}, // [E]:REQUST TEMP PRE
-	{0,0,0,0,0,0,0,0}  // [E]:REQUST TEMP ACK
+	{0,0,0,0,0,0,0,0}, // [F]:REQUST TEMP ACK
+	{0,0,0,0,0,0,0,0}  // [F]:CLICKER ANSWER
 };
 
 uint8_t           rf_current_uid_index = 0;

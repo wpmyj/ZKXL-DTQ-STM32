@@ -45,13 +45,13 @@ typedef struct
 
 typedef struct
 {
-	uint16_t ms;
-	uint8_t  sec;
-	uint8_t  min;
-	uint8_t  hour;
-	uint8_t  date;
+	uint16_t year;
 	uint8_t  mon;
-	uint16_t  year;
+	uint8_t  date;
+	uint8_t  hour;
+	uint8_t  min;
+	uint8_t  sec;
+	uint16_t ms;
 	uint8_t  sync_flg;
 }RTC_timer_Typedef;
 

@@ -15,7 +15,7 @@
 #include "app_systick_package_process.h"
 #include "app_send_data_process.h"
 
-extern uint16_t list_tcb_table[16][8];
+extern uint16_t list_tcb_table[UID_TABLE_NUM][8];
 
 /******************************************************************************
   Function:App_clickers_systick_process

@@ -13,7 +13,7 @@
 #endif
 
 #define SPI_SEND_DATA_PRE_DELAY        10
-#define SPI_SEND_DATA_BUFFER_COUNT_MAX 4
+#define SPI_SEND_DATA_BUFFER_COUNT_MAX 3
 
 void change_spi_send_data_process_status( uint8_t new_status );
 uint8_t get_spi_send_data_process_status( void );
