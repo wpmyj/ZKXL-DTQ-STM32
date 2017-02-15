@@ -1124,7 +1124,7 @@ void App_card_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessag
 				wl.match_status = ON;
 				memset(Card_process.studentid,0x00,20);
 				Card_process.match_single = 0;
-				memcpy(Card_process.uid,RMessage->SIGN,4);
+				memcpy(Card_process.sign,RMessage->SIGN,4);
 				Card_process.cmd_type = RMessage->TYPE;
 				SMessage->DATA[0] = 0;
 				rf_set_card_status(1);
