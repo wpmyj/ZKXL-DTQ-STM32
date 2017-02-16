@@ -3,7 +3,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-#define MAX_WHITE_LEN						          (120)
+//#define MAX_WHITE_LEN						          (120)
 #define WHITE_LIST_LEN_POS_OF_FEE         (481)
 #define WHITE_LIST_SW_POS_OF_FEE          (482)
 #define WHITE_LIST_USE_TABLE_POS_OF_FEE   (483)

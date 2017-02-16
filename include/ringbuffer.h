@@ -25,8 +25,8 @@
 #define PACKETSIZE           (UART_NBUF+9)
 #define REVICEBUFFERSIZE     (1024)
 #define SENDBUFFERSIZE       (1024)
-#define SPIBUFFERSIZE        (1736)
-#define SPIIRQBUFFERSIZE     (1736)
+#define SPIBUFFERSIZE        (1024)
+#define SPIIRQBUFFERSIZE     (1024)
 #define PRINTBUFFERSIZE      (1)
 #define RINGBUFFERSUM        (5)
 

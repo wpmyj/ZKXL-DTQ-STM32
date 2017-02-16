@@ -35,7 +35,7 @@ Uart_MessageTypeDef backup_massage;
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
 extern Process_tcb_Typedef systick_process;
-extern uint8_t ClickerAnswer[120][30];
+extern uint8_t ClickerAnswer[MAX_WHITE_LEN][30];
 /* Private functions ---------------------------------------------------------*/
 static void serial_send_data_to_pc(void);
 static void serial_cmd_process(void);
@@ -838,7 +838,7 @@ uint8_t App_return_whitelist_data( Uart_MessageTypeDef *RMessage, Uart_MessageTy
 
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
 
-	while((uid_count*5<UART_NBUF-6)&&(uid_p<120))
+	while((uid_count*5<UART_NBUF-6)&&(uid_p<MAX_WHITE_LEN))
 	{
 		if(OPERATION_SUCCESS == get_index_of_uid(uid_p,tempuid))
 		{
@@ -1247,7 +1247,7 @@ void App_get_clicker_answers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
 	memcpy(Card_process.sign,RMessage->SIGN,4);
 
-	for( i = 0; (i<120)&&(len<239-14); i++)
+	for( i = 0; (i<MAX_WHITE_LEN)&&(len<239-14); i++)
 	{
 		is_use_pos = get_index_of_white_list_pos_status(SEND_DATA1_SUM_TABLE,i);
 		if(is_use_pos == 1)

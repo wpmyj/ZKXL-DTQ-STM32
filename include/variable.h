@@ -15,6 +15,7 @@
 #include <string.h>
 #include "define.h"
 #include "gpio.h"
+#include "whitelist.h"
 
 typedef struct 
 {
@@ -61,7 +62,7 @@ typedef struct
 
 typedef struct
 {
-	Clicker_Typedef uids[120];
+	Clicker_Typedef uids[MAX_WHITE_LEN];
 	uint8_t    len;
 	uint8_t    switch_status;
 	uint8_t    start;

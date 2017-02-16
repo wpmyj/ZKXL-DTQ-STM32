@@ -93,7 +93,7 @@ void get_white_list_from_flash(void)
 		 EE_ReadVariable(WHITE_LIST_USE_TABLE_POS_OF_FEE+i,&list_tcb_table[0][i]);
 
 	/* get uid */
-	for(index=0;index<120;index++)
+	for(index=0;index<MAX_WHITE_LEN;index++)
 	{
 		Is_use_pos = get_index_of_white_list_pos_status( 0, index );
 		if(Is_use_pos == 1)
@@ -135,7 +135,7 @@ void set_index_of_white_list_pos( uint8_t use_or_online, uint8_t index )
 	if(use_or_online == 0)
 	{
 		flash_white_list_use_table();
-		if(wl.len<120)
+		if(wl.len<MAX_WHITE_LEN)
 		{
 			wl.len++;
 			store_len_to_fee(wl.len);

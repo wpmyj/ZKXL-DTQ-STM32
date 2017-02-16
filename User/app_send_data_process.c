@@ -8,7 +8,7 @@
 #define CLICKER_SNED_DATA_STATUS_TYPE     10
 #define CLICKER_PRE_DATA_STATUS_TYPE      11
 
-uint8_t ClickerAnswer[120][30];
+uint8_t ClickerAnswer[MAX_WHITE_LEN][30];
 Process_tcb_Typedef Send_data_process, Single_send_data_process;
 volatile send_data_process_tcb_tydef send_data_process_tcb;
 
@@ -577,7 +577,7 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table,
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 	static uint8_t index = 0;
 #endif
-	for(i=rf_online_index[mode];(i<120)&&(*len<239-5);i++)
+	for(i=rf_online_index[mode];(i<MAX_WHITE_LEN)&&(*len<239-5);i++)
 	{
 		is_use_pos = get_index_of_white_list_pos_status(src_table,i);
 		if(is_use_pos == 1)
@@ -602,7 +602,7 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table,
 		}
 	}
 
-	if(i==120)
+	if(i==MAX_WHITE_LEN)
 	{
 		rf_online_index[mode] = 0;
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
@@ -740,7 +740,7 @@ uint8_t checkout_retransmit_clickers(uint8_t presumtable, uint8_t preacktable, u
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 	uint8_t index = 0;
 #endif
-	for(i=0;i<120;i++)
+	for(i=0;i<MAX_WHITE_LEN;i++)
 	{
 		is_use_pos = get_index_of_white_list_pos_status(presumtable,i);
 		if(is_use_pos == 1)
@@ -778,7 +778,7 @@ uint8_t check_is_revice_over( void )
 {
 	uint8_t i;
 	uint8_t is_use_pos = 0,is_online_pos = 0;
-	for(i=0;i<120;i++)
+	for(i=0;i<MAX_WHITE_LEN;i++)
 	{
 		is_use_pos = get_index_of_white_list_pos_status(0,i);
 		if(is_use_pos == 1)

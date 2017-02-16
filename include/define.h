@@ -22,6 +22,7 @@
 #define ENABLE_ALL_IRQ()   			__set_PRIMASK(0);
 
 #define UART_BAUD								1152000
+#define MAX_WHITE_LEN						(5)
 
 #ifdef 	ENABLE_DEBUG_LOG
 #define DebugLog								printf
