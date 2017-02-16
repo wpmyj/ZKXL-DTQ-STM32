@@ -31,7 +31,12 @@ static uint32_t uart_rx_timeout       = 0;
 static bool     flag_uart_rxing       = false;
 static uint8_t  uart_status           = UartSTART;
 static uint8_t  uart_json_nesting_num = 0;
-static uint8_t  uart_irq_revice_massage[1024];
+
+#define JSON_ITEM_MAX    3
+uint8_t  uart_irq_revice_massage[JSON_ITEM_MAX][300];
+uint8_t revice_json_count = 0;
+uint8_t revice_json_write_index = 0;
+
 
 // send part
 Uart_MessageTypeDef uart_irq_send_massage;
@@ -67,7 +72,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 						uart_json_nesting_num = 0;
 						uart_status           = UartDATA;
 						uart_json_nesting_num++;
-						uart_irq_revice_massage[uart_rx_cnt++] = data ;
+						uart_irq_revice_massage[revice_json_write_index][uart_rx_cnt++] = data ;
 						flag_uart_rxing = true;
 					}
 				}
@@ -75,7 +80,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 
 			case UartDATA:
 				{
-					uart_irq_revice_massage[uart_rx_cnt++] = data ;
+					uart_irq_revice_massage[revice_json_write_index][uart_rx_cnt++] = data ;
 					if(UART_SOF == data)
 					{
 						uart_json_nesting_num++;
@@ -85,49 +90,11 @@ void uart_revice_data_state_mechine( uint8_t data )
 						uart_json_nesting_num--;
 						if(uart_json_nesting_num == 0)
 						{
-							cJSON *json ;
-							json = cJSON_Parse((char *)uart_irq_revice_massage);  
-							if (!json)  
-							{  
-									printf("Error before: [%s]\n",cJSON_GetErrorPtr());  
-							} 
-							else
+							if(revice_json_count < JSON_ITEM_MAX  )
 							{
-								printf("\r\nParse:%s: %s \r\n",
-								cJSON_GetObjectItem(json, "fun")->string,
-								cJSON_GetObjectItem(json, "fun")->valuestring);
-
-								/* start */
-								if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"start",5) == 0)
-								{
-									printf("Parse:%s:%s \r\n",
-									cJSON_GetObjectItem(json, "type")->string,
-									cJSON_GetObjectItem(json, "type")->valuestring);
-									printf("Parse:%s:%s \r\n",
-									cJSON_GetObjectItem(json, "num")->string,
-									cJSON_GetObjectItem(json, "num")->valuestring);
-									printf("Parse:%s:%s \r\n",
-									cJSON_GetObjectItem(json, "time")->string,
-									cJSON_GetObjectItem(json, "time")->valuestring);
-								}
-
-								/* get_device_no */
-								if(strncmp(cJSON_GetObjectItem(json, "get_device_no")->valuestring,"get_device_no",5) == 0)
-								{
-									
-								}
-								
-								/* get_device_no */
-								if(strncmp(cJSON_GetObjectItem(json, "getlist")->valuestring,"getlist",5) == 0)
-								{
-									
-								}
+								revice_json_write_index = (revice_json_write_index+1) % JSON_ITEM_MAX;
+								revice_json_count++;
 							}
-							
-							if(json)
-								cJSON_Delete(json);
-							
-							memset(uart_irq_revice_massage,0,uart_rx_cnt);
 							uart_rx_cnt     = 0;
 							uart_status     = UartSTART;
 							flag_uart_rxing = false;
