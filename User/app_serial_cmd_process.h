@@ -32,22 +32,14 @@
 
 void App_seirial_cmd_process(void);
 
-/* Uart Message configuration */
-
-
 /* Uart Message frame header and tail */
-#define UART_SOF								          (0x5C)							//帧头
-#define UART_EOF 								          (0xCA)							//帧尾
+#define UART_SOF								          ('{')							//帧头
+#define UART_EOF 								          ('}')							//帧尾
 
 /* Uart message status */
-#define UartOK	 								          (0)									//串口接收帧完成
-#define UartHEADER 							          (1)									//串口接收帧帧头
-#define UartTYPE 								          (2)									//串口接收帧数据
-#define UartLEN									          (3)									//串口接收帧异或
-#define UartSIGN                          (4)
-#define UartDATA 								          (5)									//串口接收帧帧尾
-#define UartXOR									          (6)									//串口接收帧异或
-#define UartEND 								          (7)									//串口接收帧帧尾
+#define UartSTART 							          (1)
+#define UartDATA	 								        (2)
+#define UartEND 								          (3)
 
 /* Uart Message structure definition */
 typedef struct
@@ -83,9 +75,4 @@ typedef struct
 	uint8_t retransmit;
 }Process_tcb_Typedef;
 
-void serial_handle_layer(void);
-void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err_type );
-uint8_t get_backup_massage_status( void );
-void change_clicker_send_data_status( uint8_t newstatus );
-uint8_t get_clicker_send_data_status( void );
 #endif // __POS_HANDLE_LAYER_H_

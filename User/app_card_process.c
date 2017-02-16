@@ -431,7 +431,6 @@ void App_card_process(void)
 		if( card_message_err == 2 )
 		{
 			memcpy(card_message.SIGN,Card_process.sign,4);
-			App_returnErr(&card_message,Card_process.cmd_type,0xFD);
 		}
 
 		if(card_message_err != 0)

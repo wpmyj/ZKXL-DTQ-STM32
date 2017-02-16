@@ -23,15 +23,15 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "app_send_data_process.h"
-/* uart global variables */
-
-uint32_t clicker_test_printf_flg = 0;
-// revice part
-Uart_MessageTypeDef uart_irq_revice_massage;
-static uint32_t uart_rx_timeout = 0;
-
-static bool     flag_uart_rxing = false;
-static uint8_t  uart_status     = UartHEADER;
+#include <stdio.h>  
+#include <stdlib.h>  
+#include "cJSON.h"
+// receive part
+static uint32_t uart_rx_timeout       = 0;
+static bool     flag_uart_rxing       = false;
+static uint8_t  uart_status           = UartSTART;
+static uint8_t  uart_json_nesting_num = 0;
+static uint8_t  uart_irq_revice_massage[1024];
 
 // send part
 Uart_MessageTypeDef uart_irq_send_massage;
@@ -45,28 +45,6 @@ uint8_t spi_status_buffer[SPI_DATA_IRQ_BUFFER_BLOCK_COUNT][18];
 uint8_t spi_status_write_index = 0, spi_status_read_index = 0, spi_status_count = 0;
 
 /******************************************************************************
-  Function:uart_clear_message
-  Description:
-		清除Message中的信息
-  Input :
-		Message: 协议Message的指针
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-void uart_clear_message( Uart_MessageTypeDef *Message )
-{
-	uint8_t i;
-	uint8_t *pdata = (uint8_t*)(Message);
-
-	for(i=0;i<PACKETSIZE;i++)
-	{
-		*pdata = 0;
-		pdata++;
-	}
-}
-
-/******************************************************************************
   Function:uart_revice_data_state_mechine
   Description:
 		串口数据接收函数，提取有效数据存入缓存
@@ -77,108 +55,83 @@ void uart_clear_message( Uart_MessageTypeDef *Message )
 ******************************************************************************/
 void uart_revice_data_state_mechine( uint8_t data )
 {
-	static uint8_t	uart_rx_cnt     = 0;
-	static uint8_t  temp_sign_len   = 0;
+	static uint16_t	uart_rx_cnt     = 0;
 
 	switch(uart_status)
 		{
-			case UartHEADER:
+			case UartSTART:
 				{
-					if(UART_SOF == data)		//如果命令头为0x5C则开始接收，否则不接收
+					if(UART_SOF == data)
 					{
-						uart_irq_revice_massage.HEADER = data;
-						uart_status =  UartTYPE;
+						uart_rx_cnt           = 0;
+						uart_json_nesting_num = 0;
+						uart_status           = UartDATA;
+						uart_json_nesting_num++;
+						uart_irq_revice_massage[uart_rx_cnt++] = data ;
 						flag_uart_rxing = true;
-					}
-				}
-				break;
-
-			case UartTYPE:
-				{
-					uart_irq_revice_massage.TYPE = data;
-					uart_status = UartSIGN;
-					temp_sign_len = 0;
-				}
-				break;
-
-			case UartSIGN:
-				{
-						uart_irq_revice_massage.SIGN[temp_sign_len++] = data;
-						if( temp_sign_len == 4 )
-						{
-								uart_status = UartLEN;
-						}
-				}
-				break;
-
-			case UartLEN:
-				{
-					uart_irq_revice_massage.LEN = data;
-
-					/*  若数据长度大于 236 */
-					if(uart_irq_revice_massage.LEN > UART_NBUF)
-					{
-						uart_status =  UartHEADER;
-						/* 清除 uart_irq_revice_massage 接收信息 */
-						uart_clear_message(&uart_irq_revice_massage);
-						flag_uart_rxing = false;
-					}
-					else if(uart_irq_revice_massage.LEN > 0)	//  DATA不为空
-					{
-						uart_status = UartDATA;
-						uart_rx_cnt = 0;
-					}
-					else//  DATA为空
-					{
-						uart_status = UartXOR;
 					}
 				}
 				break;
 
 			case UartDATA:
 				{
-						uart_irq_revice_massage.DATA[uart_rx_cnt++] = data;
-						/* 数据接收完成 */
-						if(uart_rx_cnt == uart_irq_revice_massage.LEN)
-								uart_status = UartXOR;
-				}
-				break;
-
-			case UartXOR:
-				{
-						uart_irq_revice_massage.XOR = data;
-						uart_status = UartEND;
-				}
-				break;
-
-			case UartEND:
-				{
+					uart_irq_revice_massage[uart_rx_cnt++] = data ;
+					if(UART_SOF == data)
+					{
+						uart_json_nesting_num++;
+					}
 					if(UART_EOF == data)
 					{
-						uint8_t UartMessageXor = XOR_Cal((uint8_t *)(&uart_irq_revice_massage.TYPE),
-												uart_irq_revice_massage.LEN + 6 );
-						uart_irq_revice_massage.END = data;
-
-						if( uart_irq_revice_massage.XOR == UartMessageXor)
-						{   /* 若校验通过，则接收数据OK可用 */
-								if(BUFFERFULL != buffer_get_buffer_status(REVICE_RINGBUFFER))
-								{
-									serial_ringbuffer_write_data(REVICE_RINGBUFFER,&uart_irq_revice_massage);
-								}
-							  flag_uart_rxing = false;
-								uart_status = UartHEADER;
-								uart_clear_message(&uart_irq_revice_massage);
-						}
-						else
+						uart_json_nesting_num--;
+						if(uart_json_nesting_num == 0)
 						{
-							uart_clear_message(&uart_irq_revice_massage);
+							cJSON *json ;
+							json = cJSON_Parse((char *)uart_irq_revice_massage);  
+							if (!json)  
+							{  
+									printf("Error before: [%s]\n",cJSON_GetErrorPtr());  
+							} 
+							else
+							{
+								printf("\r\nParse:%s: %s \r\n",
+								cJSON_GetObjectItem(json, "fun")->string,
+								cJSON_GetObjectItem(json, "fun")->valuestring);
+
+								/* start */
+								if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"start",5) == 0)
+								{
+									printf("Parse:%s:%s \r\n",
+									cJSON_GetObjectItem(json, "type")->string,
+									cJSON_GetObjectItem(json, "type")->valuestring);
+									printf("Parse:%s:%s \r\n",
+									cJSON_GetObjectItem(json, "num")->string,
+									cJSON_GetObjectItem(json, "num")->valuestring);
+									printf("Parse:%s:%s \r\n",
+									cJSON_GetObjectItem(json, "time")->string,
+									cJSON_GetObjectItem(json, "time")->valuestring);
+								}
+
+								/* get_device_no */
+								if(strncmp(cJSON_GetObjectItem(json, "get_device_no")->valuestring,"get_device_no",5) == 0)
+								{
+									
+								}
+								
+								/* get_device_no */
+								if(strncmp(cJSON_GetObjectItem(json, "getlist")->valuestring,"getlist",5) == 0)
+								{
+									
+								}
+							}
+							
+							if(json)
+								cJSON_Delete(json);
+							
+							memset(uart_irq_revice_massage,0,uart_rx_cnt);
+							uart_rx_cnt     = 0;
+							uart_status     = UartSTART;
+							flag_uart_rxing = false;
 						}
-					}
-					else
-					{
-						uart_status = UartHEADER;
-						uart_clear_message(&uart_irq_revice_massage);
-						flag_uart_rxing = false;
 					}
 				}
 				break;
@@ -186,73 +139,6 @@ void uart_revice_data_state_mechine( uint8_t data )
 			default:
 				break;
 		}
-}
-
-/******************************************************************************
-  Function:uart_send_data_state_machine
-  Description:
-		串口数发送函数，从缓存中提取数据发送到上位机
-  Input :
-		status: uart tx status
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-void uart_send_data_state_machine( void )
-{
-	static uint8_t uart_tx_cnt  = 0;
-	static uint8_t *pdata;
-
-	switch( uart_tx_status )
-	{
-		case 0:
-			{
-					if(BUFFEREMPTY == buffer_get_buffer_status(SEND_RINGBUFFER))
-					{
-						USART_ITConfig(USART1pos,USART_IT_TXE,DISABLE);
-						return;
-					}
-					else
-					{
-						serial_ringbuffer_read_data(SEND_RINGBUFFER, &uart_irq_send_massage);
-						pdata = (uint8_t *)(&uart_irq_send_massage);
-						uart_tx_status = 1;
-						uart_tx_cnt = *(pdata+6) + 7;
-						uart_tx_status = 1;
-					}
-			}
-			break;
-
-		case 1:
-			{
-				USART_SendData(USART1pos,*pdata);
-				uart_tx_cnt--;
-				pdata++;
-				if( uart_tx_cnt == 0 )
-				{
-					pdata = &(uart_irq_send_massage.XOR);
-					uart_tx_cnt = 2;
-					uart_tx_status = 2;
-				}
-			}
-			break;
-
-		case 2:
-			{
-				USART_SendData(USART1pos,*pdata);
-				uart_tx_cnt--;
-				pdata++;
-				if( uart_tx_cnt == 0 )
-				{
-					uart_clear_message(&uart_irq_send_massage);
-					uart_tx_status = 0;
-				}
-			}
-			break;
-
-		default:
-			break;
-	}
 }
 
 /** @addtogroup STM32F10x_StdPeriph_Examples
@@ -272,13 +158,13 @@ void uart_send_data_state_machine( void )
 #if defined(__CC_ARM) /*------------------RealView Compiler -----------------*/
 __asm void GenerateSystemReset(void)
 {
-//	MOV R0, #1         	//;
-//	MSR FAULTMASK, R0  	//; 清除FAULTMASK 禁止一切中断产生
-//	LDR R0, =0xE000ED0C //;
-//	LDR R1, =0x05Fa0004 //;
-//	STR R1, [R0]       	//; 系统软件复位
-//deadloop
-//    B deadloop        //; 死循环使程序运行不到下面的代码
+	MOV R0, #1         	//;
+	MSR FAULTMASK, R0  	//; 清除FAULTMASK 禁止一切中断产生
+	LDR R0, =0xE000ED0C //;
+	LDR R1, =0x05Fa0004 //;
+	STR R1, [R0]       	//; 系统软件复位
+deadloop
+    B deadloop        //; 死循环使程序运行不到下面的代码
 }
 #elif (defined(__ICCARM__)) /*------------------ ICC Compiler -------------------*/
 //#pragma diag_suppress=Pe940
@@ -402,9 +288,8 @@ void SysTick_Handler(void)
 		uart_rx_timeout++;
 		if(uart_rx_timeout>5)										//5ms超时后重新开始接收
 		{
-			uart_clear_message(&uart_irq_revice_massage);
 			flag_uart_rxing = false;
-			uart_status = UartHEADER;
+			uart_status = UartSTART;
 		}
 	}
 }
@@ -440,12 +325,6 @@ void USART1pos_IRQHandler(void)
 		uart_revice_data_state_mechine( uart_temp );
 
 		uart_rx_timeout = 0;
-	}
-
-
-	if(USART_GetITStatus(USART1pos, USART_IT_TXE) != RESET)
-  {
-    uart_send_data_state_machine( );
 	}
 }
 

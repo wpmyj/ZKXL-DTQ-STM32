@@ -26,8 +26,8 @@ static volatile uint8_t  Status[RINGBUFFERSUM] = { BUFFEREMPTY, BUFFEREMPTY, BUF
 /* Private functions ---------------------------------------------------------*/
 static void    update_read_status( uint8_t sel) ;
 static void    update_write_status( uint8_t sel) ;
-static void    update_top( uint8_t sel, uint8_t Len );
-static void    update_bottom( uint8_t sel, uint8_t Len );
+static void    update_top( uint8_t sel, uint16_t Len );
+static void    update_bottom( uint8_t sel, uint16_t Len );
 static uint8_t get(uint8_t sel, uint16_t index);
 static void    set(uint8_t sel, uint16_t index,uint8_t data);
 
@@ -151,7 +151,7 @@ static void update_write_status( uint8_t sel)
   Return:
   Others:None
 ******************************************************************************/
-static void update_top( uint8_t sel, uint8_t Len )
+static void update_top( uint8_t sel, uint16_t Len )
 {
 	Size[sel] += Len;
 	Top[sel] = (Top[sel] + Len) % BufferSize[sel];
@@ -165,7 +165,7 @@ static void update_top( uint8_t sel, uint8_t Len )
   Return:
   Others:None
 ******************************************************************************/
-static void update_bottom( uint8_t sel, uint8_t Len )
+static void update_bottom( uint8_t sel, uint16_t Len )
 {
 	Size[sel] -= Len;
 	Bottom[sel] = (Bottom[sel] + Len) % BufferSize[sel];
@@ -300,10 +300,10 @@ uint8_t serial_ringbuffer_get_usage_rate(uint8_t sel)
   Return:
   Others:None
 ******************************************************************************/
-void print_write_data_to_buffer( char *str, uint8_t len )
+void print_write_data_to_buffer( char *str, uint16_t len )
 {
 	char *pdata;
-  uint8_t	i;
+  uint16_t	i;
 
 	pdata = str;
 

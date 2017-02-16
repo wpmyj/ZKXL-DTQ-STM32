@@ -23,11 +23,11 @@
 #define SPI_IRQ_BUFFER       4
 
 #define PACKETSIZE           (UART_NBUF+9)
-#define REVICEBUFFERSIZE     (1024)
+#define REVICEBUFFERSIZE     (1)
 #define SENDBUFFERSIZE       (1024)
 #define SPIBUFFERSIZE        (1024)
 #define SPIIRQBUFFERSIZE     (1024)
-#define PRINTBUFFERSIZE      (1)
+#define PRINTBUFFERSIZE      (2048)
 #define RINGBUFFERSUM        (5)
 
 /* buffer status  */
@@ -50,11 +50,9 @@
 
 /* Private functions ---------------------------------------------------------*/
 uint8_t buffer_get_buffer_status( uint8_t sel );
-void serial_ringbuffer_write_data( uint8_t sel, Uart_MessageTypeDef *data );
-void serial_ringbuffer_read_data( uint8_t sel, Uart_MessageTypeDef *data );
 uint8_t serial_ringbuffer_get_usage_rate(uint8_t sel);
 void spi_read_data_from_buffer( uint8_t sel,uint8_t SpiMessage[] );
 void spi_write_data_to_buffer( uint8_t sel, uint8_t SpiMessage[], uint8_t status );
-void print_write_data_to_buffer( char *str, uint8_t len );
+void print_write_data_to_buffer( char *str, uint16_t len );
 void print_read_data_to_buffer( uint8_t *str ,uint8_t size);
 #endif
