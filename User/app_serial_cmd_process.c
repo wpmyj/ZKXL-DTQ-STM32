@@ -87,6 +87,21 @@ void App_seirial_cmd_process(void)
 	if( revice_json_count > 0 )
 	{
 		cJSON *json;
+
+		/* 增加对'的支持 */
+		{
+			char *pdata = (char *)uart_irq_revice_massage[revice_json_read_index];
+
+			while(*pdata != '\0')
+			{
+				if(*pdata == '\'')
+				{
+					*pdata = '\"';
+				}
+				pdata++;
+			}
+		}
+		
 		json = cJSON_Parse((char *)uart_irq_revice_massage[revice_json_read_index]); 
 		if (!json)  
 		{
@@ -107,15 +122,27 @@ void App_seirial_cmd_process(void)
 
 				if(OPERATION_SUCCESS == result)
 				{
-					cJSON_AddNumberToObject(root, "result", 0 );
+					cJSON_AddStringToObject(root, "result", "0" );
 				}
 				else
 				{
-					cJSON_AddNumberToObject(root, "result", 1 );
+					cJSON_AddStringToObject(root, "result", "1" );
 				}
 
 				/* 打印返回 */
 				out = cJSON_Print(root);
+				{
+					char *pdata = out;
+
+					while(*pdata != '\0')
+					{
+						if(*pdata == '\"')
+						{
+							*pdata = '\'';
+						}
+						pdata++;
+					}
+				}
 				printf("%s", out);
 				cJSON_Delete(root);
 				free(out); 
@@ -143,10 +170,22 @@ void App_seirial_cmd_process(void)
 					rf_set_card_status(0);
 				}
 
-				cJSON_AddNumberToObject(root, "result", 0 );
+				cJSON_AddStringToObject(root, "result", "0" );
 				
 				/* 打印返回 */
 				out = cJSON_Print(root);
+				{
+					char *pdata = out;
+
+					while(*pdata != '\0')
+					{
+						if(*pdata == '\"')
+						{
+							*pdata = '\'';
+						}
+						pdata++;
+					}
+				}
 				printf("%s", out);
 				cJSON_Delete(root);
 				free(out); 
@@ -238,15 +277,27 @@ void App_seirial_cmd_process(void)
 					}
 
 					/* return data */	
-					cJSON_AddNumberToObject(root, "result", 0 );			
+					cJSON_AddStringToObject(root, "result", "0" );			
 				}
 				else
 				{
-					cJSON_AddNumberToObject(root, "result", 1 );
+					cJSON_AddStringToObject(root, "result", "1" );
 				}
 
 				/* 打印返回 */
 				out = cJSON_Print(root);
+				{
+					char *pdata = out;
+
+					while(*pdata != '\0')
+					{
+						if(*pdata == '\"')
+						{
+							*pdata = '\'';
+						}
+						pdata++;
+					}
+				}
 				printf("%s", out);
 				cJSON_Delete(root);
 				free(out); 
@@ -255,15 +306,29 @@ void App_seirial_cmd_process(void)
 			/* get_device_no */
 			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"get_device_no",13) == 0)
 			{
-				char *out;
+				char *out,str[20];
 				cJSON *root;
 				
 				/* 填充内容 */
 				root = cJSON_CreateObject();
-				cJSON_AddNumberToObject(root, "no", *(uint32_t *)(revicer.uid) );
+				memset(str,0,20);
+				sprintf(str, "%010u" , *(uint32_t *)(revicer.uid));
+				cJSON_AddStringToObject(root, "no", str );
 				
 				/* 打印返回 */
 				out = cJSON_Print(root);
+				{
+					char *pdata = out;
+
+					while(*pdata != '\0')
+					{
+						if(*pdata == '\"')
+						{
+							*pdata = '\'';
+						}
+						pdata++;
+					}
+				}
 				printf("%s", out);
 				cJSON_Delete(root);
 				free(out); 
@@ -273,12 +338,11 @@ void App_seirial_cmd_process(void)
 			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"getlist",7) == 0)
 			{
 				char *out;
-				cJSON *root;
-				cJSON *card[MAX_WHITE_LEN];
-				uint8_t i = 0;
+				cJSON *cards,*card;
+				uint8_t i = 0, j = 0;
 				uint8_t is_use_pos = 0,is_online_pos = 0;
 				/* 填充内容 */
-				root = cJSON_CreateObject();
+				cards = cJSON_CreateArray();
 
 				for( i = 0; i<MAX_WHITE_LEN; i++)
 				{
@@ -288,18 +352,117 @@ void App_seirial_cmd_process(void)
 						is_online_pos = get_index_of_white_list_pos_status(CLICKER_ANSWER_TABLE,i);
 						if(is_online_pos == 1)
 						{
-							cJSON_AddItemToObject(root, "card", card[i] = cJSON_CreateObject());
-							cJSON_AddNumberToObject(card[i], "cardId", *(uint32_t *)(wl.uids[i].uid) );
-							cJSON_AddStringToObject(card[i], "uptime",(char *) ClickerAnswerTime[i] );
-							cJSON_AddStringToObject(card[i], "answer",(char *) ClickerAnswerData[i] );
+							char str[20];
+							cJSON_AddItemToArray(cards, card = cJSON_CreateObject());
+							memset(str,0,20);
+							sprintf(str, "%010u" , *(uint32_t *)(wl.uids[i].uid));
+							cJSON_AddStringToObject(card, "cardId", str );
+							cJSON_AddStringToObject(card, "uptime",(char *) ClickerAnswerTime[i] );
+							for(j=0;j<ClickerAnswerData[i][0]*2;)
+							{
+								char item[10],str[20];
+								char *pdata = str;
+
+								memset(item,0,5);
+								sprintf(item, "q%d" , ClickerAnswerData[i][1+j]);
+
+								switch(ClickerAnswerData[i][2+j]&0xC0)
+								{
+									case 0x40:
+									{
+											uint8_t answer = ClickerAnswerData[i][2+j]&0x3F;
+											switch(answer)
+											{
+												case 0x01: *pdata = 'A'; break;
+												case 0x02: *pdata = 'B'; break;
+												case 0x04: *pdata = 'C'; break;
+												case 0x08: *pdata = 'D'; break;
+												case 0x10: *pdata = 'E'; break;
+												case 0x20: *pdata = 'F'; break;
+												default: break;
+											}
+											pdata = pdata + 1;
+									}
+									break;
+
+									case 0x80:
+									{
+										if((ClickerAnswerData[i][2+j]&0x01) == 0x01)
+										{
+											*pdata = 'A';
+											pdata = pdata + 1;
+										}
+
+										if((ClickerAnswerData[i][2+j]&0x02) == 0x02)
+										{
+											*pdata = 'B';
+											pdata = pdata + 1;
+										}
+
+										if((ClickerAnswerData[i][2+j]&0x04) == 0x04)
+										{
+											*pdata = 'C';
+											pdata = pdata + 1;
+										}
+
+										if((ClickerAnswerData[i][2+j]&0x08) == 0x08)
+										{
+											*pdata = 'D';
+											pdata = pdata + 1;
+										}
+
+										if((ClickerAnswerData[i][2+j]&0x10) == 0x10)
+										{
+											*pdata = 'E';
+											pdata = pdata + 1;
+										}
+										if((ClickerAnswerData[i][2+j]&0x20) == 0x20)
+										{
+											*pdata = 'F';
+											pdata = pdata + 1;
+										}
+									}
+									break;
+
+									case 0xC0:
+									{
+										switch(ClickerAnswerData[i][2+j]&0x3F)
+										{
+											case 0x01: memcpy(pdata ,"Ture", 4); pdata = pdata + 4; break;
+											case 0x02: memcpy(pdata ,"False",5); pdata = pdata + 5; break;
+											default: break;
+										}
+									}
+									break;
+									
+									default:
+										break;
+								}
+								cJSON_AddStringToObject(card, item, str );
+								j = j + 2;
+							}
 						}
 					}
 				}
 
 				/* 打印返回 */
-				out = cJSON_Print(root);
+				out = cJSON_Print(cards);
+
+				{
+					char *pdata = out;
+
+					while(*pdata != '\0')
+					{
+						if(*pdata == '\"')
+						{
+							*pdata = '\'';
+						}
+						pdata++;
+					}
+				}
+
 				printf("%s", out);
-				cJSON_Delete(root);
+				cJSON_Delete(cards);
 				free(out); 
 			}
 		}
