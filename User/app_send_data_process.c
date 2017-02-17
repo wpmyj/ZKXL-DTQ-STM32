@@ -428,10 +428,95 @@ void rf_move_data_to_buffer( uint8_t *Message )
 						for(i=0; i<rf_message.DATA[8]*2;)
 						{
 							char str[20];
-							memset(str,0,4);
-							sprintf(str, "[%02d].%02x, " , rf_message.DATA[9+i],rf_message.DATA[10+i]);
-							memcpy(pdata,str,9);
-							pdata = pdata + 9;
+							memset(str,0,5);
+							sprintf(str, "[%02d]." , rf_message.DATA[9+i]);
+							memcpy(pdata,str,5);
+							pdata = pdata + 5;
+							switch(rf_message.DATA[10+i]&0xC0)
+							{
+								case 0x40:
+								{
+										uint8_t answer = rf_message.DATA[10+i]&0x3F;
+										//printf("answer : %02x\r\n",answer);
+										switch(answer)
+										{
+											case 0x01: *pdata = 'A'; break;
+											case 0x02: *pdata = 'B'; break;
+											case 0x04: *pdata = 'C'; break;
+											case 0x08: *pdata = 'D'; break;
+											case 0x10: *pdata = 'E'; break;
+											case 0x20: *pdata = 'F'; break;
+											default: break;
+										}
+										pdata = pdata + 1;
+										*pdata = ',';
+										pdata = pdata + 1;
+								}
+								break;
+								
+								case 0x80:
+								{
+										//uint8_t answer = rf_message.DATA[10+i]&0x3F;
+										//printf("answer : %02x\r\n",answer);
+										if((rf_message.DATA[10+i]&0x01) == 0x01)
+										{
+											*pdata = 'A';
+											pdata = pdata + 1;
+										}
+
+										if((rf_message.DATA[10+i]&0x02) == 0x02)
+										{
+											*pdata = 'B';
+											pdata = pdata + 1;
+										}
+
+										if((rf_message.DATA[10+i]&0x04) == 0x04)
+										{
+											*pdata = 'C';
+											pdata = pdata + 1;
+										}
+
+										if((rf_message.DATA[10+i]&0x08) == 0x08)
+										{
+											*pdata = 'D';
+											pdata = pdata + 1;
+										}
+
+										if((rf_message.DATA[10+i]&0x10) == 0x10)
+										{
+											*pdata = 'E';
+											pdata = pdata + 1;
+										}
+										if((rf_message.DATA[10+i]&0x20) == 0x20)
+										{
+											*pdata = 'F';
+											pdata = pdata + 1;
+										}
+
+										*pdata = ',';
+										pdata = pdata + 1;
+								}
+								break;
+
+								case 0xC0:
+								{
+										//uint8_t answer = rf_message.DATA[10+i]&0x3F;
+										//printf("answer : %02x\r\n",answer);
+										switch(rf_message.DATA[10+i]&0x3F)
+										{
+											case 0x01: memcpy(pdata ,"Ture", 4); pdata = pdata + 4; break;
+											case 0x02: memcpy(pdata ,"False",5); pdata = pdata + 5; break;
+											default: break;
+										}
+										*pdata = ',';
+										pdata = pdata + 1;
+								}
+								break;
+								
+								default:
+									break;
+							}
+
 							i = i + 2;
 						}
 						//printf("%s \r\n",ClickerAnswerData[uidpos]);

@@ -113,7 +113,7 @@
 
 #define CLICKER_ANSWER_TABLE        16
 #define CLICKER_TIMER_STR_LEN       30
-#define CLICKER_ANSWER_STR_LEN      100
+#define CLICKER_ANSWER_STR_LEN      150
 
 typedef struct
 {

@@ -181,7 +181,7 @@ void App_seirial_cmd_process(void)
 					switch(type)
 					{
 						case 1 : answer= 0x7F; break;
-						case 2 : answer= 0x7F; break;
+						case 2 : answer= 0xBF; break;
 						case 3 : answer= 0xC3; break;
 						default:  break;
 					}
@@ -260,7 +260,7 @@ void App_seirial_cmd_process(void)
 				
 				/* 填充内容 */
 				root = cJSON_CreateObject();
-				cJSON_AddNumberToObject(root, "uID", *(uint32_t *)(revicer.uid) );
+				cJSON_AddNumberToObject(root, "no", *(uint32_t *)(revicer.uid) );
 				
 				/* 打印返回 */
 				out = cJSON_Print(root);
