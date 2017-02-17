@@ -19,6 +19,7 @@
 #include "main.h"
 #include "cJSON.h"
 #include "app_send_data_process.h"
+#include "app_card_process.h"
 #include "app_show_message_process.h"
 
 /* uid */
@@ -27,7 +28,8 @@ extern RTC_timer_Typedef system_rtc_timer;
 extern uint16_t list_tcb_table[16][8];
 extern nrf_communication_t nrf_data;
 extern WhiteList_Typedef wl;
-extern uint8_t ClickerAnswerTime[MAX_WHITE_LEN][21];
+extern uint8_t ClickerAnswerTime[MAX_WHITE_LEN][CLICKER_TIMER_STR_LEN];
+extern uint8_t ClickerAnswerData[MAX_WHITE_LEN][CLICKER_ANSWER_STR_LEN];
 
 /* 暂存题目信息，以备重发使用 */
 Uart_MessageTypeDef backup_massage;
@@ -92,9 +94,68 @@ void App_seirial_cmd_process(void)
 		} 
 		else
 		{
+			/* clear_wl */
+			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"clear_wl",8) == 0)
+			{
+				char *out;
+				cJSON *root;
+				uint8_t result = 0;
+
+				root = cJSON_CreateObject();
+
+				result = initialize_white_list();
+
+				if(OPERATION_SUCCESS == result)
+				{
+					cJSON_AddNumberToObject(root, "result", 0 );
+				}
+				else
+				{
+					cJSON_AddNumberToObject(root, "result", 1 );
+				}
+
+				/* 打印返回 */
+				out = cJSON_Print(root);
+				printf("%s", out);
+				cJSON_Delete(root);
+				free(out); 
+			}
+			
+			/* bind */
+			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"bind",4) == 0)
+			{
+				char *out;
+				cJSON *root;
+				uint8_t card_is_busy = 0;
+				
+				root = cJSON_CreateObject();
+				card_is_busy = rf_get_card_status();
+				
+				if(strncmp(cJSON_GetObjectItem(json, "cmd")->valuestring,"start",5) == 0)
+				{
+					wl.match_status = ON;
+					rf_set_card_status(1);
+				}
+
+				if(strncmp(cJSON_GetObjectItem(json, "cmd")->valuestring,"stop",4) == 0)
+				{
+					wl.match_status = OFF;
+					rf_set_card_status(0);
+				}
+
+				cJSON_AddNumberToObject(root, "result", 0 );
+				
+				/* 打印返回 */
+				out = cJSON_Print(root);
+				printf("%s", out);
+				cJSON_Delete(root);
+				free(out); 
+			}
+
 			/* start */
 			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"start",5) == 0)
 			{
+				char *out;
 				cJSON *root;
 				uint8_t num  = 0;
 				uint8_t type = 0;
@@ -133,7 +194,7 @@ void App_seirial_cmd_process(void)
 					backup_massage.DATA[8] = num;
 					for(i=0;i<num*2;)
 					{
-						backup_massage.DATA[9+i] = 1+i;
+						backup_massage.DATA[9+i] = 1+i/2;
 						backup_massage.DATA[10+i] = answer;
 						i = i + 2;
 					}
@@ -151,6 +212,8 @@ void App_seirial_cmd_process(void)
 						uint8_t temp = 0;
 						
 						memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
+						memset(ClickerAnswerTime,0,MAX_WHITE_LEN*CLICKER_TIMER_STR_LEN);
+						memset(ClickerAnswerData,0,MAX_WHITE_LEN*CLICKER_ANSWER_STR_LEN);
 						/* 准备发送数据管理块 */
 						send_data_env_init();
 						
@@ -183,34 +246,41 @@ void App_seirial_cmd_process(void)
 				}
 
 				/* 打印返回 */
-				printf("%s",cJSON_Print(root));
+				out = cJSON_Print(root);
+				printf("%s", out);
 				cJSON_Delete(root);
+				free(out); 
 			}
 
 			/* get_device_no */
 			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"get_device_no",13) == 0)
 			{
+				char *out;
 				cJSON *root;
 				
 				/* 填充内容 */
 				root = cJSON_CreateObject();
-				cJSON_AddNumberToObject(root, "no", *(uint32_t *)(revicer.uid) );
+				cJSON_AddNumberToObject(root, "uID", *(uint32_t *)(revicer.uid) );
 				
 				/* 打印返回 */
-				printf("%s", cJSON_Print(root));
+				out = cJSON_Print(root);
+				printf("%s", out);
 				cJSON_Delete(root);
+				free(out); 
 			}
 
 			/* getlist */
 			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"getlist",7) == 0)
 			{
+				char *out;
 				cJSON *root;
+				cJSON *card[MAX_WHITE_LEN];
 				uint8_t i = 0;
 				uint8_t is_use_pos = 0,is_online_pos = 0;
 				/* 填充内容 */
 				root = cJSON_CreateObject();
-				
-				for( i = 0; (i<MAX_WHITE_LEN); i++)
+
+				for( i = 0; i<MAX_WHITE_LEN; i++)
 				{
 					is_use_pos = get_index_of_white_list_pos_status(SEND_DATA1_SUM_TABLE,i);
 					if(is_use_pos == 1)
@@ -218,25 +288,22 @@ void App_seirial_cmd_process(void)
 						is_online_pos = get_index_of_white_list_pos_status(CLICKER_ANSWER_TABLE,i);
 						if(is_online_pos == 1)
 						{
-							uint8_t answer_len = 0;
-							uint8_t answer_num = 0;
-							//char    str[20];
-							cJSON_AddNumberToObject(root, "cardId", *(uint32_t *)(wl.uids[i].uid) );
-							cJSON_AddStringToObject(root, "uptime",(char *) ClickerAnswerTime[i] );
-							//answer_num = ClickerAnswerTime[i][9];
-							//answer_len = 10 + answer_num*2;
+							cJSON_AddItemToObject(root, "card", card[i] = cJSON_CreateObject());
+							cJSON_AddNumberToObject(card[i], "cardId", *(uint32_t *)(wl.uids[i].uid) );
+							cJSON_AddStringToObject(card[i], "uptime",(char *) ClickerAnswerTime[i] );
+							cJSON_AddStringToObject(card[i], "answer",(char *) ClickerAnswerData[i] );
 						}
 					}
-				
 				}
-				
+
 				/* 打印返回 */
-				printf("%s", cJSON_Print(root));
+				out = cJSON_Print(root);
+				printf("%s", out);
 				cJSON_Delete(root);
+				free(out); 
 			}
 		}
 
-		if(json)
 		{
 			cJSON_Delete(json);
 			revice_json_count--;

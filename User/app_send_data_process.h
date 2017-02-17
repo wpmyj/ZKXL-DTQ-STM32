@@ -112,6 +112,8 @@
 #define RETRANSMIT_DATA_TIME_UNIT   3000
 
 #define CLICKER_ANSWER_TABLE        16
+#define CLICKER_TIMER_STR_LEN       30
+#define CLICKER_ANSWER_STR_LEN      100
 
 typedef struct
 {

@@ -8,8 +8,9 @@
 #define CLICKER_SNED_DATA_STATUS_TYPE     10
 #define CLICKER_PRE_DATA_STATUS_TYPE      11
 
-uint8_t ClickerAnswerTime[MAX_WHITE_LEN][21];
-uint8_t ClickerAnswerData[MAX_WHITE_LEN][20];
+
+uint8_t ClickerAnswerTime[MAX_WHITE_LEN][CLICKER_TIMER_STR_LEN];
+uint8_t ClickerAnswerData[MAX_WHITE_LEN][CLICKER_ANSWER_STR_LEN];
 
 Process_tcb_Typedef Send_data_process, Single_send_data_process;
 volatile send_data_process_tcb_tydef send_data_process_tcb;
@@ -415,22 +416,25 @@ void rf_move_data_to_buffer( uint8_t *Message )
 				{
 					//serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
 					set_index_of_white_list_pos(CLICKER_ANSWER_TABLE,uidpos);
-					memset(ClickerAnswerTime[uidpos],0,21);
+					memset(ClickerAnswerTime[uidpos],0,30);
 					Parse_time_to_str((char *)ClickerAnswerTime[uidpos]);
 
 					//printf("%d %s \r\n",strlen((char *)ClickerAnswer[uidpos]), ClickerAnswer[uidpos]);
 					if(rf_message.DATA[8] <= 10)
 					{
 						uint8_t i=0;
-						for(i=0; i<rf_message.DATA[8];i++)
+						char* pdata = (char *)ClickerAnswerData[uidpos];
+						memset(ClickerAnswerData[uidpos],0,CLICKER_ANSWER_STR_LEN);
+						for(i=0; i<rf_message.DATA[8]*2;)
 						{
 							char str[20];
-							char* pdata = (char *)ClickerAnswerData[uidpos];
 							memset(str,0,4);
-							sprintf(str, "%02d" , rf_message.DATA[8+i]);
-							memcpy(pdata,str,2);
+							sprintf(str, "[%02d].%02x, " , rf_message.DATA[9+i],rf_message.DATA[10+i]);
+							memcpy(pdata,str,9);
+							pdata = pdata + 9;
+							i = i + 2;
 						}
-						
+						//printf("%s \r\n",ClickerAnswerData[uidpos]);
 						//memcpy(ClickerAnswerData[uidpos],rf_message.DATA+8,rf_message.DATA[7]);
 					}
 					/* 更新接收数据帧号与包号 */
@@ -1206,7 +1210,7 @@ void single_send_data_result( uint8_t status, uint8_t step, uint8_t pos )
 
 	if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 	{
-		serial_ringbuffer_write_data(SEND_RINGBUFFER,&result_message);
+		//serial_ringbuffer_write_data(SEND_RINGBUFFER,&result_message);
 	}
 
 }
