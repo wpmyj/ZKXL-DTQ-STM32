@@ -440,7 +440,7 @@ void App_card_process(void)
 				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 				{
 					#ifndef OPEN_CARD_DATA_SHOW 
-					serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
+					//serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
 					DEBUG_CARD_DATA_LOG("NDEF_DataRead and NDEF_DataWrite Clear!\r\n");
 					#endif
 				}

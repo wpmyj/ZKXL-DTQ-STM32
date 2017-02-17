@@ -26,12 +26,51 @@ extern Revicer_Typedef   revicer;
 extern RTC_timer_Typedef system_rtc_timer;
 extern uint16_t list_tcb_table[16][8];
 extern nrf_communication_t nrf_data;
+extern WhiteList_Typedef wl;
+extern uint8_t ClickerAnswerTime[MAX_WHITE_LEN][21];
 
 /* 暂存题目信息，以备重发使用 */
 Uart_MessageTypeDef backup_massage;
 extern uint8_t  uart_irq_revice_massage[3][300];
 extern uint8_t revice_json_count;
 uint8_t revice_json_read_index = 0;
+
+
+void Parse_str_to_time( char *str )
+{
+	char str1[10];
+	/*system_rtc_timer:year*/
+	memset(str1,0,10);
+	memcpy(str1,str,4);
+	system_rtc_timer.year = atoi( str1 );
+	/*system_rtc_timer:mon*/
+	memset(str1,0,10);
+	memcpy(str1,str+5,2);
+	system_rtc_timer.mon = atoi( str1 );
+	/*system_rtc_timer:date*/
+	memset(str1,0,10);
+	memcpy(str1,str+8,2);
+	system_rtc_timer.date = atoi( str1 );
+	/*system_rtc_timer:hour*/
+	memset(str1,0,10);
+	memcpy(str1,str+11,2);
+	system_rtc_timer.hour = atoi( str1 );
+	/*system_rtc_timer:min*/
+	memset(str1,0,10);
+	memcpy(str1,str+14,2);
+	system_rtc_timer.min = atoi( str1 );
+	/*system_rtc_timer:sec*/
+	memset(str1,0,10);
+	memcpy(str1,str+17,2);
+	system_rtc_timer.sec = atoi( str1 );
+//printf("Parse:num  = %d type = %d \r\n",num,type);
+//printf("Parse:year = %d \r\n",system_rtc_timer.year);
+//printf("Parse:mon  = %d \r\n",system_rtc_timer.mon);
+//printf("Parse:mon  = %d \r\n",system_rtc_timer.date);	
+//printf("Parse:hour = %d \r\n",system_rtc_timer.hour);
+//printf("Parse:min  = %d \r\n",system_rtc_timer.min);	
+//printf("Parse:sec  = %d \r\n",system_rtc_timer.sec);
+}
 
 /******************************************************************************
   Function:App_seirial_cmd_process
@@ -59,7 +98,6 @@ void App_seirial_cmd_process(void)
 				cJSON *root;
 				uint8_t num  = 0;
 				uint8_t type = 0;
-				char str[10];
 				uint8_t status = 0;
 
 				uint8_t send_data_status = get_clicker_send_data_status() ;
@@ -67,38 +105,11 @@ void App_seirial_cmd_process(void)
 
 				/* 填充内容 */
 				root = cJSON_CreateObject();
-				/*system_rtc_timer:year*/
-				memset(str,0,10);
-				memcpy(str,cJSON_GetObjectItem(json, "time")->valuestring,4);
-				system_rtc_timer.year = atoi( str );
-				/*system_rtc_timer:mon*/
-				memset(str,0,10);
-				memcpy(str,cJSON_GetObjectItem(json, "time")->valuestring+5,2);
-				system_rtc_timer.mon = atoi( str );
-				/*system_rtc_timer:date*/
-				memset(str,0,10);
-				memcpy(str,cJSON_GetObjectItem(json, "time")->valuestring+8,2);
-				system_rtc_timer.date = atoi( str );
-				/*system_rtc_timer:hour*/
-				memset(str,0,10);
-				memcpy(str,cJSON_GetObjectItem(json, "time")->valuestring+11,2);
-				system_rtc_timer.hour = atoi( str );
-				/*system_rtc_timer:min*/
-				memset(str,0,10);
-				memcpy(str,cJSON_GetObjectItem(json, "time")->valuestring+14,2);
-				system_rtc_timer.min = atoi( str );
-				/*system_rtc_timer:sec*/
-				memset(str,0,10);
-				memcpy(str,cJSON_GetObjectItem(json, "time")->valuestring+17,2);
-				system_rtc_timer.sec = atoi( str );
-//			printf("Parse:num  = %d type = %d \r\n",num,type);
-//			printf("Parse:year = %d \r\n",system_rtc_timer.year);
-//			printf("Parse:mon  = %d \r\n",system_rtc_timer.mon);
-//			printf("Parse:mon  = %d \r\n",system_rtc_timer.date);	
-//			printf("Parse:hour = %d \r\n",system_rtc_timer.hour);
-//			printf("Parse:min  = %d \r\n",system_rtc_timer.min);	
-//			printf("Parse:sec  = %d \r\n",system_rtc_timer.sec);
 
+				/* update time */
+				Parse_str_to_time(cJSON_GetObjectItem(json, "time")->valuestring);
+
+				/* create data for clicker */
 				{
 					uint8_t i,answer = 0;
 					uint8_t header[7] = { 0x5A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x11};
@@ -130,13 +141,12 @@ void App_seirial_cmd_process(void)
 					backup_massage.DATA[8+num*2 + 2] = 0xCA;
 					backup_massage.XOR = XOR_Cal((uint8_t *)(&(backup_massage.TYPE)), backup_massage.LEN+6);
 					backup_massage.END = 0xCA;
-					
 				}
 
+				/* send data */
 				status = send_data_status | single_data_status;
 				if( status == 0 )
 				{
-					/* send data */
 					{
 						uint8_t temp = 0;
 						
@@ -195,9 +205,30 @@ void App_seirial_cmd_process(void)
 			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"getlist",7) == 0)
 			{
 				cJSON *root;
-
+				uint8_t i = 0;
+				uint8_t is_use_pos = 0,is_online_pos = 0;
 				/* 填充内容 */
 				root = cJSON_CreateObject();
+				
+				for( i = 0; (i<MAX_WHITE_LEN); i++)
+				{
+					is_use_pos = get_index_of_white_list_pos_status(SEND_DATA1_SUM_TABLE,i);
+					if(is_use_pos == 1)
+					{
+						is_online_pos = get_index_of_white_list_pos_status(CLICKER_ANSWER_TABLE,i);
+						if(is_online_pos == 1)
+						{
+							uint8_t answer_len = 0;
+							uint8_t answer_num = 0;
+							//char    str[20];
+							cJSON_AddNumberToObject(root, "cardId", *(uint32_t *)(wl.uids[i].uid) );
+							cJSON_AddStringToObject(root, "uptime",(char *) ClickerAnswerTime[i] );
+							//answer_num = ClickerAnswerTime[i][9];
+							//answer_len = 10 + answer_num*2;
+						}
+					}
+				
+				}
 				
 				/* 打印返回 */
 				printf("%s", cJSON_Print(root));

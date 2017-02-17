@@ -8,7 +8,9 @@
 #define CLICKER_SNED_DATA_STATUS_TYPE     10
 #define CLICKER_PRE_DATA_STATUS_TYPE      11
 
-uint8_t ClickerAnswer[MAX_WHITE_LEN][30];
+uint8_t ClickerAnswerTime[MAX_WHITE_LEN][21];
+uint8_t ClickerAnswerData[MAX_WHITE_LEN][20];
+
 Process_tcb_Typedef Send_data_process, Single_send_data_process;
 volatile send_data_process_tcb_tydef send_data_process_tcb;
 
@@ -314,6 +316,59 @@ void clicker_send_data_statistics( uint8_t send_data_status, uint8_t uidpos )
 	}
 }
 
+void Parse_time_to_str( char *str )
+{
+	char* pdata = str;
+	char str1[10];
+	/*system_rtc_timer:year*/
+	memset(str1,0,4);
+	sprintf(str1, "%04d" , system_rtc_timer.year);
+	memcpy(pdata,str1,4);
+	pdata = pdata + 4;
+	*pdata = '-';
+	pdata++;
+
+	/*system_rtc_timer:mon*/
+	memset(str1,0,4);
+	sprintf(str1, "%02d" , system_rtc_timer.mon);
+	memcpy(pdata,str1,2);
+	pdata = pdata + 2;
+	*pdata  = '-';
+	pdata++;
+
+	/*system_rtc_timer:date*/
+	memset(str1,0,4);
+	sprintf(str1, "%02d" , system_rtc_timer.date);
+	memcpy(pdata,str1,2);
+	pdata = pdata + 2;
+	*pdata  = ' ';
+	pdata++;
+
+	/*system_rtc_timer:hour*/
+	memset(str1,0,4);
+	sprintf(str1, "%02d" , system_rtc_timer.hour);
+	memcpy(pdata,str1,2);
+	pdata = pdata + 2;
+	*pdata  = ':';
+	pdata++;
+
+	/*system_rtc_timer:min*/
+	memset(str1,0,4);
+	sprintf(str1, "%02d" , system_rtc_timer.min);
+	memcpy(pdata,str1,2);
+	pdata = pdata + 2;
+	*pdata  = ':';
+	pdata++;
+
+	/*system_rtc_timer:sec*/
+	memset(str1,0,4);
+	sprintf(str1, "%02d" , system_rtc_timer.sec);
+	memcpy(pdata,str1,2);
+	pdata = pdata + 2;
+	*pdata  = ' ';
+}
+
+
 /******************************************************************************
   Function:App_rf_check_process
   Description:
@@ -360,12 +415,23 @@ void rf_move_data_to_buffer( uint8_t *Message )
 				{
 					//serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
 					set_index_of_white_list_pos(CLICKER_ANSWER_TABLE,uidpos);
-					memcpy(ClickerAnswer[uidpos],&system_rtc_timer,7);
-					ClickerAnswer[uidpos][7] = system_rtc_timer.ms % 256;
-					ClickerAnswer[uidpos][8] = system_rtc_timer.ms / 256;
+					memset(ClickerAnswerTime[uidpos],0,21);
+					Parse_time_to_str((char *)ClickerAnswerTime[uidpos]);
+
+					//printf("%d %s \r\n",strlen((char *)ClickerAnswer[uidpos]), ClickerAnswer[uidpos]);
 					if(rf_message.DATA[8] <= 10)
 					{
-						memcpy(ClickerAnswer[uidpos]+9,rf_message.DATA+8,rf_message.DATA[7]);
+						uint8_t i=0;
+						for(i=0; i<rf_message.DATA[8];i++)
+						{
+							char str[20];
+							char* pdata = (char *)ClickerAnswerData[uidpos];
+							memset(str,0,4);
+							sprintf(str, "%02d" , rf_message.DATA[8+i]);
+							memcpy(pdata,str,2);
+						}
+						
+						//memcpy(ClickerAnswerData[uidpos],rf_message.DATA+8,rf_message.DATA[7]);
 					}
 					/* 更新接收数据帧号与包号 */
 					wl.uids[uidpos].rev_seq = Message[9];
