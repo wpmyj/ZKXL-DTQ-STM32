@@ -339,11 +339,28 @@ void App_seirial_cmd_process(void)
 			{
 				char *out;
 				cJSON *cards,*card;
+				uint8_t revicer_answer_num = 0, print_answer_num = 0;
 				uint8_t i = 0, j = 0;
 				uint8_t is_use_pos = 0,is_online_pos = 0;
+				
+				/* 获取提交答案的答题器的个数 */
+				for( i = 0; i<MAX_WHITE_LEN; i++)
+				{
+					is_use_pos = get_index_of_white_list_pos_status(SEND_DATA1_SUM_TABLE,i);
+					if(is_use_pos == 1)
+					{
+						is_online_pos = get_index_of_white_list_pos_status(CLICKER_ANSWER_TABLE,i);
+						if(is_online_pos == 1)
+						{
+							revicer_answer_num++;
+							//printf("revicer_answer_num = %d\r\n",revicer_answer_num);
+						}
+					}
+				}
+	
 				/* 填充内容 */
 				cards = cJSON_CreateArray();
-
+				printf("[");
 				for( i = 0; i<MAX_WHITE_LEN; i++)
 				{
 					is_use_pos = get_index_of_white_list_pos_status(SEND_DATA1_SUM_TABLE,i);
@@ -363,7 +380,8 @@ void App_seirial_cmd_process(void)
 								char item[10],str[20];
 								char *pdata = str;
 
-								memset(item,0,5);
+								memset(item,0,10);
+								memset(str, 0,20);
 								sprintf(item, "q%d" , ClickerAnswerData[i][1+j]);
 
 								switch(ClickerAnswerData[i][2+j]&0xC0)
@@ -441,29 +459,32 @@ void App_seirial_cmd_process(void)
 								cJSON_AddStringToObject(card, item, str );
 								j = j + 2;
 							}
+							/* 打印返回 */
+							out = cJSON_Print(card);
+							{
+								char *pdata = out;
+
+								while(*pdata != '\0')
+								{
+									if(*pdata == '\"')
+									{
+										*pdata = '\'';
+									}
+									pdata++;
+								}
+							}
+							print_answer_num++;
+							//printf("print_answer_num = %d\r\n",print_answer_num);
+							if((print_answer_num == revicer_answer_num) && (print_answer_num != 0))
+								printf("%s", out);
+							else
+								printf("%s,", out);
+							free(out); 
 						}
 					}
 				}
-
-				/* 打印返回 */
-				out = cJSON_Print(cards);
-
-				{
-					char *pdata = out;
-
-					while(*pdata != '\0')
-					{
-						if(*pdata == '\"')
-						{
-							*pdata = '\'';
-						}
-						pdata++;
-					}
-				}
-
-				printf("%s", out);
+				printf("]");
 				cJSON_Delete(cards);
-				free(out); 
 			}
 		}
 
