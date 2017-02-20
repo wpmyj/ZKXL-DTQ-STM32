@@ -400,11 +400,7 @@ void rf_move_data_to_buffer( uint8_t *Message )
 	rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.TYPE)), i+6);
 	rf_message.END = 0xCA;
 
-	if((rf_message.DATA[6] == 0x10) ||
-		 (rf_message.DATA[6] == 0x11) ||
-	   (rf_message.DATA[6] == 0x12) ||
-	   (rf_message.DATA[6] == 0x13) ||
-		 (rf_message.DATA[6] == 0x14))
+	if(rf_message.DATA[6] == 0x11)
 	{
 		if( wl.start == ON )
 		{
@@ -414,116 +410,14 @@ void rf_move_data_to_buffer( uint8_t *Message )
 				/* 存入缓存 */
 				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 				{
-					//serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
 					set_index_of_white_list_pos(CLICKER_ANSWER_TABLE,uidpos);
-					memset(ClickerAnswerTime[uidpos],0,30);
+
+					memset(ClickerAnswerTime[uidpos],0,CLICKER_TIMER_STR_LEN);
 					Parse_time_to_str((char *)ClickerAnswerTime[uidpos]);
 
-				  //printf("%d %s \r\n",strlen((char *)ClickerAnswer[uidpos]), ClickerAnswer[uidpos]);
+					memset(ClickerAnswerData[uidpos],0,CLICKER_ANSWER_STR_LEN);
 					memcpy(ClickerAnswerData[uidpos],rf_message.DATA+8,rf_message.DATA[8]*2+1);
-					
-//					if(rf_message.DATA[8] <= 10)
-//					{
-//						uint8_t i=0;
-//						char* pdata = (char *)ClickerAnswerData[uidpos];
-//						memset(ClickerAnswerData[uidpos],0,CLICKER_ANSWER_STR_LEN);
-//						for(i=0; i<rf_message.DATA[8]*2;)
-//						{
-//							char str[20];
-//							memset(str,0,5);
-//							sprintf(str, "[%02d]." , rf_message.DATA[9+i]);
-//							memcpy(pdata,str,5);
-//							pdata = pdata + 5;
-//							switch(rf_message.DATA[10+i]&0xC0)
-//							{
-//								case 0x40:
-//								{
-//										uint8_t answer = rf_message.DATA[10+i]&0x3F;
-//										//printf("answer : %02x\r\n",answer);
-//										switch(answer)
-//										{
-//											case 0x01: *pdata = 'A'; break;
-//											case 0x02: *pdata = 'B'; break;
-//											case 0x04: *pdata = 'C'; break;
-//											case 0x08: *pdata = 'D'; break;
-//											case 0x10: *pdata = 'E'; break;
-//											case 0x20: *pdata = 'F'; break;
-//											default: break;
-//										}
-//										pdata = pdata + 1;
-//										*pdata = ',';
-//										pdata = pdata + 1;
-//								}
-//								break;
-//								
-//								case 0x80:
-//								{
-//										//uint8_t answer = rf_message.DATA[10+i]&0x3F;
-//										//printf("answer : %02x\r\n",answer);
-//										if((rf_message.DATA[10+i]&0x01) == 0x01)
-//										{
-//											*pdata = 'A';
-//											pdata = pdata + 1;
-//										}
 
-//										if((rf_message.DATA[10+i]&0x02) == 0x02)
-//										{
-//											*pdata = 'B';
-//											pdata = pdata + 1;
-//										}
-
-//										if((rf_message.DATA[10+i]&0x04) == 0x04)
-//										{
-//											*pdata = 'C';
-//											pdata = pdata + 1;
-//										}
-
-//										if((rf_message.DATA[10+i]&0x08) == 0x08)
-//										{
-//											*pdata = 'D';
-//											pdata = pdata + 1;
-//										}
-
-//										if((rf_message.DATA[10+i]&0x10) == 0x10)
-//										{
-//											*pdata = 'E';
-//											pdata = pdata + 1;
-//										}
-//										if((rf_message.DATA[10+i]&0x20) == 0x20)
-//										{
-//											*pdata = 'F';
-//											pdata = pdata + 1;
-//										}
-
-//										*pdata = ',';
-//										pdata = pdata + 1;
-//								}
-//								break;
-
-//								case 0xC0:
-//								{
-//										//uint8_t answer = rf_message.DATA[10+i]&0x3F;
-//										//printf("answer : %02x\r\n",answer);
-//										switch(rf_message.DATA[10+i]&0x3F)
-//										{
-//											case 0x01: memcpy(pdata ,"Ture", 4); pdata = pdata + 4; break;
-//											case 0x02: memcpy(pdata ,"False",5); pdata = pdata + 5; break;
-//											default: break;
-//										}
-//										*pdata = ',';
-//										pdata = pdata + 1;
-//								}
-//								break;
-//								
-//								default:
-//									break;
-//							}
-
-//							i = i + 2;
-//						}
-//						//printf("%s \r\n",ClickerAnswerData[uidpos]);
-//						//memcpy(ClickerAnswerData[uidpos],rf_message.DATA+8,rf_message.DATA[7]);
-//					}
 					/* 更新接收数据帧号与包号 */
 					wl.uids[uidpos].rev_seq = Message[9];
 					wl.uids[uidpos].rev_num = Message[10];	
