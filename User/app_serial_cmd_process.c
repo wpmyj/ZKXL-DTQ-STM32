@@ -452,8 +452,18 @@ void App_seirial_cmd_process(void)
 									{
 										switch(ClickerAnswerData[i][2+j]&0x3F)
 										{
-											case 0x01: memcpy(pdata ,"Ture", 4); pdata = pdata + 4; break;
-											case 0x02: memcpy(pdata ,"False",5); pdata = pdata + 5; break;
+											case 0x01: // 对
+											{
+												*pdata = 0xB6; pdata = pdata + 1;
+												*pdata = 0xD4; pdata = pdata + 1;
+											}
+											break;
+											case 0x02: // 错
+											{
+												*pdata = 0xB4; pdata = pdata + 1;
+												*pdata = 0xED; pdata = pdata + 1;
+											}
+											break;
 											default: break;
 										}
 									}
