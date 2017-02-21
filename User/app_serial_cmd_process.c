@@ -357,7 +357,7 @@ void App_seirial_cmd_process(void)
 						}
 					}
 				}
-	
+
 				/* 填充内容 */
 				cards = cJSON_CreateArray();
 				printf("[");
@@ -370,9 +370,14 @@ void App_seirial_cmd_process(void)
 						if(is_online_pos == 1)
 						{
 							char str[20];
+							uint8_t tempuid[4];
 							cJSON_AddItemToArray(cards, card = cJSON_CreateObject());
 							memset(str,0,20);
-							sprintf(str, "%010u" , *(uint32_t *)(wl.uids[i].uid));
+							tempuid[0] = wl.uids[i].uid[3];
+							tempuid[1] = wl.uids[i].uid[2];
+							tempuid[2] = wl.uids[i].uid[1];
+							tempuid[3] = wl.uids[i].uid[0];
+							sprintf(str, "%010u" , *(uint32_t *)(tempuid));
 							cJSON_AddStringToObject(card, "cardId", str );
 							cJSON_AddStringToObject(card, "uptime",(char *) ClickerAnswerTime[i] );
 							for(j=0;j<ClickerAnswerData[i][0]*2;)
