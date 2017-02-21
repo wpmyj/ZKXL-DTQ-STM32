@@ -26,6 +26,7 @@
 extern Revicer_Typedef   revicer;
 extern RTC_timer_Typedef system_rtc_timer;
 extern uint16_t list_tcb_table[16][8];
+
 extern nrf_communication_t nrf_data;
 extern WhiteList_Typedef wl;
 extern uint8_t ClickerAnswerTime[MAX_WHITE_LEN][CLICKER_TIMER_STR_LEN];
@@ -484,7 +485,9 @@ void App_seirial_cmd_process(void)
 								printf("%s", out);
 							else
 								printf("%s,", out);
-							free(out); 
+							free(out);
+							
+							clear_index_of_white_list_pos(CLICKER_ANSWER_TABLE,i);
 						}
 					}
 				}
