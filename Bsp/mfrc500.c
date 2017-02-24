@@ -113,13 +113,7 @@ uint8_t ReadNDEFfile (uint8_t *NDEFfile_Data, uint16_t *NDEFfile_len)
 	uint8_t len = 0;
 	uint16_t NDEF_DataRead_Len = 0;
 	uint8_t status = 0;
-	status = ForceReadCCfile();
-	//printf("ForceReadCCfile status = %x \r\n",status);
-	if( MI_OK != status )
-	{
-		return 0x11;
-	}
-	
+
 	memset(respon, 0, BUF_LEN);
 	len = 0;
 	status = PcdSelectNDEFfile(respon, &len);
