@@ -30,6 +30,12 @@
 #define START_SEND_DATA                   0
 #define STOP_SEND_DATA                    1
 
+#define VERSION_LEN                       2
+#define LEN_LEN                           2
+#define UID_LEN                           4
+#define ACKTABLELEN                       16
+#define REVICER_MESSAGE_LEN               240
+
 void App_seirial_cmd_process(void);
 
 /* Uart Message configuration */
@@ -40,25 +46,83 @@ void App_seirial_cmd_process(void);
 #define UART_EOF 								          (0xCA)							//帧尾
 
 /* Uart message status */
-#define UartOK	 								          (0)									//串口接收帧完成
-#define UartHEADER 							          (1)									//串口接收帧帧头
-#define UartTYPE 								          (2)									//串口接收帧数据
-#define UartLEN									          (3)									//串口接收帧异或
-#define UartSIGN                          (4)
-#define UartDATA 								          (5)									//串口接收帧帧尾
-#define UartXOR									          (6)									//串口接收帧异或
-#define UartEND 								          (7)									//串口接收帧帧尾
+#define UartOK	 								                           (0)
+#define UartHEAD  							                           (1+UartOK)
+#define UartEVICETYPE                                      (1+UartHEAD)
+#define UartVERSION                                        (1+UartEVICETYPE)
+#define UartDSTID								                           (1+UartVERSION)
+#define UartSRCID								                           (1+UartDSTID)		
+#define UartPACNUM								                         (1+UartSRCID)
+#define UartSEQNUM								                         (1+UartPACNUM)
+#define UartPACKTYPE								                       (1+UartSEQNUM)	
+#define UartREVICED                                        (1+UartPACKTYPE)
+#define UartCMD								                             (1+UartREVICED)										                         		
+#define UartLEN									                           (1+UartCMD)		
+#define UartDATA 								                           (1+UartLEN)	
+#define UartXOR									                           (1+UartDATA)
+#define UartEND 								                           (1+UartXOR)	
+
+#define MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA                19
+
+typedef enum
+{
+	CLOSE = 0,
+	OPEN,
+}Bool_Typedf;
+
+typedef enum
+{
+	REVICER_PACKAGE_DATA = 0,
+	REVICER_PACKAGE_ACK,
+}UartPac_Typedef;
+
+typedef enum
+{
+	REVICER_CLICKER_DATA    = 0x10,
+	REVICER_CLICKER_CTL     = 0x11,
+	REVICER_CLICKER_UID     = 0x12,
+	REVICER_CLICKER_SYSTICK = 0x13, 
+  REVICER_CLICKER_ERR     = 0x14,
+}UartCmd_Typedef;
+
+typedef enum
+{
+	U_BIND_ON = 1,
+	U_BIND_OFF,
+	U_CLEAR,
+	U_DEL,
+	U_SHOW,
+}UidTask_CTL_Typedef;
+
+typedef enum
+{
+	G_ONOFF = 1,
+	G_POWER,
+	G_DISP,
+	N_CH,
+	N_TIME,
+	N_READ_ID,
+	N_WR_EE,
+	N_RD_EE,
+}Clicker_CTL_Typedf;
 
 /* Uart Message structure definition */
 typedef struct
 {
-	uint8_t 				HEADER;						  //中断串口接收帧头
-	uint8_t 				TYPE;								//中断串口接收包类型
-	uint8_t         SIGN[4];            //中断串口接收活动标识
-	uint8_t 				LEN;								//中断串口接收数据长度
-	uint8_t 				DATA[UART_NBUF];		//中断串口接收数据
-	uint8_t 				XOR;								//中断串口接收异或
-	uint8_t 				END;								//中断串口接收帧尾
+	uint8_t HEAD;                        // 1 byte
+	uint8_t DEVICE;                      // 1 byte   1
+	uint8_t VERSION[VERSION_LEN];        // 2 byte   3
+	uint8_t DSTID[UID_LEN];              // 4 byte   7
+	uint8_t SRCID[UID_LEN];              // 4 byte   11
+	uint8_t PACNUM;                      // 1 byte   12
+	uint8_t SEQNUM;                      // 1 byte   13
+	UartPac_Typedef PACKTYPE;            // 1 byte   14
+	uint8_t REVICED[2];                  // 2 byte   16
+	UartCmd_Typedef CMDTYPE;             // 1 byte   17
+	uint8_t LEN[LEN_LEN];                // 2byte    19
+	uint8_t DATA[REVICER_MESSAGE_LEN];
+	uint8_t XOR;                         // 1byte: form DEVICE to DATA
+	uint8_t END;                         // 1byte
 } Uart_MessageTypeDef;
 
 typedef struct
@@ -83,9 +147,25 @@ typedef struct
 	uint8_t retransmit;
 }Process_tcb_Typedef;
 
+typedef struct
+{
+	uint8_t state;
+	uint8_t desc[30];
+}State_Typedef;
+
+typedef struct
+{
+	State_Typedef state;
+	void    (*set_status)( State_Typedef *state, uint8_t new_status );
+	uint8_t (*get_status)( State_Typedef *state );
+}StateMechineTcb_Typedef;
+
+extern StateMechineTcb_Typedef uart_rev_status,uart_sen_status;
+
 void serial_handle_layer(void);
-void App_returnErr( Uart_MessageTypeDef *SMessage, uint8_t cmd_type, uint8_t err_type );
 uint8_t get_backup_massage_status( void );
 void change_clicker_send_data_status( uint8_t newstatus );
 uint8_t get_clicker_send_data_status( void );
+void App_seiral_process_init( void );
+uint8_t App_returnErr( Uart_MessageTypeDef *sMessage, uint8_t cmd_type, uint8_t err_type );
 #endif // __POS_HANDLE_LAYER_H_

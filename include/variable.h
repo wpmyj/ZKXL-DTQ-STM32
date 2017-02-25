@@ -56,6 +56,8 @@ typedef struct
 	uint8_t  sen_num;
 	uint8_t  sen_seq;
 	uint8_t  pre_seq;
+	uint8_t  uart_pac_num;
+	uint8_t  uart_seq_num;
 	uint32_t data_statistic_count;
 }Revicer_Typedef;
 

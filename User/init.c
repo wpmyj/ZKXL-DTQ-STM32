@@ -20,6 +20,26 @@
 spi_cmd_type_t 			       spi_cmd_type;
 nrf_communication_t	       nrf_data;
 extern WhiteList_Typedef   wl;
+StateMechineTcb_Typedef default_state_mechine_tcb;
+
+uint8_t system_tcb_get_status( State_Typedef *state )
+{
+	return (state->state);
+}
+
+void system_tcb_set_status( State_Typedef *state, uint8_t new_state )
+{
+	state->state = new_state;
+	//DEBUG_IRQ_DATA_LOG("%s = %d \r\n",state->desc, state->state);
+}
+
+void init_default_state_mechine( void )
+{
+	default_state_mechine_tcb.state.state = 0;
+	memset(default_state_mechine_tcb.state.desc,0x00,30);
+	default_state_mechine_tcb.get_status = system_tcb_get_status;
+	default_state_mechine_tcb.set_status = system_tcb_set_status;
+}
 
 void systick_timer_init( void );
 /*******************************************************************************
@@ -56,6 +76,10 @@ void Platform_Init(void)
 	system_timer_init();
 	send_data_process_timer_init();
 	card_timer_init();
+
+	/*Init default status mechine */
+	init_default_state_mechine();
+	App_seiral_process_init();
 
 	/* 复位并初始化RC500 */
 	mfrc500_init();
