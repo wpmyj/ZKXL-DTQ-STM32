@@ -14,6 +14,7 @@
 #include "app_card_process.h"
 
 //#define SHOW_CARD_PROCESS_TIME
+extern uint8_t P_Vresion[2];
 extern uint8_t g_cSNR[10];	
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
@@ -402,37 +403,33 @@ void App_card_process(void)
 			}
 		}
 
+		card_message.HEAD = UART_SOF;
+		card_message.DEVICE = 0x01;
+		memcpy(card_message.VERSION,P_Vresion,2);
+		memset(card_message.DSTID,0x00,UID_LEN);
+		memcpy(card_message.SRCID,revicer.uid,UID_LEN);
+		card_message.PACNUM = 0x00;
+		card_message.SEQNUM = revicer.uart_seq_num++;
+		card_message.CMDTYPE = 0x31;
+		memset(card_message.REVICED,0xAA,2);
+		memset(card_message.DATA,0x00,25);
+		card_message.DATA[0] = 0x06;
 		if( card_message_err == 1 )
 		{
-			card_message.HEADER = 0x5C;
-			switch(Card_process.cmd_type)
-			{
-				case 0x25: card_message.TYPE   = 0x26; break;
-				case 0x28: card_message.TYPE   = 0x29; break;
-				case 0x41: card_message.TYPE   = 0x42; break;
-				default:                               break;
-			}
-			memcpy(card_message.SIGN,Card_process.sign,4);
-			card_message.LEN     = 25;
-			memset(card_message.DATA,0x00,25);
-			if( wl.attendance_sttaus == ON )
-			{
-				card_message.DATA[0] = read_uid_pos;
-			}
-			if( wl.match_status == ON )
-			{
-				card_message.DATA[0] = write_uid_pos;
-			}
-			memcpy(card_message.DATA+1,g_cSNR+4,4);
-			memcpy(card_message.DATA+5,NDEF_DataRead+7,20);
-			card_message.XOR = XOR_Cal(&card_message.TYPE,31);
-			card_message.END  = 0xCA;	
+			card_message.DATA[1] = 0x00;
+			card_message.DATA[2] = write_uid_pos;
+			memcpy(card_message.DATA+3,g_cSNR+4,4);
 		}
 		if( card_message_err == 2 )
 		{
-			memcpy(card_message.SIGN,Card_process.sign,4);
-			App_returnErr(&card_message,Card_process.cmd_type,0xFD);
+			card_message.DATA[1] = 0x01;
+			card_message.DATA[2] = 0xFF;
+			memset(card_message.DATA+3,0,4);
 		}
+		*(uint16_t *)card_message.LEN = 0x07;
+		card_message.XOR = XOR_Cal(&card_message.DEVICE,
+			*(uint16_t *)card_message.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
+		card_message.END  = 0xCA;	
 
 		if(card_message_err != 0)
 		{

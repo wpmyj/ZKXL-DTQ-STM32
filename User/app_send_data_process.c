@@ -13,6 +13,7 @@ volatile send_data_process_tcb_tydef send_data_process_tcb;
 
 extern uint8_t spi_status_buffer[10][18];
 extern uint8_t spi_status_write_index, spi_status_read_index, spi_status_count;
+extern uint8_t P_Vresion[2];
 
 uint8_t is_open_statistic = 0;
 uint8_t single_send_data_status = 0;
@@ -327,20 +328,22 @@ void rf_move_data_to_buffer( uint8_t *Message )
 	uint8_t i = 0 ;
 	uint8_t uidpos;
 	
-	rf_message.HEADER = 0x5C;
-	rf_message.TYPE = 0x11;
-
-	memcpy(rf_message.SIGN,Send_data_process.sign,4);
+	rf_message.HEAD = 0x5C;
+	rf_message.CMDTYPE = 0x11;
+	rf_message.DEVICE = 0x01;
+	memcpy(rf_message.VERSION,P_Vresion,2);
+	memcpy(rf_message.SRCID,revicer.uid,UID_LEN);
+	memcpy(rf_message.SRCID,Message+5,UID_LEN);
 
 	/* 获取消息的有效长度 */
-	rf_message.LEN = Message[14];
+	*(uint16_t *)rf_message.LEN = Message[14];
 
-	for (i=0;i<rf_message.LEN;i++)
+	for (i=0;i<*(uint16_t *)rf_message.LEN;i++)
 	{
 		rf_message.DATA[i]=Message[i+15];
 	}
 
-	rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.TYPE)), i+6);
+	rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.DSTID)), i+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
 	rf_message.END = 0xCA;
 
 	if((rf_message.DATA[6] == 0x10) ||
@@ -483,15 +486,15 @@ uint8_t spi_process_revice_data( void )
 						{
 							Uart_MessageTypeDef result_message;
 
-							result_message.TYPE   = 0x31;
-							result_message.HEADER = 0x5C;
-							memcpy(result_message.SIGN,backup_massage.SIGN,4);
-							result_message.LEN     = 0x06;
-							result_message.DATA[0] = 0x00;
-							result_message.DATA[1] = uidpos;
-							memcpy(result_message.DATA+2,spi_message+5,4);
-							result_message.XOR = XOR_Cal(&result_message.TYPE,12);
-							result_message.END  = 0xCA;
+//							result_message.TYPE   = 0x31;
+//							result_message.HEADER = 0x5C;
+//							memcpy(result_message.SIGN,backup_massage.SIGN,4);
+//							result_message.LEN     = 0x06;
+//							result_message.DATA[0] = 0x00;
+//							result_message.DATA[1] = uidpos;
+//							memcpy(result_message.DATA+2,spi_message+5,4);
+//							result_message.XOR = XOR_Cal(&result_message.TYPE,12);
+//							result_message.END  = 0xCA;
 
 							if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 							{
@@ -833,16 +836,20 @@ void send_data_result( uint8_t status )
 		while( message_tcb.Is_lost_over != 0)
 		{
 			message_tcb.Is_lost_over = checkout_online_uids( result_check_tables[PRE_SUM_TABLE],result_check_tables[PRE_ACK_TABLE], 0,
-				revice_lost_massage.DATA+1,&(revice_lost_massage.LEN));
-			message_tcb.lostuidlen += revice_lost_massage.LEN;
+				revice_lost_massage.DATA+1,revice_lost_massage.LEN);
+			message_tcb.lostuidlen += *(uint16_t *)revice_lost_massage.LEN;
 
 #ifdef ENABLE_SEND_DATA_TO_PC
-			revice_lost_massage.HEADER = 0x5C;
-			memcpy(revice_lost_massage.SIGN,Send_data_process.sign,4);
-			revice_lost_massage.TYPE = 0x30;
-			revice_lost_massage.LEN = revice_lost_massage.LEN+1;
+			revice_lost_massage.HEAD = UART_SOF;
+			revice_lost_massage.DEVICE = 0x01;
+			memcpy(revice_lost_massage.VERSION,P_Vresion,2);
+			memcpy(revice_lost_massage.SRCID,revicer.uid,UID_LEN);
+			memset(revice_lost_massage.DSTID,0,UID_LEN);
+			revice_lost_massage.CMDTYPE = 0x12;
+			*(uint16_t *)(revice_lost_massage.LEN) = *(uint16_t *)(revice_lost_massage.LEN)+1;
 			revice_lost_massage.DATA[0] = status / 3;
-			revice_lost_massage.XOR = XOR_Cal((uint8_t *)(&(revice_lost_massage.TYPE)), revice_lost_massage.LEN+6+1);
+			revice_lost_massage.XOR = XOR_Cal((uint8_t *)(&(revice_lost_massage.DEVICE)), 
+			*(uint16_t *)(revice_lost_massage.LEN) + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA + 1);
 			revice_lost_massage.END = 0xCA;
 			if(revice_lost_massage.LEN != 0)
 			{
@@ -852,28 +859,32 @@ void send_data_result( uint8_t status )
 				}
 			}
 #endif
-			memset(revice_lost_massage.DATA,0,revice_lost_massage.LEN);
-			revice_lost_massage.LEN = 0;
+			memset(revice_lost_massage.DATA,0,*(uint16_t *)(revice_lost_massage.LEN));
+			*(uint16_t *)revice_lost_massage.LEN = 0;
 		}
 		DEBUG_DATA_DETAIL_LOG("\r\nok:\r\n");
 		message_tcb.clicker_count = 0;
 		while(message_tcb.Is_ok_over != 0)
 		{
 			message_tcb.Is_ok_over = checkout_online_uids( result_check_tables[PRE_SUM_TABLE],result_check_tables[PRE_ACK_TABLE], 1,
-				revice_ok_massage.DATA+1,&(revice_ok_massage.LEN));
-			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)),
-			                                 revice_ok_massage.LEN+6);
+				revice_ok_massage.DATA+1,revice_ok_massage.LEN);
+			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.DEVICE)),
+			                                 *(uint16_t *)revice_ok_massage.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
 			revice_ok_massage.END = 0xCA;
-			message_tcb.clicker_count += revice_ok_massage.LEN/5;
-			message_tcb.okuidlen += revice_ok_massage.LEN;
+			message_tcb.clicker_count += *(uint16_t *)revice_ok_massage.LEN/5;
+			message_tcb.okuidlen += *(uint16_t *)revice_ok_massage.LEN;
 
 #ifdef ENABLE_SEND_DATA_TO_PC
-			revice_ok_massage.HEADER = 0x5C;
-			memcpy(revice_ok_massage.SIGN,Send_data_process.sign,4);
-			revice_ok_massage.TYPE = 0x31;
-			revice_ok_massage.LEN = revice_ok_massage.LEN+1;
+revice_ok_massage.HEAD = UART_SOF;
+			revice_ok_massage.DEVICE = 0x01;
+			memcpy(revice_ok_massage.VERSION,P_Vresion,2);
+			memcpy(revice_ok_massage.SRCID,revicer.uid,UID_LEN);
+			memset(revice_ok_massage.DSTID,0,UID_LEN);
+			revice_ok_massage.CMDTYPE = 0x13;
+			*(uint16_t *)revice_ok_massage.LEN = *(uint16_t *)revice_ok_massage.LEN+1;
 			revice_ok_massage.DATA[0] = status / 3;
-			revice_ok_massage.XOR = XOR_Cal((uint8_t *)(&(revice_ok_massage.TYPE)), revice_ok_massage.LEN+6+1);
+			revice_ok_massage.XOR = XOR_Cal((uint8_t *)(&(revice_ok_massage.DEVICE)), 
+			*(uint16_t *)revice_ok_massage.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA+1);
 			revice_ok_massage.END = 0xCA;
 			if( revice_ok_massage.LEN != 0)
 			{
@@ -883,8 +894,8 @@ void send_data_result( uint8_t status )
 				}
 			}
 #endif
-			memset(revice_lost_massage.DATA,0,revice_lost_massage.LEN);
-			revice_ok_massage.LEN = 0;
+			memset(revice_lost_massage.DATA,0,*(uint16_t *)revice_lost_massage.LEN);
+			*(uint16_t *)revice_ok_massage.LEN = 0;
 		}
 		DEBUG_STATISTICS_LOG("\r\ncount:%d\r\n",message_tcb.clicker_count);
 		sum_clicker_count += message_tcb.clicker_count;
@@ -1113,26 +1124,26 @@ uint8_t get_single_send_data_status( void )
 ******************************************************************************/
 void single_send_data_result( uint8_t status, uint8_t step, uint8_t pos )
 {
-	Uart_MessageTypeDef result_message;
+//	Uart_MessageTypeDef result_message;
 
-	if( status == 0 )
-		result_message.TYPE   = 0x31;
-	else
-		result_message.TYPE   = 0x30;
+//	if( status == 0 )
+//		result_message.TYPE   = 0x31;
+//	else
+//		result_message.TYPE   = 0x30;
 
-	result_message.HEADER = 0x5C;
-	memcpy(result_message.SIGN,backup_massage.SIGN,4);
-	result_message.LEN     = 0x06;
-	result_message.DATA[0] = step;
-	result_message.DATA[1] = pos;
-	memcpy(result_message.DATA+2,Single_send_data_process.uid,4);
-	result_message.XOR = XOR_Cal(&result_message.TYPE,12);
-	result_message.END  = 0xCA;
+//	result_message.HEADER = 0x5C;
+//	memcpy(result_message.SIGN,backup_massage.SIGN,4);
+//	result_message.LEN     = 0x06;
+//	result_message.DATA[0] = step;
+//	result_message.DATA[1] = pos;
+//	memcpy(result_message.DATA+2,Single_send_data_process.uid,4);
+//	result_message.XOR = XOR_Cal(&result_message.TYPE,12);
+//	result_message.END  = 0xCA;
 
-	if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
-	{
-		serial_ringbuffer_write_data(SEND_RINGBUFFER,&result_message);
-	}
+//	if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+//	{
+//		serial_ringbuffer_write_data(SEND_RINGBUFFER,&result_message);
+//	}
 
 }
 /******************************************************************************

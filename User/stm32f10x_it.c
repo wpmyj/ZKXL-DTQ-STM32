@@ -23,19 +23,15 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "app_send_data_process.h"
+#include "app_serial_cmd_process.h"
 /* uart global variables */
-
-uint32_t clicker_test_printf_flg = 0;
 // revice part
 Uart_MessageTypeDef uart_irq_revice_massage;
 static uint32_t uart_rx_timeout = 0;
-
-static bool     flag_uart_rxing = false;
-static uint8_t  uart_status     = UartHEADER;
+static bool flag_uart_rxing = false;
 
 // send part
 Uart_MessageTypeDef uart_irq_send_massage;
-uint8_t uart_tx_status      = 0;
 
 /* uart global variables */
 extern nrf_communication_t	nrf_data;
@@ -77,115 +73,177 @@ void uart_clear_message( Uart_MessageTypeDef *Message )
 ******************************************************************************/
 void uart_revice_data_state_mechine( uint8_t data )
 {
-	static uint8_t	uart_rx_cnt     = 0;
-	static uint8_t  temp_sign_len   = 0;
+	static uint8_t uart_rx_cnt = 0;
+	static uint8_t temp_len    = 0;
 
-	switch(uart_status)
-		{
-			case UartHEADER:
+	switch(uart_rev_status.get_status(&(uart_rev_status.state)))
+	{
+		case UartHEAD:
+			{
+				/* 如果命令头为0x5C则开始接收，否则不接收 */
+				if(UART_SOF == data)		
 				{
-					if(UART_SOF == data)		//如果命令头为0x5C则开始接收，否则不接收
+					uart_irq_revice_massage.HEAD = data;
+					uart_rev_status.set_status(&(uart_rev_status.state),UartEVICETYPE);
+					flag_uart_rxing = true;
+				}
+			}
+			break;
+
+		case UartEVICETYPE:
+			{
+				uart_irq_revice_massage.DEVICE= data;
+				uart_rev_status.set_status(&(uart_rev_status.state),UartVERSION);
+				flag_uart_rxing = true;
+			}
+			break;
+
+		case UartVERSION:
+			{
+				uart_irq_revice_massage.VERSION[temp_len++] = data;
+				if( temp_len == 2 )
 					{
-						uart_irq_revice_massage.HEADER = data;
-						uart_status =  UartTYPE;
-						flag_uart_rxing = true;
+						uart_rev_status.set_status(&(uart_rev_status.state),UartDSTID);
+						temp_len = 0;
 					}
-				}
-				break;
+			}
+			break;
 
-			case UartTYPE:
-				{
-					uart_irq_revice_massage.TYPE = data;
-					uart_status = UartSIGN;
-					temp_sign_len = 0;
-				}
-				break;
-
-			case UartSIGN:
-				{
-						uart_irq_revice_massage.SIGN[temp_sign_len++] = data;
-						if( temp_sign_len == 4 )
-						{
-								uart_status = UartLEN;
-						}
-				}
-				break;
-
-			case UartLEN:
-				{
-					uart_irq_revice_massage.LEN = data;
-
-					/*  若数据长度大于 236 */
-					if(uart_irq_revice_massage.LEN > UART_NBUF)
+		case UartDSTID:
+			{
+				uart_irq_revice_massage.DSTID[temp_len++] = data;
+				if( temp_len == 4 )
 					{
-						uart_status =  UartHEADER;
+						uart_rev_status.set_status(&(uart_rev_status.state),UartSRCID);
+						temp_len = 0;
+					}
+			}
+			break;
+
+		case UartSRCID:
+			{
+					uart_irq_revice_massage.SRCID[temp_len++] = data;
+					if( temp_len == 4 )
+					{
+						uart_rev_status.set_status(&(uart_rev_status.state),UartPACNUM);
+						temp_len = 0;
+					}
+			}
+			break;
+		case UartPACNUM:
+			{
+				uart_irq_revice_massage.PACNUM = data;
+				uart_rev_status.set_status(&(uart_rev_status.state),UartSEQNUM);
+			}
+			break;
+		case UartSEQNUM:
+			{
+				uart_irq_revice_massage.SEQNUM = data;
+				uart_rev_status.set_status(&(uart_rev_status.state),UartPACKTYPE);
+			}
+			break;
+		case UartPACKTYPE:
+			{
+				uart_irq_revice_massage.PACKTYPE = data;
+				uart_rev_status.set_status(&(uart_rev_status.state),UartREVICED);
+			}
+			break;
+		case UartREVICED:
+			{
+					uart_irq_revice_massage.REVICED[temp_len++] = data;
+					if( temp_len == 2 )
+					{
+						uart_rev_status.set_status(&(uart_rev_status.state),UartCMD);
+						temp_len = 0;
+					}	
+			}
+			break;			
+		case UartCMD:
+			{
+				uart_irq_revice_massage.CMDTYPE = data;
+				uart_rev_status.set_status(&(uart_rev_status.state),UartLEN);
+			}
+			break;				
+
+		case UartLEN:
+			{
+				uart_irq_revice_massage.LEN[temp_len++] = data;
+				if( temp_len == 2 )
+				{
+					uint16_t datalen = *(uint16_t *)uart_irq_revice_massage.LEN;
+					/*  若数据长度大于 236 */
+					if(datalen > UART_NBUF)
+					{
+						uart_rev_status.set_status(&(uart_rev_status.state),UartHEAD);
 						/* 清除 uart_irq_revice_massage 接收信息 */
 						uart_clear_message(&uart_irq_revice_massage);
 						flag_uart_rxing = false;
 					}
 					else if(uart_irq_revice_massage.LEN > 0)	//  DATA不为空
 					{
-						uart_status = UartDATA;
+						uart_rev_status.set_status(&(uart_rev_status.state),UartDATA);
 						uart_rx_cnt = 0;
-					}
-					else//  DATA为空
-					{
-						uart_status = UartXOR;
-					}
-				}
-				break;
-
-			case UartDATA:
-				{
-						uart_irq_revice_massage.DATA[uart_rx_cnt++] = data;
-						/* 数据接收完成 */
-						if(uart_rx_cnt == uart_irq_revice_massage.LEN)
-								uart_status = UartXOR;
-				}
-				break;
-
-			case UartXOR:
-				{
-						uart_irq_revice_massage.XOR = data;
-						uart_status = UartEND;
-				}
-				break;
-
-			case UartEND:
-				{
-					if(UART_EOF == data)
-					{
-						uint8_t UartMessageXor = XOR_Cal((uint8_t *)(&uart_irq_revice_massage.TYPE),
-												uart_irq_revice_massage.LEN + 6 );
-						uart_irq_revice_massage.END = data;
-
-						if( uart_irq_revice_massage.XOR == UartMessageXor)
-						{   /* 若校验通过，则接收数据OK可用 */
-								if(BUFFERFULL != buffer_get_buffer_status(REVICE_RINGBUFFER))
-								{
-									serial_ringbuffer_write_data(REVICE_RINGBUFFER,&uart_irq_revice_massage);
-								}
-							  flag_uart_rxing = false;
-								uart_status = UartHEADER;
-								uart_clear_message(&uart_irq_revice_massage);
-						}
-						else
-						{
-							uart_clear_message(&uart_irq_revice_massage);
-						}
 					}
 					else
 					{
-						uart_status = UartHEADER;
+						uart_rev_status.set_status(&(uart_rev_status.state),UartXOR);
+					}
+					temp_len = 0;
+				}
+			}
+			break;
+
+		case UartDATA:
+			{
+				uart_irq_revice_massage.DATA[uart_rx_cnt++] = data;
+				/* 数据接收完成 */
+				if(uart_rx_cnt == *(uint16_t *)uart_irq_revice_massage.LEN)
+					uart_rev_status.set_status(&(uart_rev_status.state),UartXOR);
+			}
+			break;
+
+		case UartXOR:
+			{
+				uart_irq_revice_massage.XOR = data;
+				uart_rev_status.set_status(&(uart_rev_status.state),UartEND);
+			}
+			break;
+
+		case UartEND:
+			{
+				if(UART_EOF == data)
+				{
+					uint8_t UartMessageXor = XOR_Cal(&(uart_irq_revice_massage.DEVICE),
+					    *(uint16_t *)uart_irq_revice_massage.LEN + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
+					uart_irq_revice_massage.END = data;
+
+					if( uart_irq_revice_massage.XOR == UartMessageXor)
+					{   /* 若校验通过，则接收数据OK可用 */
+							if(BUFFERFULL != buffer_get_buffer_status(REVICE_RINGBUFFER))
+							{
+								serial_ringbuffer_write_data(REVICE_RINGBUFFER,&uart_irq_revice_massage);
+							}
+							flag_uart_rxing = false;
+							uart_rev_status.set_status(&(uart_rev_status.state),UartHEAD);
+							uart_clear_message(&uart_irq_revice_massage);
+					}
+					else
+					{
 						uart_clear_message(&uart_irq_revice_massage);
-						flag_uart_rxing = false;
 					}
 				}
-				break;
+				else
+				{
+					uart_rev_status.set_status(&(uart_rev_status.state),UartHEAD);
+					uart_clear_message(&uart_irq_revice_massage);
+					flag_uart_rxing = false;
+				}
+			}
+			break;
 
-			default:
-				break;
-		}
+		default:
+			break;
+	}
 }
 
 /******************************************************************************
@@ -203,7 +261,7 @@ void uart_send_data_state_machine( void )
 	static uint8_t uart_tx_cnt  = 0;
 	static uint8_t *pdata;
 
-	switch( uart_tx_status )
+	switch(uart_sen_status.get_status(&(uart_sen_status.state)))
 	{
 		case 0:
 			{
@@ -216,9 +274,10 @@ void uart_send_data_state_machine( void )
 					{
 						serial_ringbuffer_read_data(SEND_RINGBUFFER, &uart_irq_send_massage);
 						pdata = (uint8_t *)(&uart_irq_send_massage);
-						uart_tx_status = 1;
-						uart_tx_cnt = *(pdata+6) + 7;
-						uart_tx_status = 1;
+						uart_sen_status.set_status(&(uart_sen_status.state),1);
+						uart_tx_cnt = *(uint16_t *)uart_irq_send_massage.LEN + 
+						    MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA + 1;
+						uart_sen_status.set_status(&(uart_sen_status.state),1);
 					}
 			}
 			break;
@@ -232,7 +291,7 @@ void uart_send_data_state_machine( void )
 				{
 					pdata = &(uart_irq_send_massage.XOR);
 					uart_tx_cnt = 2;
-					uart_tx_status = 2;
+					uart_sen_status.set_status(&(uart_sen_status.state),2);
 				}
 			}
 			break;
@@ -245,7 +304,7 @@ void uart_send_data_state_machine( void )
 				if( uart_tx_cnt == 0 )
 				{
 					uart_clear_message(&uart_irq_send_massage);
-					uart_tx_status = 0;
+					uart_sen_status.set_status(&(uart_sen_status.state),0);
 				}
 			}
 			break;
@@ -400,11 +459,11 @@ void SysTick_Handler(void)
 	if(flag_uart_rxing)												//串口接收超时计数器
 	{
 		uart_rx_timeout++;
-		if(uart_rx_timeout>5)										//5ms超时后重新开始接收
+		if(uart_rx_timeout>10)										//5ms超时后重新开始接收
 		{
 			uart_clear_message(&uart_irq_revice_massage);
 			flag_uart_rxing = false;
-			uart_status = UartHEADER;
+			uart_rev_status.set_status(&(uart_rev_status.state),UartHEAD);
 		}
 	}
 }

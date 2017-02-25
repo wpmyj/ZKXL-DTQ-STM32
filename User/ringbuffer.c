@@ -179,11 +179,11 @@ static void update_bottom( uint8_t sel, uint8_t Len )
   Return:
   Others:None
 ******************************************************************************/
-void serial_ringbuffer_write_data(uint8_t sel, Uart_MessageTypeDef *data)
+void serial_ringbuffer_write_data(uint8_t sel, Uart_MessageTypeDef *message)
 {
 	uint8_t i;
-	uint8_t *pdata = (uint8_t *)data;
-	uint8_t MessageLen = *(pdata+6) + 6;
+	uint8_t *pdata = (uint8_t *)message;
+	uint16_t MessageLen = *(uint16_t *)(message->LEN) + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA;
 
 	for(i=0;i<=MessageLen;i++)
 	{
@@ -191,8 +191,8 @@ void serial_ringbuffer_write_data(uint8_t sel, Uart_MessageTypeDef *data)
 		pdata++;
 	}
 
-	set(sel,Top[sel]+i+0,data->XOR);
-	set(sel,Top[sel]+i+1,data->END);
+	set(sel,Top[sel]+i+0,message->XOR);
+	set(sel,Top[sel]+i+1,message->END);
 
 	update_top( sel, MessageLen+3);
 	update_write_status(sel);
@@ -205,21 +205,23 @@ void serial_ringbuffer_write_data(uint8_t sel, Uart_MessageTypeDef *data)
   Return:
   Others:None
 ******************************************************************************/
-void serial_ringbuffer_read_data( uint8_t sel, Uart_MessageTypeDef *data )
+void serial_ringbuffer_read_data( uint8_t sel, Uart_MessageTypeDef *message )
 {
 		uint8_t i;
-	  uint8_t *pdata = (uint8_t *)data;
+	  uint8_t *pdata = (uint8_t *)message;
 
-	  uint8_t MessageLen = get( sel,Bottom[sel]+6) + 6;
+	  uint16_t MessageLen = get( sel,Bottom[sel]+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA-1) +
+												  get( sel,Bottom[sel]+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA)*256
+	                        + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA;
 
 		for(i=0;i<=MessageLen;i++)
 		{
 			*pdata = get(sel,Bottom[sel]+i);
 			pdata++;
 		}
-		data->LEN = MessageLen - 6;
-		data->XOR = get(sel,Bottom[sel]+i+0);
-		data->END = get(sel,Bottom[sel]+i+1);
+		*(uint16_t *)(message->LEN) = MessageLen - MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA;
+		message->XOR = get(sel,Bottom[sel]+i+0);
+		message->END = get(sel,Bottom[sel]+i+1);
 
 		update_bottom(sel, MessageLen+3);
 		update_read_status(sel);

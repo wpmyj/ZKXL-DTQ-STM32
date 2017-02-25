@@ -17,6 +17,7 @@
 #include "app_systick_package_process.h"
 #include "app_spi_send_data_process.h"
 
+
 /******************************************************************************
   Function:app_handle_layer
   Description:
@@ -37,10 +38,10 @@ void app_handle_layer(void)
 	App_card_process();
 
 	/*clickers systick process */
-	App_clickers_systick_process();
+	//App_clickers_systick_process();
 	
 	/*printf message show process */
-	message_show_process();
+	//message_show_process();
 	
 	/*clickers send data process */
 	App_clickers_single_send_data_process();
