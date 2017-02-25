@@ -27,6 +27,7 @@ extern StateMechineTcb_Typedef default_state_mechine_tcb;
 extern uint8_t is_open_statistic;
 //extern uint8_t uart_tx_status;
 extern nrf_communication_t nrf_data;
+extern uint16_t list_tcb_table[16][8];
        uint8_t serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 			 uint8_t serial_cmd_type = 0;
 			 uint8_t err_cmd_type = 0;
@@ -255,27 +256,10 @@ static void serial_cmd_process(void)
 	}
 }
 
-void app_debuglog_dump(uint8_t * p_buffer, uint32_t len)
-{
-	uint32_t index = 0;
-
-    for (index = 0; index <  len; index++)
-    {
-        DebugLog("%02X ", p_buffer[index]);
-    }
-    DebugLog("\r\n");
-}
-
-void app_debuglog_dump_no_space(uint8_t * p_buffer, uint32_t len)
-{
-	uint32_t index = 0;
-
-    for (index = 0; index <  len; index++)
-    {
-        DebugLog("%02X", p_buffer[index]);
-    }
-    DebugLog("\r\n");
-}
+//uint8_t PcDataToAnswerData(uint8_t *pPcData, uint8_t *pAnswerData)
+//{
+//	uint8_t 
+//}
 
 /******************************************************************************
   Function:App_send_data_to_clickers
@@ -292,77 +276,157 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 	uint16_t i = 0;
 	uint8_t  status = 0, temp = 0;
 	uint8_t  err;
-
-	uint8_t *pdata = sMessage->DATA;
-	sMessage->HEAD = UART_SOF;
-	memcpy(sMessage->DSTID,rMessage->SRCID,UID_LEN);
-	memcpy(sMessage->SRCID,rMessage->DSTID,UID_LEN);
-	sMessage->SEQNUM = revicer.uart_seq_num++;
-	sMessage->PACNUM = rMessage->PACNUM;
-	sMessage->PACKTYPE = REVICER_PACKAGE_ACK;
-	sMessage->CMDTYPE = rMessage->CMDTYPE;
-	memcpy(sMessage->REVICED,rMessage->REVICED,2);
-	*(uint16_t *)(sMessage->LEN) = 0x03;
-
-	status  = get_clicker_send_data_status() ;
-	status |= get_single_send_data_status();
 	
-	if( status == 0)
+	typedef struct
 	{
-		*( pdata + ( i++ ) ) = 0x00; // ok
-		memcpy( rf_var.tx_buf, rMessage->DATA,*(uint16_t *)(rMessage->LEN));
-		rf_var.tx_len = *(uint16_t *)(rMessage->LEN);
-	}
-	else
+		uint8_t TASKTYPE;
+		uint8_t DSTID[4];
+		uint8_t TASKNUM;
+	}TransmitInfo_Tydef;
+	
+	typedef struct
 	{
-		*( pdata + ( i++ ) ) = 0x01; // busy
+		uint8_t DATATYPE;
+		uint8_t SENDDATA[2];
+	}TransmitCtl_Tydef;
+
+	typedef struct
+	{
+		uint8_t DATATYPE;
+		uint8_t TASKDATA;
+		uint8_t SENDDATA;
+	}TransmitData_Tydef;
+
+	/* 解析指令 */
+	TransmitInfo_Tydef *pRdata = (TransmitInfo_Tydef *)(rMessage->DATA);
+	Rf_MessageTypeDef  *pSdata = (Rf_MessageTypeDef *)rf_var.tx_buf;
+	{
+		//rf_var.tx_len = RMessage->LEN;
+		//memcpy(rf_var.tx_buf, (uint8_t *)(RMessage->DATA), RMessage->LEN);
+
+		uint16_t rdata_index = 0, sdata_index = 0;
+//	uint8_t  is_last_data_full = 0;
+
+//		printf("TASKTYPE = %02x\r\n",pRdata->TASKTYPE);
+//		printf("DSTID    = %02x%02x%02x%02x\r\n",pRdata->DSTID[0],
+//		pRdata->DSTID[1],pRdata->DSTID[2],pRdata->DSTID[3]);
+//		printf("TASKNUM  = %02x\r\n",pRdata->TASKNUM);
+		rdata_index = sizeof(TransmitInfo_Tydef);
+
+		if(pRdata->TASKTYPE == 0x01) // DATA
+		{
+			TransmitData_Tydef *data;
+
+			pSdata->HEADER = 0x5A;
+			memcpy(pSdata->ID ,pRdata->DSTID, 4);
+			pSdata->RFU    = 0x00;
+			pSdata->TYPE   = 0x11;
+			pSdata->DATA[sdata_index++] = pRdata->TASKNUM;
+			while( rdata_index < *(uint16_t *)rMessage->LEN )
+			{
+				data = (TransmitData_Tydef *)(rMessage->DATA + rdata_index);
+
+		    /* 新版协议解析格式 */
+//			if(is_last_data_full == 0)
+//			{
+//				pSdata->DATA[sdata_index++] = ((data->DATATYPE<<4) & 0xF0) | ((data->TASKDATA & 0xF0) >> 4);
+//				pSdata->DATA[sdata_index++] = ((data->TASKDATA & 0x0F) << 4) | ((data->SENDDATA & 0xF0) >> 4);
+//				pSdata->DATA[sdata_index]   = ((data->SENDDATA & 0x0F) << 4);
+//				is_last_data_full = 1;
+//			}
+//			else
+//			{
+//				pSdata->DATA[sdata_index++] = (data->DATATYPE & 0x0F) ;
+//				pSdata->DATA[sdata_index++] = data->TASKDATA ;
+//				pSdata->DATA[sdata_index++] = data->SENDDATA ;
+//				is_last_data_full = 0;
+//			}
+
+				/* 旧版协议解析格式 */
+				{
+					pSdata->DATA[sdata_index++] = data->TASKDATA;
+					pSdata->DATA[sdata_index++] = ((data->DATATYPE<<6) & 0xC0) | (data->SENDDATA & 0x7F) ;
+				}
+
+				rdata_index = rdata_index + sizeof(TransmitData_Tydef);
+			}
+		}
+		else if(pRdata->TASKTYPE == 0x02) // CTL
+		{
+			
+		}
+		
+		pSdata->LEN = sdata_index;
+		pSdata->DATA[sdata_index++] = XOR_Cal((uint8_t *)(pSdata->ID), sdata_index+7);;
+		pSdata->DATA[sdata_index++] = 0xCA;
+		
+		{
+			uint8_t i;
+//		uint8_t *pdata = (uint8_t *)pSdata;
+//		printf("pSdata :");
+//		for(i=0;i<=sdata_index+7;i++)
+//		{
+//			printf(" %02x",*pdata++);
+//		}
+//		printf("\r\n");
+			
+		  rf_var.tx_len = pSdata->LEN + 8 + 2 ;
+		  memcpy(rf_var.tx_buf, (uint8_t *)(pSdata), sdata_index+8);
+		}
 	}
 
-	*( pdata + ( i++ ) ) = wl.switch_status;
-	*( pdata + ( i++ ) ) = wl.len;
+	/* 生成返回数据 */
+	{
+		uint8_t *pdata = sMessage->DATA;
+		sMessage->HEAD = UART_SOF;
+		memcpy(sMessage->DSTID,rMessage->SRCID,UID_LEN);
+		memcpy(sMessage->SRCID,rMessage->DSTID,UID_LEN);
+		sMessage->SEQNUM = revicer.uart_seq_num++;
+		sMessage->PACNUM = rMessage->PACNUM;
+		sMessage->PACKTYPE = REVICER_PACKAGE_ACK;
+		sMessage->CMDTYPE = rMessage->CMDTYPE;
+		memcpy(sMessage->REVICED,rMessage->REVICED,2);
+		*(uint16_t *)(sMessage->LEN) = 0x03;
 
-	sMessage->XOR = XOR_Cal((uint8_t *)(&(sMessage->DSTID)), i+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
-	sMessage->END = 0xCA;
+		status  = get_clicker_send_data_status() ;
+		status |= get_single_send_data_status();
+		
+		if( status == 0)
+			*( pdata + ( i++ ) ) = 0x00; // ok
+		else
+			*( pdata + ( i++ ) ) = 0x01; // busy
 
-	//if( status == 0 )
+		*( pdata + ( i++ ) ) = wl.switch_status;
+		*( pdata + ( i++ ) ) = wl.len;
+
+		sMessage->XOR = XOR_Cal((uint8_t *)(&(sMessage->DSTID)), i+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
+		sMessage->END = 0xCA;
+	}
+
+	/* 发送数据 */
+	if( status == 0 )
 	{
 		/* 准备发送数据管理块 */
 		send_data_env_init();
-
-		/* 发送前导帧 */
-		//memcpy(nrf_communication.dtq_uid, rMessage->DATA+1, 4);
-		memset(nrf_data.dtq_uid,0x00,4);
-		nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,  SEND_PRE_DELAY100US, SEND_DATA1_SUM_TABLE,PACKAGE_NUM_ADD);
+		memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
+		
+		memcpy(nrf_data.dtq_uid, pRdata->DSTID, 4);
+		nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
+		    SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
 
 		/* 发送数据帧 */
-		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL, SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE, PACKAGE_NUM_SAM);
+		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL,
+		    SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_SAM);
 
-		if((rMessage->DATA[1] == 0) && (rMessage->DATA[2] == 0) &&
-			 (rMessage->DATA[3] == 0) && (rMessage->DATA[4] == 0))
-		{
-			is_open_statistic = 0;
-		}
-		else
-		{
-			is_open_statistic = 1;
-		}
-		
-		if( is_open_statistic == 0 )
-		{
-			/* 启动发送数据状态机 */
-			change_clicker_send_data_status( SEND_DATA1_STATUS );
-		}
-		else
-		{
-			/* 启动单独发送数据状态机 */
-			change_single_send_data_status(1);
-		}
+		/* 启动发送数据状态机 */
+		change_clicker_send_data_status( SEND_DATA1_STATUS );
 
 		/* 清除心跳包定时时间 */
 		sw_clear_timer(&systick_package_timer);
 	}
+
 	err = APP_SERIAL_CMD_STATUS_IDLE;
-	
+
 	return err;
 }
 
@@ -379,13 +443,12 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_MessageTypeDef *sMessage )
 {
 	uint8_t *rpdata;
-	uint8_t i = 0,j = 0,k = 0,opestatus = 0,uidpos = 0,Err = 0;
+	uint8_t i = 0,j = 0,k = 0,opestatus = 0,Err = 0;
 	uint8_t NewUidNum = 0;
 	uint8_t UidAddStatus[8] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 	uint8_t TemUid[4];
 	UidTask_CTL_Typedef UidCmd;
 
-	uint8_t *pdata = (uint8_t *)(sMessage->DATA);
 
 	sMessage->HEAD = UART_SOF;
 	sMessage->DEVICE = 0x01;
