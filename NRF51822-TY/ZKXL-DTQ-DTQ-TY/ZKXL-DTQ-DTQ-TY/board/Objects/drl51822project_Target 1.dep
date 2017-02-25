@@ -1,90 +1,0 @@
-Dependencies for Project 'drl51822project', Target 'Target 1': (DO NOT MODIFY !)
-F (..\user\main.c)(0x57D911CC)(-c --cpu Cortex-M0 -g -O0 --apcs=interwork --split_sections -I ..\user -I ..\components\drivers_nrf\delay -I ..\components\drivers_nrf\hal -I ..\components\toolchain -I ..\components\toolchain\CMSIS\Include -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util-I "E:\Desktop\桌面\答题器通信方式测试\51822 SDK_11.0.0 工程模板-使用自己copy的库\board\RTE"-I C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51-o .\objects\main.o --omf_browse .\objects\main.crf --depend .\objects\main.d)
-I (..\user\led.h)(0x57D8FBAA)
-I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x56E1A850)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf.h)(0x5743F614)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51.h)(0x5743F612)
-I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x56E1A850)
-I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x57A92F00)
-I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x56E1A850)
-I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x56E1A850)
-I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x56E1A850)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\system_nrf51.h)(0x5743F614)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51_bitfields.h)(0x5743F612)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51_deprecated.h)(0x5743F614)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\compiler_abstraction.h)(0x5743F614)
-I (C:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x55DB2B76)
-I (..\components\drivers_nrf\delay\nrf_delay.h)(0x57D8FBE4)
-I (..\components\properitary_rf\esb\nrf_esb.h)(0x57D910A8)
-I (..\components\libraries\util\app_util.h)(0x56E1A850)
-F (..\user\led.c)(0x57A55A62)(-c --cpu Cortex-M0 -g -O0 --apcs=interwork --split_sections -I ..\user -I ..\components\drivers_nrf\delay -I ..\components\drivers_nrf\hal -I ..\components\toolchain -I ..\components\toolchain\CMSIS\Include -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util-I "E:\Desktop\桌面\答题器通信方式测试\51822 SDK_11.0.0 工程模板-使用自己copy的库\board\RTE"-I C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51-o .\objects\led.o --omf_browse .\objects\led.crf --depend .\objects\led.d)
-I (..\user\led.h)(0x57D8FBAA)
-I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x56E1A850)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf.h)(0x5743F614)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51.h)(0x5743F612)
-I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x56E1A850)
-I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x57A92F00)
-I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x56E1A850)
-I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x56E1A850)
-I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x56E1A850)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\system_nrf51.h)(0x5743F614)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51_bitfields.h)(0x5743F612)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51_deprecated.h)(0x5743F614)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\compiler_abstraction.h)(0x5743F614)
-I (C:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x55DB2B76)
-F (..\components\drivers_nrf\delay\nrf_delay.c)(0x57D8FBE6)(-c --cpu Cortex-M0 -g -O0 --apcs=interwork --split_sections -I ..\user -I ..\components\drivers_nrf\delay -I ..\components\drivers_nrf\hal -I ..\components\toolchain -I ..\components\toolchain\CMSIS\Include -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util-I "E:\Desktop\桌面\答题器通信方式测试\51822 SDK_11.0.0 工程模板-使用自己copy的库\board\RTE"-I C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51-o .\objects\nrf_delay.o --omf_browse .\objects\nrf_delay.crf --depend .\objects\nrf_delay.d)
-I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x57C6C6DD)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\compiler_abstraction.h)(0x5743F614)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf.h)(0x5743F614)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51.h)(0x5743F612)
-I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x56E1A850)
-I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x57A92F00)
-I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x56E1A850)
-I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x56E1A850)
-I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x56E1A850)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\system_nrf51.h)(0x5743F614)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51_bitfields.h)(0x5743F612)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51_deprecated.h)(0x5743F614)
-I (..\components\drivers_nrf\delay\nrf_delay.h)(0x57D8FBE4)
-F (..\components\properitary_rf\esb\nrf_esb.c)(0x57D91206)(-c --cpu Cortex-M0 -g -O0 --apcs=interwork --split_sections -I ..\user -I ..\components\drivers_nrf\delay -I ..\components\drivers_nrf\hal -I ..\components\toolchain -I ..\components\toolchain\CMSIS\Include -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util-I "E:\Desktop\桌面\答题器通信方式测试\51822 SDK_11.0.0 工程模板-使用自己copy的库\board\RTE"-I C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51-o .\objects\nrf_esb.o --omf_browse .\objects\nrf_esb.crf --depend .\objects\nrf_esb.d)
-I (..\components\drivers_nrf\nrf_soc_nosd\nrf_error.h)(0x56E1A850)
-I (..\components\properitary_rf\esb\nrf_esb.h)(0x57D910A8)
-I (C:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x55DB2B76)
-I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x57A92F00)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf.h)(0x5743F614)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51.h)(0x5743F612)
-I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x56E1A850)
-I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x56E1A850)
-I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x56E1A850)
-I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x56E1A850)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\system_nrf51.h)(0x5743F614)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51_bitfields.h)(0x5743F612)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51_deprecated.h)(0x5743F614)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\compiler_abstraction.h)(0x5743F614)
-I (..\components\libraries\util\app_util.h)(0x56E1A850)
-I (..\components\properitary_rf\esb\nrf_esb_error_codes.h)(0x56E1A850)
-I (..\components\drivers_nrf\hal\nrf_gpio.h)(0x56E1A850)
-I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x55DB2B78)
-I (C:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x57B2D5AD)
-I (..\components\libraries\util\sdk_common.h)(0x56E1A850)
-I (..\components\libraries\util\nordic_common.h)(0x56E1A850)
-I (..\components\libraries\util\sdk_os.h)(0x56E1A850)
-I (..\components\libraries\util\sdk_errors.h)(0x56E1A850)
-I (..\components\libraries\util\sdk_macros.h)(0x56E1A850)
-I (..\components\libraries\util\nrf_log.h)(0x56E1A850)
-I (C:\Keil_v5\ARM\ARMCC\include\stdarg.h)(0x55DB2B7E)
-F (..\components\toolchain\system_nrf51.c)(0x57D8FF62)(-c --cpu Cortex-M0 -g -O0 --apcs=interwork --split_sections -I ..\user -I ..\components\drivers_nrf\delay -I ..\components\drivers_nrf\hal -I ..\components\toolchain -I ..\components\toolchain\CMSIS\Include -I ..\components\properitary_rf\esb -I ..\components\drivers_nrf\nrf_soc_nosd -I ..\components\libraries\util-I "E:\Desktop\桌面\答题器通信方式测试\51822 SDK_11.0.0 工程模板-使用自己copy的库\board\RTE"-I C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="518" -DNRF51-o .\objects\system_nrf51.o --omf_browse .\objects\system_nrf51.crf --depend .\objects\system_nrf51.d)
-I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x57A92F00)
-I (C:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x55DB2B76)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf.h)(0x5743F614)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51.h)(0x5743F612)
-I (..\components\toolchain\CMSIS\Include\core_cm0.h)(0x56E1A850)
-I (..\components\toolchain\CMSIS\Include\core_cmInstr.h)(0x56E1A850)
-I (..\components\toolchain\CMSIS\Include\cmsis_armcc.h)(0x56E1A850)
-I (..\components\toolchain\CMSIS\Include\core_cmFunc.h)(0x56E1A850)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\system_nrf51.h)(0x5743F614)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51_bitfields.h)(0x5743F612)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\nrf51_deprecated.h)(0x5743F614)
-I (C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include\compiler_abstraction.h)(0x5743F614)
-I (..\components\toolchain\system_nrf51.h)(0x56E1A85C)
-F (..\components\toolchain\arm\arm_startup_nrf51.s)(0x56E1A85C)(--cpu Cortex-M0 -g --apcs=interwork -I "E:\Desktop\桌面\答题器通信方式测试\51822 SDK_11.0.0 工程模板-使用自己copy的库\board\RTE"-I C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.6.1\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include--pd "__UVISION_VERSION SETA 518" --pd "NRF51 SETA 1"--list .\listings\arm_startup_nrf51.lst --xref -o .\objects\arm_startup_nrf51.o --depend .\objects\arm_startup_nrf51.d)
