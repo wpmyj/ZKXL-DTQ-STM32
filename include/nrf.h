@@ -121,12 +121,21 @@ typedef struct
 typedef struct
 {
 	uint8_t 				spi_cmd;
-	uint8_t					data_len;
 	uint8_t         count;
 	uint8_t         delay100us;
+	uint8_t					data_len;
 	uint8_t 				data[BUFFER_SIZE_MAX];
 	uint8_t 				xor;														//为所有数据异或结果
 } spi_cmd_type_t;
+
+typedef struct
+{
+	uint8_t 				spi_cmd;
+	uint8_t         signal;
+	uint8_t					data_len;
+	uint8_t 				data[BUFFER_SIZE_MAX];
+	uint8_t 				xor;														//为所有数据异或结果
+} nrf_to_stm32_cmd_type_t;
 
 /* Private functions ---------------------------------------------------------*/
 uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_data_len, uint8_t *rx_data);

@@ -875,7 +875,7 @@ void send_data_result( uint8_t status )
 			message_tcb.okuidlen += *(uint16_t *)revice_ok_massage.LEN;
 
 #ifdef ENABLE_SEND_DATA_TO_PC
-revice_ok_massage.HEAD = UART_SOF;
+			revice_ok_massage.HEAD = UART_SOF;
 			revice_ok_massage.DEVICE = 0x01;
 			memcpy(revice_ok_massage.VERSION,P_Vresion,2);
 			memcpy(revice_ok_massage.SRCID,revicer.uid,UID_LEN);
