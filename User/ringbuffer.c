@@ -26,8 +26,8 @@ static volatile uint8_t  Status[RINGBUFFERSUM] = { BUFFEREMPTY, BUFFEREMPTY, BUF
 /* Private functions ---------------------------------------------------------*/
 static void    update_read_status( uint8_t sel) ;
 static void    update_write_status( uint8_t sel) ;
-static void    update_top( uint8_t sel, uint8_t Len );
-static void    update_bottom( uint8_t sel, uint8_t Len );
+static void    update_top( uint8_t sel, uint16_t Len );
+static void    update_bottom( uint8_t sel, uint16_t Len );
 static uint8_t get(uint8_t sel, uint16_t index);
 static void    set(uint8_t sel, uint16_t index,uint8_t data);
 
@@ -151,7 +151,7 @@ static void update_write_status( uint8_t sel)
   Return:
   Others:None
 ******************************************************************************/
-static void update_top( uint8_t sel, uint8_t Len )
+static void update_top( uint8_t sel, uint16_t Len )
 {
 	Size[sel] += Len;
 	Top[sel] = (Top[sel] + Len) % BufferSize[sel];
@@ -165,7 +165,7 @@ static void update_top( uint8_t sel, uint8_t Len )
   Return:
   Others:None
 ******************************************************************************/
-static void update_bottom( uint8_t sel, uint8_t Len )
+static void update_bottom( uint8_t sel, uint16_t Len )
 {
 	Size[sel] -= Len;
 	Bottom[sel] = (Bottom[sel] + Len) % BufferSize[sel];
@@ -181,7 +181,7 @@ static void update_bottom( uint8_t sel, uint8_t Len )
 ******************************************************************************/
 void serial_ringbuffer_write_data(uint8_t sel, Uart_MessageTypeDef *message)
 {
-	uint8_t i;
+	uint16_t i;
 	uint8_t *pdata = (uint8_t *)message;
 	uint16_t MessageLen = *(uint16_t *)(message->LEN) + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA;
 
@@ -207,7 +207,7 @@ void serial_ringbuffer_write_data(uint8_t sel, Uart_MessageTypeDef *message)
 ******************************************************************************/
 void serial_ringbuffer_read_data( uint8_t sel, Uart_MessageTypeDef *message )
 {
-		uint8_t i;
+		uint16_t i;
 	  uint8_t *pdata = (uint8_t *)message;
 
 	  uint16_t MessageLen = get( sel,Bottom[sel]+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA-1) +
@@ -237,7 +237,8 @@ void serial_ringbuffer_read_data( uint8_t sel, Uart_MessageTypeDef *message )
 ******************************************************************************/
 void spi_write_data_to_buffer( uint8_t sel, uint8_t SpiMessage[], uint8_t status )
 {
-	uint8_t Len, *pdata, i;
+	uint16_t Len, i;
+	uint8_t *pdata;
 
 	Len = SpiMessage[14];
 	pdata = SpiMessage;
@@ -264,8 +265,9 @@ void spi_write_data_to_buffer( uint8_t sel, uint8_t SpiMessage[], uint8_t status
 ******************************************************************************/
 void spi_read_data_from_buffer( uint8_t sel, uint8_t SpiMessage[] )
 {
-	uint8_t *pdata, i;
-	uint8_t MessageLen = get( sel,Bottom[sel]+14) + 17;
+	uint16_t i;
+	uint16_t MessageLen = get( sel,Bottom[sel]+14) + 17;
+	uint8_t *pdata;
 
 	pdata = SpiMessage;
 

@@ -256,11 +256,6 @@ static void serial_cmd_process(void)
 	}
 }
 
-//uint8_t PcDataToAnswerData(uint8_t *pPcData, uint8_t *pAnswerData)
-//{
-//	uint8_t 
-//}
-
 /******************************************************************************
   Function:App_send_data_to_clickers
   Description:
@@ -299,53 +294,37 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 
 	/* 解析指令 */
 	TransmitInfo_Tydef *pRdata = (TransmitInfo_Tydef *)(rMessage->DATA);
-	Rf_MessageTypeDef  *pSdata = (Rf_MessageTypeDef *)rf_var.tx_buf;
+	uint8_t  *pSdata = (uint8_t *)rf_var.tx_buf;
 	{
-		//rf_var.tx_len = RMessage->LEN;
-		//memcpy(rf_var.tx_buf, (uint8_t *)(RMessage->DATA), RMessage->LEN);
 
 		uint16_t rdata_index = 0, sdata_index = 0;
-//	uint8_t  is_last_data_full = 0;
+  	uint8_t  is_last_data_full = 0;
 
-//		printf("TASKTYPE = %02x\r\n",pRdata->TASKTYPE);
-//		printf("DSTID    = %02x%02x%02x%02x\r\n",pRdata->DSTID[0],
-//		pRdata->DSTID[1],pRdata->DSTID[2],pRdata->DSTID[3]);
-//		printf("TASKNUM  = %02x\r\n",pRdata->TASKNUM);
 		rdata_index = sizeof(TransmitInfo_Tydef);
 
 		if(pRdata->TASKTYPE == 0x01) // DATA
 		{
 			TransmitData_Tydef *data;
 
-			pSdata->HEADER = 0x5A;
-			memcpy(pSdata->ID ,pRdata->DSTID, 4);
-			pSdata->RFU    = 0x00;
-			pSdata->TYPE   = 0x11;
-			pSdata->DATA[sdata_index++] = pRdata->TASKNUM;
 			while( rdata_index < *(uint16_t *)rMessage->LEN )
 			{
 				data = (TransmitData_Tydef *)(rMessage->DATA + rdata_index);
 
-		    /* 新版协议解析格式 */
-//			if(is_last_data_full == 0)
-//			{
-//				pSdata->DATA[sdata_index++] = ((data->DATATYPE<<4) & 0xF0) | ((data->TASKDATA & 0xF0) >> 4);
-//				pSdata->DATA[sdata_index++] = ((data->TASKDATA & 0x0F) << 4) | ((data->SENDDATA & 0xF0) >> 4);
-//				pSdata->DATA[sdata_index]   = ((data->SENDDATA & 0x0F) << 4);
-//				is_last_data_full = 1;
-//			}
-//			else
-//			{
-//				pSdata->DATA[sdata_index++] = (data->DATATYPE & 0x0F) ;
-//				pSdata->DATA[sdata_index++] = data->TASKDATA ;
-//				pSdata->DATA[sdata_index++] = data->SENDDATA ;
-//				is_last_data_full = 0;
-//			}
-
-				/* 旧版协议解析格式 */
+		    /* 新版协议解析格式 */                                                    
+				if(is_last_data_full == 0)
 				{
-					pSdata->DATA[sdata_index++] = data->TASKDATA;
-					pSdata->DATA[sdata_index++] = ((data->DATATYPE<<6) & 0xC0) | (data->SENDDATA & 0x7F) ;
+					*(pSdata+(sdata_index++)) = ((data->DATATYPE) & 0x0F   ) | ((data->TASKDATA & 0x0F) << 4);
+					*(pSdata+(sdata_index++)) = ((data->TASKDATA & 0xF0)>>4) | ((data->SENDDATA & 0x0F) << 4);
+					*(pSdata+(sdata_index))   = (data->SENDDATA & 0xF0)>>4;
+					is_last_data_full = 1;
+				}
+				else
+				{
+					*(pSdata+(sdata_index))   = *(pSdata+(sdata_index)) | ((data->DATATYPE & 0x0F) << 4);
+					sdata_index++;
+					*(pSdata+(sdata_index++)) = data->TASKDATA ;
+					*(pSdata+(sdata_index++)) = data->SENDDATA ;
+					is_last_data_full = 0;
 				}
 
 				rdata_index = rdata_index + sizeof(TransmitData_Tydef);
@@ -355,23 +334,18 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 		{
 			
 		}
-		
-		pSdata->LEN = sdata_index;
-		pSdata->DATA[sdata_index++] = XOR_Cal((uint8_t *)(pSdata->ID), sdata_index+7);;
-		pSdata->DATA[sdata_index++] = 0xCA;
-		
+
 		{
 			uint8_t i;
-//		uint8_t *pdata = (uint8_t *)pSdata;
-//		printf("pSdata :");
-//		for(i=0;i<=sdata_index+7;i++)
-//		{
-//			printf(" %02x",*pdata++);
-//		}
-//		printf("\r\n");
+			uint8_t *pdata = (uint8_t *)pSdata;
+			printf("pSdata :");
+			for(i=0;i<=sdata_index;i++)
+			{
+				printf(" %02x",*pdata++);
+			}
+			printf("\r\n");
 			
-		  rf_var.tx_len = pSdata->LEN + 8 + 2 ;
-		  memcpy(rf_var.tx_buf, (uint8_t *)(pSdata), sdata_index+8);
+		  rf_var.tx_len = sdata_index+1 ;
 		}
 	}
 
