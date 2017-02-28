@@ -353,14 +353,16 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 	{
 		uint8_t *pdata = sMessage->DATA;
 		sMessage->HEAD = UART_SOF;
+		sMessage->DEVICE  = 0x01;
+		memcpy(sMessage->VERSION,P_Vresion,2);
+		memcpy(sMessage->SRCID,revicer.uid,UID_LEN);
 		memcpy(sMessage->DSTID,rMessage->SRCID,UID_LEN);
-		memcpy(sMessage->SRCID,rMessage->DSTID,UID_LEN);
 		sMessage->SEQNUM = revicer.uart_seq_num++;
 		sMessage->PACNUM = rMessage->PACNUM;
 		sMessage->PACKTYPE = REVICER_PACKAGE_ACK;
 		sMessage->CMDTYPE = rMessage->CMDTYPE;
 		memcpy(sMessage->REVICED,rMessage->REVICED,2);
-		*(uint16_t *)(sMessage->LEN) = 0x03;
+		*(uint16_t *)(sMessage->LEN) = 0x01;
 
 		status  = get_clicker_send_data_status() ;
 		status |= get_single_send_data_status();
@@ -369,9 +371,6 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 			*( pdata + ( i++ ) ) = 0x00; // ok
 		else
 			*( pdata + ( i++ ) ) = 0x01; // busy
-
-		*( pdata + ( i++ ) ) = wl.switch_status;
-		*( pdata + ( i++ ) ) = wl.len;
 
 		sMessage->XOR = XOR_Cal((uint8_t *)(&(sMessage->DSTID)), i+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
 		sMessage->END = 0xCA;
