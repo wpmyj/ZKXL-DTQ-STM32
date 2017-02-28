@@ -336,14 +336,14 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 		}
 
 		{
-			uint8_t i;
-			uint8_t *pdata = (uint8_t *)pSdata;
-			printf("pSdata :");
-			for(i=0;i<=sdata_index;i++)
-			{
-				printf(" %02x",*pdata++);
-			}
-			printf("\r\n");
+//			uint8_t i;
+//			uint8_t *pdata = (uint8_t *)pSdata;
+//			printf("pSdata :");
+//			for(i=0;i<=sdata_index;i++)
+//			{
+//				printf(" %02x",*pdata++);
+//			}
+//			printf("\r\n");
 			
 		  rf_var.tx_len = sdata_index+1 ;
 		}

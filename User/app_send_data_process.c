@@ -333,45 +333,81 @@ void clicker_send_data_statistics( uint8_t send_data_status, uint8_t uidpos )
 void rf_move_data_to_buffer( uint8_t *Message )
 {
 	Uart_MessageTypeDef rf_message;
+
 	uint8_t i = 0 ;
-	uint8_t uidpos;
+	uint8_t q_num = 0;
+	uint8_t uidpos,Cmdtype;
+	uint16_t AckTableLen,DataLen,Len;
+
+	AckTableLen = Message[14];
+	DataLen     = Message[14+AckTableLen+2];
+	Len         = AckTableLen + DataLen + 19;
+	Cmdtype     = Message[14+AckTableLen+1];
 	
-	rf_message.HEAD = 0x5C;
-	rf_message.CMDTYPE = 0x11;
-	rf_message.DEVICE = 0x01;
-	memcpy(rf_message.VERSION,P_Vresion,2);
-	memcpy(rf_message.SRCID,revicer.uid,UID_LEN);
-	memcpy(rf_message.SRCID,Message+5,UID_LEN);
-
-	/* 获取消息的有效长度 */
-	*(uint16_t *)rf_message.LEN = Message[14];
-
-	for (i=0;i<*(uint16_t *)rf_message.LEN;i++)
+	if(DataLen>0)
 	{
-		rf_message.DATA[i]=Message[i+15];
-	}
+		uint16_t s_index = 0, r_index = 0;
+		uint8_t is_last_data_full = 0;
+		uint8_t *prdata; 
 
-	rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.DSTID)), i+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
-	rf_message.END = 0xCA;
+		rf_message.HEAD    = 0x5C;
+		rf_message.CMDTYPE = 0x11;
+		rf_message.DEVICE  = 0x01;
+		memcpy(rf_message.VERSION,P_Vresion,2);
+		memcpy(rf_message.SRCID,revicer.uid,UID_LEN);
 
-	if((rf_message.DATA[6] == 0x10) ||
-		 (rf_message.DATA[6] == 0x11) ||
-	   (rf_message.DATA[6] == 0x12) ||
-	   (rf_message.DATA[6] == 0x13) ||
-		 (rf_message.DATA[6] == 0x14))
-	{
-		if( wl.start == ON )
-		{
-			uint8_t Is_whitelist_uid = search_uid_in_white_list(Message+5,&uidpos);
-			if(Message[10] != wl.uids[uidpos].rev_num)//收到的是有效数据
+		/* 获取消息的有效长度 */
+		*(uint16_t *)rf_message.LEN = Len;
+
+		/* 获取题目数据的起始地址 */
+		prdata = Message+14+AckTableLen+2+1;
+
+		if( Cmdtype == 0x10 )
+			rf_message.DATA[0] = 0x01;
+		memcpy(rf_message.DATA+1,Message+5,UID_LEN);
+		s_index = 6;
+
+		while( s_index < DataLen +6 )
+		{                                                 
+			if(is_last_data_full == 0)
 			{
-				/* 存入缓存 */
-				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+				rf_message.DATA[s_index++] = prdata[r_index] & 0x0F;
+				rf_message.DATA[s_index++] = ((prdata[r_index] & 0xF0) >> 4)   | ((prdata[r_index+1] & 0x0F) << 4);
+				rf_message.DATA[s_index++] = ((prdata[r_index+1] & 0xF0) >> 4) | ((prdata[r_index+2] & 0x0F) << 4);
+				r_index = r_index + 2;
+				is_last_data_full = 1;
+			}
+			else
+			{
+				rf_message.DATA[s_index++] = (prdata[r_index] & 0xF0) >> 4;
+				rf_message.DATA[s_index++] = prdata[r_index+1];
+				rf_message.DATA[s_index++] = prdata[r_index+2];
+				r_index = r_index + 3;
+				is_last_data_full = 0;
+			}
+			q_num++;
+		}
+		rf_message.DATA[5] = q_num;
+		*(uint16_t *)rf_message.LEN = s_index;
+
+		rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.DSTID)), s_index+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
+		rf_message.END = 0xCA;
+
+		if( Cmdtype == 0x10 )
+		{
+			if( wl.start == ON )
+			{
+				uint8_t Is_whitelist_uid = search_uid_in_white_list(Message+5,&uidpos);
+				if(Message[12] != wl.uids[uidpos].rev_num)//收到的是有效数据
 				{
-					serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
-					/* 更新接收数据帧号与包号 */
-					wl.uids[uidpos].rev_seq = Message[9];
-					wl.uids[uidpos].rev_num = Message[10];	
+					/* 存入缓存 */
+					if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+					{
+						serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
+						/* 更新接收数据帧号与包号 */
+						wl.uids[uidpos].rev_seq = Message[11];
+						wl.uids[uidpos].rev_num = Message[12];	
+					}
 				}
 			}
 		}
