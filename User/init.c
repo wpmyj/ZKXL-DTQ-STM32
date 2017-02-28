@@ -268,13 +268,13 @@ uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_da
 	/* 开始SPI传输 */
 	NRF1_CSN_LOW();	
 	memset(retval, 0, BUFFER_SIZE_MAX);
-	printf("SPI_RX:");
+	//printf("SPI_RX:");
 
 	for(i=0; i<spi_cmd_type.data_len; i++)
 	{
 		retval[i] = hal_nrf_rw(SPIx, *(temp_data+i));
 
-		printf(" %02x",retval[i]);
+		//printf(" %02x",retval[i]);
 		
 		if(i ==  2 && retval[0] == 0x86 && retval[2] < BUFFER_SIZE_MAX )
 		{
@@ -283,12 +283,12 @@ uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_da
 		}
 	}
 
-	printf("\r\n");
+	//printf("\r\n");
 
 	/* 关闭SPI传输 */
 	NRF1_CSN_HIGH();	
 	revice_cal_xor = XOR_Cal((uint8_t *)&(retval[1]), spi_cmd_type.data_len-3);
-	printf("revice_xor = %x cal_xor = %x \r\n",retval[spi_cmd_type.data_len-2], revice_cal_xor);
+	//printf("revice_xor = %x cal_xor = %x \r\n",retval[spi_cmd_type.data_len-2], revice_cal_xor);
 
 	if(retval[spi_cmd_type.data_len-2] == revice_cal_xor) 			//若接收到数据校验正确
 	{
@@ -319,7 +319,7 @@ uint8_t uesb_nrf_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8
 	/* 开始SPI传输 */
 	NRF2_CSN_LOW();	
 	memset(retval, 0, BUFFER_SIZE_MAX);
-	printf("SPI_TX:");
+	//printf("SPI_TX:");
 	pdata = (uint8_t *)&spi_cmd_type;
 	for(i=0; i<spi_cmd_type.data_len+6; i++)
 	{
@@ -330,9 +330,9 @@ uint8_t uesb_nrf_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8
 #ifdef ZL_RP551_MAIN_F
 		retval[i] = hal_nrf_rw(SPI2, *(pdata+i));
 #endif
-		printf(" %02x",*(pdata+i));
+		//printf(" %02x",*(pdata+i));
 	}
-	printf("\r\n");
+	//printf("\r\n");
 	NRF2_CSN_HIGH();	//关闭SPI传输
 
 	if(retval[0] != 0) 									//若接收到数据校验正确

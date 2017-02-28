@@ -237,21 +237,27 @@ void serial_ringbuffer_read_data( uint8_t sel, Uart_MessageTypeDef *message )
 ******************************************************************************/
 void spi_write_data_to_buffer( uint8_t sel, uint8_t SpiMessage[], uint8_t status )
 {
-	uint16_t Len, i;
+	uint16_t AckTableLen,DataLen,Len, i;
 	uint8_t *pdata;
 
-	Len = SpiMessage[14];
-	pdata = SpiMessage;
+	AckTableLen = SpiMessage[14];
+	DataLen     = SpiMessage[14+AckTableLen+2];
+	Len         = AckTableLen + DataLen + 19;
+	pdata       = SpiMessage;
 
-	for(i=0;i<Len+17;i++)
+	//printf("writebuf:");
+	for(i=0;i<Len;i++)
 	{
 		set(sel,Top[sel]+i,*pdata);
+		//printf(" %02x",*pdata);
 		pdata++;
 	}
-
+	
 	set(sel,Top[sel]+i++,status);
+	//printf(" %02x",status);
+	//printf("\r\n");
 
-	update_top( sel, Len+17+1);
+	update_top( sel, Len);
 	update_write_status(sel);
 }
 
@@ -266,20 +272,25 @@ void spi_write_data_to_buffer( uint8_t sel, uint8_t SpiMessage[], uint8_t status
 void spi_read_data_from_buffer( uint8_t sel, uint8_t SpiMessage[] )
 {
 	uint16_t i;
-	uint16_t MessageLen = get( sel,Bottom[sel]+14) + 17;
+	uint16_t AckTableLen =  get( sel,Bottom[sel] + 14);
+	uint16_t DataLen     =  get( sel,Bottom[sel] + 14 + AckTableLen + 2);
+	uint16_t Len         = AckTableLen + DataLen + 19;
 	uint8_t *pdata;
 
 	pdata = SpiMessage;
-
-	for(i=0;i<=MessageLen;i++)
+	//printf("readbuf :");
+	for(i=0;i<Len+1;i++)
 	{
 		*pdata = get(sel,Bottom[sel]+i);
+		//printf(" %02x",*pdata);
 		pdata++;
 	}
+	//printf("\r\n");
+	
+	SpiMessage[14] = AckTableLen;
+	SpiMessage[14 + AckTableLen + 2] = DataLen;
 
-	SpiMessage[14] = MessageLen - 17;
-
-	update_bottom(sel, MessageLen+1);
+	update_bottom(sel, Len);
 	update_read_status(sel);
 }
 
