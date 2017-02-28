@@ -885,7 +885,7 @@ void send_data_result( uint8_t status )
 		while( message_tcb.Is_lost_over != 0)
 		{
 			message_tcb.Is_lost_over = checkout_online_uids( result_check_tables[PRE_SUM_TABLE],result_check_tables[PRE_ACK_TABLE], 0,
-				revice_lost_massage.DATA+1,revice_lost_massage.LEN);
+				revice_lost_massage.DATA+2,revice_lost_massage.LEN);
 			message_tcb.lostuidlen += *(uint16_t *)revice_lost_massage.LEN;
 
 #ifdef ENABLE_SEND_DATA_TO_PC
@@ -894,11 +894,12 @@ void send_data_result( uint8_t status )
 			memcpy(revice_lost_massage.VERSION,P_Vresion,2);
 			memcpy(revice_lost_massage.SRCID,revicer.uid,UID_LEN);
 			memset(revice_lost_massage.DSTID,0,UID_LEN);
-			revice_lost_massage.CMDTYPE = 0x12;
-			*(uint16_t *)(revice_lost_massage.LEN) = *(uint16_t *)(revice_lost_massage.LEN)+1;
-			revice_lost_massage.DATA[0] = status / 3;
+			revice_lost_massage.CMDTYPE = 0x11;
+			*(uint16_t *)(revice_lost_massage.LEN) = *(uint16_t *)(revice_lost_massage.LEN)+2;
+			revice_lost_massage.DATA[0] = 0x01;
+			revice_lost_massage.DATA[1] = status / 3;
 			revice_lost_massage.XOR = XOR_Cal((uint8_t *)(&(revice_lost_massage.DEVICE)), 
-			*(uint16_t *)(revice_lost_massage.LEN) + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA + 1);
+			*(uint16_t *)(revice_lost_massage.LEN) + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA + 2);
 			revice_lost_massage.END = 0xCA;
 			if(revice_lost_massage.LEN != 0)
 			{
@@ -916,7 +917,7 @@ void send_data_result( uint8_t status )
 		while(message_tcb.Is_ok_over != 0)
 		{
 			message_tcb.Is_ok_over = checkout_online_uids( result_check_tables[PRE_SUM_TABLE],result_check_tables[PRE_ACK_TABLE], 1,
-				revice_ok_massage.DATA+1,revice_ok_massage.LEN);
+				revice_ok_massage.DATA+2,revice_ok_massage.LEN);
 			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.DEVICE)),
 			                                 *(uint16_t *)revice_ok_massage.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
 			revice_ok_massage.END = 0xCA;
@@ -929,11 +930,12 @@ void send_data_result( uint8_t status )
 			memcpy(revice_ok_massage.VERSION,P_Vresion,2);
 			memcpy(revice_ok_massage.SRCID,revicer.uid,UID_LEN);
 			memset(revice_ok_massage.DSTID,0,UID_LEN);
-			revice_ok_massage.CMDTYPE = 0x13;
-			*(uint16_t *)revice_ok_massage.LEN = *(uint16_t *)revice_ok_massage.LEN+1;
-			revice_ok_massage.DATA[0] = status / 3;
+			revice_ok_massage.CMDTYPE = 0x11;
+			*(uint16_t *)revice_ok_massage.LEN = *(uint16_t *)revice_ok_massage.LEN+2;
+			revice_ok_massage.DATA[0] = 0x00;
+			revice_ok_massage.DATA[1] = status / 3;
 			revice_ok_massage.XOR = XOR_Cal((uint8_t *)(&(revice_ok_massage.DEVICE)), 
-			*(uint16_t *)revice_ok_massage.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA+1);
+			*(uint16_t *)revice_ok_massage.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA+2);
 			revice_ok_massage.END = 0xCA;
 			if( revice_ok_massage.LEN != 0)
 			{
