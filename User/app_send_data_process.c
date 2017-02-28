@@ -11,7 +11,7 @@
 Process_tcb_Typedef Send_data_process, Single_send_data_process;
 volatile send_data_process_tcb_tydef send_data_process_tcb;
 
-extern uint8_t spi_status_buffer[10][18];
+extern uint8_t spi_status_buffer[SPI_DATA_IRQ_BUFFER_BLOCK_COUNT][20];
 extern uint8_t spi_status_write_index, spi_status_read_index, spi_status_count;
 extern uint8_t P_Vresion[2];
 
@@ -96,17 +96,25 @@ uint8_t get_rf_retransmit_status(void)
 ******************************************************************************/
 void create_status_message( void )
 {
+	//printf("create_status_message:%02x\r\n",clicker_send_data_status);
 	spi_status_buffer[spi_status_write_index][0] = 0x61;
-	memset(spi_status_buffer[spi_status_write_index]+1,0,10);
-	spi_status_buffer[spi_status_write_index][11] = CLICKER_SNED_DATA_STATUS_TYPE;
-	memset(spi_status_buffer[spi_status_write_index]+12,0,3);
-	spi_status_buffer[spi_status_write_index][15] = CLICKER_SNED_DATA_STATUS_TYPE;//xor
-	spi_status_buffer[spi_status_write_index][16] = 0x21;
-	spi_status_buffer[spi_status_write_index][17] = clicker_send_data_status;
+	memset(spi_status_buffer[spi_status_write_index]+1,0,12);
+	spi_status_buffer[spi_status_write_index][13] = CLICKER_SNED_DATA_STATUS_TYPE;
+	spi_status_buffer[spi_status_write_index][14] = 0;
+	spi_status_buffer[spi_status_write_index][15] = 0xFF;
+	spi_status_buffer[spi_status_write_index][16] = 0;
+	spi_status_buffer[spi_status_write_index][17] = XOR_Cal(spi_status_buffer[spi_status_write_index]+1, 16);
+	spi_status_buffer[spi_status_write_index][18] = 0x21;
+	spi_status_buffer[spi_status_write_index][19] = clicker_send_data_status;
 	{
 		#ifdef OPEN_SEND_STATUS_MESSAGE_SHOW
 		uint8_t *str,status;
-		status = spi_status_buffer[spi_status_write_index][spi_status_buffer[spi_status_write_index][14]+17];
+		uint16_t AckTableLen,DataLen,Len;
+
+		AckTableLen = spi_status_buffer[spi_status_write_index][14];
+		DataLen     = spi_status_buffer[spi_status_write_index][14+AckTableLen+2];
+		Len         = AckTableLen + DataLen + 19;		
+		status = spi_status_buffer[spi_status_write_index]Len];
 		switch( status )
 		{
 			case SEND_IDLE_STATUS:            str = "IDLE_STATUS";            break;
@@ -126,7 +134,7 @@ void create_status_message( void )
 		{
 			int i;
 			b_print("%4d %2d write: ", buffer_get_buffer_status(SPI_REVICE_BUFFER),spi_status_count+1);
-			for(i=0;i<17;i++)
+			for(i=0;i<Len;i++)
 			{
 				b_print("%2x ",spi_status_buffer[spi_status_write_index][i]);
 			}
@@ -388,10 +396,15 @@ uint8_t spi_process_revice_data( void )
 
 	if(buffer_get_buffer_status(SPI_REVICE_BUFFER) != BUFFEREMPTY)
 	{
+		uint16_t AckTableLen,DataLen,Len, i;
+
 		memset(spi_message,0,255);
 		spi_read_data_from_buffer( SPI_REVICE_BUFFER, spi_message );
-		clicker_send_data_status = spi_message[spi_message[14]+17];
-		spi_message_type = spi_message[11];
+		AckTableLen = spi_message[14];
+		DataLen     = spi_message[14+AckTableLen+2];
+		Len         = AckTableLen + DataLen + 19;
+		clicker_send_data_status = spi_message[Len];
+		spi_message_type = spi_message[13];
 
 		#ifdef OPEN_BUFFER_DATA_SHOW
 		{
@@ -430,16 +443,16 @@ uint8_t spi_process_revice_data( void )
 			if(Is_whitelist_uid == OPERATION_SUCCESS)
 			{
 				/* 收到的是Data */
-				if(spi_message[11] == NRF_DATA_IS_USEFUL)
+				if(spi_message_type == NRF_DATA_IS_USEFUL)
 				{
 					/* 返回ACK的包号和上次发送的是否相同 */
 					uint8_t temp;
 					uint8_t Is_return_ack = 1;
 
-					DEBUG_BUFFER_DTATA_LOG("[DATA] uid:%02x%02x%02x%02x, ",
+					//printf("[DATA] uid:%02x%02x%02x%02x, ",\
 						*(spi_message+5),*(spi_message+6),*(spi_message+7),*(spi_message+8));
-					DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x\r\n",(uint8_t)*(spi_message+9),
-						(uint8_t)*(spi_message+10));
+					//printf("seq:%2x, pac:%2x\r\n",(uint8_t)*(spi_message+11),\
+						(uint8_t)*(spi_message+12));
 
 					if((spi_message[6+15] == 0x10) || (spi_message[6+15] == 0x11) ||
 						 (spi_message[6+15] == 0x12) || (spi_message[6+15] == 0x13))
@@ -461,12 +474,12 @@ uint8_t spi_process_revice_data( void )
 					rf_move_data_to_buffer( spi_message );
 				}
 				/* 收到的是Ack */
-				else if(spi_message[11] == NRF_DATA_IS_ACK)
+				else if(spi_message_type == NRF_DATA_IS_ACK)
 				{
-					DEBUG_BUFFER_ACK_LOG("[ACK] uid:%02x%02x%02x%02x, ",
+					//printf("[ACK] uid:%02x%02x%02x%02x, ",\
 						*(spi_message+5),*(spi_message+6),*(spi_message+7),*(spi_message+8));
-					DEBUG_BUFFER_ACK_LOG("seq:%2x, pac:%2x \r\n",(uint8_t)*(spi_message+9),
-						(uint8_t)*(spi_message+10));
+					//printf("seq:%2x, pac:%2x \r\n",(uint8_t)*(spi_message+11), \
+						(uint8_t)*(spi_message+12));
 
 					/* 发送定时统计*/
 					if( is_open_statistic == 0 )
@@ -991,13 +1004,18 @@ void spi_write_temp_buffer_to_buffer()
 	if(BUFFEREMPTY != buffer_get_buffer_status(SPI_IRQ_BUFFER))
 	{
 		uint8_t spi_message[255];
+		uint16_t AckTableLen,DataLen,Len;
+
 		memset(spi_message,0,255);
 		spi_read_data_from_buffer( SPI_IRQ_BUFFER, spi_message );
 
+		AckTableLen = spi_message[14];
+		DataLen     = spi_message[14+AckTableLen+2];
+		Len         = AckTableLen + DataLen + 19;
+
 		if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
 		{
-			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_message, spi_message[spi_message[14]+17]);
-
+			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_message, spi_message[Len]);
 		}
 	}
 
@@ -1005,12 +1023,19 @@ void spi_write_temp_buffer_to_buffer()
 	{
 		if((spi_status_count > 0) && (BUFFEREMPTY == buffer_get_buffer_status(SPI_IRQ_BUFFER)))
 		{
+			uint16_t AckTableLen,DataLen,Len, i;
+			uint8_t *pdata;
+
+			AckTableLen = spi_status_buffer[spi_status_read_index][14];
+			DataLen     = spi_status_buffer[spi_status_read_index][14+AckTableLen+2];
+			Len         = AckTableLen + DataLen + 19;
+
 			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_status_buffer[spi_status_read_index],
-			    spi_status_buffer[spi_status_read_index][spi_status_buffer[spi_status_read_index][14]+17]);
+			    spi_status_buffer[spi_status_read_index][Len]);
 			{
 				#ifdef OPEN_SEND_STATUS_SHOW
 				uint8_t *str,status;
-				status = spi_status_buffer[spi_status_read_index][spi_status_buffer[spi_status_read_index][14]+17];
+				status = spi_status_buffer[spi_status_read_index][Len];
 				switch( status )
 				{
 					case SEND_IDLE_STATUS:            str = "IDLE_STATUS";            break;
@@ -1032,7 +1057,7 @@ void spi_write_temp_buffer_to_buffer()
 				{
 					int i;
 					DEBUG_BUFFER_DTATA_LOG("%4d %2d read1: ", buffer_get_buffer_status(SPI_REVICE_BUFFER),spi_status_count);
-					for(i=0;i<17;i++)
+					for(i=0;i<Len;i++)
 					{
 						DEBUG_BUFFER_DTATA_LOG("%2x ",spi_status_buffer[spi_status_read_index][i]);
 					}

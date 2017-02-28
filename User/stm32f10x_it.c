@@ -37,7 +37,7 @@ Uart_MessageTypeDef uart_irq_send_massage;
 extern nrf_communication_t	nrf_data;
 
 /* rf systick data */
-uint8_t spi_status_buffer[SPI_DATA_IRQ_BUFFER_BLOCK_COUNT][18];
+uint8_t spi_status_buffer[SPI_DATA_IRQ_BUFFER_BLOCK_COUNT][20];
 uint8_t spi_status_write_index = 0, spi_status_read_index = 0, spi_status_count = 0;
 
 /******************************************************************************
@@ -517,6 +517,15 @@ void NRF1_RFIRQ_EXTI_IRQHandler(void)
 
 		/* 读取数据 */
 		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_data.rlen, nrf_data.rbuf);
+//	{
+//		uint8_t i;
+//		printf("irqrevicebuf:");
+//		for(i=0;i<nrf_data.rlen;i++)
+//		{
+//			printf(" %02x",nrf_data.rbuf[i]);
+//		}
+//		printf("\r\n");
+//	}
 		/* 进行 UID 校验,判断是否发送给自己的数据 */
 		if( *(nrf_data.rbuf+1) == nrf_data.jsq_uid[0] &&
 			  *(nrf_data.rbuf+2) == nrf_data.jsq_uid[1] &&
