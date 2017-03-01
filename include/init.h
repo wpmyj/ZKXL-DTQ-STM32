@@ -14,8 +14,9 @@
 
 typedef struct 
 {
-	uint8_t 			tx_len;			  					//2.4G发送长度
-	uint8_t				tx_buf[RF_NBUF];					//2.4G发送缓存  
+	uint8_t cmd;
+	uint8_t	tx_buf[RF_NBUF];					
+	uint8_t tx_len;
 }RF_TypeDef;
 
 typedef struct

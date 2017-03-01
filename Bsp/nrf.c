@@ -339,7 +339,7 @@ void nrf_transmit_start( nrf_transmit_parameter_t *t_conf)
 		nrf_data.tbuf[i++] = 0x0F; // ACK_TABLE_LEN
 		memcpy(nrf_data.tbuf + i, list_tcb_table[t_conf->sel_table], 0x0F);
 		i = i + 0x0F;
-		nrf_data.tbuf[i++] = 0x10; 
+		nrf_data.tbuf[i++] = rf_var.cmd;
 		send_delay = 1;
 	}
 	else
