@@ -456,11 +456,6 @@
               <FilePath>..\include\define.h</FilePath>
             </File>
             <File>
-              <FileName>hal_uart.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\include\hal_uart.h</FilePath>
-            </File>
-            <File>
               <FileName>init.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\include\init.h</FilePath>
@@ -484,11 +479,6 @@
               <FileName>stm32f10x_it.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\include\stm32f10x_it.h</FilePath>
-            </File>
-            <File>
-              <FileName>variable.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\include\variable.h</FilePath>
             </File>
             <File>
               <FileName>eeprom.h</FileName>
@@ -649,11 +639,6 @@
               <FileName>stm32f10x_it.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\stm32f10x_it.c</FilePath>
-            </File>
-            <File>
-              <FileName>variable.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\variable.c</FilePath>
             </File>
             <File>
               <FileName>ringbuffer.c</FileName>
