@@ -20,6 +20,9 @@
 spi_cmd_type_t 			       spi_cmd_type;
 nrf_to_stm32_cmd_type_t    spi_revice_data;
 nrf_communication_t	       nrf_data;
+bool 						           gbf_hse_setup_fail = FALSE;		// 外部晶振起振标志
+RF_TypeDef 				         rf_var;
+
 extern WhiteList_Typedef   wl;
 StateMechineTcb_Typedef default_state_mechine_tcb;
 
@@ -319,7 +322,7 @@ uint8_t uesb_nrf_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8
 	/* 开始SPI传输 */
 	NRF2_CSN_LOW();	
 	memset(retval, 0, BUFFER_SIZE_MAX);
-	//printf("SPI_TX:");
+	printf("SPI_TX:");
 	pdata = (uint8_t *)&spi_cmd_type;
 	for(i=0; i<spi_cmd_type.data_len+6; i++)
 	{
@@ -330,9 +333,9 @@ uint8_t uesb_nrf_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8
 #ifdef ZL_RP551_MAIN_F
 		retval[i] = hal_nrf_rw(SPI2, *(pdata+i));
 #endif
-		//printf(" %02x",*(pdata+i));
+		printf(" %02x",*(pdata+i));
 	}
-	//printf("\r\n");
+	printf("\r\n");
 	NRF2_CSN_HIGH();	//关闭SPI传输
 
 	if(retval[0] != 0) 									//若接收到数据校验正确

@@ -27,7 +27,7 @@ extern uint16_t list_tcb_table[16][8];
 ******************************************************************************/
 void App_clickers_systick_process(void)
 {
-	Uart_MessageTypeDef systick_package;
+//	Uart_MessageTypeDef systick_package;
 	uint8_t status = 0;
 
 	uint8_t send_data_status   = get_clicker_send_data_status() ;

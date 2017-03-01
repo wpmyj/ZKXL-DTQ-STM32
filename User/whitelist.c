@@ -177,7 +177,7 @@ void clear_index_of_white_list_pos( uint8_t use_or_online, uint8_t index )
   Return:
   Others:None
 ******************************************************************************/
-bool get_index_of_white_list_pos_status( uint8_t use_or_online, uint8_t index )
+uint8_t get_index_of_white_list_pos_status( uint8_t use_or_online, uint8_t index )
 {
 	uint8_t pos1 = index / 15 ;
 	uint8_t pos2 = index % 15 ;
@@ -200,13 +200,13 @@ bool get_index_of_white_list_pos_status( uint8_t use_or_online, uint8_t index )
   Return:
   Others:None
 ******************************************************************************/
-bool get_nouse_pos_of_white_list( uint8_t *pos)
+uint8_t get_nouse_pos_of_white_list( uint8_t *pos)
 {
 	uint8_t i;
 
 	for(i=0;i<MAX_WHITE_LEN;i++)
 	{
-		if(get_index_of_white_list_pos_status(0,i) == false)
+		if(get_index_of_white_list_pos_status(0,i) == 0)
 		{
 			*pos = i;
 			return OPERATION_SUCCESS;
@@ -223,7 +223,7 @@ bool get_nouse_pos_of_white_list( uint8_t *pos)
   Return:
   Others:None
 ******************************************************************************/
-bool uidcmp(uint8_t *uid1, uint8_t *uid2)
+uint8_t uidcmp(uint8_t *uid1, uint8_t *uid2)
 {
 	if((uid1[0] == uid2[0])&&(uid1[1] == uid2[1])&&(uid1[2] == uid2[2])&&(uid1[3] == uid2[3]))
 		return OPERATION_SUCCESS;
@@ -239,7 +239,7 @@ bool uidcmp(uint8_t *uid1, uint8_t *uid2)
   Return:
   Others:None
 ******************************************************************************/
-bool get_index_of_uid( uint8_t index, uint8_t  uid[4] )
+uint8_t get_index_of_uid( uint8_t index, uint8_t  uid[4] )
 {
 	uint8_t  is_pos_use = 0;
 
@@ -329,7 +329,7 @@ uint8_t get_len_of_white_list(void)
   Return:
   Others:None
 ******************************************************************************/
-bool store_len_to_fee(uint8_t len)
+uint8_t store_len_to_fee(uint8_t len)
 {
 	uint16_t FlashStatus = 0;
 
@@ -350,7 +350,7 @@ bool store_len_to_fee(uint8_t len)
   Return:
   Others:None
 ******************************************************************************/
-bool store_switch_status_to_fee(uint8_t switch_status)
+uint8_t store_switch_status_to_fee(uint8_t switch_status)
 {
 	uint16_t FlashStatus = 0;
 
@@ -372,7 +372,7 @@ bool store_switch_status_to_fee(uint8_t switch_status)
   Return:
   Others:None
 ******************************************************************************/
-bool initialize_white_list( void )
+uint8_t initialize_white_list( void )
 {
 	uint16_t FlashStatus;
 	uint8_t i;
@@ -408,7 +408,7 @@ bool initialize_white_list( void )
   Return:
   Others:None
 ******************************************************************************/
-bool search_uid_in_white_list(uint8_t *g_uid , uint8_t *position)
+uint8_t search_uid_in_white_list(uint8_t *g_uid , uint8_t *position)
 {
 	uint8_t i;
 	uint8_t temuid[4];
@@ -446,10 +446,10 @@ bool search_uid_in_white_list(uint8_t *g_uid , uint8_t *position)
   Return:
   Others:None
 ******************************************************************************/
-bool delete_uid_from_white_list(uint8_t *g_uid)
+uint8_t delete_uid_from_white_list(uint8_t *g_uid)
 {
 	uint8_t pos;
-	uint8_t status = true;
+	uint8_t status = 1;
 
 	/* search the uid form white list*/
 	status = search_uid_in_white_list( g_uid, &pos );
@@ -478,7 +478,7 @@ bool delete_uid_from_white_list(uint8_t *g_uid)
 ******************************************************************************/
 uint8_t add_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
 {
-	uint8_t status = true;
+	uint8_t status = 1;
 
 	/* search the uid form white list*/
 	status = search_uid_in_white_list( g_uid, position );
@@ -513,7 +513,7 @@ uint8_t add_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
   Return:
   Others:None
 ******************************************************************************/
-bool get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[], uint8_t *uidpos )
+uint8_t get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[], uint8_t *uidpos )
 {
 	uint8_t i;
 
