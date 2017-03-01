@@ -268,7 +268,8 @@ static void serial_cmd_process(void)
 ******************************************************************************/
 uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTypeDef *sMessage )
 {
-	uint8_t  status = 0, err;
+	uint8_t status = 0, err;
+	uint8_t cliecker_cmd_type = 0;
 
 	typedef struct
 	{
@@ -327,6 +328,7 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 
 				rdata_index = rdata_index + sizeof(TransmitData_Tydef);
 			}
+			cliecker_cmd_type = 0x10;
 		}
 		else if(pRdata->TASKTYPE == 0x02) // CTL
 		{
@@ -339,14 +341,26 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 				{
 					case 0x01: // 关机 
 					{
+						cliecker_cmd_type = 0x25;
 						*(pSdata+(sdata_index++)) = 0x01;
 					}
 					break;
 					case 0x02: // 清屏
+					{
+						cliecker_cmd_type = 0x11;
+						*(pSdata+(sdata_index++)) = 0x01;
+					}
 					break;
 					case 0x03: // 获取电量
+					{
+						cliecker_cmd_type = 0x30;
+						*(pSdata+(sdata_index++)) = 0x01;
+					}
 					break;
 					default: 
+					{
+						cliecker_cmd_type = 0x00;
+					}
 					break;
 				}
 				
@@ -355,7 +369,7 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 			
 			
 		}
-
+		rf_var.cmd = cliecker_cmd_type;
 		rf_var.tx_len = sdata_index+1 ;
 	}
 
