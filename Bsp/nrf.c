@@ -311,131 +311,69 @@ void TIM3_Int_Init(u16 arr,u16 psc)
   Return:
   Others:注意：通信方式限制，若向同一UID答题器下发数据，时间要间隔3S以上
 ******************************************************************************/
-void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_data_type,
-												uint8_t count, uint8_t delay100us, uint8_t sel_table, uint8_t Is_pack_add)
+void nrf_transmit_start( nrf_transmit_parameter_t *t_conf)
 {
-	if(Is_pack_add == 1)
+	/* data header */
+	uint8_t i = 0;
+	uint8_t send_delay = 0;
+	
+	if(t_conf->is_pac_add == 1)
 	{
 		revicer.sen_num++;
 	}
 
-	if(nrf_data_type == NRF_DATA_IS_USEFUL)		//有效数据包，发送nrf_data.tbuf内容
+	memset(nrf_data.tbuf,0,NRF_TOTAL_DATA_LEN);
+	nrf_data.tbuf[i++]  = 0x61;
+	memcpy((nrf_data.tbuf + i), t_conf->dist, 4);
+	i = i + 4;
+	memcpy((nrf_data.tbuf + i), nrf_data.jsq_uid, 4);
+	i = i + 4;
+	nrf_data.tbuf[i++] = 0x00; // device id
+	nrf_data.tbuf[i++] = 0x00; // protocol version
+	nrf_data.tbuf[i++] = revicer.sen_seq++;
+	nrf_data.tbuf[i++] = revicer.sen_num;
+	nrf_data.tbuf[i++] = t_conf->package_type;
+
+	if(t_conf->is_add_table == 1)
 	{
-		/* data header */
-		uint8_t i = 0;
-		memset(nrf_data.tbuf,0,NRF_TOTAL_DATA_LEN);
-		nrf_data.tbuf[i++]  = 0x61;
-		memcpy((nrf_data.tbuf + i), nrf_data.dtq_uid, 4);
-		i = i + 4;
-		memcpy((nrf_data.tbuf + i), nrf_data.jsq_uid, 4);
-		i = i + 4;
-		nrf_data.tbuf[i++] = 0x00; // device id
-		nrf_data.tbuf[i++] = 0x00; // protocol version
-		nrf_data.tbuf[i++] = revicer.sen_seq++;
-		nrf_data.tbuf[i++] = revicer.sen_num;
-		nrf_data.tbuf[i++] = NRF_DATA_IS_USEFUL;
 		nrf_data.tbuf[i++] = 0x0F; // ACK_TABLE_LEN
-		memcpy(nrf_data.tbuf + i, list_tcb_table[sel_table], 0x0F);
+		memcpy(nrf_data.tbuf + i, list_tcb_table[t_conf->sel_table], 0x0F);
 		i = i + 0x0F;
 		nrf_data.tbuf[i++] = 0x10; 
-	  nrf_data.tbuf[i++] = data_buff_len;
-		
-#ifdef OPEN_ACT_TABLE_SHOW
-		{
-			int i = 0;
-			printf("Seq:%2x Pac:%2x ",revicer.pre_seq-1,revicer.sen_num);
-			printf("ACK TABLE[%2d]:",sel_table);
-			for(i=0;i<8;i++)
-			{
-				printf("%04x ",list_tcb_table[sel_table][i]);
-			}
-			printf("\r\n");
-		}
-#endif
-		memcpy(nrf_data.tbuf+i,data_buff,data_buff_len);
-		i = i + data_buff_len;
-
-		/* xor data */
-		nrf_data.tbuf[i] = XOR_Cal(nrf_data.tbuf+1,i-1);
-		i++;
-		nrf_data.tbuf[i++] = 0x21;
-
-		nrf_data.tlen = i;
-
-		/* 开始通讯之前先发2次，之后开启定时判断重发机制 */
-		spi_send_data_write_tx_payload(nrf_data.tbuf,nrf_data.tlen,count,delay100us,1);
+		send_delay = 1;
 	}
-	else if(nrf_data_type == NRF_DATA_IS_ACK)	//ACK数据包，发送nrf_data.tbuf 内容
+	else
 	{
-		uint8_t uidpos;
-		uint8_t i = 0;
-
-		memset(nrf_data.tbuf,0,NRF_TOTAL_DATA_LEN);
-		search_uid_in_white_list(nrf_data.dtq_uid,&uidpos);
-
-		nrf_data.tbuf[i++]  = 0x61;
-		memcpy((nrf_data.tbuf + i), wl.uids[uidpos].uid, 4);
-		i = i + 4;
-		memcpy((nrf_data.tbuf + i), nrf_data.jsq_uid, 4);
-		i = i + 4;
-		nrf_data.tbuf[i++] = 0x00; // device id
-		nrf_data.tbuf[i++] = 0x00; // protocol version
-		nrf_data.tbuf[i++] = wl.uids[uidpos].rev_seq;
-		nrf_data.tbuf[i++] = wl.uids[uidpos].rev_num;
-		nrf_data.tbuf[i++] = NRF_DATA_IS_ACK;
 		nrf_data.tbuf[i++] = 0x00; // ACK_TABLE_LEN
-
 		nrf_data.tbuf[i++] = 0xFF;
-		nrf_data.tbuf[i++] = 0x00;
-		nrf_data.tbuf[i] = XOR_Cal(nrf_data.tbuf+1,i-1);
-		i++;
-		nrf_data.tbuf[i++] = 0x21;
-
-		nrf_data.tlen = i;
-
-	  spi_send_data_write_tx_payload(nrf_data.tbuf,nrf_data.tlen,count,delay100us,1);
+		send_delay = 10;
 	}
-	else if( nrf_data_type == NRF_DATA_IS_PRE )
-	{
-		/* data header */
-		uint8_t i = 0;
-
-		nrf_data.tbuf[i++]  = 0x61;
-		memcpy((nrf_data.tbuf + i), nrf_data.dtq_uid, 4);
-		i = i + 4;
-		memcpy((nrf_data.tbuf + i), nrf_data.jsq_uid, 4);
-		i = i + 4;
-		nrf_data.tbuf[i++] = 0x00; // device id
-		nrf_data.tbuf[i++] = 0x00; // protocol version
-		nrf_data.tbuf[i++] = revicer.sen_seq++;
-		nrf_data.tbuf[i++] = revicer.sen_num;
-		nrf_data.tbuf[i++] = NRF_DATA_IS_PRE;
-		nrf_data.tbuf[i++] = 0x0F; // ACK_TABLE_LEN
-		memcpy(nrf_data.tbuf + i, list_tcb_table[sel_table], 0x0F);
-		i = i + 0x0F;
-		nrf_data.tbuf[i++] = 0xFF; 
+	nrf_data.tbuf[i++] = t_conf->data_len;
+	
 #ifdef OPEN_ACT_TABLE_SHOW
+	{
+		int i = 0;
+		printf("Seq:%2x Pac:%2x ",revicer.pre_seq-1,revicer.sen_num);
+		printf("ACK TABLE[%2d]:",sel_table);
+		for(i=0;i<8;i++)
 		{
-			int i = 0;
-			printf("Seq:%2x Pac:%2x ",revicer.pre_seq-1,revicer.sen_num);
-			printf("SUM TABLE[%2d]:",sel_table);
-			for(i=0;i<8;i++)
-			{
-				printf("%04x ",list_tcb_table[sel_table][i]);
-			}
-			printf("\r\n");
+			printf("%04x ",list_tcb_table[sel_table][i]);
 		}
-#endif
-
-		nrf_data.tbuf[i++] = 0x00; // len
-		nrf_data.tbuf[i] = XOR_Cal(nrf_data.tbuf+1,i-1);
-		i++;
-		nrf_data.tbuf[i++] = 0x21;
-
-		nrf_data.tlen = i;
-
-		spi_send_data_write_tx_payload(nrf_data.tbuf,nrf_data.tlen, count, delay100us, 10);
+		printf("\r\n");
 	}
+#endif
+	memcpy(nrf_data.tbuf+i,t_conf->data_buf,t_conf->data_len);
+	i = i + t_conf->data_len;
+
+	/* xor data */
+	nrf_data.tbuf[i] = XOR_Cal(nrf_data.tbuf+1,i-1);
+	i++;
+	nrf_data.tbuf[i++] = 0x21;
+
+	nrf_data.tlen = i;
+
+	/* 开始通讯之前先发2次，之后开启定时判断重发机制 */
+	spi_send_data_write_tx_payload(nrf_data.tbuf,nrf_data.tlen,t_conf->transmit_count,t_conf->delay100us,send_delay);
 }
 
 /**************************************END OF FILE****************************/

@@ -71,33 +71,7 @@ typedef enum {
 	UESB_SWITCH_TX_RX	 			    = 0x88,
 } spi_cmd_t;
 
-typedef struct
-{
-    // General RF parameters
-    uesb_bitrate_t          bitrate;
-    uesb_crc_t              crc;
-    uint8_t                 rf_channel;
-    uint8_t                 payload_length;
-    uint8_t                 rf_addr_length;
 
-    uesb_tx_power_t         tx_output_power;
-    uint8_t                 tx_address[5];
-    uint8_t                 rx_address_p0[5];
-    uint8_t                 rx_address_p1[5];
-    uint8_t                 rx_address_p2;
-    uint8_t                 rx_address_p3;
-    uint8_t                 rx_address_p4;
-    uint8_t                 rx_address_p5;
-    uint8_t                 rx_address_p6;
-    uint8_t                 rx_address_p7;
-    uint8_t                 rx_pipes_enabled;
-
-    // ESB specific features
-    uint8_t                 dynamic_payload_length_enabled;
-    uint8_t                 dynamic_ack_enabled;
-    uint16_t                retransmit_delay;
-    uint16_t                retransmit_count;
-}uesb_parameter_t;
 
 typedef struct
 {
@@ -108,15 +82,6 @@ typedef struct
 	uint8_t							      rbuf[NRF_TOTAL_DATA_LEN];		//接收数据反冲区
 	uint8_t							      tbuf[NRF_TOTAL_DATA_LEN];		//发送数据反冲区
 }nrf_communication_t;
-
-typedef struct
-{
-  uesb_power_mode_t         power_mode;
-  uesb_mode_t               tx_or_rx_mode;
-	uint8_t		                enable_ack;
-	uint8_t		                reserved;
-	uesb_parameter_t		      config_param;
-}nrf_config_t;
 
 typedef struct
 {
@@ -137,13 +102,25 @@ typedef struct
 	uint8_t 				xor;														//为所有数据异或结果
 } nrf_to_stm32_cmd_type_t;
 
+typedef struct
+{
+	uint8_t dist[4];
+	uint8_t transmit_count;
+	uint8_t delay100us;
+	uint8_t is_pac_add;
+	uint8_t package_type;
+	uint8_t *data_buf;
+	uint8_t data_len;
+	uint8_t is_add_table;
+	uint8_t sel_table;
+} nrf_transmit_parameter_t;
+
 /* Private functions ---------------------------------------------------------*/
 uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_data_len, uint8_t *rx_data);
 uint8_t uesb_nrf_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count, uint8_t delay100us);
 uint8_t uesb_nrf_write_tx_payload_noack(const uint8_t *tx_pload, uint8_t length);
 
-void nrf_transmit_start(uint8_t *data_buff, uint8_t data_buff_len,uint8_t nrf_data_type,
-												uint8_t count, uint8_t delay100us, uint8_t sel_table, uint8_t Is_pack_add);
+void nrf_transmit_start( nrf_transmit_parameter_t *t_conf);
 void my_nrf_transmit_tx_success_handler(void);
 void my_nrf_transmit_tx_failed_handler(void);
 void my_nrf_receive_success_handler(void);

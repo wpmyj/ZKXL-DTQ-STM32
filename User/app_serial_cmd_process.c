@@ -20,7 +20,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 StateMechineTcb_Typedef uart_rev_status,uart_sen_status;
-uint8_t P_Vresion[2] = { 0x00, 0x10 };
+uint8_t P_Vresion[2] = { 0x00, 0x02 };
 //Timer_typedef uart_irq_rev_timer;
 
 extern StateMechineTcb_Typedef default_state_mechine_tcb;
@@ -159,8 +159,8 @@ static void serial_cmd_process(void)
 				}
 				break;
 
-			/* 设置答题器 */
-			case 0x11:
+			/* 接收器设置指令 */
+			case 0x20:
 				{
 					if(ReviceMessage.LEN == 0)
 					{
@@ -268,10 +268,8 @@ static void serial_cmd_process(void)
 ******************************************************************************/
 uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTypeDef *sMessage )
 {
-	uint16_t i = 0;
-	uint8_t  status = 0, temp = 0;
-	uint8_t  err;
-	
+	uint8_t  status = 0, err;
+
 	typedef struct
 	{
 		uint8_t TASKTYPE;
@@ -281,7 +279,7 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 	
 	typedef struct
 	{
-		uint8_t DATATYPE;
+		uint8_t TASKTYPE;
 		uint8_t SENDDATA[2];
 	}TransmitCtl_Tydef;
 
@@ -332,26 +330,37 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 		}
 		else if(pRdata->TASKTYPE == 0x02) // CTL
 		{
+			TransmitCtl_Tydef *ctl_data;
+
+			while( rdata_index < *(uint16_t *)rMessage->LEN )
+			{
+				ctl_data = (TransmitCtl_Tydef *)(rMessage->DATA + rdata_index);
+				switch(ctl_data->TASKTYPE)
+				{
+					case 0x01: // 关机 
+					{
+						*(pSdata+(sdata_index++)) = 0x01;
+					}
+					break;
+					case 0x02: // 清屏
+					break;
+					case 0x03: // 获取电量
+					break;
+					default: 
+					break;
+				}
+				
+				rdata_index = rdata_index + sizeof(TransmitCtl_Tydef);
+			}
+			
 			
 		}
 
-		{
-//			uint8_t i;
-//			uint8_t *pdata = (uint8_t *)pSdata;
-//			printf("pSdata :");
-//			for(i=0;i<=sdata_index;i++)
-//			{
-//				printf(" %02x",*pdata++);
-//			}
-//			printf("\r\n");
-			
-		  rf_var.tx_len = sdata_index+1 ;
-		}
+		rf_var.tx_len = sdata_index+1 ;
 	}
 
 	/* 生成返回数据 */
 	{
-		uint8_t *pdata = sMessage->DATA;
 		sMessage->HEAD = UART_SOF;
 		sMessage->DEVICE  = 0x01;
 		memcpy(sMessage->VERSION,P_Vresion,2);
@@ -361,35 +370,54 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 		sMessage->PACNUM = rMessage->PACNUM;
 		sMessage->PACKTYPE = REVICER_PACKAGE_ACK;
 		sMessage->CMDTYPE = rMessage->CMDTYPE;
-		memcpy(sMessage->REVICED,rMessage->REVICED,2);
+		memset(sMessage->REVICED,0xAA,2);
 		*(uint16_t *)(sMessage->LEN) = 0x01;
 
 		status  = get_clicker_send_data_status() ;
 		status |= get_single_send_data_status();
 		
 		if( status == 0)
-			*( pdata + ( i++ ) ) = 0x00; // ok
+			sMessage->DATA[0] = 0x00; // ok
 		else
-			*( pdata + ( i++ ) ) = 0x01; // busy
+			sMessage->DATA[0] = 0x01; // busy
 
-		sMessage->XOR = XOR_Cal((uint8_t *)(&(sMessage->DSTID)), i+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
+		sMessage->XOR = XOR_Cal((uint8_t *)(&(sMessage->DEVICE)), 
+		*(uint16_t *)(sMessage->LEN)+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
 		sMessage->END = 0xCA;
 	}
 
 	/* 发送数据 */
 	if( status == 0 )
 	{
+		nrf_transmit_parameter_t transmit_config;
+
 		/* 准备发送数据管理块 */
 		send_data_env_init();
 		memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
 		
 		memcpy(nrf_data.dtq_uid, pRdata->DSTID, 4);
-		nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-		    SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_ADD);
+
+		memcpy(transmit_config.dist,pRdata->DSTID, 4);
+		transmit_config.package_type   = NRF_DATA_IS_PRE;
+		transmit_config.transmit_count = SEND_PRE_COUNT;
+		transmit_config.delay100us     = SEND_PRE_DELAY100US;
+		transmit_config.is_pac_add     = PACKAGE_NUM_ADD;
+		transmit_config.data_buf       = NULL;
+		transmit_config.data_len       = 0;
+		transmit_config.is_add_table   = 1;
+		transmit_config.sel_table      = SEND_PRE_TABLE;
+		nrf_transmit_start( &transmit_config );
 
 		/* 发送数据帧 */
-		nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL,
-		    SEND_DATA_COUNT, SEND_DATA_DELAY100US, SEND_DATA_ACK_TABLE,PACKAGE_NUM_SAM);
+		transmit_config.package_type   = NRF_DATA_IS_USEFUL;
+		transmit_config.transmit_count = SEND_DATA_COUNT;
+		transmit_config.delay100us     = SEND_DATA_DELAY100US;
+		transmit_config.is_pac_add     = PACKAGE_NUM_SAM;
+		transmit_config.data_buf       = rf_var.tx_buf;
+		transmit_config.data_len       = rf_var.tx_len;
+		transmit_config.is_add_table   = 1;
+		transmit_config.sel_table      = SEND_DATA_ACK_TABLE;
+		nrf_transmit_start( &transmit_config );
 
 		/* 启动发送数据状态机 */
 		change_clicker_send_data_status( SEND_DATA1_STATUS );
@@ -422,7 +450,6 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 	uint8_t TemUid[4];
 	UidTask_CTL_Typedef UidCmd;
 
-
 	sMessage->HEAD = UART_SOF;
 	sMessage->DEVICE = 0x01;
 	memcpy(sMessage->VERSION,P_Vresion,2);
@@ -431,7 +458,7 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 	sMessage->PACNUM = rMessage->PACNUM;
 	sMessage->SEQNUM = revicer.uart_seq_num++;
 	sMessage->CMDTYPE = rMessage->CMDTYPE + 1;
-	memcpy(sMessage->REVICED,rMessage->REVICED,2);
+	memset(sMessage->REVICED,0xAA,2);
 	sMessage->DATA[0]  = rMessage->DATA[0];
 
 	UidCmd = (UidTask_CTL_Typedef)rMessage->DATA[0];
@@ -704,9 +731,8 @@ uint8_t App_return_device_info( Uart_MessageTypeDef *rMessage, Uart_MessageTypeD
 ******************************************************************************/
 uint8_t App_clicker_parameter_set( Uart_MessageTypeDef *rMessage, Uart_MessageTypeDef *sMessage )
 {
-	uint8_t i = 0;
+	uint8_t i   = 0;
 	uint8_t err = 0;
-	//send_data_process_tcb_tydef temp_tcb;
 	Clicker_CTL_Typedf ClickerCmd;
 
 	uint8_t *spdata = (uint8_t *)(sMessage->DATA+1);
@@ -727,7 +753,7 @@ uint8_t App_clicker_parameter_set( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 	switch( ClickerCmd )
 	{
 		/* 开关机指令 */
-		case G_ONOFF:
+		case G_OFF:
 		{
 			/* 帧长度检验 */
 			if( *(uint16_t *)(rMessage->LEN) != 2 )
@@ -767,7 +793,7 @@ uint8_t App_clicker_parameter_set( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 		break;
 
 		/* 显示操作 */
-		case G_DISP:
+		case G_CL_P:
 		{
 			/* 帧长度检验 */
 			if( *(uint16_t *)(rMessage->LEN) != 2 )

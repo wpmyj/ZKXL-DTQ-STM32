@@ -28,7 +28,7 @@
 // revice part
 Uart_MessageTypeDef uart_irq_revice_massage;
 static uint32_t uart_rx_timeout = 0;
-static bool flag_uart_rxing = false;
+static uint8_t  flag_uart_rxing = 0;
 
 // send part
 Uart_MessageTypeDef uart_irq_send_massage;
@@ -85,7 +85,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 				{
 					uart_irq_revice_massage.HEAD = data;
 					uart_rev_status.set_status(&(uart_rev_status.state),UartEVICETYPE);
-					flag_uart_rxing = true;
+					flag_uart_rxing = 1;
 				}
 			}
 			break;
@@ -94,7 +94,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 			{
 				uart_irq_revice_massage.DEVICE= data;
 				uart_rev_status.set_status(&(uart_rev_status.state),UartVERSION);
-				flag_uart_rxing = true;
+				flag_uart_rxing = 1;
 			}
 			break;
 
@@ -177,7 +177,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 						uart_rev_status.set_status(&(uart_rev_status.state),UartHEAD);
 						/* 清除 uart_irq_revice_massage 接收信息 */
 						uart_clear_message(&uart_irq_revice_massage);
-						flag_uart_rxing = false;
+						flag_uart_rxing = 0;
 					}
 					else if(uart_irq_revice_massage.LEN > 0)	//  DATA不为空
 					{
@@ -223,7 +223,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 							{
 								serial_ringbuffer_write_data(REVICE_RINGBUFFER,&uart_irq_revice_massage);
 							}
-							flag_uart_rxing = false;
+							flag_uart_rxing = 0;
 							uart_rev_status.set_status(&(uart_rev_status.state),UartHEAD);
 							uart_clear_message(&uart_irq_revice_massage);
 					}
@@ -236,7 +236,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 				{
 					uart_rev_status.set_status(&(uart_rev_status.state),UartHEAD);
 					uart_clear_message(&uart_irq_revice_massage);
-					flag_uart_rxing = false;
+					flag_uart_rxing = 0;
 				}
 			}
 			break;
@@ -462,7 +462,7 @@ void SysTick_Handler(void)
 		if(uart_rx_timeout>10)										//5ms超时后重新开始接收
 		{
 			uart_clear_message(&uart_irq_revice_massage);
-			flag_uart_rxing = false;
+			flag_uart_rxing = 0;
 			uart_rev_status.set_status(&(uart_rev_status.state),UartHEAD);
 		}
 	}

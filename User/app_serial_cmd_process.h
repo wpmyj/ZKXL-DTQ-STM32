@@ -96,9 +96,9 @@ typedef enum
 
 typedef enum
 {
-	G_ONOFF = 1,
+	G_OFF = 1,
 	G_POWER,
-	G_DISP,
+	G_CL_P,
 	N_CH,
 	N_TIME,
 	N_READ_ID,
