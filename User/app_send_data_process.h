@@ -161,4 +161,6 @@ void send_data_process_timer_init( void );
 void change_single_send_data_status( uint8_t status );
 uint8_t get_single_send_data_status( void );
 void App_clickers_single_send_data_process( void );
+
+void set_retranmist_data_status(uint8_t new_status);
 #endif

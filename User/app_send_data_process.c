@@ -86,6 +86,18 @@ uint8_t get_rf_retransmit_status(void)
 }
 
 /******************************************************************************
+  Function:set_retranmist_data_status
+  Description:
+  Input :
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void set_retranmist_data_status(uint8_t new_status)
+{
+	retranmist_data_status = new_status;
+}
+/******************************************************************************
   Function:create_status_message
   Description:
 		产生一个状态信息指令
@@ -96,7 +108,6 @@ uint8_t get_rf_retransmit_status(void)
 ******************************************************************************/
 void create_status_message( void )
 {
-	//printf("create_status_message:%02x\r\n",clicker_send_data_status);
 	spi_status_buffer[spi_status_write_index][0] = 0x61;
 	memset(spi_status_buffer[spi_status_write_index]+1,0,12);
 	spi_status_buffer[spi_status_write_index][13] = CLICKER_SNED_DATA_STATUS_TYPE;
@@ -481,24 +492,12 @@ uint8_t spi_process_revice_data( void )
 				/* 收到的是Data */
 				if(spi_message_type == NRF_DATA_IS_USEFUL)
 				{
-					/* 返回ACK的包号和上次发送的是否相同 */
-					uint8_t Is_return_ack = 1;
-
 					//printf("[DATA] uid:%02x%02x%02x%02x, ",\
 						*(spi_message+5),*(spi_message+6),*(spi_message+7),*(spi_message+8));
 					//printf("seq:%2x, pac:%2x\r\n",(uint8_t)*(spi_message+11),\
 						(uint8_t)*(spi_message+12));
 
-					if((spi_message[6+15] == 0x10) || (spi_message[6+15] == 0x11) ||
-						 (spi_message[6+15] == 0x12) || (spi_message[6+15] == 0x13))
-					{
-						if( wl.start == ON )
-							Is_return_ack = 1;
-						else
-							Is_return_ack = 0;
-					}
-
-					if( Is_return_ack )
+					if( wl.start == ON )
 					{
 						nrf_transmit_parameter_t transmit_config;
 						/* 回复ACK */
@@ -511,10 +510,10 @@ uint8_t spi_process_revice_data( void )
 						transmit_config.data_len       = 0;
 						transmit_config.is_add_table   = 0;
 						nrf_transmit_start( &transmit_config );
-					}
 
-					/* 有效数据告到PC */
-					rf_move_data_to_buffer( spi_message );
+						/* 有效数据告到PC */
+						rf_move_data_to_buffer( spi_message );
+					}
 				}
 				/* 收到的是Ack */
 				else if(spi_message_type == NRF_DATA_IS_ACK)
@@ -1060,7 +1059,7 @@ void retransmit_data_to_next_clicker( void )
 	transmit_config.data_buf       = rf_var.tx_buf; 
 	transmit_config.data_len       = rf_var.tx_len;
 	transmit_config.is_add_table   = 1;
-	transmit_config.sel_table      = SEND_PRE_TABLE;
+	transmit_config.sel_table      = SEND_DATA_ACK_TABLE;
 	nrf_transmit_start( &transmit_config );
 
 	rf_retransmit_set_status(1);
@@ -1434,7 +1433,7 @@ void App_clickers_send_data_process( void )
 		transmit_config.data_buf       = NULL;
 		transmit_config.data_len       = 0;
 		transmit_config.is_add_table   = 1;
-		transmit_config.sel_table      = SEND_DATA_ACK_TABLE;
+		transmit_config.sel_table      = SEND_PRE_TABLE;
 		nrf_transmit_start( &transmit_config );
 		
 		/* 发送数据帧 */

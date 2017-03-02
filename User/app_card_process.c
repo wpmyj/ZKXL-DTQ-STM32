@@ -410,7 +410,7 @@ void App_card_process(void)
 		memcpy(card_message.SRCID,revicer.uid,UID_LEN);
 		card_message.PACNUM = 0x00;
 		card_message.SEQNUM = revicer.uart_seq_num++;
-		card_message.CMDTYPE = 0x31;
+		card_message.CMDTYPE = 0x30;
 		memset(card_message.REVICED,0xAA,2);
 		memset(card_message.DATA,0x00,25);
 		card_message.DATA[0] = 0x06;
