@@ -87,6 +87,7 @@ void Platform_Init(void)
 
 	/* 复位并初始化RC500 */
 	mfrc500_init();
+	clicker_config_default_set();
 
 	/* enable all IRQ */
 	ENABLE_ALL_IRQ();
