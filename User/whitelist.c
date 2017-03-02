@@ -125,11 +125,11 @@ void get_white_list_from_flash(void)
 ******************************************************************************/
 void set_index_of_white_list_pos( uint8_t use_or_online, uint8_t index )
 {
-	uint8_t pos1 = index / 15 ;
-	uint8_t pos2 = index % 15 ;
+	uint8_t pos1 = index / 16 ;
+	uint8_t pos2 = index % 16 ;
 
 	list_tcb_table[use_or_online][pos1] = (list_tcb_table[use_or_online][pos1] |
-	                               (uint16_t)((uint16_t)1<<pos2)) & 0x7FFF;
+	                               (uint16_t)((uint16_t)1<<pos2)) & 0xFFFF;
 
 	if(use_or_online == 0)
 	{
@@ -152,8 +152,8 @@ void set_index_of_white_list_pos( uint8_t use_or_online, uint8_t index )
 ******************************************************************************/
 void clear_index_of_white_list_pos( uint8_t use_or_online, uint8_t index )
 {
-	uint8_t pos1 = index / 15 ;
-	uint8_t pos2 = index % 15 ;
+	uint8_t pos1 = index / 16 ;
+	uint8_t pos2 = index % 16 ;
 
 	list_tcb_table[use_or_online][pos1] = list_tcb_table[use_or_online][pos1] &
                 	               ~(uint16_t)((uint16_t)1<<pos2);
@@ -179,13 +179,13 @@ void clear_index_of_white_list_pos( uint8_t use_or_online, uint8_t index )
 ******************************************************************************/
 uint8_t get_index_of_white_list_pos_status( uint8_t use_or_online, uint8_t index )
 {
-	uint8_t pos1 = index / 15 ;
-	uint8_t pos2 = index % 15 ;
+	uint8_t pos1 = index / 16 ;
+	uint8_t pos2 = index % 16 ;
 
 	uint16_t status = list_tcb_table[use_or_online][pos1] &
                 	               (uint16_t)((uint16_t)(1<<pos2));
 
-	if(status & 0x7FFF)
+	if(status & 0xFFFF)
 		return 1;
 	else
 		return 0;

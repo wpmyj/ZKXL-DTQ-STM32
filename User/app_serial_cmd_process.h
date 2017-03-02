@@ -94,17 +94,6 @@ typedef enum
 	U_SHOW,
 }UidTask_CTL_Typedef;
 
-typedef enum
-{
-	G_OFF = 1,
-	G_POWER,
-	G_CL_P,
-	N_CH,
-	N_TIME,
-	N_READ_ID,
-	N_WR_EE,
-	N_RD_EE,
-}Clicker_CTL_Typedf;
 
 /* Uart Message structure definition */
 typedef struct
