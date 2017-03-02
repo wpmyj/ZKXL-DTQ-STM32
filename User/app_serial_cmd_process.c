@@ -38,6 +38,7 @@ Uart_MessageTypeDef backup_massage;
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
 extern Process_tcb_Typedef systick_process;
+extern clicker_config_typedef clicker_set;
 
 /* Private functions ---------------------------------------------------------*/
 static void serial_send_data_to_pc(void);
@@ -46,6 +47,7 @@ static void serial_cmd_process(void);
 uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 uint8_t App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+uint8_t App_receiver_parameter_set( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 uint8_t App_clicker_parameter_set( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 uint8_t App_returnErr( Uart_MessageTypeDef *sMessage, uint8_t cmd_type, uint8_t err_type );
 /******************************************************************************
@@ -170,7 +172,7 @@ static void serial_cmd_process(void)
 					}
 					else
 					{
-						serial_cmd_status = App_clicker_parameter_set( &ReviceMessage, &SendMessage);
+						serial_cmd_status = App_receiver_parameter_set( &ReviceMessage, &SendMessage);
 					}
 				}
 				break;
@@ -206,7 +208,22 @@ static void serial_cmd_process(void)
 					}
 				}
 				break;
-
+				
+			/* 发送参数设置 */
+			case 0x50:
+				{
+					if(ReviceMessage.LEN == 0)
+					{
+						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;
+					}
+					else
+					{
+						serial_cmd_status = App_clicker_parameter_set( &ReviceMessage, &SendMessage);;
+					}
+				}
+				break;
 			case APP_CTR_DATALEN_ERR:
 				{
 					serial_cmd_status = App_returnErr(&SendMessage,err_cmd_type,APP_CTR_DATALEN_ERR);;
@@ -384,6 +401,7 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 		sMessage->PACNUM = rMessage->PACNUM;
 		sMessage->PACKTYPE = REVICER_PACKAGE_ACK;
 		sMessage->CMDTYPE = rMessage->CMDTYPE;
+		sMessage->PACKTYPE = REVICER_PACKAGE_ACK;
 		memset(sMessage->REVICED,0xAA,2);
 		*(uint16_t *)(sMessage->LEN) = 0x01;
 
@@ -473,6 +491,7 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 	sMessage->PACNUM = rMessage->PACNUM;
 	sMessage->SEQNUM = revicer.uart_seq_num++;
 	sMessage->CMDTYPE = rMessage->CMDTYPE;
+	sMessage->PACKTYPE = REVICER_PACKAGE_ACK;
 	memset(sMessage->REVICED,0xAA,2);
 	sMessage->DATA[0]  = rMessage->DATA[0];
 
@@ -509,7 +528,6 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 				}
 
 				*(uint16_t *)sMessage->LEN = i+1;
-				sMessage->PACKTYPE = REVICER_PACKAGE_ACK;
 				sMessage->XOR = XOR_Cal((uint8_t *)(&(sMessage->DEVICE)), 
 					*(uint16_t *)(sMessage->LEN)+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
 				sMessage->END = 0xCA;
@@ -534,7 +552,6 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 
 				sMessage->SEQNUM = revicer.uart_seq_num++;
 				*(uint16_t *)sMessage->LEN = i +1;
-				sMessage->PACKTYPE = REVICER_PACKAGE_ACK;
 				sMessage->XOR = XOR_Cal((uint8_t *)(&(sMessage->DEVICE)), 
 					*(uint16_t *)(sMessage->LEN)+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
 				sMessage->END = 0xCA;
@@ -577,11 +594,10 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 					*( spdata + ( i++ ) ) = UidAddStatus[j];
 				}
 
-				*(uint16_t *)sMessage->LEN = i+2;
+				*(uint16_t *)sMessage->LEN = i+1;
 				sMessage->SEQNUM = revicer.uart_seq_num++;
-				sMessage->PACKTYPE = REVICER_PACKAGE_ACK;
 				sMessage->XOR = XOR_Cal((uint8_t *)(&(sMessage->DEVICE)), 
-					i+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
+					*(uint16_t *)sMessage->LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
 				sMessage->END = 0xCA;
 				return APP_SERIAL_CMD_STATUS_IDLE;
 			}
@@ -618,7 +634,6 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 				sMessage->DATA[1] = 0;
 				sMessage->DATA[2] = wl.len;
 				*(uint16_t *)sMessage->LEN = NewUidNum*5+3;
-				sMessage->PACKTYPE = REVICER_PACKAGE_ACK;
 				sMessage->XOR = XOR_Cal((uint8_t *)(&(sMessage->DEVICE)), 
 					*(uint16_t *)(sMessage->LEN)+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
 				sMessage->END = 0xCA;
@@ -662,7 +677,8 @@ uint8_t App_return_device_info( Uart_MessageTypeDef *rMessage, Uart_MessageTypeD
 	sMessage->PACNUM = rMessage->PACNUM;
 	sMessage->SEQNUM = revicer.uart_seq_num++;
 	sMessage->CMDTYPE = rMessage->CMDTYPE;
-	memcpy(sMessage->REVICED,rMessage->REVICED,2);
+	sMessage->PACKTYPE = REVICER_PACKAGE_ACK;
+	memset(sMessage->REVICED,0xAA,2);;
 
 	/* parameter check and update RTC timer */
 	{
@@ -737,9 +753,8 @@ uint8_t App_return_device_info( Uart_MessageTypeDef *rMessage, Uart_MessageTypeD
 	return 0;
 }
 
-
 /******************************************************************************
-  Function:App_clicker_parameter_set
+  Function:App_receiver_parameter_set
   Description:
   Input :
 		RMessage:串口接收指令的消息指针
@@ -747,7 +762,7 @@ uint8_t App_return_device_info( Uart_MessageTypeDef *rMessage, Uart_MessageTypeD
   Return:
   Others:None
 ******************************************************************************/
-uint8_t App_clicker_parameter_set( Uart_MessageTypeDef *rMessage, Uart_MessageTypeDef *sMessage )
+uint8_t App_receiver_parameter_set( Uart_MessageTypeDef *rMessage, Uart_MessageTypeDef *sMessage )
 {
 	typedef enum
 	{
@@ -772,7 +787,8 @@ uint8_t App_clicker_parameter_set( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 	sMessage->PACNUM = rMessage->PACNUM;
 	sMessage->SEQNUM = revicer.uart_seq_num++;
 	sMessage->CMDTYPE = rMessage->CMDTYPE;
-	memcpy(sMessage->REVICED,rMessage->REVICED,2);
+	sMessage->PACKTYPE = REVICER_PACKAGE_ACK;
+	memset(sMessage->REVICED,0xAA,2);;
 	sMessage->DATA[0]  = rMessage->DATA[0];
 
 	/* 帧长度检验 */
@@ -842,7 +858,6 @@ uint8_t App_clicker_parameter_set( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 			default :
 			{
 				err = APP_CTR_UNKNOWN;
-				*(uint16_t *)(sMessage->LEN) = 2;
 			}
 			break;
 		}
@@ -856,6 +871,169 @@ uint8_t App_clicker_parameter_set( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 	sMessage->END = 0xCA;
 return 0;
 }
+
+/******************************************************************************
+  Function:App_receiver_parameter_set
+  Description:
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+uint8_t App_clicker_parameter_set( Uart_MessageTypeDef *rMessage, Uart_MessageTypeDef *sMessage )
+{
+	typedef enum
+	{
+		N_CH = 1,
+		N_TX_POWER,
+		N_TX_SPEED,
+		N_TX_RETRANS,
+		N_TX_SLEEP,
+		N_TX_CHECK,
+	}Clicker_CTL_Typedf;
+
+	uint8_t err = 0;
+	Clicker_CTL_Typedf ClickerCmd;
+
+	uint8_t *spdata = (uint8_t *)(sMessage->DATA+1);
+	uint8_t *rpdata = (uint8_t *)(rMessage->DATA+1);
+
+	sMessage->HEAD = UART_SOF;
+	sMessage->DEVICE = 0x01;
+	memcpy(sMessage->VERSION,P_Vresion,2);
+	memcpy(sMessage->DSTID,rMessage->SRCID,UID_LEN);
+	memcpy(sMessage->SRCID,revicer.uid,UID_LEN);
+	sMessage->PACNUM = rMessage->PACNUM;
+	sMessage->SEQNUM = revicer.uart_seq_num++;
+	sMessage->CMDTYPE = rMessage->CMDTYPE;
+	sMessage->PACKTYPE = REVICER_PACKAGE_ACK;
+	memset(sMessage->REVICED,0xAA,2);;
+	sMessage->DATA[0]  = rMessage->DATA[0];
+	
+	{
+		/* 获取上位机指令 */
+		ClickerCmd = (Clicker_CTL_Typedf)(rMessage->DATA[0]);
+		switch( ClickerCmd )
+		{
+			/* 设置收发信道 */
+			case N_CH:
+			{
+				uint8_t rx_ch, tx_ch;
+				tx_ch = *(rpdata++);
+				rx_ch = *(rpdata++);
+				if(( tx_ch > 125 ) || ( rx_ch > 125 ))
+				{
+					err = 1<<(N_CH-1);
+				}
+				else
+				{
+					clicker_set.N_CH_TX = tx_ch;
+					clicker_set.N_CH_RX = rx_ch;
+					err = 0;
+				}
+				*(spdata) = err;
+				*(uint16_t *)(sMessage->LEN) = 2;
+			}
+			break;
+
+			/* 设置发送功率 */
+			case N_TX_POWER:
+			{
+				int8_t tx_power = *(int8_t *)rpdata;
+				/* 有效范围 +4DB ~ -30DB */
+				if((tx_power>4) || (tx_power < -30))
+				{
+					err = 1<<(N_TX_POWER-1);
+				}
+				else
+				{
+					clicker_set.N_TX_POWER = tx_power;
+					err = 0;
+				}
+				*(spdata) = err;
+				*(uint16_t *)(sMessage->LEN) = 2;
+			}
+			break;
+
+			/* 设置发送速度 */
+			case N_TX_SPEED:
+			{
+				uint8_t tx_speed = *(uint8_t *)rpdata;
+				if(( tx_speed < 1 ) || ( tx_speed > 2 ))
+				{
+					err = 1<<(N_TX_SPEED-1);
+				}
+				else
+				{
+					clicker_set.N_TX_SPEED = tx_speed;
+					err = 0;
+				}
+				*(spdata) = err;
+				*(uint16_t *)(sMessage->LEN) = 2;
+			}
+			break;
+
+			/* 设置答题器重发次数 */
+			case N_TX_RETRANS:
+			{
+				uint8_t tx_retransmit = *(uint8_t *)rpdata;
+				if((tx_retransmit<3) || (tx_retransmit>10))
+				{
+					err = 1<<(N_TX_RETRANS-1);
+				}
+				else
+				{
+					clicker_set.N_TX_RETRANS = tx_retransmit;
+					err = 0;
+				}
+				*(spdata) = err;
+				*(uint16_t *)(sMessage->LEN) = 2;
+			}
+			break;
+			
+			/* 设置无按键休眠时间 */
+			case N_TX_SLEEP:
+			{
+				uint8_t tx_sleep = *(uint8_t *)rpdata;
+				if((tx_sleep<10) || (tx_sleep>100))
+				{
+					err = 1<<(N_TX_SLEEP-1);
+				}
+				else
+				{
+					clicker_set.N_TX_SLEEP = tx_sleep;
+					err = 0;
+				}
+				*(spdata) = err;
+				*(uint16_t *)(sMessage->LEN) = 2;
+			}
+			break;
+
+			case N_TX_CHECK:
+			{
+				err = 0;
+				*(spdata++) = err;
+				memcpy(spdata,&clicker_set,sizeof(clicker_config_typedef));
+				*(uint16_t *)(sMessage->LEN) = 2 + sizeof(clicker_config_typedef);
+			}
+			break;
+			
+			default :
+			{
+				err = APP_CTR_UNKNOWN;
+				*(spdata) = err;
+				*(uint16_t *)(sMessage->LEN) = 2;
+			}
+			break;
+		}
+	}
+	sMessage->XOR = XOR_Cal((uint8_t *)(&(sMessage->DSTID)), 
+		*(uint16_t *)sMessage->LEN + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
+	sMessage->END = 0xCA;
+return 0;
+}
+
 
 /******************************************************************************
   Function:App_returnErr
@@ -878,6 +1056,7 @@ uint8_t App_returnErr( Uart_MessageTypeDef *sMessage, uint8_t cmd_type, uint8_t 
 	sMessage->SEQNUM = 0xff;
 	sMessage->PACNUM = 0xff;
 	sMessage->PACKTYPE = REVICER_PACKAGE_ACK;
+	memset(sMessage->REVICED,0xAA,2);;
 	sMessage->CMDTYPE = REVICER_CLICKER_ERR;
 	memset(sMessage->REVICED,0xff,2);
 
@@ -890,7 +1069,7 @@ uint8_t App_returnErr( Uart_MessageTypeDef *sMessage, uint8_t cmd_type, uint8_t 
 
 	sMessage->XOR = XOR_Cal((uint8_t *)(&(sMessage->DSTID)), i+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
 	sMessage->END = 0xCA;
-	
+
 	return 0;
 }
 

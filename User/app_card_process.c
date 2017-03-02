@@ -40,6 +40,27 @@ static uint8_t read_uid_pos     = 0xFF;
 static uint8_t write_uid_pos    = 0xFF;
 static uint8_t card_message_err = 0;
 static uint8_t find_card_ok     = 0;
+clicker_config_typedef clicker_set;
+
+/******************************************************************************
+  Function:clicker_config_default_set
+  Description:
+		设置答题器的默认发送参数
+  Input :
+  Output:
+  Return:
+  Others:None
+******************************************************************************/
+void clicker_config_default_set( void )
+{
+	clicker_set.N_CH_RX      = 4;
+	clicker_set.N_CH_TX      = 2;
+	clicker_set.N_TX_SPEED   = 1;
+	clicker_set.N_TX_POWER   = 4;
+	clicker_set.N_TX_RETRANS = 3;
+	clicker_set.N_TX_SLEEP   = 30;
+}
+
 /******************************************************************************
   Function:rf_set_card_status
   Description:
@@ -246,18 +267,21 @@ void App_card_process(void)
 
 			if(is_white_list_uid != OPERATION_ERR)
 			{
+				uint8_t clicker_config_len = sizeof(clicker_config_typedef);
 				card_message_err  = 1;
 				NDEF_DataWrite[0]  = 0;
 				NDEF_DataWrite[1]  = 0x1C;
 				memcpy(NDEF_DataWrite+2,revicer.uid,4);
 				NDEF_DataWrite[6]  = write_uid_pos;
+				memcpy(NDEF_DataWrite+7,&clicker_set,clicker_config_len);
+				
 				if( Card_process.cmd_type == 0x28 )
 				{
-					memcpy(NDEF_DataWrite+7,Card_process.studentid,20);
+					memcpy(NDEF_DataWrite+7+clicker_config_len,Card_process.studentid,20-clicker_config_len);
 				}
 				if( Card_process.cmd_type == 0x41 )
 				{
-					memset(NDEF_DataWrite+7, 0x00, 20);
+					memset(NDEF_DataWrite+7+clicker_config_len, 0x00, 2020-clicker_config_len);
 				}
 				ndef_wr_xor        = XOR_Cal(NDEF_DataWrite+1,26);
 				NDEF_DataWrite[27] = ndef_wr_xor;
