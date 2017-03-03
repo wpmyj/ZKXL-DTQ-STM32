@@ -279,15 +279,21 @@ void App_card_process(void)
 				else
 				{
 					uint8_t i;
+					uint8_t write_flag = 0;
 					DEBUG_CARD_DATA_LOG("NDEF_DataRead :");
 					for(i=0;i<28;i++)
 						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataRead[i]);
 					DEBUG_CARD_DATA_LOG("\r\n");
 					ndef_rd_xor        = XOR_Cal(NDEF_DataRead+1,26);
-					if((NDEF_DataRead[6]  != NDEF_DataWrite[6])  || 
-						 (NDEF_DataRead[27] != NDEF_DataWrite[27]) )  
-					 /* 此处一定要允许读出错误的数据，否则会进入逻辑的死循环 */
-					 //(NDEF_DataRead[27] != ndef_rd_xor)) 
+
+					/* 完全比较，否则存在异或校验的巧合*/
+					for(i=6;i<28;i++)
+					{
+						if(NDEF_DataRead[i]  != NDEF_DataWrite[i])
+							write_flag = 1;
+					}
+
+					if( write_flag )   
 					{
 						/* 需要重新写入数据 */
 					}
