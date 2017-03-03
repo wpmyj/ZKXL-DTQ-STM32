@@ -508,7 +508,6 @@ void USART1pos_IRQHandler(void)
 	}
 }
 
-uint8_t irq_flag;
 void NRF1_RFIRQ_EXTI_IRQHandler(void)
 {
 	if(EXTI_GetITStatus(NRF1_EXTI_LINE_RFIRQ) != RESET)
@@ -516,7 +515,7 @@ void NRF1_RFIRQ_EXTI_IRQHandler(void)
 		EXTI_ClearITPendingBit(NRF1_EXTI_LINE_RFIRQ);
 
 		/* ¶ÁÈ¡Êý¾Ý */
-		uesb_nrf_get_irq_flags(SPI1, &irq_flag, &nrf_data.rlen, nrf_data.rbuf);
+		spi_read_tx_payload(SPI1, &nrf_data.rlen, nrf_data.rbuf);
 //	{
 //		uint8_t i;
 //		printf("irqrevicebuf:");

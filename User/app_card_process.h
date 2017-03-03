@@ -25,10 +25,19 @@ typedef struct
 	uint8_t  N_CH_TX;
 	uint8_t  N_CH_RX;
 	int8_t   N_TX_POWER;
-	uint8_t  N_TX_SPEED;
-	uint8_t  N_TX_RETRANS;
-	uint8_t  N_TX_SLEEP;
 }clicker_config_typedef;
+
+typedef struct
+{
+	uint8_t  len_h;
+	uint8_t  len_l;
+	uint8_t  uid[4];
+	uint16_t upos;
+	clicker_config_typedef rf_conf;
+	uint8_t  rev[2];
+	uint8_t  stdid[10];
+	uint8_t  data_xor;
+}rf_id_typedf;
 
 extern Process_tcb_Typedef Card_process;
 

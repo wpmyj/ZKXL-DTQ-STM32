@@ -16,6 +16,15 @@
 #include "app_spi_send_data_process.h"
 #include "app_card_process.h"
 
+typedef struct
+{
+	uint8_t header;
+	uint8_t cmd;
+	uint8_t channel;
+	uint8_t data_xor;
+	uint8_t end;
+}cpu_spi_cmd_typedef;
+	
 /* Private variables ---------------------------------------------------------*/
 spi_cmd_type_t 			       spi_cmd_type;
 nrf_to_stm32_cmd_type_t    spi_revice_data;
@@ -256,7 +265,7 @@ static uint8_t hal_nrf_rw(SPI_TypeDef* SPIx, uint8_t value)
 	return(SPI_I2S_ReceiveData(SPIx));
 }
 
-uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_data_len, uint8_t *rx_data)
+uint8_t spi_read_tx_payload(SPI_TypeDef* SPIx, uint8_t *rx_data_len, uint8_t *rx_data)
 {
 	uint8_t retval[BUFFER_SIZE_MAX];
 	uint8_t i = 0;
@@ -265,8 +274,8 @@ uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_da
 
 	*rx_data_len = 0;
 	memset(spi_revice_data.data, 0xFF, BUFFER_SIZE_MAX);
-	spi_revice_data.spi_cmd = 0x86;
-	spi_cmd_type.data_len = 0x05;
+	spi_revice_data.spi_header = 0x86;
+	spi_cmd_type.data_len = 0x06;
 	temp_data = (uint8_t *)&spi_cmd_type;
 
 	/* 开始SPI传输 */
@@ -278,9 +287,9 @@ uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_da
 	{
 		retval[i] = hal_nrf_rw(SPIx, *(temp_data+i));
 		//printf(" %02x",retval[i]);
-		if(i ==  2 && retval[0] == 0x86 && retval[2] < BUFFER_SIZE_MAX )
+		if(i ==  3 && retval[0] == 0x86 && retval[3] < BUFFER_SIZE_MAX )
 		{
-			*rx_data_len = retval[2];
+			*rx_data_len = retval[3];
 			spi_cmd_type.data_len += *rx_data_len;
 		}
 	}
@@ -289,10 +298,12 @@ uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_da
 	/* 关闭SPI传输 */
 	NRF1_CSN_HIGH();	
 	revice_cal_xor = XOR_Cal((uint8_t *)&(retval[1]), spi_cmd_type.data_len-3);
+  //printf("%02x ?= %02x \r\n",retval[spi_cmd_type.data_len-2],revice_cal_xor);
 
-	if(retval[spi_cmd_type.data_len-2] == revice_cal_xor) 			//若接收到数据校验正确
+  /* 若接收到数据校验正确 */
+	if(retval[spi_cmd_type.data_len-2] == revice_cal_xor) 			
 	{
-		memcpy(rx_data, &retval[3],*rx_data_len);
+		memcpy(rx_data, &retval[4],*rx_data_len);
 		return 0;
 	}
 	else
@@ -301,19 +312,20 @@ uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_da
 	}
 }
 
-void uesb_nrf_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count, uint8_t delay100us)
+void spi_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count, uint8_t delay100us)
 {
 	uint8_t retval[BUFFER_SIZE_MAX];
 	uint16_t i = 0;
 	uint8_t *pdata;
 
 	/* 封装指令 */
-	spi_cmd_type.spi_cmd    = 0x86;
+	spi_cmd_type.spi_header = 0x86;
+	spi_cmd_type.cmd        = 0x10;
 	spi_cmd_type.count      = count;
 	spi_cmd_type.delay100us = delay100us;
 	spi_cmd_type.data_len   = length;
 	memcpy(spi_cmd_type.data, tx_pload, length);
-	spi_cmd_type.data[spi_cmd_type.data_len] = XOR_Cal((uint8_t *)&(spi_cmd_type.count), spi_cmd_type.data_len+3);
+	spi_cmd_type.data[spi_cmd_type.data_len] = XOR_Cal((uint8_t *)&(spi_cmd_type.cmd), spi_cmd_type.data_len+4);
 	spi_cmd_type.data[spi_cmd_type.data_len+1] = 0x76;
 	
 	/* 开始SPI传输 */
@@ -321,7 +333,7 @@ void uesb_nrf_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t 
 	memset(retval, 0, BUFFER_SIZE_MAX);
 	//printf("SPI_TX:");
 	pdata = (uint8_t *)&spi_cmd_type;
-	for(i=0; i<spi_cmd_type.data_len+6; i++)
+	for(i=0; i<spi_cmd_type.data_len+7; i++)
 	{
 #ifdef ZL_RP551_MAIN_E
 	retval[i] = hal_nrf_rw(SPI1, *(pdata+i));
@@ -333,8 +345,73 @@ void uesb_nrf_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t 
 		//printf(" %02x",*(pdata+i));
 	}
 	//printf("\r\n");
-	NRF2_CSN_HIGH();	//关闭SPI传输
 
+	/* 关闭SPI传输 */
+	NRF2_CSN_HIGH();
+}
+
+
+void spi_set_cpu_rx_signal_ch( uint8_t rx_ch )
+{
+	cpu_spi_cmd_typedef spi_cmd;
+	uint8_t *pdata,i;
+	
+	/* 封装指令 */
+	spi_cmd.header   = 0x86;
+	spi_cmd.cmd      = 0x20;
+	spi_cmd.channel  = rx_ch;
+	spi_cmd.data_xor = XOR_Cal((uint8_t *)&(spi_cmd.cmd), 2);
+	spi_cmd.end      = 0x76;
+
+	/* 开始SPI传输 */
+	NRF1_CSN_LOW();
+	pdata = (uint8_t *)&spi_cmd;	
+
+	//printf("SPI_RX_SET_CH:");
+
+	for(i=0; i<sizeof(cpu_spi_cmd_typedef); i++)
+	{
+		hal_nrf_rw(SPI1, *(pdata+i));
+		//printf(" %02x",*(pdata+i));
+	}
+	//printf("\r\n");
+
+	/* 关闭SPI传输 */
+	NRF1_CSN_HIGH();	
+}
+
+void spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
+{
+	cpu_spi_cmd_typedef spi_cmd;
+	uint8_t *pdata,i,retval[sizeof(cpu_spi_cmd_typedef)];
+	
+	/* 封装指令 */
+	spi_cmd.header   = 0x86;
+	spi_cmd.cmd      = 0x20;
+	spi_cmd.channel  = tx_ch;
+	spi_cmd.data_xor = XOR_Cal((uint8_t *)&(spi_cmd.cmd), 2);
+	spi_cmd.end      = 0x76;
+	
+	/* 开始SPI传输 */
+	NRF2_CSN_LOW();	
+	//printf("SPI_TX_SET_CH:");
+	pdata = (uint8_t *)&spi_cmd;
+	memset(retval, 0, sizeof(cpu_spi_cmd_typedef));
+	for(i=0; i<sizeof(cpu_spi_cmd_typedef); i++)
+	{
+#ifdef ZL_RP551_MAIN_E
+		retval[i] = hal_nrf_rw(SPI1, *(pdata+i));
+#endif
+
+#ifdef ZL_RP551_MAIN_F
+		retval[i] = hal_nrf_rw(SPI2, *(pdata+i));
+#endif
+		//printf(" %02x",*(pdata+i));
+	}
+	//printf("\r\n");
+
+	/* 关闭SPI传输 */
+	NRF2_CSN_HIGH();
 }
 
 /**************************************END OF FILE****************************/

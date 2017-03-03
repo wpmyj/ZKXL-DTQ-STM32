@@ -85,7 +85,8 @@ typedef struct
 
 typedef struct
 {
-	uint8_t 				spi_cmd;
+	uint8_t 				spi_header;
+	uint8_t         cmd;
 	uint8_t         count;
 	uint8_t         delay100us;
 	uint8_t					data_len;
@@ -95,7 +96,8 @@ typedef struct
 
 typedef struct
 {
-	uint8_t 				spi_cmd;
+	uint8_t 				spi_header;
+	uint8_t         cmd;
 	uint8_t         signal;
 	uint8_t					data_len;
 	uint8_t 				data[BUFFER_SIZE_MAX];
@@ -116,8 +118,8 @@ typedef struct
 } nrf_transmit_parameter_t;
 
 /* Private functions ---------------------------------------------------------*/
-uint8_t uesb_nrf_get_irq_flags(SPI_TypeDef* SPIx, uint8_t *flags, uint8_t *rx_data_len, uint8_t *rx_data);
-void uesb_nrf_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count, uint8_t delay100us);
+uint8_t spi_read_tx_payload(SPI_TypeDef* SPIx, uint8_t *rx_data_len, uint8_t *rx_data);
+void    spi_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count, uint8_t delay100us);
 
 
 void nrf_transmit_start( nrf_transmit_parameter_t *t_conf);

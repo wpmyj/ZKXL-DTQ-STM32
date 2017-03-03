@@ -587,7 +587,8 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 				/* return OK_COUNT */
 				*( spdata + ( i++ ) ) = NewUidNum;
 				/* return WL_LEN */
-				*( spdata + ( i++ ) ) = wl.len;
+				*( (uint16_t *)(spdata +1 )) = wl.len;
+				 i = i + 2; 
 				/* return DETAIL */
 				for(j=0;j<8;j++)
 				{
@@ -604,13 +605,15 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 
 		case U_SHOW:
 			{
-				uint8_t result,uid_p;
-				uint8_t *spdata = sMessage->DATA+3;
+				uint8_t result;
+				uint16_t uid_p;
+				uint8_t *spdata = sMessage->DATA+4;
 				while((NewUidNum*5<UART_NBUF-6) && ( uid_p < MAX_WHITE_LEN))
 				{
 					if(OPERATION_SUCCESS == get_index_of_uid(uid_p,TemUid))
 					{
-						*spdata++ = uid_p;
+						*(uint16_t *)spdata = uid_p;
+						spdata = spdata + 2;
 						*spdata++ = TemUid[0];
 						*spdata++ = TemUid[1];
 						*spdata++ = TemUid[2];
@@ -632,8 +635,8 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 					result = APP_SERIAL_CMD_STATUS_IDLE;
 				}
 				sMessage->DATA[1] = 0;
-				sMessage->DATA[2] = wl.len;
-				*(uint16_t *)sMessage->LEN = NewUidNum*5+3;
+				*(uint16_t *)(sMessage->DATA+2) = wl.len;
+				*(uint16_t *)sMessage->LEN = NewUidNum*6+4;
 				sMessage->XOR = XOR_Cal((uint8_t *)(&(sMessage->DEVICE)), 
 					*(uint16_t *)(sMessage->LEN)+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
 				sMessage->END = 0xCA;
@@ -887,9 +890,6 @@ uint8_t App_clicker_parameter_set( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 	{
 		N_CH = 1,
 		N_TX_POWER,
-		N_TX_SPEED,
-		N_TX_RETRANS,
-		N_TX_SLEEP,
 		N_TX_CHECK,
 	}Clicker_CTL_Typedf;
 
@@ -930,6 +930,10 @@ uint8_t App_clicker_parameter_set( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 				{
 					clicker_set.N_CH_TX = tx_ch;
 					clicker_set.N_CH_RX = rx_ch;
+
+					/* 设置接收的信道：答题器与接收是反的 */
+					spi_set_cpu_rx_signal_ch(clicker_set.N_CH_TX);
+					spi_set_cpu_tx_signal_ch(clicker_set.N_CH_RX);
 					err = 0;
 				}
 				*(spdata) = err;
@@ -949,60 +953,6 @@ uint8_t App_clicker_parameter_set( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 				else
 				{
 					clicker_set.N_TX_POWER = tx_power;
-					err = 0;
-				}
-				*(spdata) = err;
-				*(uint16_t *)(sMessage->LEN) = 2;
-			}
-			break;
-
-			/* 设置发送速度 */
-			case N_TX_SPEED:
-			{
-				uint8_t tx_speed = *(uint8_t *)rpdata;
-				if(( tx_speed < 1 ) || ( tx_speed > 2 ))
-				{
-					err = 1<<(N_TX_SPEED-1);
-				}
-				else
-				{
-					clicker_set.N_TX_SPEED = tx_speed;
-					err = 0;
-				}
-				*(spdata) = err;
-				*(uint16_t *)(sMessage->LEN) = 2;
-			}
-			break;
-
-			/* 设置答题器重发次数 */
-			case N_TX_RETRANS:
-			{
-				uint8_t tx_retransmit = *(uint8_t *)rpdata;
-				if((tx_retransmit<3) || (tx_retransmit>10))
-				{
-					err = 1<<(N_TX_RETRANS-1);
-				}
-				else
-				{
-					clicker_set.N_TX_RETRANS = tx_retransmit;
-					err = 0;
-				}
-				*(spdata) = err;
-				*(uint16_t *)(sMessage->LEN) = 2;
-			}
-			break;
-			
-			/* 设置无按键休眠时间 */
-			case N_TX_SLEEP:
-			{
-				uint8_t tx_sleep = *(uint8_t *)rpdata;
-				if((tx_sleep<10) || (tx_sleep>100))
-				{
-					err = 1<<(N_TX_SLEEP-1);
-				}
-				else
-				{
-					clicker_set.N_TX_SLEEP = tx_sleep;
 					err = 0;
 				}
 				*(spdata) = err;

@@ -48,7 +48,7 @@ void App_spi_send_data_process(void)
 		{
 			uint8_t spi_delayms;
 
-			uesb_nrf_write_tx_payload(spi_send_data_buffer[spi_send_data_read_index],
+			spi_write_tx_payload(spi_send_data_buffer[spi_send_data_read_index],
 				spi_send_data_buffer_len[spi_send_data_read_index],
 				spi_send_data_buffer[spi_send_data_read_index][spi_send_data_buffer_len[spi_send_data_read_index]] ,
 				spi_send_data_buffer[spi_send_data_read_index][spi_send_data_buffer_len[spi_send_data_read_index]+1]);
