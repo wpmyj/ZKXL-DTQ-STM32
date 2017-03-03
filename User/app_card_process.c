@@ -490,5 +490,5 @@ void App_card_process(void)
 void card_timer_init( void )
 {
 	sw_create_timer(&card_buzzer_timer    , 150, 4, 5,&(card_process_status), NULL);
-	sw_create_timer(&card_second_find_timer, 20, 1, 2,&(find_card_ok), NULL);
+	sw_create_timer(&card_second_find_timer,100, 1, 2,&(find_card_ok), NULL);
 }
