@@ -884,6 +884,8 @@ void App_open_or_close_attendance_match( Uart_MessageTypeDef *RMessage, Uart_Mes
 					wl.attendance_sttaus = OFF;
 					SMessage->DATA[i++] = 0;
 					rf_set_card_status(0);
+					PcdHalt();
+					PcdAntennaOff();
 				}
 				else
 				{
@@ -1143,6 +1145,8 @@ void App_card_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessag
 				Card_process.match_single = 0;
 				rf_set_card_status(0);
 				SMessage->DATA[0] = 0;
+				PcdHalt();
+				PcdAntennaOff();
 			}
 			else
 			{
