@@ -22,7 +22,7 @@ typedef struct
 typedef struct
 {
 	uint8_t  uid[4];
-	uint8_t  pos;
+	uint16_t pos;
 	uint8_t  use;
 	uint8_t  rev_num;
 	uint8_t  rev_seq;
@@ -47,7 +47,7 @@ typedef struct
 typedef struct
 {
 	Clicker_Typedef uids[120];
-	uint8_t    len;
+	uint16_t   len;
 	uint8_t    switch_status;
 	uint8_t    start;
 	uint8_t    attendance_sttaus;
@@ -73,7 +73,8 @@ void SE2431L_Bypass(void);
 void SE2431L_TX(void);
 void GPIOInit_MFRC500(void);
 void uart_send_char( uint8_t ch );
-
+void spi_set_cpu_tx_signal_ch( uint8_t tx_ch );
+void spi_set_cpu_rx_signal_ch( uint8_t rx_ch );
 #endif //_INIT_H_
 /**
   * @}

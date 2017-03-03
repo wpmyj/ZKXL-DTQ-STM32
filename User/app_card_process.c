@@ -27,17 +27,17 @@ uint32_t StartTime,EndTime;
 
 static Uart_MessageTypeDef card_message;
 static uint8_t card_process_status = 0;
-static uint8_t is_white_list_uid = 0, ndef_wr_xor = 0, ndef_rd_xor = 0xFF;
+static uint8_t is_white_list_uid = 0;
 /* 返回卡类型 */
 uint8_t g_cardType[40];	
 uint8_t respon[BUF_LEN + 20];	
-uint8_t NDEF_DataWrite[30];
-uint8_t NDEF_DataRead[0xFF];
+static rf_id_typedf rID,wID;
+
 uint16_t NDEF_Len               = 0;
 static uint8_t g_uid_len        = 0;
 static uint8_t wtrte_flash_ok   = 0;
-static uint8_t read_uid_pos     = 0xFF;
-static uint8_t write_uid_pos    = 0xFF;
+static uint16_t read_uid_pos    = 0xFFFF;
+static uint16_t write_uid_pos   = 0xFFFF;
 static uint8_t card_message_err = 0;
 static uint8_t find_card_ok     = 0;
 clicker_config_typedef clicker_set;
@@ -55,10 +55,7 @@ void clicker_config_default_set( void )
 {
 	clicker_set.N_CH_RX      = 4;
 	clicker_set.N_CH_TX      = 2;
-	clicker_set.N_TX_SPEED   = 1;
 	clicker_set.N_TX_POWER   = 4;
-	clicker_set.N_TX_RETRANS = 3;
-	clicker_set.N_TX_SLEEP   = 30;
 }
 
 /******************************************************************************
@@ -74,6 +71,7 @@ void clicker_config_default_set( void )
 void rf_set_card_status(uint8_t new_status)
 {
 	card_process_status = new_status;
+	//printf("rf_set_card_status  = %d\r\n",card_process_status);
 }
 
 /******************************************************************************
@@ -117,10 +115,10 @@ void App_card_process(void)
 		memset(g_cardType, 0, 40);
 		/* reqA指令 :请求A卡，返回卡类型，不同类型卡对应不同的UID长度 */
 		status = PcdRequest(PICC_REQIDL,g_cardType);
+		DEBUG_CARD_DEBUG_LOG("PcdRequest status = %d\r\n",status);
 	  MRC500_DEBUG_END();
 		if( status == MI_OK )
 		{
-			DEBUG_CARD_DEBUG_LOG("PcdRequest status = %d\r\n",status);
 			if(find_card_ok == 1)
 			{
 				sw_clear_timer(&card_second_find_timer);
@@ -143,7 +141,6 @@ void App_card_process(void)
 		}
 		else
 		{
-			DEBUG_CARD_DEBUG_LOG("PcdRequest status = %d\r\n",status);
 			return;
 		}
 		/* 防碰撞1 */
@@ -209,26 +206,27 @@ void App_card_process(void)
 		/* 考勤指令 */
 		if( wl.attendance_sttaus == ON )
 		{
-			status = ReadNDEFfile(NDEF_DataRead, &NDEF_Len);
+			uint8_t *pdata = (uint8_t *)&rID;
+			uint8_t card_data_len = sizeof(rf_id_typedf);
+			status = ReadNDEFfile(pdata, &NDEF_Len);
 			DEBUG_CARD_DEBUG_LOG("ReadNDEFfile status = %d\r\n",status);
 			if( status != MI_OK )
 			{
-				memset(NDEF_DataRead,00,28);
+				memset(pdata,00,card_data_len);
 				mfrc500_init();
 				rf_set_card_status(1);
 				return;
 			}
 			else
 			{
-				ndef_wr_xor = XOR_Cal(NDEF_DataRead+1,26);
-				if(NDEF_DataRead[27] != ndef_wr_xor)
+				if(rID.data_xor != XOR_Cal(rID.uid,card_data_len-2))
 				{
 					uint8_t i;
 					DEBUG_CARD_DATA_LOG("NDEF_DataRead :");
-					for(i=0;i<28;i++)
-						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataRead[i]);
+					for(i=0;i<card_data_len;i++)
+						DEBUG_CARD_DATA_LOG("%02x ",pdata[i]);
 					DEBUG_CARD_DATA_LOG("\r\n");
-					memset(NDEF_DataRead,00,28);
+					memset(pdata,00,card_data_len);
 					DEBUG_CARD_DATA_LOG("NDEF_DataRead XOR ERROR!\r\n");
 					mfrc500_init();
 					rf_set_card_status(1);
@@ -238,10 +236,9 @@ void App_card_process(void)
 				{
 					uint8_t i;
 					DEBUG_CARD_DATA_LOG("NDEF_DataRead :");
-					for(i=0;i<28;i++)
-						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataRead[i]);
+					for(i=0;i<card_data_len;i++)
+						DEBUG_CARD_DATA_LOG("%02x ",pdata[i]);
 					DEBUG_CARD_DATA_LOG("\r\n");
-					//memset(NDEF_DataRead,00,28);
 					DEBUG_CARD_DATA_LOG("NDEF_DataRead Clear!\r\n");
 				}
 			}
@@ -249,7 +246,7 @@ void App_card_process(void)
 			is_white_list_uid = search_uid_in_white_list(g_cSNR+4,&read_uid_pos);
 			if(is_white_list_uid == OPERATION_ERR)
 			{
-				read_uid_pos = 0xFF;
+				read_uid_pos = 0xFFFF;
 			}
 			card_message_err = 1;
 			wtrte_flash_ok = 1;
@@ -263,31 +260,25 @@ void App_card_process(void)
 		/* 配对指令 */
 		if( wl.match_status == ON )
 		{
+			uint8_t *rpdata = (uint8_t *)&rID;
+			uint8_t *wpdata = (uint8_t *)&wID;
 			is_white_list_uid = add_uid_to_white_list(g_cSNR+4,&write_uid_pos);
 
 			if(is_white_list_uid != OPERATION_ERR)
 			{
-				uint8_t clicker_config_len = sizeof(clicker_config_typedef);
+				uint8_t card_data_len = sizeof(rf_id_typedf);
 				card_message_err  = 1;
-				NDEF_DataWrite[0]  = 0;
-				NDEF_DataWrite[1]  = 0x1C;
-				memcpy(NDEF_DataWrite+2,revicer.uid,4);
-				NDEF_DataWrite[6]  = write_uid_pos;
-				memcpy(NDEF_DataWrite+7,&clicker_set,clicker_config_len);
-				
-				if( Card_process.cmd_type == 0x28 )
-				{
-					memcpy(NDEF_DataWrite+7+clicker_config_len,Card_process.studentid,20-clicker_config_len);
-				}
-				if( Card_process.cmd_type == 0x41 )
-				{
-					memset(NDEF_DataWrite+7+clicker_config_len, 0x00, 2020-clicker_config_len);
-				}
-				ndef_wr_xor        = XOR_Cal(NDEF_DataWrite+1,26);
-				NDEF_DataWrite[27] = ndef_wr_xor;
+				wID.len_h  = 0;
+				wID.len_l = card_data_len;
+				memcpy(wID.uid,revicer.uid,4);
+				wID.upos  = write_uid_pos;
+				memcpy(&(wID.rf_conf),&clicker_set,sizeof(clicker_config_typedef));
+				memset(wID.rev,0xFF,2);
+				memset(wID.stdid,0x00,10);
+				wID.data_xor = XOR_Cal(wID.uid,card_data_len-2);;
 
 				/* 重新写入数据检测 */
-				status = ReadNDEFfile(NDEF_DataRead, &NDEF_Len);
+				status = ReadNDEFfile(rpdata, &NDEF_Len);
 				DEBUG_CARD_DEBUG_LOG("ReadNDEFfile0 status = %d\r\n",status);
 				#ifdef SHOW_CARD_PROCESS_TIME
 				EndTime = PowerOnTime - StartTime;
@@ -295,8 +286,8 @@ void App_card_process(void)
 				#endif
 				if( status != MI_OK )
 				{
-					memset(NDEF_DataRead ,00,28);
-					memset(NDEF_DataWrite,00,28);
+					memset(rpdata,0x00,card_data_len);
+					memset(wpdata,0x00,card_data_len);
 					mfrc500_init();
 					rf_set_card_status(1);
 					return;
@@ -304,19 +295,20 @@ void App_card_process(void)
 				else
 				{
 					uint8_t i;
+					uint8_t write_flg = 0;
 					DEBUG_CARD_DATA_LOG("NDEF_DataRead :");
-					for(i=0;i<28;i++)
-						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataRead[i]);
+					for(i=0;i<card_data_len;i++)
+						DEBUG_CARD_DATA_LOG("%02x ",rpdata[i]);
 					DEBUG_CARD_DATA_LOG("\r\n");
-					ndef_rd_xor        = XOR_Cal(NDEF_DataRead+1,26);
-					if((NDEF_DataRead[6]  != NDEF_DataWrite[6])  || 
-						 (NDEF_DataRead[27] != NDEF_DataWrite[27]) )  
-					 /* 此处一定要允许读出错误的数据，否则会进入逻辑的死循环 */
-					 //(NDEF_DataRead[27] != ndef_rd_xor)) 
+
+					/* 完全比较，否则存在异或校验的巧合*/
+					for(i=0;i<card_data_len;i++)
 					{
-						/* 需要重新写入数据 */
+						if(rpdata[i] != wpdata[i])
+							write_flg = 1;
 					}
-					else
+
+					if(write_flg != 1)
 					{
 						/* 无需写入新数据,直接进入下一流程 */
 						card_message_err = 1;
@@ -330,7 +322,7 @@ void App_card_process(void)
 				EndTime = PowerOnTime - StartTime;
 				printf("UseTime:WriteNDEFfile0 = %d \r\n",EndTime);
 				#endif
-				status = WriteNDEFfile((uint8_t *)&NDEF_DataWrite);
+				status = WriteNDEFfile(wpdata);
 				DEBUG_CARD_DEBUG_LOG("WriteNDEFfile1 status = %d\r\n",status);
 				#ifdef SHOW_CARD_PROCESS_TIME
 				EndTime = PowerOnTime - StartTime;
@@ -338,7 +330,8 @@ void App_card_process(void)
 				#endif
 				if( status != MI_OK )
 				{
-					memset(NDEF_DataWrite,00,28);
+					DEBUG_CARD_DATA_LOG("NDEF_DataWrite: ERR");
+					memset(wpdata,0x00,card_data_len);
 					mfrc500_init();
 					rf_set_card_status(1);
 					return;
@@ -347,11 +340,11 @@ void App_card_process(void)
 				{
 					uint8_t i;
 					DEBUG_CARD_DATA_LOG("NDEF_DataWrite:");
-					for(i=0;i<28;i++)
-						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataWrite[i]);
+					for(i=0;i<card_data_len;i++)
+						DEBUG_CARD_DATA_LOG("%02x ",wpdata[i]);
 					DEBUG_CARD_DATA_LOG("\r\n");
 				}
-				status = ReadNDEFfile(NDEF_DataRead, &NDEF_Len);
+				status = ReadNDEFfile(rpdata, &NDEF_Len);
 				DEBUG_CARD_DEBUG_LOG("ReadNDEFfile status = %d\r\n",status);
 				#ifdef SHOW_CARD_PROCESS_TIME
 				EndTime = PowerOnTime - StartTime;
@@ -359,8 +352,8 @@ void App_card_process(void)
 				#endif
 				if( status != MI_OK )
 				{
-					memset(NDEF_DataRead ,00,28);
-					memset(NDEF_DataWrite,00,28);
+					memset(rpdata,0x00,card_data_len);
+					memset(wpdata,0x00,card_data_len);
 					mfrc500_init();
 					rf_set_card_status(1);
 					return;
@@ -368,17 +361,24 @@ void App_card_process(void)
 				else
 				{
 					uint8_t i;
+					uint8_t write_flg = 0;
 					DEBUG_CARD_DATA_LOG("NDEF_DataRead :");
-					for(i=0;i<28;i++)
-						DEBUG_CARD_DATA_LOG("%02x ",NDEF_DataRead[i]);
+					for(i=0;i<card_data_len;i++)
+						DEBUG_CARD_DATA_LOG("%02x ",rpdata[i]);
+					if(rID.data_xor == XOR_Cal(rID.uid,card_data_len-2))
+							DEBUG_CARD_DATA_LOG(" XOR OK!");
 					DEBUG_CARD_DATA_LOG("\r\n");
-					ndef_rd_xor        = XOR_Cal(NDEF_DataRead+1,26);
-					if((NDEF_DataRead[6]  != NDEF_DataWrite[6])  || 
-						 (NDEF_DataRead[27] != NDEF_DataWrite[27]) || 
-					   (NDEF_DataRead[27] != ndef_rd_xor))
+					
+					for(i=0;i<card_data_len;i++)
 					{
-						memset(NDEF_DataRead ,00,28);
-						memset(NDEF_DataWrite,00,28);
+						if(rpdata[i] != wpdata[i])
+							write_flg = 1;
+					}
+
+					if(write_flg == 1)
+					{
+						memset(rpdata,0x00,card_data_len);
+						memset(wpdata,0x00,card_data_len);
 						mfrc500_init();
 						rf_set_card_status(1);
 						return;
@@ -393,8 +393,8 @@ void App_card_process(void)
 				#endif
 				if( status != MI_OK )
 				{
-					memset(NDEF_DataRead,00,28);
-					memset(NDEF_DataWrite,00,28);
+					memset(rpdata,0x00,card_data_len);
+					memset(wpdata,0x00,card_data_len);
 					mfrc500_init();
 					rf_set_card_status(1);
 					return;
@@ -441,16 +441,17 @@ void App_card_process(void)
 		if( card_message_err == 1 )
 		{
 			card_message.DATA[1] = 0x00;
-			card_message.DATA[2] = write_uid_pos;
-			memcpy(card_message.DATA+3,g_cSNR+4,4);
+			*(uint16_t *)(card_message.DATA+2) = write_uid_pos;
+			memcpy(card_message.DATA+4,g_cSNR+4,4);
 		}
 		if( card_message_err == 2 )
 		{
 			card_message.DATA[1] = 0x01;
 			card_message.DATA[2] = 0xFF;
-			memset(card_message.DATA+3,0,4);
+			card_message.DATA[3] = 0xFF;
+			memset(card_message.DATA+4,0,4);
 		}
-		*(uint16_t *)card_message.LEN = 0x07;
+		*(uint16_t *)card_message.LEN = 0x08;
 		card_message.XOR = XOR_Cal(&card_message.DEVICE,
 			*(uint16_t *)card_message.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
 		card_message.END  = 0xCA;	
@@ -473,20 +474,22 @@ void App_card_process(void)
 
 	if( card_current_status == 5 )
 	{
+		uint8_t *rpdata = (uint8_t *)&rID;
+		uint8_t *wpdata = (uint8_t *)&wID;
 		#ifdef OPEN_SILENT_MODE
 		ledOff(LBLUE);
 		#else
 		BEEP_DISEN();
 		#endif
 		rf_set_card_status(1);
-		memset(NDEF_DataRead ,00,28);
-		memset(NDEF_DataWrite,00,28);
-		if( Card_process.cmd_type == 0x28 )
-		{
-			memcpy(NDEF_DataWrite+7,Card_process.studentid,20);
-			wl.match_status = OFF;
-			rf_set_card_status(0);
-		}
+		memset(rpdata,0x00,sizeof(rf_id_typedf));
+		memset(wpdata,0x00,sizeof(rf_id_typedf));
+//	if( Card_process.cmd_type == 0x28 )
+//	{
+//		memcpy(NDEF_DataWrite+7,Card_process.studentid,20);
+//		wl.match_status = OFF;
+//		rf_set_card_status(0);
+//	}
 		find_card_ok = 1;
 		#ifdef SHOW_CARD_PROCESS_TIME
 		EndTime = PowerOnTime - StartTime;
@@ -505,5 +508,5 @@ void App_card_process(void)
 void card_timer_init( void )
 {
 	sw_create_timer(&card_buzzer_timer    , 150, 4, 5,&(card_process_status), NULL);
-	sw_create_timer(&card_second_find_timer, 20, 1, 2,&(find_card_ok), NULL);
+	sw_create_timer(&card_second_find_timer,100, 1, 2,&(find_card_ok), NULL);
 }

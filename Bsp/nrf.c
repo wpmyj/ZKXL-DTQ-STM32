@@ -350,27 +350,30 @@ void nrf_transmit_start( nrf_transmit_parameter_t *t_conf)
 	}
 	nrf_data.tbuf[i++] = t_conf->data_len;
 	
-//#ifdef OPEN_ACT_TABLE_SHOW
+#ifdef OPEN_ACT_TABLE_SHOW
 	{
-		int i = 0;
+		uint8_t i = 0, printf_flg = 0;
 		uint8_t *pdata = (uint8_t *)list_tcb_table[t_conf->sel_table];
-		printf("\t\t\t\t\t\t\t\t\tSeq:%2x Pac:%2x ",revicer.sen_seq-1,revicer.sen_num);
+		printf("Seq:%2x Pac:%2x ",revicer.sen_seq-1,revicer.sen_num);
 		switch(t_conf->package_type)
 		{
 			
-			case 0: printf("DATA TABLE"); break;
-			case 2: printf("PRE  TABLE"); break;
+			case 0: printf("DATA TABLE"); printf_flg = 1; break;
+			case 2: printf("PRE  TABLE"); printf_flg = 1; break;
 			default: break;
 		}
-		printf("[%2d]:",t_conf->sel_table);
-		
-		for(i=0;i<15;i++)
+		if(printf_flg == 1)
 		{
-			printf("%02x ",pdata[i]);
+			printf("[%2d]:",t_conf->sel_table);
+			
+			for(i=0;i<15;i++)
+			{
+				printf("%02x ",pdata[i]);
+			}
+			printf("\r\n");
 		}
-		printf("\r\n");
 	}
-//#endif
+#endif
 	memcpy(nrf_data.tbuf+i,t_conf->data_buf,t_conf->data_len);
 	i = i + t_conf->data_len;
 

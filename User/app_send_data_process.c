@@ -307,7 +307,7 @@ void whitelist_checktable_and(uint8_t table1, uint8_t table2, uint8_t table)
   Return:
   Others:None
 ******************************************************************************/
-void clicker_send_data_statistics( uint8_t send_data_status, uint8_t uidpos )
+void clicker_send_data_statistics( uint8_t send_data_status, uint16_t uidpos )
 {
 	switch(send_data_status)
 	{
@@ -345,8 +345,9 @@ void rf_move_data_to_buffer( uint8_t *Message )
 {
 	Uart_MessageTypeDef rf_message;
 
-	uint8_t q_num = 0;
-	uint8_t uidpos,Cmdtype;
+	uint8_t  q_num = 0;
+	uint16_t uidpos;
+	uint8_t  Cmdtype;
 	uint16_t AckTableLen,DataLen,Len;
 
 	AckTableLen = Message[14];
@@ -438,7 +439,7 @@ uint8_t spi_process_revice_data( void )
 	uint8_t spi_message[255];
 	uint8_t spi_message_type = 0;
 	bool    Is_whitelist_uid = OPERATION_ERR;
-	uint8_t uidpos = 0xFF;
+	uint16_t uidpos = 0xFFFF;
 	uint8_t clicker_send_data_status = 0;
 
 	if(buffer_get_buffer_status(SPI_REVICE_BUFFER) != BUFFEREMPTY)
@@ -632,7 +633,7 @@ uint8_t spi_process_revice_data( void )
 bool checkout_online_uids(uint8_t src_table, uint8_t check_table,
 	                        uint8_t mode, uint8_t *buffer,uint8_t *len)
 {
-	uint8_t i;
+	uint16_t i;
 	uint8_t is_use_pos = 0,is_online_pos = 0;
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 	static uint8_t index = 0;
@@ -645,19 +646,19 @@ bool checkout_online_uids(uint8_t src_table, uint8_t check_table,
 			is_online_pos = get_index_of_white_list_pos_status(check_table,i);
 			if(is_online_pos == mode)
 			{
-				*buffer = i;
-				get_index_of_uid(i,buffer+1);
+				*(uint16_t *)buffer = i;
+				get_index_of_uid(i,buffer+2);
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
 				{
-					DEBUG_UID_LOG("[%3d]:%02x%02x%02x%02x ",i, *(buffer+1),*(buffer+2), *(buffer+3), *(buffer+4));
-					if(((index++)+1) % 5 == 0)
+					DEBUG_UID_LOG("[%3d]:%02x%02x%02x%02x ",i, *(buffer+2),*(buffer+3), *(buffer+4), *(buffer+5));
+					if(((index++)+1) % 6 == 0)
 					{
 						DEBUG_UID_LOG("\n");
 					}
 				}
 #endif
-				buffer = buffer+5;
-				*len = *len + 5;
+				buffer = buffer+6;
+				*len = *len + 6;
 			}
 		}
 	}
@@ -793,12 +794,12 @@ void get_retransmit_messsage( uint8_t status )
 ******************************************************************************/
 uint8_t checkout_retransmit_clickers(uint8_t presumtable, uint8_t preacktable, uint8_t cursumtable)
 {
-	uint8_t i;
+	uint16_t i;
 	uint8_t is_use_pos = 0,is_online_pos = 0;
 	uint8_t puid[4];
 	uint8_t clickernum = 0;
 #ifdef SEND_DATA_DETAIL_MESSAGE_SHOW
-	uint8_t index = 0;
+	uint16_t index = 0;
 #endif
 	for(i=0;i<120;i++)
 	{
@@ -836,7 +837,7 @@ uint8_t checkout_retransmit_clickers(uint8_t presumtable, uint8_t preacktable, u
 ******************************************************************************/
 uint8_t check_is_revice_over( void )
 {
-	uint8_t i;
+	uint16_t i;
 	uint8_t is_use_pos = 0,is_online_pos = 0;
 	for(i=0;i<120;i++)
 	{

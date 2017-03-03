@@ -1,8 +1,6 @@
 #include "whitelist.h"
 
 /* Private variables ---------------------------------------------------------*/
-uint8_t           uid_p;
-uint8_t		        uid_len = 0;					        // M1卡序列号长度
 uint8_t 	        g_cSNR[10];						        // M1卡序列号
 uint16_t          list_tcb_table[16][8] =
 {
@@ -27,7 +25,7 @@ uint16_t          list_tcb_table[16][8] =
 	{0,0,0,0,0,0,0,0}  // [E]:REQUST TEMP ACK
 };
 
-uint8_t           rf_current_uid_index = 0;
+uint16_t          rf_current_uid_index = 0;
 WhiteList_Typedef wl;
 Revicer_Typedef   revicer;
 /******************************************************************************
@@ -84,7 +82,8 @@ void flash_white_list_use_table(void)
 ******************************************************************************/
 void get_white_list_from_flash(void)
 {
-	uint8_t i,Is_use_pos,index;
+	uint8_t i,Is_use_pos;
+	uint16_t index;
 	uint16_t viraddr,tmpuid[4],switch_status;
 
 	/* get use table */
@@ -123,7 +122,7 @@ void get_white_list_from_flash(void)
   Return:
   Others:None
 ******************************************************************************/
-void set_index_of_white_list_pos( uint8_t use_or_online, uint8_t index )
+void set_index_of_white_list_pos( uint8_t use_or_online, uint16_t index )
 {
 	uint8_t pos1 = index / 16 ;
 	uint8_t pos2 = index % 16 ;
@@ -150,7 +149,7 @@ void set_index_of_white_list_pos( uint8_t use_or_online, uint8_t index )
   Return:
   Others:None
 ******************************************************************************/
-void clear_index_of_white_list_pos( uint8_t use_or_online, uint8_t index )
+void clear_index_of_white_list_pos( uint8_t use_or_online, uint16_t index )
 {
 	uint8_t pos1 = index / 16 ;
 	uint8_t pos2 = index % 16 ;
@@ -177,7 +176,7 @@ void clear_index_of_white_list_pos( uint8_t use_or_online, uint8_t index )
   Return:
   Others:None
 ******************************************************************************/
-uint8_t get_index_of_white_list_pos_status( uint8_t use_or_online, uint8_t index )
+uint8_t get_index_of_white_list_pos_status( uint8_t use_or_online, uint16_t index )
 {
 	uint8_t pos1 = index / 16 ;
 	uint8_t pos2 = index % 16 ;
@@ -200,9 +199,9 @@ uint8_t get_index_of_white_list_pos_status( uint8_t use_or_online, uint8_t index
   Return:
   Others:None
 ******************************************************************************/
-uint8_t get_nouse_pos_of_white_list( uint8_t *pos)
+uint8_t get_nouse_pos_of_white_list( uint16_t *pos)
 {
-	uint8_t i;
+	uint16_t i;
 
 	for(i=0;i<MAX_WHITE_LEN;i++)
 	{
@@ -239,7 +238,7 @@ uint8_t uidcmp(uint8_t *uid1, uint8_t *uid2)
   Return:
   Others:None
 ******************************************************************************/
-uint8_t get_index_of_uid( uint8_t index, uint8_t  uid[4] )
+uint8_t get_index_of_uid( uint16_t index, uint8_t  uid[4] )
 {
 	uint8_t  is_pos_use = 0;
 
@@ -265,7 +264,7 @@ uint8_t get_index_of_uid( uint8_t index, uint8_t  uid[4] )
   Return:
   Others:None
 ******************************************************************************/
-void clear_index_of_uid(uint8_t index)
+void clear_index_of_uid(uint16_t index)
 {
 	clear_index_of_white_list_pos(0,index);
 }
@@ -278,7 +277,7 @@ void clear_index_of_uid(uint8_t index)
   Return:
   Others:None
 ******************************************************************************/
-void add_index_of_uid( uint8_t index, uint8_t  uid[4] )
+void add_index_of_uid( uint16_t index, uint8_t  uid[4] )
 {
 	uint16_t viraddr = index * 4;
 	uint8_t  i;
@@ -299,10 +298,10 @@ void add_index_of_uid( uint8_t index, uint8_t  uid[4] )
   Return:
   Others:None
 ******************************************************************************/
-uint8_t get_len_of_white_list(void)
+uint16_t get_len_of_white_list(void)
 {
 	uint16_t len = 0;
-	uint8_t i = 0;
+	uint16_t i = 0;
 	uint8_t is_pos_use = 0;
 
 	for(i=0; i < MAX_WHITE_LEN; i++)
@@ -318,7 +317,7 @@ uint8_t get_len_of_white_list(void)
 		}
 	}
 
-	return (uint8_t)(len&0xFF);
+	return (uint16_t)(len&0xFFFF);
 }
 
 /******************************************************************************
@@ -329,7 +328,7 @@ uint8_t get_len_of_white_list(void)
   Return:
   Others:None
 ******************************************************************************/
-uint8_t store_len_to_fee(uint8_t len)
+uint8_t store_len_to_fee(uint16_t len)
 {
 	uint16_t FlashStatus = 0;
 
@@ -408,9 +407,9 @@ uint8_t initialize_white_list( void )
   Return:
   Others:None
 ******************************************************************************/
-uint8_t search_uid_in_white_list(uint8_t *g_uid , uint8_t *position)
+uint8_t search_uid_in_white_list(uint8_t *g_uid , uint16_t *position)
 {
-	uint8_t i;
+	uint16_t i;
 	uint8_t temuid[4];
 	uint8_t is_pos_use = 0;
 	uint8_t is_same = 0;
@@ -448,7 +447,7 @@ uint8_t search_uid_in_white_list(uint8_t *g_uid , uint8_t *position)
 ******************************************************************************/
 uint8_t delete_uid_from_white_list(uint8_t *g_uid)
 {
-	uint8_t pos;
+	uint16_t pos;
 	uint8_t status = 1;
 
 	/* search the uid form white list*/
@@ -476,7 +475,7 @@ uint8_t delete_uid_from_white_list(uint8_t *g_uid)
   Return:
   Others:None
 ******************************************************************************/
-uint8_t add_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
+uint8_t add_uid_to_white_list(uint8_t *g_uid, uint16_t *position)
 {
 	uint8_t status = 1;
 
@@ -513,9 +512,9 @@ uint8_t add_uid_to_white_list(uint8_t *g_uid, uint8_t *position)
   Return:
   Others:None
 ******************************************************************************/
-uint8_t get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[], uint8_t *uidpos )
+uint8_t get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[], uint16_t *uidpos )
 {
-	uint8_t i;
+	uint16_t i;
 
 	/* 向后查找下一个UID */
 	for(i=rf_current_uid_index;i<MAX_WHITE_LEN;i++)

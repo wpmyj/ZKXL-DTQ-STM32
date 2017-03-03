@@ -143,7 +143,7 @@ uint8_t ReadNDEFfile (uint8_t *NDEFfile_Data, uint16_t *NDEFfile_len)
 	{
 		return 0x11;
 	}
-	NDEF_DataRead_Len = 26;
+	NDEF_DataRead_Len = 22;
 	memset(respon, 0, BUF_LEN);
 	len = 0;
 	//MRC500_DEBUG_START("ReadNDEFfile \r\n");
@@ -197,18 +197,18 @@ uint8_t WriteNDEFfile( uint8_t *pDataToWrite )
 	}
 
 	#define NbByteToWrite_LEN 2
-//printf("NbByteToWrite = %d\r\n",NbByteToWrite);
+  //printf("NbByteToWrite = %d\r\n",NbByteToWrite);
 	for( i = 0; i<NbByteToWrite;  )
 	{
 		uint8_t write_len = NbByteToWrite_LEN;
 
 		if( (i+NbByteToWrite_LEN) > NbByteToWrite )
 				write_len = NbByteToWrite-i;
-	//printf("write data: %02x %02x ",*(pDataToWrite+i),*(pDataToWrite+i+1));
+	  //printf("write data: %02x %02x ",*(pDataToWrite+i),*(pDataToWrite+i+1));
 		len = 0;
 		memset(respon, 0, BUF_LEN);
 		status = PcdWriteNDEFfile(i, write_len, pDataToWrite+i, respon, &len);
-  //printf("index = %02d PcdWriteNDEFfile2 status = %x respon = %02x %02x %02x %02x\r\n",\
+    //printf("index = %02d PcdWriteNDEFfile2 status = %x respon = %02x %02x %02x %02x\r\n",\
 			i, status,respon[0],respon[1],respon[2],respon[3]);
 		if( (MI_OK == status) && (respon[1] == 0x90) && (respon[2] == 0x00) )
 		{

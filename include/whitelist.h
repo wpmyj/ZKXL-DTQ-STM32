@@ -34,29 +34,28 @@ extern uint8_t		        uid_len;					    // M1卡序列号长度
 extern uint8_t 	          g_cSNR[10];						// M1卡序列号
 
 
-uint8_t get_index_of_uid( uint8_t index, uint8_t  uid[4] );
-void clear_index_of_uid(uint8_t index);
-void add_index_of_uid( uint8_t index, uint8_t  uid[4] );
+uint8_t get_index_of_uid( uint16_t index, uint8_t  uid[4] );
+void clear_index_of_uid(uint16_t index);
+void add_index_of_uid( uint16_t index, uint8_t  uid[4] );
 
 uint8_t initialize_white_list( void );
 uint8_t uidcmp(uint8_t *uid1, uint8_t *uid2);
-uint8_t add_uid_to_white_list(uint8_t *g_uid, uint8_t *position);
+uint8_t add_uid_to_white_list(uint8_t *g_uid, uint16_t *position);
 void clear_white_list(void);
 uint8_t delete_uid_from_white_list(uint8_t *g_uid);
-uint8_t search_uid_in_white_list(uint8_t *g_uid , uint8_t *position);
-
-uint8_t store_len_to_fee(uint8_t len);
-uint8_t get_len_of_white_list(void);
+uint8_t search_uid_in_white_list(uint8_t *g_uid , uint16_t *position);
+uint8_t store_len_to_fee(uint16_t len);
+uint16_t get_len_of_white_list(void);
 uint8_t store_switch_status_to_fee(uint8_t switch_status);
 uint8_t get_switch_status_of_white_list(void);
 void get_white_list_from_flash(void);
 void flash_white_list_use_table(void);
-void set_index_of_white_list_pos( uint8_t use_or_online, uint8_t index );
-void clear_index_of_white_list_pos( uint8_t use_or_online, uint8_t index );
-uint8_t get_nouse_pos_of_white_list( uint8_t *pos);
-uint8_t get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[], uint8_t *uidpos );
+void set_index_of_white_list_pos( uint8_t use_or_online, uint16_t index );
+void clear_index_of_white_list_pos( uint8_t use_or_online, uint16_t index );
+uint8_t get_nouse_pos_of_white_list( uint16_t *pos);
+uint8_t get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[], uint16_t *uidpos );
 void clear_white_list_online_table(void);
-uint8_t get_index_of_white_list_pos_status( uint8_t use_or_online, uint8_t index );
+uint8_t get_index_of_white_list_pos_status( uint8_t use_or_online, uint16_t index );
 void copy_online_to_store_table( void );
 void clear_white_list_table(uint8_t sel_table);
 void clear_current_uid_index( void );
