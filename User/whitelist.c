@@ -25,9 +25,10 @@ uint16_t          list_tcb_table[16][8] =
 	{0,0,0,0,0,0,0,0}  // [E]:REQUST TEMP ACK
 };
 
-uint16_t          rf_current_uid_index = 0;
-WhiteList_Typedef wl;
-Revicer_Typedef   revicer;
+uint16_t               rf_current_uid_index = 0;
+WhiteList_Typedef      wl;
+Revicer_Typedef        revicer;
+clicker_config_typedef clicker_set;
 /******************************************************************************
   Function:clear_current_uid_index
   Description:
@@ -70,6 +71,34 @@ void flash_white_list_use_table(void)
 	uint8_t i;
 	for(i=0;i<8;i++)
 		 EE_WriteVariable(WHITE_LIST_USE_TABLE_POS_OF_FEE+i,list_tcb_table[0][i]);
+}
+
+void clicker_config_default_set( void )
+{
+	uint16_t data;
+	
+	/* 读取信道配置参数 */
+	EE_ReadVariable(CPU_RX_CH_POS_OF_FEE,&data);
+	if( data < 125 )
+	{
+		//printf("read %d = %d\r\n",CPU_RX_CH_POS_OF_FEE,data);
+		clicker_set.N_CH_TX      = data;
+	}
+	else
+		clicker_set.N_CH_TX      = 2;
+
+	EE_ReadVariable( CPU_TX_CH_POS_OF_FEE ,&data);
+	if( data < 125 )
+	{
+		//printf("read %d = %d\r\n",CPU_TX_CH_POS_OF_FEE,data);
+		clicker_set.N_CH_RX      = data;
+	}
+	else
+		clicker_set.N_CH_RX      = 4;
+
+	/* 设置设置接收器的信道 */
+	spi_set_cpu_tx_signal_ch(clicker_set.N_CH_RX);
+	spi_set_cpu_rx_signal_ch(clicker_set.N_CH_TX);
 }
 
 /******************************************************************************

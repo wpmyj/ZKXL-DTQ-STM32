@@ -16,7 +16,6 @@
 #include "app_card_process.h"
 #include "app_spi_send_data_process.h"
 
-
 /******************************************************************************
   Function:app_handle_layer
   Description:

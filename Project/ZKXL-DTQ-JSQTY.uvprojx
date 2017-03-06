@@ -611,11 +611,6 @@
               <FilePath>..\User\app_show_message_process.c</FilePath>
             </File>
             <File>
-              <FileName>app_systick_package_process.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\app_systick_package_process.c</FilePath>
-            </File>
-            <File>
               <FileName>app_spi_send_data_process.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\app_spi_send_data_process.c</FilePath>
