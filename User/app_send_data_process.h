@@ -150,7 +150,7 @@ uint8_t get_rf_retransmit_status(void);
 void whitelist_checktable_or(uint8_t table1, uint8_t table2);
 void whitelist_checktable_and(uint8_t table1, uint8_t table2, uint8_t table);
 void clicker_send_data_statistics( uint8_t send_data_status, uint16_t uidpos );
-bool checkout_online_uids(uint8_t src_table, uint8_t check_table, uint8_t mode, uint8_t *puid,uint8_t *len);
+uint8_t checkout_online_uids(uint8_t src_table, uint8_t check_table, uint8_t mode, uint8_t *puid,uint8_t *len);
 uint8_t spi_process_revice_data( void );
 void send_data_result( uint8_t status );
 void get_retransmit_messsage( uint8_t status );
@@ -158,9 +158,5 @@ void retansmit_data( uint8_t status );
 void App_clickers_send_data_process( void );
 void send_data_env_init(void);
 void send_data_process_timer_init( void );
-void change_single_send_data_status( uint8_t status );
-uint8_t get_single_send_data_status( void );
-void App_clickers_single_send_data_process( void );
-
 void set_retranmist_data_status(uint8_t new_status);
 #endif

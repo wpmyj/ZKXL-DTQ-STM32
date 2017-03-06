@@ -57,7 +57,7 @@ typedef struct
 
 extern timer_list_typedef timer_list;
 extern Timer_typedef retransmit_timer,systick_timer;
-extern Timer_typedef send_data1_timer,send_data2_timer,send_data3_timer,single_send_data_timer;
+extern Timer_typedef send_data1_timer,send_data2_timer,send_data3_timer;
 extern Timer_typedef request_data_timer;
 extern Timer_typedef spi_send_data_timer,spi_send_data_timer1;
 extern Timer_typedef systick_package_timer;
