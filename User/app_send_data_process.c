@@ -467,14 +467,17 @@ uint8_t spi_process_revice_data( void )
 			/* 检索白名单 */
 			Is_whitelist_uid = search_uid_in_white_list(spi_message+5,&uidpos);
 
-			if(wl.uids[uidpos].use == 0)
+			if(Is_whitelist_uid == OPERATION_SUCCESS)
 			{
-				wl.uids[uidpos].use = 1;
-				wl.uids[uidpos].firstrev = 1;
-			}
-			else
-			{
-				wl.uids[uidpos].firstrev = 0;
+				if(wl.uids[uidpos].use == 0)
+				{
+					wl.uids[uidpos].use = 1;
+					wl.uids[uidpos].firstrev = 1;
+				}
+				else
+				{
+					wl.uids[uidpos].firstrev = 0;
+				}
 			}
 
 			/* 白名单开关状态 */
