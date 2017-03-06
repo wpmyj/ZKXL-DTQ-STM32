@@ -14,6 +14,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+
 #include "app_send_data_process.h"
 #include "app_card_process.h"
 
@@ -35,7 +36,6 @@ Uart_MessageTypeDef backup_massage;
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
 extern Process_tcb_Typedef systick_process;
-extern clicker_config_typedef clicker_set;
 
 /* Private functions ---------------------------------------------------------*/
 static void serial_send_data_to_pc(void);

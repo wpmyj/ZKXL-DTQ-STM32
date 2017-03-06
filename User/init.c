@@ -95,7 +95,6 @@ void Platform_Init(void)
 
 	/* 复位并初始化RC500 */
 	mfrc500_init();
-	clicker_config_default_set();
 
 	/* enable all IRQ */
 	ENABLE_ALL_IRQ();
@@ -109,6 +108,7 @@ void Platform_Init(void)
 	DelayMs(200);
 	BEEP_DISEN();
 	ledOff(LBLUE);
+	clicker_config_default_set();
 	IWDG_Configuration();
 }
 
@@ -352,9 +352,13 @@ void spi_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count
 
 void spi_set_cpu_rx_signal_ch( uint8_t rx_ch )
 {
+	uint16_t data = rx_ch;
 	cpu_spi_cmd_typedef spi_cmd;
 	uint8_t *pdata,i;
 	
+	/* 存储数据到FEE */
+	EE_WriteVariable(CPU_RX_CH_POS_OF_FEE,data);
+
 	/* 封装指令 */
 	spi_cmd.header   = 0x86;
 	spi_cmd.cmd      = 0x20;
@@ -381,8 +385,12 @@ void spi_set_cpu_rx_signal_ch( uint8_t rx_ch )
 
 void spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 {
+	uint16_t data = tx_ch;
 	cpu_spi_cmd_typedef spi_cmd;
 	uint8_t *pdata,i,retval[sizeof(cpu_spi_cmd_typedef)];
+	
+	/* 存储数据到FEE */
+	EE_WriteVariable(CPU_TX_CH_POS_OF_FEE,data);
 	
 	/* 封装指令 */
 	spi_cmd.header   = 0x86;

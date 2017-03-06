@@ -18,6 +18,7 @@ extern uint8_t P_Vresion[2];
 extern uint8_t g_cSNR[10];	
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
+extern clicker_config_typedef clicker_set;
 Process_tcb_Typedef Card_process;
 
 #ifdef SHOW_CARD_PROCESS_TIME
@@ -40,7 +41,7 @@ static uint16_t read_uid_pos    = 0xFFFF;
 static uint16_t write_uid_pos   = 0xFFFF;
 static uint8_t card_message_err = 0;
 static uint8_t find_card_ok     = 0;
-clicker_config_typedef clicker_set;
+
 
 /******************************************************************************
   Function:clicker_config_default_set
@@ -51,12 +52,7 @@ clicker_config_typedef clicker_set;
   Return:
   Others:None
 ******************************************************************************/
-void clicker_config_default_set( void )
-{
-	clicker_set.N_CH_RX      = 4;
-	clicker_set.N_CH_TX      = 2;
-	clicker_set.N_TX_POWER   = 4;
-}
+
 
 /******************************************************************************
   Function:rf_set_card_status

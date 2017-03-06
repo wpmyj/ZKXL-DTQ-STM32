@@ -4,10 +4,12 @@
 #include "main.h"
 
 #define MAX_WHITE_LEN						          (120)
+#define WHITE_TABLE_LEN                   (8)
 #define WHITE_LIST_LEN_POS_OF_FEE         (481)
 #define WHITE_LIST_SW_POS_OF_FEE          (482)
 #define WHITE_LIST_USE_TABLE_POS_OF_FEE   (483)
-
+#define CPU_TX_CH_POS_OF_FEE              (WHITE_LIST_USE_TABLE_POS_OF_FEE+WHITE_TABLE_LEN)
+#define CPU_RX_CH_POS_OF_FEE              (1+CPU_TX_CH_POS_OF_FEE)
 
 #define OPERATION_NOUSE                   (2)
 #define OPERATION_ERR                     (1)
@@ -29,10 +31,15 @@ typedef enum
 	ON 	= 1
 } Switch_State;
 
-extern uint8_t            uid_p;
-extern uint8_t		        uid_len;					    // M1ø®–Ú¡–∫≈≥§∂»
-extern uint8_t 	          g_cSNR[10];						// M1ø®–Ú¡–∫≈
+typedef struct
+{
+	uint8_t  N_CH_TX;
+	uint8_t  N_CH_RX;
+	int8_t   N_TX_POWER;
+}clicker_config_typedef;
 
+extern uint8_t 	              g_cSNR[10];						// M1ø®–Ú¡–∫≈
+extern clicker_config_typedef clicker_set;
 
 uint8_t get_index_of_uid( uint16_t index, uint8_t  uid[4] );
 void clear_index_of_uid(uint16_t index);
@@ -59,4 +66,5 @@ uint8_t get_index_of_white_list_pos_status( uint8_t use_or_online, uint16_t inde
 void copy_online_to_store_table( void );
 void clear_white_list_table(uint8_t sel_table);
 void clear_current_uid_index( void );
+void clicker_config_default_set( void );
 #endif // __WHITE_LIST_H_

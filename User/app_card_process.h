@@ -22,13 +22,6 @@
 
 typedef struct
 {
-	uint8_t  N_CH_TX;
-	uint8_t  N_CH_RX;
-	int8_t   N_TX_POWER;
-}clicker_config_typedef;
-
-typedef struct
-{
 	uint8_t  len_h;
 	uint8_t  len_l;
 	uint8_t  uid[4];
@@ -46,6 +39,6 @@ void App_card_process(void);
 void rf_set_card_status(uint8_t new_status);
 uint8_t rf_get_card_status(void);
 void card_timer_init( void );
-void clicker_config_default_set( void );
+
 
 #endif
