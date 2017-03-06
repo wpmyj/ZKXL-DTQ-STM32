@@ -16,16 +16,13 @@
 #include "main.h"
 #include "app_send_data_process.h"
 #include "app_card_process.h"
-#include "app_systick_package_process.h"
 
 /* Private variables ---------------------------------------------------------*/
 StateMechineTcb_Typedef uart_rev_status,uart_sen_status;
 uint8_t P_Vresion[2] = { 0x00, 0x02 };
-//Timer_typedef uart_irq_rev_timer;
 
 extern StateMechineTcb_Typedef default_state_mechine_tcb;
 extern uint8_t is_open_statistic;
-//extern uint8_t uart_tx_status;
 extern nrf_communication_t nrf_data;
 extern uint16_t list_tcb_table[16][8];
        uint8_t serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
@@ -405,8 +402,7 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 		memset(sMessage->REVICED,0xAA,2);
 		*(uint16_t *)(sMessage->LEN) = 0x01;
 
-		status  = get_clicker_send_data_status() ;
-		status |= get_single_send_data_status();
+		status  = get_clicker_send_data_status();
 		
 		if( status == 0)
 			sMessage->DATA[0] = 0x00; // ok

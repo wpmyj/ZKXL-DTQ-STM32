@@ -12,7 +12,6 @@
 #include "nrf.h"
 #include "app_timer.h"
 #include "app_send_data_process.h"
-#include "app_systick_package_process.h"
 #include "app_spi_send_data_process.h"
 #include "app_card_process.h"
 

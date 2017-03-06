@@ -3,12 +3,11 @@
 #include "stdio.h"
 #include "app_send_data_process.h"
 #include "app_show_message_process.h"
-#include "app_systick_package_process.h"
 
 #define CLICKER_SNED_DATA_STATUS_TYPE     10
 #define CLICKER_PRE_DATA_STATUS_TYPE      11
 
-Process_tcb_Typedef Send_data_process, Single_send_data_process;
+Process_tcb_Typedef Send_data_process;
 volatile send_data_process_tcb_tydef send_data_process_tcb;
 
 extern uint8_t spi_status_buffer[SPI_DATA_IRQ_BUFFER_BLOCK_COUNT][20];
@@ -16,8 +15,6 @@ extern uint8_t spi_status_write_index, spi_status_read_index, spi_status_count;
 extern uint8_t P_Vresion[2];
 
 uint8_t is_open_statistic = 0;
-uint8_t single_send_data_status = 0;
-uint8_t single_sned_data_count = 0;
 uint8_t retranmist_data_status = 0;
 
 uint8_t clicker_send_data_status = 0;
@@ -436,11 +433,11 @@ void rf_move_data_to_buffer( uint8_t *Message )
 ******************************************************************************/
 uint8_t spi_process_revice_data( void )
 {
-	uint8_t spi_message[255];
-	uint8_t spi_message_type = 0;
-	bool    Is_whitelist_uid = OPERATION_ERR;
+	uint8_t  spi_message[255];
+	uint8_t  spi_message_type = 0;
+	uint8_t  Is_whitelist_uid = OPERATION_ERR;
 	uint16_t uidpos = 0xFFFF;
-	uint8_t clicker_send_data_status = 0;
+	uint8_t  clicker_send_data_status = 0;
 
 	if(buffer_get_buffer_status(SPI_REVICE_BUFFER) != BUFFEREMPTY)
 	{
@@ -544,7 +541,8 @@ uint8_t spi_process_revice_data( void )
 							uint8_t *pdata = (uint8_t *)(result_message.DATA+2);
 							
 							/* 填充UID信息 */
-							*(pdata++)= uidpos;
+							*((uint16_t *)pdata)= uidpos;
+							pdata = pdata + 2;
 							memcpy(pdata,spi_message+5,4);
 							
 							/* 填充包信息 */
@@ -555,7 +553,7 @@ uint8_t spi_process_revice_data( void )
 							memset(result_message.DSTID,0,UID_LEN);
 							memset(result_message.REVICED,0xAA,2);
 							result_message.CMDTYPE = 0x11;
-							*(uint16_t *)(result_message.LEN) = 5;
+							*(uint16_t *)(result_message.LEN) = 6;
 							*(uint16_t *)(result_message.LEN) = *(uint16_t *)(result_message.LEN)+2;
 							result_message.DATA[0] = 0x00;
 							result_message.DATA[1] = 0;
@@ -630,7 +628,7 @@ uint8_t spi_process_revice_data( void )
   Return:
   Others:None
 ******************************************************************************/
-bool checkout_online_uids(uint8_t src_table, uint8_t check_table,
+uint8_t checkout_online_uids(uint8_t src_table, uint8_t check_table,
 	                        uint8_t mode, uint8_t *buffer,uint8_t *len)
 {
 	uint16_t i;
@@ -1200,150 +1198,12 @@ void send_data_env_init(void)
 
 	/* clear last status of send status */
 	pre_status = 0;
-
-	single_send_data_status = 0;
-	single_sned_data_count  = 0;
 	
 	retranmist_data_status = 0;
 	sw_clear_timer(&request_data_timer);
 }
 
-/******************************************************************************
-  Function:change_single_send_data_status
-  Description:
-  Input :
-  Return:
-  Others:None
-******************************************************************************/
-void change_single_send_data_status( uint8_t status )
-{
-	single_send_data_status = status;
-}
 
-/******************************************************************************
-  Function:get_single_send_data_status
-  Description:
-  Input :
-  Return:
-  Others:None
-******************************************************************************/
-uint8_t get_single_send_data_status( void )
-{
-	return single_send_data_status;
-}
-
-/******************************************************************************
-  Function:single_send_data_result
-  Description:
-  Input :
-  Return:
-  Others:None
-******************************************************************************/
-void single_send_data_result( uint8_t status, uint8_t step, uint8_t pos )
-{
-//	Uart_MessageTypeDef result_message;
-
-//	if( status == 0 )
-//		result_message.TYPE   = 0x31;
-//	else
-//		result_message.TYPE   = 0x30;
-
-//	result_message.HEADER = 0x5C;
-//	memcpy(result_message.SIGN,backup_massage.SIGN,4);
-//	result_message.LEN     = 0x06;
-//	result_message.DATA[0] = step;
-//	result_message.DATA[1] = pos;
-//	memcpy(result_message.DATA+2,Single_send_data_process.uid,4);
-//	result_message.XOR = XOR_Cal(&result_message.TYPE,12);
-//	result_message.END  = 0xCA;
-
-//	if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
-//	{
-//		serial_ringbuffer_write_data(SEND_RINGBUFFER,&result_message);
-//	}
-
-}
-/******************************************************************************
-  Function:single_send_data_process
-  Description:
-  Input :
-  Return:
-  Others:None
-******************************************************************************/
-void App_clickers_single_send_data_process( void )
-{
-//	if( single_send_data_status == 2 )
-//	{
-//		uint8_t Is_whitelist_uid = 0, Is_revice = 0, upos = 0;
-//		uint8_t temp = 0;
-
-//		Is_whitelist_uid = search_uid_in_white_list( Single_send_data_process.uid, &upos );
-
-//		/* 白名单开关状态 */
-//		if(wl.switch_status == OFF)
-//		{
-//			/* 关闭白名单是不过滤白名单 */
-//			Is_whitelist_uid = OPERATION_SUCCESS;
-//		}
-
-//		if(Is_whitelist_uid == OPERATION_SUCCESS )
-//		{
-//			Is_revice = get_index_of_white_list_pos_status( SINGLE_SEND_DATA_ACK_TABLE, upos );
-
-//			if( Is_revice == 0 )
-//			{
-//				/* 发送前导帧 */
-//				whitelist_checktable_and( 0, SINGLE_SEND_DATA_ACK_TABLE, SEND_PRE_TABLE );
-//				memcpy( nrf_data.dtq_uid, Single_send_data_process.uid, 4 );
-//				nrf_transmit_start( &temp, 0, NRF_DATA_IS_PRE, SEND_PRE_COUNT,
-//														SEND_PRE_DELAY100US, SEND_PRE_TABLE,PACKAGE_NUM_SAM);
-//				/* 发送数据帧 */
-//				memcpy( nrf_data.dtq_uid, Single_send_data_process.uid, 4 );
-
-//				nrf_transmit_start( rf_var.tx_buf, rf_var.tx_len, NRF_DATA_IS_USEFUL,
-//														SEND_DATA_COUNT, SEND_DATA_DELAY100US, SINGLE_SEND_DATA_ACK_TABLE,PACKAGE_NUM_SAM);
-
-//				single_sned_data_count++;
-
-//				if( single_sned_data_count >= SINGLE_SEND_DATA_COUNT_MAX)
-//				{
-//					single_send_data_status = 0;
-//					DEBUG_STATISTICS_LOG("send over fail\r\n");
-//					clear_white_list_table(SINGLE_SEND_DATA_ACK_TABLE);
-//					#ifdef ENABLE_SEND_DATA_TO_PC
-//					single_send_data_result( 1, single_sned_data_count, upos );
-//					single_sned_data_count = 0;
-//					#endif
-//				}
-//				else
-//				{
-//					single_send_data_status = 1;
-//					DEBUG_STATISTICS_LOG("send count = %d\r\n",single_sned_data_count);
-//				}
-//			}
-//			else
-//			{
-//				single_send_data_status = 0;
-//				DEBUG_STATISTICS_LOG("OK \r\n");
-//				clear_white_list_table(SINGLE_SEND_DATA_ACK_TABLE);
-//				#ifdef ENABLE_SEND_DATA_TO_PC
-//				single_send_data_result( 0, single_sned_data_count, upos );
-//				single_sned_data_count = 0;
-//				#endif
-//			}
-//		}
-//		else
-//		{
-//			single_send_data_status = 0;
-//			DEBUG_STATISTICS_LOG("uid is not in white list fail\r\n");
-//			clear_white_list_table(SINGLE_SEND_DATA_ACK_TABLE);
-//			#ifdef ENABLE_SEND_DATA_TO_PC
-//			single_send_data_result( 1, single_sned_data_count, upos );
-//			single_sned_data_count = 0;
-//			#endif
-//		}
-//	}
-}
 /******************************************************************************
   Function:App_clickers_send_data_process
   Description:
@@ -1488,7 +1348,4 @@ void send_data_process_timer_init( void )
   /* create request timer */
 	sw_create_timer(&request_data_timer, RETRANSMIT_DATA_TIME_UNIT, 1, 2, &retranmist_data_status, NULL);
 
-	/* create single send data timer */
-	sw_create_timer(&single_send_data_timer, SINGLE_SEND_DATA_TIMEOUT, 1, 2,
-	                &(single_send_data_status), NULL);
 }
