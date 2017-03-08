@@ -52,8 +52,8 @@ typedef struct
 	uint8_t    start;
 	uint8_t    attendance_sttaus;
 	uint8_t    match_status;
+	uint8_t    weite_std_id_status;
 }WhiteList_Typedef;
-
 
 extern bool 						  gbf_hse_setup_fail; //外部16M晶振起振标志
 extern RF_TypeDef 				rf_var;							// 2.4G数据包缓冲

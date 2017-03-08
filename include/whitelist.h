@@ -10,6 +10,7 @@
 #define WHITE_LIST_USE_TABLE_POS_OF_FEE   (483)
 #define CPU_TX_CH_POS_OF_FEE              (WHITE_LIST_USE_TABLE_POS_OF_FEE+WHITE_TABLE_LEN)
 #define CPU_RX_CH_POS_OF_FEE              (1+CPU_TX_CH_POS_OF_FEE)
+#define CPU_TX_POWER_POS_OF_FEE           (CPU_RX_CH_POS_OF_FEE+1)
 
 #define OPERATION_NOUSE                   (2)
 #define OPERATION_ERR                     (1)

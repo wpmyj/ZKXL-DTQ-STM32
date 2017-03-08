@@ -95,6 +95,14 @@ void clicker_config_default_set( void )
 	}
 	else
 		clicker_set.N_CH_RX      = 4;
+	
+	EE_ReadVariable( CPU_TX_POWER_POS_OF_FEE ,&data);
+	if(( *(int8_t *)(&data) >= -30 ) && ( *(int8_t *)(&data) <= 4 ))
+	{
+		clicker_set.N_TX_POWER = *(int8_t *)(&data);
+	}
+	else
+		clicker_set.N_TX_POWER = 4;
 
 	/* 设置设置接收器的信道 */
 	spi_set_cpu_tx_signal_ch(clicker_set.N_CH_RX);

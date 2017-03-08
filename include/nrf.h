@@ -113,7 +113,6 @@ typedef struct
 	uint8_t package_type;
 	uint8_t *data_buf;
 	uint8_t data_len;
-	uint8_t is_add_table;
 	uint8_t sel_table;
 } nrf_transmit_parameter_t;
 

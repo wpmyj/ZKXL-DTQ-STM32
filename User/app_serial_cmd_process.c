@@ -35,8 +35,7 @@ Uart_MessageTypeDef backup_massage;
 
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
-extern Process_tcb_Typedef systick_process;
-
+extern Process_tcb_Typedef Card_process;
 /* Private functions ---------------------------------------------------------*/
 static void serial_send_data_to_pc(void);
 static void serial_cmd_process(void);
@@ -365,9 +364,9 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 						*(pSdata+(sdata_index++)) = 0x01;
 					}
 					break;
-					case 0x03: // 获取电量
+					case 0x03: // 获取状态信息
 					{
-						cliecker_cmd_type = 0x30;
+						cliecker_cmd_type = 0x24;
 						*(pSdata+(sdata_index++)) = 0x01;
 					}
 					break;
@@ -377,11 +376,8 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 					}
 					break;
 				}
-				
 				rdata_index = rdata_index + sizeof(TransmitCtl_Tydef);
 			}
-			
-			
 		}
 		rf_var.cmd = cliecker_cmd_type;
 		rf_var.tx_len = sdata_index+1 ;
@@ -433,7 +429,6 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 		transmit_config.is_pac_add     = PACKAGE_NUM_ADD;
 		transmit_config.data_buf       = NULL;
 		transmit_config.data_len       = 0;
-		transmit_config.is_add_table   = 1;
 		transmit_config.sel_table      = SEND_PRE_TABLE;
 		nrf_transmit_start( &transmit_config );
 
@@ -444,7 +439,6 @@ uint8_t App_send_data_to_clickers( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 		transmit_config.is_pac_add     = PACKAGE_NUM_SAM;
 		transmit_config.data_buf       = rf_var.tx_buf;
 		transmit_config.data_len       = rf_var.tx_len;
-		transmit_config.is_add_table   = 1;
 		transmit_config.sel_table      = SEND_DATA_ACK_TABLE;
 		nrf_transmit_start( &transmit_config );
 
@@ -512,6 +506,7 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 					{
 						*( spdata + ( i++ ) ) = 0;
 						wl.match_status = ON;
+						wl.weite_std_id_status = OFF;
 						rf_set_card_status(1);
 					}
 				}
@@ -640,6 +635,67 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 				
 				return result;
 			}
+			
+		case U_CHECK_ON:
+		case U_CHECK_OFF:
+			{
+				uint8_t *spdata = (uint8_t *)(sMessage->DATA+1);
+				if( UidCmd == U_CHECK_ON )
+				{
+					uint8_t card_current_status = 0;
+					card_current_status = rf_get_card_status();
+					if(card_current_status != 0)
+					{
+						*( spdata + ( i++ ) ) = 1;
+					}
+					else
+					{
+						*( spdata + ( i++ ) ) = 0;
+						wl.attendance_sttaus = ON;
+						rf_set_card_status(1);
+					}
+				}
+
+				if( UidCmd == U_CHECK_OFF )
+				{
+					wl.attendance_sttaus = OFF;
+					rf_set_card_status(0);
+					*( spdata + ( i++ ) ) = 0;
+				}
+
+				*(uint16_t *)sMessage->LEN = i+1;
+				sMessage->XOR = XOR_Cal((uint8_t *)(&(sMessage->DEVICE)), 
+					*(uint16_t *)(sMessage->LEN)+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
+				sMessage->END = 0xCA;
+				return APP_SERIAL_CMD_STATUS_IDLE;
+				//return APP_SERIAL_CMD_STATUS_IGNORE;
+			}
+		case U_WR_STD_ID:
+		{
+				uint8_t *spdata = (uint8_t *)(sMessage->DATA+1);
+				uint8_t *rpdata = (uint8_t *)(rMessage->DATA+1);
+				uint8_t card_current_status = 0;
+				card_current_status = rf_get_card_status();
+				if(card_current_status != 0)
+				{
+					*( spdata + ( i++ ) ) = 1;
+				}
+				else
+				{
+					*( spdata + ( i++ ) ) = 0;
+					wl.match_status = ON;
+					wl.weite_std_id_status = ON;
+					memcpy(Card_process.studentid,rpdata,10);
+					rf_set_card_status(1);
+				}
+
+				*(uint16_t *)sMessage->LEN = i+1;
+				sMessage->XOR = XOR_Cal((uint8_t *)(&(sMessage->DEVICE)), 
+					*(uint16_t *)(sMessage->LEN)+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
+				sMessage->END = 0xCA;
+				return APP_SERIAL_CMD_STATUS_IDLE;
+				//return APP_SERIAL_CMD_STATUS_IGNORE;
+		}
 
 		default:
 			{
@@ -948,7 +1004,9 @@ uint8_t App_clicker_parameter_set( Uart_MessageTypeDef *rMessage, Uart_MessageTy
 				}
 				else
 				{
+					uint16_t data = tx_power;
 					clicker_set.N_TX_POWER = tx_power;
+					EE_WriteVariable( CPU_TX_POWER_POS_OF_FEE , data );
 					err = 0;
 				}
 				*(spdata) = err;
