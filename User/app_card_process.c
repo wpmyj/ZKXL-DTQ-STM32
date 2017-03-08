@@ -215,11 +215,12 @@ void App_card_process(void)
 			}
 			else
 			{
-				if(rID.data_xor != XOR_Cal(rID.uid,card_data_len-2))
+				if(rID.data_xor != XOR_Cal(rID.uid,card_data_len-3))
 				{
 					uint8_t i;
 					DEBUG_CARD_DATA_LOG("NDEF_DataRead :");
-					for(i=0;i<card_data_len;i++)
+					pdata = rID.uid;
+					for(i=0;i<card_data_len-3;i++)
 						DEBUG_CARD_DATA_LOG("%02x ",pdata[i]);
 					DEBUG_CARD_DATA_LOG("\r\n");
 					memset(pdata,00,card_data_len);
@@ -270,8 +271,13 @@ void App_card_process(void)
 				wID.upos  = write_uid_pos;
 				memcpy(&(wID.rf_conf),&clicker_set,sizeof(clicker_config_typedef));
 				memset(wID.rev,0xFF,2);
-				memset(wID.stdid,0x00,10);
-				wID.data_xor = XOR_Cal(wID.uid,card_data_len-2);;
+				if(wl.weite_std_id_status == ON)
+				{
+					memcpy(wID.stdid,Card_process.studentid,10);
+				}
+				else
+					memset(wID.stdid,0x00,10);
+				wID.data_xor = XOR_Cal(wID.uid,card_data_len-3);;
 
 				/* 重新写入数据检测 */
 				status = ReadNDEFfile(rpdata, &NDEF_Len);
@@ -361,7 +367,7 @@ void App_card_process(void)
 					DEBUG_CARD_DATA_LOG("NDEF_DataRead :");
 					for(i=0;i<card_data_len;i++)
 						DEBUG_CARD_DATA_LOG("%02x ",rpdata[i]);
-					if(rID.data_xor == XOR_Cal(rID.uid,card_data_len-2))
+					if(rID.data_xor == XOR_Cal(rID.uid,card_data_len-3))
 							DEBUG_CARD_DATA_LOG(" XOR OK!");
 					DEBUG_CARD_DATA_LOG("\r\n");
 					
@@ -404,6 +410,39 @@ void App_card_process(void)
 			}
 			rf_set_card_status(3);
 		}
+		
+		if( wl.attendance_sttaus == ON )
+		{
+			uint8_t *rpdata = (uint8_t *)&rID;
+			uint8_t card_data_len = sizeof(rf_id_typedf);
+
+			status = ReadNDEFfile(rpdata, &NDEF_Len);
+			if( status != MI_OK )
+			{
+				memset(rpdata,0x00,card_data_len);
+				mfrc500_init();
+				rf_set_card_status(1);
+				return;
+			}
+			else
+			{
+				if(rID.data_xor != XOR_Cal(rID.uid,card_data_len-3))
+				{
+					memset(rpdata,0x00,card_data_len);
+					mfrc500_init();
+					rf_set_card_status(1);
+				}
+			}
+
+			is_white_list_uid = search_uid_in_white_list(g_cSNR+4,&read_uid_pos);
+			if(is_white_list_uid == OPERATION_ERR)
+			{
+				read_uid_pos = 0xFFFF;
+			}
+			card_message_err = 1;
+			wtrte_flash_ok = 1;
+			rf_set_card_status(3);
+		}
 	}
 
 	if( card_current_status == 3 )
@@ -433,21 +472,62 @@ void App_card_process(void)
 		card_message.CMDTYPE = 0x30;
 		memset(card_message.REVICED,0xAA,2);
 		memset(card_message.DATA,0x00,25);
-		card_message.DATA[0] = 0x06;
-		if( card_message_err == 1 )
+		if( wl.match_status == ON )
 		{
-			card_message.DATA[1] = 0x00;
-			*(uint16_t *)(card_message.DATA+2) = write_uid_pos;
-			memcpy(card_message.DATA+4,g_cSNR+4,4);
+			if(wl.weite_std_id_status == ON)
+			{
+				card_message.DATA[0] = 0x18;
+				if( card_message_err == 1 )
+				{
+					card_message.DATA[1] = 0x00;
+					memcpy(card_message.DATA+2,rID.stdid,10);
+				}
+				if( card_message_err == 2 )
+				{
+					card_message.DATA[1] = 0x01;
+					memset(card_message.DATA+2,0,10);
+				}
+				*(uint16_t *)card_message.LEN = 0x0B;
+			}
+			else
+			{
+				card_message.DATA[0] = 0x11;
+				if( card_message_err == 1 )
+				{
+					card_message.DATA[1] = 0x00;
+					*(uint16_t *)(card_message.DATA+2) = write_uid_pos;
+					memcpy(card_message.DATA+4,g_cSNR+4,4);
+				}
+				if( card_message_err == 2 )
+				{
+					card_message.DATA[1] = 0x01;
+					card_message.DATA[2] = 0xFF;
+					card_message.DATA[3] = 0xFF;
+					memset(card_message.DATA+4,0,4);
+				}
+				*(uint16_t *)card_message.LEN = 0x08;
+			}
 		}
-		if( card_message_err == 2 )
+		if( wl.attendance_sttaus == ON )
 		{
-			card_message.DATA[1] = 0x01;
-			card_message.DATA[2] = 0xFF;
-			card_message.DATA[3] = 0xFF;
-			memset(card_message.DATA+4,0,4);
+			card_message.DATA[0] = 0x16;
+			if( card_message_err == 1 )
+			{
+				card_message.DATA[1] = 0x00;
+				*(uint16_t *)(card_message.DATA+2) = write_uid_pos;
+				memcpy(card_message.DATA+4,g_cSNR+4,4);
+				memcpy(card_message.DATA+8,rID.stdid,10);
+			}
+			if( card_message_err == 2 )
+			{
+				card_message.DATA[1] = 0x01;
+				card_message.DATA[2] = 0xFF;
+				card_message.DATA[3] = 0xFF;
+				memset(card_message.DATA+4,0,14);
+			}
+			*(uint16_t *)card_message.LEN = 0x12;
 		}
-		*(uint16_t *)card_message.LEN = 0x08;
+
 		card_message.XOR = XOR_Cal(&card_message.DEVICE,
 			*(uint16_t *)card_message.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
 		card_message.END  = 0xCA;	
@@ -480,12 +560,13 @@ void App_card_process(void)
 		rf_set_card_status(1);
 		memset(rpdata,0x00,sizeof(rf_id_typedf));
 		memset(wpdata,0x00,sizeof(rf_id_typedf));
-//	if( Card_process.cmd_type == 0x28 )
-//	{
-//		memcpy(NDEF_DataWrite+7,Card_process.studentid,20);
-//		wl.match_status = OFF;
-//		rf_set_card_status(0);
-//	}
+		if( wl.weite_std_id_status == ON )
+		{
+			memset(wID.stdid,0x00,10);
+			wl.weite_std_id_status = OFF;
+			wl.match_status = OFF;
+			rf_set_card_status(0);
+		}
 		find_card_ok = 1;
 		#ifdef SHOW_CARD_PROCESS_TIME
 		EndTime = PowerOnTime - StartTime;

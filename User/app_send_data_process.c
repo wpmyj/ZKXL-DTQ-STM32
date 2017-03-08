@@ -368,41 +368,61 @@ void rf_move_data_to_buffer( uint8_t *Message )
 		/* 获取消息的有效长度 */
 		*(uint16_t *)rf_message.LEN = Len;
 
-		/* 获取题目数据的起始地址 */
+		/* 获取数据的起始地址 */
 		prdata = Message+14+AckTableLen+2+1;
 
 		if( Cmdtype == 0x10 )
+		{
 			rf_message.DATA[0] = 0x01;
-		memcpy(rf_message.DATA+1,Message+5,UID_LEN);
-		s_index = 6;
+			memcpy(rf_message.DATA+1,Message+5,UID_LEN);
+			s_index = 6;
 
-		while( s_index < DataLen +6 )
-		{                                                 
-			if(is_last_data_full == 0)
-			{
-				rf_message.DATA[s_index++] = prdata[r_index] & 0x0F;
-				rf_message.DATA[s_index++] = ((prdata[r_index] & 0xF0) >> 4)   | ((prdata[r_index+1] & 0x0F) << 4);
-				rf_message.DATA[s_index++] = ((prdata[r_index+1] & 0xF0) >> 4) | ((prdata[r_index+2] & 0x0F) << 4);
-				r_index = r_index + 2;
-				is_last_data_full = 1;
+			while( s_index < DataLen +6 )
+			{                                                 
+				if(is_last_data_full == 0)
+				{
+					rf_message.DATA[s_index++] = prdata[r_index] & 0x0F;
+					rf_message.DATA[s_index++] = ((prdata[r_index] & 0xF0) >> 4)   | ((prdata[r_index+1] & 0x0F) << 4);
+					rf_message.DATA[s_index++] = ((prdata[r_index+1] & 0xF0) >> 4) | ((prdata[r_index+2] & 0x0F) << 4);
+					r_index = r_index + 2;
+					is_last_data_full = 1;
+				}
+				else
+				{
+					rf_message.DATA[s_index++] = (prdata[r_index] & 0xF0) >> 4;
+					rf_message.DATA[s_index++] = prdata[r_index+1];
+					rf_message.DATA[s_index++] = prdata[r_index+2];
+					r_index = r_index + 3;
+					is_last_data_full = 0;
+				}
+				q_num++;
 			}
-			else
-			{
-				rf_message.DATA[s_index++] = (prdata[r_index] & 0xF0) >> 4;
-				rf_message.DATA[s_index++] = prdata[r_index+1];
-				rf_message.DATA[s_index++] = prdata[r_index+2];
-				r_index = r_index + 3;
-				is_last_data_full = 0;
-			}
-			q_num++;
+			rf_message.DATA[5] = q_num;
+			*(uint16_t *)rf_message.LEN = s_index;
 		}
-		rf_message.DATA[5] = q_num;
-		*(uint16_t *)rf_message.LEN = s_index;
+		
+		if( Cmdtype == 0x24 )
+		{
+			rf_message.DATA[0] = 0x02;
+			prdata = Message+14+AckTableLen+2+1;
+			memcpy(rf_message.DATA+1,Message+5,UID_LEN);
+			s_index = 5;
+			rf_message.DATA[s_index++] = 0x01;
+			rf_message.DATA[s_index++] = 0x03;
+			if(*(uint16_t *)(prdata+2) < 3300)
+				memcpy(rf_message.DATA+s_index,prdata+2,2);
+			else
+				memset(rf_message.DATA+s_index,0x00,2);
+			s_index = s_index + 2;
+			*(uint16_t *)rf_message.LEN = s_index;
+			//printf("[%02x%02x%02x%02x]:",Message[5],Message[6],Message[7],Message[8]);
+			//printf("IsReviceData:%1d RSSI:%3d Battery:%4d \r\n",*(prdata),*(prdata+1),*(uint16_t *)(prdata+2));
+		}
 
-		rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.DSTID)), s_index+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
+		rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.DSTID)), *(uint16_t *)rf_message.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
 		rf_message.END = 0xCA;
 
-		if( Cmdtype == 0x10 )
+		if(( Cmdtype == 0x10 ) || ( Cmdtype == 0x24 ))
 		{
 			if( wl.start == ON )
 			{
@@ -509,7 +529,6 @@ uint8_t spi_process_revice_data( void )
 						transmit_config.is_pac_add     = PACKAGE_NUM_SAM;
 						transmit_config.data_buf       = NULL;
 						transmit_config.data_len       = 0;
-						transmit_config.is_add_table   = 0;
 						nrf_transmit_start( &transmit_config );
 
 						/* 有效数据告到PC */
@@ -873,7 +892,6 @@ void retansmit_data( uint8_t status )
 		transmit_config.is_pac_add     = PACKAGE_NUM_SAM;
 		transmit_config.data_buf       = NULL;
 		transmit_config.data_len       = 0;
-		transmit_config.is_add_table   = 1;
 		transmit_config.sel_table      = SEND_PRE_TABLE;
 		nrf_transmit_start( &transmit_config );
 		
@@ -887,7 +905,6 @@ void retansmit_data( uint8_t status )
 		transmit_config.is_pac_add     = PACKAGE_NUM_SAM;
 		transmit_config.data_buf       = rf_var.tx_buf; 
 		transmit_config.data_len       = rf_var.tx_len;
-		transmit_config.is_add_table   = 1;
 		transmit_config.sel_table      = SEND_DATA_ACK_TABLE;
 		nrf_transmit_start( &transmit_config );
 
@@ -1046,7 +1063,6 @@ void retransmit_data_to_next_clicker( void )
 	transmit_config.is_pac_add     = PACKAGE_NUM_SAM;
 	transmit_config.data_buf       = NULL;
 	transmit_config.data_len       = 0;
-	transmit_config.is_add_table   = 1;
 	transmit_config.sel_table      = SEND_PRE_TABLE;
 	nrf_transmit_start( &transmit_config );
 
@@ -1060,7 +1076,6 @@ void retransmit_data_to_next_clicker( void )
 	transmit_config.is_pac_add     = PACKAGE_NUM_SAM;
 	transmit_config.data_buf       = rf_var.tx_buf; 
 	transmit_config.data_len       = rf_var.tx_len;
-	transmit_config.is_add_table   = 1;
 	transmit_config.sel_table      = SEND_DATA_ACK_TABLE;
 	nrf_transmit_start( &transmit_config );
 
@@ -1296,7 +1311,6 @@ void App_clickers_send_data_process( void )
 		transmit_config.is_pac_add     = PACKAGE_NUM_SAM;
 		transmit_config.data_buf       = NULL;
 		transmit_config.data_len       = 0;
-		transmit_config.is_add_table   = 1;
 		transmit_config.sel_table      = SEND_PRE_TABLE;
 		nrf_transmit_start( &transmit_config );
 		
@@ -1308,7 +1322,6 @@ void App_clickers_send_data_process( void )
 		transmit_config.is_pac_add     = PACKAGE_NUM_SAM;
 		transmit_config.data_buf       = rf_var.tx_buf; 
 		transmit_config.data_len       = rf_var.tx_len;
-		transmit_config.is_add_table   = 1;
 		transmit_config.sel_table      = SEND_DATA_ACK_TABLE;
 		nrf_transmit_start( &transmit_config );
 		

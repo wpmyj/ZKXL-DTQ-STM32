@@ -334,12 +334,16 @@ void nrf_transmit_start( nrf_transmit_parameter_t *t_conf)
 	nrf_data.tbuf[i++] = revicer.sen_num;
 	nrf_data.tbuf[i++] = t_conf->package_type;
 
-	if(t_conf->is_add_table == 1)
+	if((t_conf->package_type == NRF_DATA_IS_PRE) || 
+		 (t_conf->package_type == NRF_DATA_IS_USEFUL))
 	{
 		nrf_data.tbuf[i++] = 0x0F; // ACK_TABLE_LEN
 		memcpy(nrf_data.tbuf + i, list_tcb_table[t_conf->sel_table], 0x0F);
 		i = i + 0x0F;
-		nrf_data.tbuf[i++] = rf_var.cmd;
+		if(t_conf->package_type == NRF_DATA_IS_USEFUL)
+			nrf_data.tbuf[i++] = rf_var.cmd;
+		else
+			nrf_data.tbuf[i++] = 0xFF;
 		send_delay = 1;
 	}
 	else
@@ -348,7 +352,6 @@ void nrf_transmit_start( nrf_transmit_parameter_t *t_conf)
 		nrf_data.tbuf[i++] = 0xFF;
 		send_delay = 10;
 	}
-	nrf_data.tbuf[i++] = t_conf->data_len;
 	
 #ifdef OPEN_ACT_TABLE_SHOW
 	{
@@ -374,9 +377,17 @@ void nrf_transmit_start( nrf_transmit_parameter_t *t_conf)
 		}
 	}
 #endif
-	memcpy(nrf_data.tbuf+i,t_conf->data_buf,t_conf->data_len);
-	i = i + t_conf->data_len;
-
+	
+	if(t_conf->package_type == NRF_DATA_IS_USEFUL)
+	{
+		nrf_data.tbuf[i++] = t_conf->data_len;
+		memcpy(nrf_data.tbuf+i,t_conf->data_buf,t_conf->data_len);
+		i = i + t_conf->data_len;
+	}
+	else
+	{
+		nrf_data.tbuf[i++] = 0x00;
+	}
 	/* xor data */
 	nrf_data.tbuf[i] = XOR_Cal(nrf_data.tbuf+1,i-1);
 	i++;

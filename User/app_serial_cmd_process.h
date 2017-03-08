@@ -92,6 +92,9 @@ typedef enum
 	U_CLEAR,
 	U_DEL,
 	U_SHOW,
+	U_CHECK_ON,
+	U_CHECK_OFF,
+	U_WR_STD_ID,
 }UidTask_CTL_Typedef;
 
 
@@ -131,8 +134,7 @@ typedef struct
 	uint8_t uid[4];
 	uint8_t sign[4];
 	uint8_t cmd_type;
-	uint8_t studentid[20];
-	uint8_t match_single;
+	uint8_t studentid[10];
 	uint8_t retransmit;
 }Process_tcb_Typedef;
 
