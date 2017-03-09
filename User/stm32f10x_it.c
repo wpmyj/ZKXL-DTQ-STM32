@@ -219,9 +219,9 @@ void uart_revice_data_state_mechine( uint8_t data )
 
 					if( uart_irq_revice_massage.XOR == UartMessageXor)
 					{   /* 若校验通过，则接收数据OK可用 */
-							if(BUFFERFULL != buffer_get_buffer_status(REVICE_RINGBUFFER))
+							if(BUF_FULL != buffer_get_buffer_status(UART_RBUF))
 							{
-								serial_ringbuffer_write_data(REVICE_RINGBUFFER,&uart_irq_revice_massage);
+								serial_ringbuffer_write_data(UART_RBUF,&uart_irq_revice_massage);
 							}
 							flag_uart_rxing = 0;
 							uart_rev_status.set_status(&(uart_rev_status.state),UartHEAD);
@@ -265,14 +265,14 @@ void uart_send_data_state_machine( void )
 	{
 		case 0:
 			{
-					if(BUFFEREMPTY == buffer_get_buffer_status(SEND_RINGBUFFER))
+					if(BUF_EMPTY == buffer_get_buffer_status(UART_SBUF))
 					{
 						USART_ITConfig(USART1pos,USART_IT_TXE,DISABLE);
 						return;
 					}
 					else
 					{
-						serial_ringbuffer_read_data(SEND_RINGBUFFER, &uart_irq_send_massage);
+						serial_ringbuffer_read_data(UART_SBUF, &uart_irq_send_massage);
 						pdata = (uint8_t *)(&uart_irq_send_massage);
 						uart_sen_status.set_status(&(uart_sen_status.state),1);
 						uart_tx_cnt = *(uint16_t *)uart_irq_send_massage.LEN + 
@@ -531,10 +531,10 @@ void NRF1_RFIRQ_EXTI_IRQHandler(void)
 				*(nrf_data.rbuf+3) == nrf_data.jsq_uid[2] &&
 				*(nrf_data.rbuf+4) == nrf_data.jsq_uid[3])
 		{
-			if(BUFFERFULL != buffer_get_buffer_status(SPI_IRQ_BUFFER))
+			if(BUF_FULL != buffer_get_buffer_status(SPI_RBUF))
 			{
 				uint8_t send_data_status = get_clicker_send_data_status();
-				spi_write_data_to_buffer(SPI_IRQ_BUFFER,nrf_data.rbuf, send_data_status);
+				spi_write_data_to_buffer(SPI_RBUF,nrf_data.rbuf, send_data_status);
 			}
 			else
 			{

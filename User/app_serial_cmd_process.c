@@ -120,14 +120,14 @@ static void serial_cmd_process(void)
 	if( serial_cmd_status == APP_SERIAL_CMD_STATUS_IDLE )
 	{
 		/* 获取接收缓存的状态 */
-		buffer_status = buffer_get_buffer_status(REVICE_RINGBUFFER);
+		buffer_status = buffer_get_buffer_status(UART_RBUF);
 
 		/* 根据状态决定是否读取缓存指令 */
-		if(BUFFEREMPTY == buffer_status)
+		if(BUF_EMPTY == buffer_status)
 			return;
 		else
 		{
-			serial_ringbuffer_read_data(REVICE_RINGBUFFER, &ReviceMessage);
+			serial_ringbuffer_read_data(UART_RBUF, &ReviceMessage);
 			serial_cmd_type = ReviceMessage.CMDTYPE;
 			revicer.uart_pac_num = ReviceMessage.PACNUM;
 			revicer.uart_seq_num = ReviceMessage.SEQNUM;
@@ -257,14 +257,14 @@ static void serial_cmd_process(void)
 			return;
 		}
 
-		if(BUFFERFULL == buffer_get_buffer_status(SEND_RINGBUFFER))
+		if(BUF_FULL == buffer_get_buffer_status(UART_SBUF))
 		{
 			DebugLog("Serial Send Buffer is full! \r\n");
 		}
 		else
 		{
 			if(serial_cmd_type != 0x2f)
-				serial_ringbuffer_write_data(SEND_RINGBUFFER,&SendMessage);
+				serial_ringbuffer_write_data(UART_SBUF,&SendMessage);
 		}
 	}
 }
