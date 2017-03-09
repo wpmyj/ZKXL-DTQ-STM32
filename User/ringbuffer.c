@@ -11,17 +11,16 @@
 #include "string.h"
 
 /* Private variables ---------------------------------------------------------*/
-static uint8_t  UartReviceBuffer[REVICEBUFFERSIZE];
-static uint8_t  UartSendBuffer[SENDBUFFERSIZE];
-static uint8_t  SpireviceBuffer[SPIBUFFERSIZE];
-static uint8_t  SpiIrqBuffer[SPIIRQBUFFERSIZE];
-static uint8_t  PrintBuffer[PRINTBUFFERSIZE];
-const uint32_t  BufferSize[RINGBUFFERSUM]      = {REVICEBUFFERSIZE,SENDBUFFERSIZE,SPIBUFFERSIZE,PRINTBUFFERSIZE,SPIIRQBUFFERSIZE};
-static uint8_t *pBuffer[RINGBUFFERSUM]         = {UartReviceBuffer,UartSendBuffer,SpireviceBuffer,PrintBuffer,SpiIrqBuffer};
-static volatile uint16_t Top[RINGBUFFERSUM]    = { 0, 0, 0, 0, 0 };
-static volatile uint16_t Bottom[RINGBUFFERSUM] = { 0, 0, 0, 0, 0 };
-static volatile int32_t  Size[RINGBUFFERSUM]   = { 0, 0, 0, 0, 0 };
-static volatile uint8_t  Status[RINGBUFFERSUM] = { BUFFEREMPTY, BUFFEREMPTY, BUFFEREMPTY,BUFFEREMPTY, BUFFEREMPTY};
+static uint8_t  uart_rbuf[UART_RBUF_SIZE];
+static uint8_t  uart_sbuf[UART_SBUF_SIZE];
+static uint8_t  spi_rbuf[SPI_RBUF_SIZE];
+static uint8_t  ptint_buf[PRINT_RBUF_SIZE];
+const uint32_t  buf_size[BUF_NUM]        = {UART_RBUF_SIZE,UART_SBUF_SIZE,PRINT_RBUF_SIZE,SPI_RBUF_SIZE};
+static uint8_t *pbuf[BUF_NUM]            = {uart_rbuf,uart_sbuf,ptint_buf,spi_rbuf};
+static volatile uint16_t top[BUF_NUM]    = { 0, 0, 0, 0 };
+static volatile uint16_t bottom[BUF_NUM] = { 0, 0, 0, 0 };
+static volatile int32_t  Size[BUF_NUM]   = { 0, 0, 0, 0 };
+static volatile uint8_t  status[BUF_NUM] = { BUF_EMPTY, BUF_EMPTY,BUF_EMPTY, BUF_EMPTY};
 
 /* Private functions ---------------------------------------------------------*/
 static void    update_read_status( uint8_t sel) ;
@@ -41,7 +40,7 @@ static void    set(uint8_t sel, uint16_t index,uint8_t data);
 ******************************************************************************/
 uint8_t buffer_get_buffer_status( uint8_t sel )
 {
-	return Status[sel];
+	return status[sel];
 }
 
 /******************************************************************************
@@ -54,8 +53,8 @@ uint8_t buffer_get_buffer_status( uint8_t sel )
 ******************************************************************************/
 uint8_t get( uint8_t sel, uint16_t index )
 {
-	uint8_t data = pBuffer[sel][index % BufferSize[sel]];
-	pBuffer[sel][index % BufferSize[sel]] = 0;
+	uint8_t data = pbuf[sel][index % buf_size[sel]];
+	pbuf[sel][index % buf_size[sel]] = 0;
 	return  data;
 }
 
@@ -69,7 +68,7 @@ uint8_t get( uint8_t sel, uint16_t index )
 ******************************************************************************/
 void set( uint8_t sel, uint16_t index, uint8_t data)
 {
-	pBuffer[sel][index % BufferSize[sel]] = data;
+	pbuf[sel][index % buf_size[sel]] = data;
 }
 
 
@@ -87,24 +86,24 @@ static void update_read_status( uint8_t sel)
 
 	switch(bufferstatus)
 	{
-		case BUFFEREMPTY:
+		case BUF_EMPTY:
 			break;
-		case BUFFERUSEING:
+		case BUF_USEING:
 			{
 				if(Size[sel] > 0)
-					Status[sel] = BUFFERUSEING;
+					status[sel] = BUF_USEING;
 				else if(Size[sel] == 0)
-					Status[sel] = BUFFEREMPTY;
+					status[sel] = BUF_EMPTY;
 				else
 				{
-					Status[sel] = BUFFEREMPTY;
-					Top[sel]    = 0;
-					Bottom[sel] = 0;
+					status[sel] = BUF_EMPTY;
+					top[sel]    = 0;
+					bottom[sel] = 0;
 				}
 			}
 			break;
-		case BUFFERFULL:
-			Status[sel] = BUFFERUSEING;
+		case BUF_FULL:
+			status[sel] = BUF_USEING;
 			break;
 
 		default:
@@ -126,16 +125,16 @@ static void update_write_status( uint8_t sel)
 
 	switch(bufferstatus)
 	{
-		case BUFFEREMPTY:
-			Status[sel] = BUFFERUSEING;
+		case BUF_EMPTY:
+			status[sel] = BUF_USEING;
 			break;
 
-		case BUFFERUSEING:
+		case BUF_USEING:
 			{
-				if( Size[sel] > BufferSize[sel]-PACKETSIZE )
-					Status[sel] = BUFFERFULL;
+				if( Size[sel] > buf_size[sel]-PACKETSIZE )
+					status[sel] = BUF_FULL;
 				else
-					Status[sel] = BUFFERUSEING;
+					status[sel] = BUF_USEING;
 			}
 			break;
 
@@ -153,8 +152,10 @@ static void update_write_status( uint8_t sel)
 ******************************************************************************/
 static void update_top( uint8_t sel, uint16_t Len )
 {
+	CLOSEIRQ();
 	Size[sel] += Len;
-	Top[sel] = (Top[sel] + Len) % BufferSize[sel];
+	top[sel] = (top[sel] + Len) % buf_size[sel];
+	OPENIRQ();
 }
 
 /******************************************************************************
@@ -167,8 +168,10 @@ static void update_top( uint8_t sel, uint16_t Len )
 ******************************************************************************/
 static void update_bottom( uint8_t sel, uint16_t Len )
 {
+	CLOSEIRQ();
 	Size[sel] -= Len;
-	Bottom[sel] = (Bottom[sel] + Len) % BufferSize[sel];
+	bottom[sel] = (bottom[sel] + Len) % buf_size[sel];
+	OPENIRQ();
 }
 
 /******************************************************************************
@@ -187,12 +190,12 @@ void serial_ringbuffer_write_data(uint8_t sel, Uart_MessageTypeDef *message)
 
 	for(i=0;i<=MessageLen;i++)
 	{
-		set(sel,Top[sel]+i,*pdata);
+		set(sel,top[sel]+i,*pdata);
 		pdata++;
 	}
 
-	set(sel,Top[sel]+i+0,message->XOR);
-	set(sel,Top[sel]+i+1,message->END);
+	set(sel,top[sel]+i+0,message->XOR);
+	set(sel,top[sel]+i+1,message->END);
 
 	update_top( sel, MessageLen+3);
 	update_write_status(sel);
@@ -210,18 +213,18 @@ void serial_ringbuffer_read_data( uint8_t sel, Uart_MessageTypeDef *message )
 		uint16_t i;
 	  uint8_t *pdata = (uint8_t *)message;
 
-	  uint16_t MessageLen = get( sel,Bottom[sel]+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA-1) +
-												  get( sel,Bottom[sel]+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA)*256
+	  uint16_t MessageLen = get( sel,bottom[sel]+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA-1) +
+												  get( sel,bottom[sel]+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA)*256
 	                        + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA;
 
 		for(i=0;i<=MessageLen;i++)
 		{
-			*pdata = get(sel,Bottom[sel]+i);
+			*pdata = get(sel,bottom[sel]+i);
 			pdata++;
 		}
 		*(uint16_t *)(message->LEN) = MessageLen - MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA;
-		message->XOR = get(sel,Bottom[sel]+i+0);
-		message->END = get(sel,Bottom[sel]+i+1);
+		message->XOR = get(sel,bottom[sel]+i+0);
+		message->END = get(sel,bottom[sel]+i+1);
 
 		update_bottom(sel, MessageLen+3);
 		update_read_status(sel);
@@ -248,12 +251,12 @@ void spi_write_data_to_buffer( uint8_t sel, uint8_t SpiMessage[], uint8_t status
 	//printf("writebuf:");
 	for(i=0;i<Len;i++)
 	{
-		set(sel,Top[sel]+i,*pdata);
+		set(sel,top[sel]+i,*pdata);
 		//printf(" %02x",*pdata);
 		pdata++;
 	}
 	
-	set(sel,Top[sel]+i++,status);
+	set(sel,top[sel]+i++,status);
 	//printf(" %02x",status);
 	//printf("\r\n");
 
@@ -272,8 +275,8 @@ void spi_write_data_to_buffer( uint8_t sel, uint8_t SpiMessage[], uint8_t status
 void spi_read_data_from_buffer( uint8_t sel, uint8_t SpiMessage[] )
 {
 	uint16_t i;
-	uint16_t AckTableLen =  get( sel,Bottom[sel] + 14);
-	uint16_t DataLen     =  get( sel,Bottom[sel] + 14 + AckTableLen + 2);
+	uint16_t AckTableLen =  get( sel,bottom[sel] + 14);
+	uint16_t DataLen     =  get( sel,bottom[sel] + 14 + AckTableLen + 2);
 	uint16_t Len         = AckTableLen + DataLen + 19;
 	uint8_t *pdata;
 
@@ -281,7 +284,7 @@ void spi_read_data_from_buffer( uint8_t sel, uint8_t SpiMessage[] )
 	//printf("readbuf :");
 	for(i=0;i<Len+1;i++)
 	{
-		*pdata = get(sel,Bottom[sel]+i);
+		*pdata = get(sel,bottom[sel]+i);
 		//printf(" %02x",*pdata);
 		pdata++;
 	}
@@ -304,7 +307,7 @@ void spi_read_data_from_buffer( uint8_t sel, uint8_t SpiMessage[] )
 ******************************************************************************/
 uint8_t serial_ringbuffer_get_usage_rate(uint8_t sel)
 {
-	return (Size[sel]*100/BufferSize[sel]);
+	return (Size[sel]*100/buf_size[sel]);
 }
 
 /******************************************************************************
@@ -324,12 +327,12 @@ void print_write_data_to_buffer( char *str, uint8_t len )
 
 	for(i=0;i<len;i++)
 	{
-		set(PRINT_BUFFER,Top[PRINT_BUFFER]+i,*pdata);
+		set(PRINT_BUF,top[PRINT_BUF]+i,*pdata);
 		pdata++;
 	}
 
-	update_top( PRINT_BUFFER, len);
-	update_write_status(PRINT_BUFFER);
+	update_top( PRINT_BUF, len);
+	update_write_status(PRINT_BUF);
 }
 
 /******************************************************************************
@@ -344,17 +347,17 @@ void print_read_data_to_buffer( uint8_t *str ,uint8_t size)
 {
 	uint8_t Len, *pdata, i;
 
-	Len = Size[PRINT_BUFFER] > size ? size : Size[PRINT_BUFFER];
+	Len = Size[PRINT_BUF] > size ? size : Size[PRINT_BUF];
 	pdata = str;
 
 	for(i=0;i<Len;i++)
 	{
-		*pdata = get(PRINT_BUFFER,Bottom[PRINT_BUFFER]+i);
+		*pdata = get(PRINT_BUF,bottom[PRINT_BUF]+i);
 		pdata++;
 	}
 
-	update_bottom(PRINT_BUFFER, Len);
-	update_read_status(PRINT_BUFFER);
+	update_bottom(PRINT_BUF, Len);
+	update_read_status(PRINT_BUF);
 }
 
 /**************************************END OF FILE****************************/

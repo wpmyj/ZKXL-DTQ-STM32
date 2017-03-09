@@ -536,10 +536,10 @@ void App_card_process(void)
 		{
 			if( wtrte_flash_ok == 1 )
 			{
-				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+				if(BUF_FULL != buffer_get_buffer_status(UART_SBUF))
 				{
 					#ifndef OPEN_CARD_DATA_SHOW 
-					serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
+					serial_ringbuffer_write_data(UART_SBUF,&card_message);
 					DEBUG_CARD_DATA_LOG("NDEF_DataRead and NDEF_DataWrite Clear!\r\n");
 					#endif
 				}

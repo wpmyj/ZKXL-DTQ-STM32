@@ -34,7 +34,7 @@
 #define LEN_LEN                           2
 #define UID_LEN                           4
 #define ACKTABLELEN                       16
-#define REVICER_MESSAGE_LEN               240
+#define REVICER_MESSAGE_LEN               750
 
 void App_seirial_cmd_process(void);
 
@@ -42,8 +42,8 @@ void App_seirial_cmd_process(void);
 
 
 /* Uart Message frame header and tail */
-#define UART_SOF								          (0x5C)							//֡ͷ
-#define UART_EOF 								          (0xCA)							//֡β
+#define UART_SOF								                           (0x5C)							
+#define UART_EOF 								                           (0xCA)							
 
 /* Uart message status */
 #define UartOK	 								                           (0)

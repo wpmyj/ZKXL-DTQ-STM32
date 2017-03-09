@@ -202,7 +202,7 @@ uint8_t spi_buffer_status_check(uint8_t status)
 
 	if( current_status == 0 )
 	{
-		if(buffer_get_buffer_status(SPI_REVICE_BUFFER) == BUFFEREMPTY)
+		if(buffer_get_buffer_status(SPI_RBUF) == BUF_EMPTY)
 		{
 			if((clicker_send_data_status != pre_status) && (clicker_send_data_status != 0))
 			{
@@ -430,9 +430,9 @@ void rf_move_data_to_buffer( uint8_t *Message )
 				if(Message[12] != wl.uids[uidpos].rev_num)//收到的是有效数据
 				{
 					/* 存入缓存 */
-					if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+					if(BUF_FULL != buffer_get_buffer_status(UART_SBUF))
 					{
-						serial_ringbuffer_write_data(SEND_RINGBUFFER,&rf_message);
+						serial_ringbuffer_write_data(UART_SBUF,&rf_message);
 						/* 更新接收数据帧号与包号 */
 						wl.uids[uidpos].rev_seq = Message[11];
 						wl.uids[uidpos].rev_num = Message[12];	
@@ -459,12 +459,12 @@ uint8_t spi_process_revice_data( void )
 	uint16_t uidpos = 0xFFFF;
 	uint8_t  clicker_send_data_status = 0;
 
-	if(buffer_get_buffer_status(SPI_REVICE_BUFFER) != BUFFEREMPTY)
+	if(buffer_get_buffer_status(SPI_RBUF) != BUF_EMPTY)
 	{
 		uint16_t AckTableLen,DataLen,Len;
 
 		memset(spi_message,0,255);
-		spi_read_data_from_buffer( SPI_REVICE_BUFFER, spi_message );
+		spi_read_data_from_buffer( SPI_RBUF, spi_message );
 		AckTableLen = spi_message[14];
 		DataLen     = spi_message[14+AckTableLen+2];
 		Len         = AckTableLen + DataLen + 19;
@@ -474,7 +474,7 @@ uint8_t spi_process_revice_data( void )
 		#ifdef OPEN_BUFFER_DATA_SHOW
 		{
 			int i;
-			DEBUG_BUFFER_ACK_LOG("%4d ", buffer_get_buffer_status(SPI_REVICE_BUFFER));
+			DEBUG_BUFFER_ACK_LOG("%4d ", buffer_get_buffer_status(SPI_RBUF));
 			DEBUG_BUFFER_ACK_LOG("Buffer Read :");
 			for(i=5;i<9;i++)
 				DEBUG_BUFFER_ACK_LOG("%02x",spi_message[i]);
@@ -583,11 +583,11 @@ uint8_t spi_process_revice_data( void )
 							*(uint16_t *)(result_message.LEN) + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA + 2);
 							result_message.END = 0xCA;
 
-							if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+							if(BUF_FULL != buffer_get_buffer_status(UART_SBUF))
 							{
 								clear_index_of_white_list_pos(SEND_PRE_TABLE,uidpos);
 								set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
-								serial_ringbuffer_write_data(SEND_RINGBUFFER,&result_message);
+								serial_ringbuffer_write_data(UART_SBUF,&result_message);
 							}
 						}
 					}
@@ -956,9 +956,9 @@ void send_data_result( uint8_t status )
 			revice_lost_massage.END = 0xCA;
 			if(revice_lost_massage.LEN != 0)
 			{
-				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+				if(BUF_FULL != buffer_get_buffer_status(UART_SBUF))
 				{
-					serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_lost_massage);
+					serial_ringbuffer_write_data(UART_SBUF,&revice_lost_massage);
 				}
 			}
 #endif
@@ -993,9 +993,9 @@ void send_data_result( uint8_t status )
 			revice_ok_massage.END = 0xCA;
 			if( revice_ok_massage.LEN != 0)
 			{
-				if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
+				if(BUF_FULL != buffer_get_buffer_status(UART_SBUF))
 				{
-					serial_ringbuffer_write_data(SEND_RINGBUFFER,&revice_ok_massage);
+					serial_ringbuffer_write_data(UART_SBUF,&revice_ok_massage);
 				}
 			}
 #endif
@@ -1110,72 +1110,51 @@ void retransmit_env_init( void )
 ******************************************************************************/
 void spi_write_temp_buffer_to_buffer()
 {
-	if(BUFFEREMPTY != buffer_get_buffer_status(SPI_IRQ_BUFFER))
+	if((spi_status_count > 0) && (BUF_EMPTY == buffer_get_buffer_status(SPI_RBUF)))
 	{
-		uint8_t spi_message[255];
 		uint16_t AckTableLen,DataLen,Len;
 
-		memset(spi_message,0,255);
-		spi_read_data_from_buffer( SPI_IRQ_BUFFER, spi_message );
-
-		AckTableLen = spi_message[14];
-		DataLen     = spi_message[14+AckTableLen+2];
+		AckTableLen = spi_status_buffer[spi_status_read_index][14];
+		DataLen     = spi_status_buffer[spi_status_read_index][14+AckTableLen+2];
 		Len         = AckTableLen + DataLen + 19;
 
-		if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
+		spi_write_data_to_buffer(SPI_RBUF,spi_status_buffer[spi_status_read_index],
+				spi_status_buffer[spi_status_read_index][Len]);
 		{
-			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_message, spi_message[Len]);
-		}
-	}
-
-	if(BUFFERFULL != buffer_get_buffer_status(SPI_REVICE_BUFFER))
-	{
-		if((spi_status_count > 0) && (BUFFEREMPTY == buffer_get_buffer_status(SPI_IRQ_BUFFER)))
-		{
-			uint16_t AckTableLen,DataLen,Len;
-
-			AckTableLen = spi_status_buffer[spi_status_read_index][14];
-			DataLen     = spi_status_buffer[spi_status_read_index][14+AckTableLen+2];
-			Len         = AckTableLen + DataLen + 19;
-
-			spi_write_data_to_buffer(SPI_REVICE_BUFFER,spi_status_buffer[spi_status_read_index],
-			    spi_status_buffer[spi_status_read_index][Len]);
+			#ifdef OPEN_SEND_STATUS_SHOW
+			uint8_t *str,status;
+			status = spi_status_buffer[spi_status_read_index][Len];
+			switch( status )
 			{
-				#ifdef OPEN_SEND_STATUS_SHOW
-				uint8_t *str,status;
-				status = spi_status_buffer[spi_status_read_index][Len];
-				switch( status )
-				{
-					case SEND_IDLE_STATUS:            str = "IDLE_STATUS";            break;
-					case SEND_DATA1_STATUS:           str = "DATA1_STATUS";           break;
-					case SEND_DATA1_UPDATE_STATUS:    str = "DATA1_UPDATE_STATUS";    break;
-					case SEND_DATA2_STATUS:           str = "DATA2_STATUS";           break;
-					case SEND_DATA2_SEND_OVER_STATUS: str = "DATA2_SEND_OVER_STATUS"; break;
-					case SEND_DATA2_UPDATE_STATUS:    str = "DATA2_UPDATE_STATUS";    break;
-					case SEND_DATA3_STATUS:           str = "DATA3_STATUS";           break;
-					case SEND_DATA3_SEND_OVER_STATUS: str = "DATA3_SEND_OVER_STATUS"; break;
-					case SEND_DATA3_UPDATE_STATUS:    str = "DATA3_UPDATE_STATUS";    break;
-					case SEND_DATA4_STATUS:           str = "DATA4_STATUS";           break;
-					case SEND_DATA4_UPDATE_STATUS:    str = "DATA4_UPDATE_STATUS";    break;
-					default:break;
-				}
-				DEBUG_BUFFER_DTATA_LOG("send_status = %s\r\n",str);
-				#endif
-				#ifdef OPEN_SEND_STATUS_MESSAGE_SHOW
-				{
-					int i;
-					DEBUG_BUFFER_DTATA_LOG("%4d %2d read1: ", buffer_get_buffer_status(SPI_REVICE_BUFFER),spi_status_count);
-					for(i=0;i<Len;i++)
-					{
-						DEBUG_BUFFER_DTATA_LOG("%2x ",spi_status_buffer[spi_status_read_index][i]);
-					}
-					DEBUG_BUFFER_DTATA_LOG("%2x \r\n",status);
-				}
-				#endif
+				case SEND_IDLE_STATUS:            str = "IDLE_STATUS";            break;
+				case SEND_DATA1_STATUS:           str = "DATA1_STATUS";           break;
+				case SEND_DATA1_UPDATE_STATUS:    str = "DATA1_UPDATE_STATUS";    break;
+				case SEND_DATA2_STATUS:           str = "DATA2_STATUS";           break;
+				case SEND_DATA2_SEND_OVER_STATUS: str = "DATA2_SEND_OVER_STATUS"; break;
+				case SEND_DATA2_UPDATE_STATUS:    str = "DATA2_UPDATE_STATUS";    break;
+				case SEND_DATA3_STATUS:           str = "DATA3_STATUS";           break;
+				case SEND_DATA3_SEND_OVER_STATUS: str = "DATA3_SEND_OVER_STATUS"; break;
+				case SEND_DATA3_UPDATE_STATUS:    str = "DATA3_UPDATE_STATUS";    break;
+				case SEND_DATA4_STATUS:           str = "DATA4_STATUS";           break;
+				case SEND_DATA4_UPDATE_STATUS:    str = "DATA4_UPDATE_STATUS";    break;
+				default:break;
 			}
-			spi_status_read_index = (spi_status_read_index + 1) % SPI_DATA_IRQ_BUFFER_BLOCK_COUNT;
-			spi_status_count--;
+			DEBUG_BUFFER_DTATA_LOG("send_status = %s\r\n",str);
+			#endif
+			#ifdef OPEN_SEND_STATUS_MESSAGE_SHOW
+			{
+				int i;
+				DEBUG_BUFFER_DTATA_LOG("%4d %2d read1: ", buffer_get_buffer_status(SPI_REVICE_BUFFER),spi_status_count);
+				for(i=0;i<Len;i++)
+				{
+					DEBUG_BUFFER_DTATA_LOG("%2x ",spi_status_buffer[spi_status_read_index][i]);
+				}
+				DEBUG_BUFFER_DTATA_LOG("%2x \r\n",status);
+			}
+			#endif
 		}
+		spi_status_read_index = (spi_status_read_index + 1) % SPI_DATA_IRQ_BUFFER_BLOCK_COUNT;
+		spi_status_count--;
 	}
 }
 

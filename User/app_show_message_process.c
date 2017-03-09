@@ -17,7 +17,7 @@ void message_show_process( void )
 {
 	uint8_t str[READ_STRING_LEN] = "";
 
-	if(buffer_get_buffer_status(PRINT_BUFFER) != BUFFEREMPTY) 
+	if(buffer_get_buffer_status(PRINT_BUF) != BUF_EMPTY) 
 	{                                                        
 		print_read_data_to_buffer(str,READ_STRING_LEN);   
 		printf("%s",str);		
@@ -43,7 +43,7 @@ void b_print(const char *fmt, ...)
 	len = vsprintf(str,fmt,args);
 	va_end(args);
 	
-	if(buffer_get_buffer_status(PRINT_BUFFER) != BUFFERFULL) 
+	if(buffer_get_buffer_status(PRINT_BUF) != BUF_FULL) 
 	{                                                        
 		print_write_data_to_buffer(str,len);                   
 	}                                                        
