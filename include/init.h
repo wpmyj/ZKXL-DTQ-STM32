@@ -23,14 +23,8 @@ typedef struct
 {
 	uint8_t  uid[4];
 	uint16_t pos;
-	uint8_t  use;
 	uint8_t  rev_num;
 	uint8_t  rev_seq;
-	uint8_t  sen_num;
-	uint8_t  sen_seq;
-	uint8_t  firstrev;
-	uint32_t lost_package_num;
-	uint32_t recv_package_num;
 }Clicker_Typedef;
 
 typedef struct

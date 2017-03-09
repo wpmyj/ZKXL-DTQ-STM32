@@ -20,7 +20,7 @@
 #endif
 
 extern nrf_communication_t nrf_data;
-extern uint16_t            list_tcb_table[13][8];
+extern uint16_t          list_tcb_table[UID_LIST_TABLE_SUM][WHITE_TABLE_LEN];
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
 

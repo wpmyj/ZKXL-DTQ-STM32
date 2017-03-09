@@ -32,7 +32,7 @@ typedef struct
 	uint8_t  data_xor;
 }rf_id_typedf;
 
-extern Process_tcb_Typedef Card_process;
+extern task_tcb_typedef card_task;
 
 void Buzze_Control(void);
 void App_card_process(void);

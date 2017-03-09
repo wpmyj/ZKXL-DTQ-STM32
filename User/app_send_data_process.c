@@ -7,7 +7,7 @@
 #define CLICKER_SNED_DATA_STATUS_TYPE     10
 #define CLICKER_PRE_DATA_STATUS_TYPE      11
 
-Process_tcb_Typedef Send_data_process;
+task_tcb_typedef send_data_task;
 volatile send_data_process_tcb_tydef send_data_process_tcb;
 
 extern uint8_t spi_status_buffer[SPI_DATA_IRQ_BUFFER_BLOCK_COUNT][20];
@@ -22,7 +22,7 @@ static uint8_t pre_status = 0;
 static uint8_t sum_clicker_count = 0;
 
 extern nrf_communication_t nrf_data;
-extern uint16_t list_tcb_table[16][8];
+extern uint16_t list_tcb_table[UID_LIST_TABLE_SUM][WHITE_TABLE_LEN];
 
 extern Uart_MessageTypeDef backup_massage;
 extern uint8_t sum_clicker_count;
@@ -362,6 +362,7 @@ void rf_move_data_to_buffer( uint8_t *Message )
 		rf_message.CMDTYPE = 0x12;
 		rf_message.DEVICE  = 0x01;
 		memcpy(rf_message.VERSION,P_Vresion,2);
+		memcpy(rf_message.DSTID,send_data_task.srcid,UID_LEN);
 		memcpy(rf_message.SRCID,revicer.uid,UID_LEN);
 		memset(rf_message.REVICED,0xAA,2);
 
@@ -487,19 +488,6 @@ uint8_t spi_process_revice_data( void )
 			/* 检索白名单 */
 			Is_whitelist_uid = search_uid_in_white_list(spi_message+5,&uidpos);
 
-			if(Is_whitelist_uid == OPERATION_SUCCESS)
-			{
-				if(wl.uids[uidpos].use == 0)
-				{
-					wl.uids[uidpos].use = 1;
-					wl.uids[uidpos].firstrev = 1;
-				}
-				else
-				{
-					wl.uids[uidpos].firstrev = 0;
-				}
-			}
-
 			/* 白名单开关状态 */
 			if(wl.switch_status == OFF)
 			{
@@ -572,7 +560,7 @@ uint8_t spi_process_revice_data( void )
 							result_message.DEVICE = 0x01;
 							memcpy(result_message.VERSION,P_Vresion,2);
 							memcpy(result_message.SRCID,revicer.uid,UID_LEN);
-							memset(result_message.DSTID,0,UID_LEN);
+							memcpy(result_message.DSTID,send_data_task.srcid,UID_LEN);
 							memset(result_message.REVICED,0xAA,2);
 							result_message.CMDTYPE = 0x11;
 							*(uint16_t *)(result_message.LEN) = 6;
@@ -589,30 +577,6 @@ uint8_t spi_process_revice_data( void )
 								set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
 								serial_ringbuffer_write_data(UART_SBUF,&result_message);
 							}
-						}
-					}
-
-					/* 重复接收的数据，返回包号和上次一样的*/
-					if(wl.uids[uidpos].rev_num != spi_message[10])
-					{
-						/* 统计丢包 */
-						if( wl.uids[uidpos].use == 1 )
-						{
-							if(wl.uids[uidpos].firstrev == 0)
-							{
-								if( spi_message[10] > wl.uids[uidpos].rev_num)
-									wl.uids[uidpos].lost_package_num += spi_message[10] - wl.uids[uidpos].rev_num -1 ;
-
-								if( spi_message[10] < wl.uids[uidpos].rev_num )
-									wl.uids[uidpos].lost_package_num += spi_message[10] + 255 - wl.uids[uidpos].rev_num ;
-							}
-							else
-							{
-								wl.uids[uidpos].lost_package_num = 0;
-							}
-
-  						/* 统计收到包数 */
-							wl.uids[uidpos].recv_package_num++;
 						}
 					}
 				}
@@ -706,7 +670,7 @@ void get_send_data_table_message(uint8_t status)
 			{
 				DEBUG_STATISTICS_LOG("Statistic : %d\r\n",revicer.data_statistic_count++);
 				DEBUG_STATISTICS_LOG("First Statistic:\r\n");
-				if(Send_data_process.retransmit == 1)
+				if(send_data_task.retransmit == 1)
 				{
 					whitelist_checktable_and(0, REQUEST_TABLE, SEND_PRE_TABLE);
 					result_check_tables[PRE_SUM_TABLE] = SEND_PRE_TABLE;
@@ -762,7 +726,7 @@ void get_retransmit_messsage( uint8_t status )
 		case SEND_DATA2_STATUS:
 			{
 				DEBUG_DATA_DETAIL_LOG("\r\n\r\n[1].retransmit:\r\n");
-				if(Send_data_process.retransmit == 1)
+				if(send_data_task.retransmit == 1)
 				{
 					retransmit_check_tables[PRE_SUM_TABLE] = SEND_PRE_TABLE;
 					retransmit_check_tables[PRE_ACK_TABLE] = SEND_DATA1_ACK_TABLE;
@@ -945,7 +909,7 @@ void send_data_result( uint8_t status )
 			revice_lost_massage.DEVICE = 0x01;
 			memcpy(revice_lost_massage.VERSION,P_Vresion,2);
 			memcpy(revice_lost_massage.SRCID,revicer.uid,UID_LEN);
-			memset(revice_lost_massage.DSTID,0,UID_LEN);
+			memcpy(revice_lost_massage.DSTID,send_data_task.srcid,UID_LEN);
 			memset(revice_lost_massage.REVICED,0xAA,2);
 			revice_lost_massage.CMDTYPE = 0x11;
 			*(uint16_t *)(revice_lost_massage.LEN) = *(uint16_t *)(revice_lost_massage.LEN)+2;
@@ -982,7 +946,7 @@ void send_data_result( uint8_t status )
 			revice_ok_massage.DEVICE = 0x01;
 			memcpy(revice_ok_massage.VERSION,P_Vresion,2);
 			memcpy(revice_ok_massage.SRCID,revicer.uid,UID_LEN);
-			memset(revice_ok_massage.DSTID,0,UID_LEN);
+			memcpy(revice_lost_massage.DSTID,send_data_task.srcid,UID_LEN);
 			memset(revice_ok_massage.REVICED,0xAA,2);
 			revice_ok_massage.CMDTYPE = 0x11;
 			*(uint16_t *)revice_ok_massage.LEN = *(uint16_t *)revice_ok_massage.LEN+2;
