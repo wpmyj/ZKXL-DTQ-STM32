@@ -108,9 +108,9 @@ typedef struct
 	uint8_t SRCID[UID_LEN];              // 4 byte   11
 	uint8_t PACNUM;                      // 1 byte   12
 	uint8_t SEQNUM;                      // 1 byte   13
-	UartPac_Typedef PACKTYPE;            // 1 byte   14
+	uint8_t PACKTYPE;            // 1 byte   14
 	uint8_t REVICED[2];                  // 2 byte   16
-	UartCmd_Typedef CMDTYPE;             // 1 byte   17
+	uint8_t CMDTYPE;             // 1 byte   17
 	uint8_t LEN[LEN_LEN];                // 2byte    19
 	uint8_t DATA[REVICER_MESSAGE_LEN];
 	uint8_t XOR;                         // 1byte: form DEVICE to DATA
@@ -119,24 +119,23 @@ typedef struct
 
 typedef struct
 {
-	uint8_t 				HEADER;						  
-	uint8_t 				ID[4];								  
-	uint8_t 				RFU;
-	uint8_t 				TYPE;		          
-	uint8_t 				LEN;								
-	uint8_t 				DATA[UART_NBUF-10];		
-	uint8_t 				XOR;								
-	uint8_t 				END;								
+	uint8_t HEADER;						  
+	uint8_t ID[4];								  
+	uint8_t RFU;
+	uint8_t TYPE;		          
+	uint8_t LEN;								
+	uint8_t DATA[UART_NBUF-10];		
+	uint8_t XOR;								
+	uint8_t END;								
 }Rf_MessageTypeDef;
 
 typedef struct
 {
-	uint8_t uid[4];
-	uint8_t sign[4];
+	uint8_t srcid[4];
 	uint8_t cmd_type;
-	uint8_t studentid[10];
+	uint8_t stdid[10];
 	uint8_t retransmit;
-}Process_tcb_Typedef;
+}task_tcb_typedef;
 
 typedef struct
 {

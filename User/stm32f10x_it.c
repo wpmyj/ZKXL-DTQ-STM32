@@ -73,8 +73,8 @@ void uart_clear_message( Uart_MessageTypeDef *Message )
 ******************************************************************************/
 void uart_revice_data_state_mechine( uint8_t data )
 {
-	static uint8_t uart_rx_cnt = 0;
-	static uint8_t temp_len    = 0;
+	static uint16_t uart_rx_cnt = 0;
+	static uint16_t temp_len    = 0;
 
 	switch(uart_rev_status.get_status(&(uart_rev_status.state)))
 	{
@@ -258,7 +258,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 ******************************************************************************/
 void uart_send_data_state_machine( void )
 {
-	static uint8_t uart_tx_cnt  = 0;
+	static uint16_t uart_tx_cnt  = 0;
 	static uint8_t *pdata;
 
 	switch(uart_sen_status.get_status(&(uart_sen_status.state)))

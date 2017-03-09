@@ -139,7 +139,7 @@ typedef struct
 	uint8_t  retransmit_count;
 }send_data_process_tcb_tydef;
 
-extern Process_tcb_Typedef Send_data_process, Single_send_data_process;
+extern task_tcb_typedef send_data_task;
 extern volatile send_data_process_tcb_tydef send_data_process_tcb;
 
 void change_clicker_send_data_status( uint8_t newstatus );

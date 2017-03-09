@@ -19,7 +19,7 @@ extern uint8_t g_cSNR[10];
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
 extern clicker_config_typedef clicker_set;
-Process_tcb_Typedef Card_process;
+task_tcb_typedef card_task;
 
 #ifdef SHOW_CARD_PROCESS_TIME
 extern __IO uint32_t     PowerOnTime;
@@ -273,7 +273,7 @@ void App_card_process(void)
 				memset(wID.rev,0xFF,2);
 				if(wl.weite_std_id_status == ON)
 				{
-					memcpy(wID.stdid,Card_process.studentid,10);
+					memcpy(wID.stdid,card_task.stdid,10);
 				}
 				else
 					memset(wID.stdid,0x00,10);
@@ -465,7 +465,7 @@ void App_card_process(void)
 		card_message.HEAD = UART_SOF;
 		card_message.DEVICE = 0x01;
 		memcpy(card_message.VERSION,P_Vresion,2);
-		memset(card_message.DSTID,0x00,UID_LEN);
+		memcpy(card_message.DSTID,card_task.srcid,UID_LEN);
 		memcpy(card_message.SRCID,revicer.uid,UID_LEN);
 		card_message.PACNUM = 0x00;
 		card_message.SEQNUM = revicer.uart_seq_num++;

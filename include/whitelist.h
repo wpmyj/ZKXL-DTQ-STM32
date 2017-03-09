@@ -3,6 +3,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
+#define UID_LIST_TABLE_SUM                (16)
 #define MAX_WHITE_LEN						          (120)
 #define WHITE_TABLE_LEN                   (8)
 #define WHITE_LIST_LEN_POS_OF_FEE         (481)
@@ -30,7 +31,7 @@ typedef enum
 {
 	OFF 	= 0,
 	ON 	= 1
-} Switch_State;
+}switch_state_typedef;
 
 typedef struct
 {

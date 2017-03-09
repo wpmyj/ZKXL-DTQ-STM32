@@ -110,6 +110,7 @@ void Platform_Init(void)
 	ledOff(LBLUE);
 	clicker_config_default_set();
 	IWDG_Configuration();
+
 }
 
 /****************************************************************************

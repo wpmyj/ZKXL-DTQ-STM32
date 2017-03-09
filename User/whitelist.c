@@ -2,7 +2,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 uint8_t 	        g_cSNR[10];						        // M1卡序列号
-uint16_t          list_tcb_table[16][8] =
+uint16_t          list_tcb_table[UID_LIST_TABLE_SUM][WHITE_TABLE_LEN] =
 {
 	{0,0,0,0,0,0,0,0}, // [0]:UID 使用索引表
 	{0,0,0,0,0,0,0,0}, // [1]:UID 在线索引表

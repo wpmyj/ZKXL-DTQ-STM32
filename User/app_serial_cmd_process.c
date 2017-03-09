@@ -25,7 +25,7 @@ uint8_t P_Vresion[2] = { 0x00, 0x02 };
 extern StateMechineTcb_Typedef default_state_mechine_tcb;
 extern uint8_t is_open_statistic;
 extern nrf_communication_t nrf_data;
-extern uint16_t list_tcb_table[16][8];
+extern uint16_t list_tcb_table[UID_LIST_TABLE_SUM][WHITE_TABLE_LEN];
        uint8_t serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 			 uint8_t serial_cmd_type = 0;
 			 uint8_t err_cmd_type = 0;
@@ -35,7 +35,7 @@ Uart_MessageTypeDef backup_massage;
 
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
-extern Process_tcb_Typedef Card_process;
+extern task_tcb_typedef  card_task;
 /* Private functions ---------------------------------------------------------*/
 static void serial_send_data_to_pc(void);
 static void serial_cmd_process(void);
@@ -128,6 +128,8 @@ static void serial_cmd_process(void)
 		else
 		{
 			serial_ringbuffer_read_data(UART_RBUF, &ReviceMessage);
+			memcpy(card_task.srcid,ReviceMessage.SRCID,UID_LEN);
+			memcpy(send_data_task.srcid,ReviceMessage.SRCID,UID_LEN);
 			serial_cmd_type = ReviceMessage.CMDTYPE;
 			revicer.uart_pac_num = ReviceMessage.PACNUM;
 			revicer.uart_seq_num = ReviceMessage.SEQNUM;
@@ -516,6 +518,9 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 					wl.match_status = OFF;
 					rf_set_card_status(0);
 					*( spdata + ( i++ ) ) = 0;
+					Deselect();
+					PcdHalt();
+					PcdAntennaOff();
 				}
 
 				*(uint16_t *)sMessage->LEN = i+1;
@@ -599,7 +604,7 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 				uint8_t result;
 				uint16_t uid_p;
 				uint8_t *spdata = sMessage->DATA+4;
-				while((NewUidNum*5<UART_NBUF-6) && ( uid_p < MAX_WHITE_LEN))
+				while((NewUidNum*5<REVICER_MESSAGE_LEN-6) && ( uid_p < MAX_WHITE_LEN))
 				{
 					if(OPERATION_SUCCESS == get_index_of_uid(uid_p,TemUid))
 					{
@@ -632,7 +637,7 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 					*(uint16_t *)(sMessage->LEN)+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
 				sMessage->END = 0xCA;
 				NewUidNum = 0;
-				
+
 				return result;
 			}
 			
@@ -661,6 +666,9 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 					wl.attendance_sttaus = OFF;
 					rf_set_card_status(0);
 					*( spdata + ( i++ ) ) = 0;
+					Deselect();
+					PcdHalt();
+					PcdAntennaOff();
 				}
 
 				*(uint16_t *)sMessage->LEN = i+1;
@@ -685,7 +693,7 @@ uint8_t App_operate_uids_to_whitelist( Uart_MessageTypeDef *rMessage, Uart_Messa
 					*( spdata + ( i++ ) ) = 0;
 					wl.match_status = ON;
 					wl.weite_std_id_status = ON;
-					memcpy(Card_process.studentid,rpdata,10);
+					memcpy(card_task.stdid,rpdata,10);
 					rf_set_card_status(1);
 				}
 
