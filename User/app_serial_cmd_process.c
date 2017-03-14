@@ -371,23 +371,48 @@ void App_seirial_cmd_process(void)
 						if(is_online_pos == 1)
 						{
 							char str[20];
-							uint8_t tempuid[4];
+							const char RoleTypeName[5]   = {0xD1, 0xA7, 0xC9, 0xFA} ;             // 学生
+							const char DeviceTypeName[7] = {0xBD, 0xBB, 0xBB, 0xA5, 0xBF, 0xA8} ; // 交互卡
+								
 							cJSON_AddItemToArray(cards, card = cJSON_CreateObject());
+							
+							cJSON_AddStringToObject(card, "RoleTypeName", RoleTypeName );
+					    cJSON_AddStringToObject(card, "DeviceTypeName", DeviceTypeName );
+		
 							memset(str,0,20);
-							tempuid[0] = wl.uids[i].uid[3];
-							tempuid[1] = wl.uids[i].uid[2];
-							tempuid[2] = wl.uids[i].uid[1];
-							tempuid[3] = wl.uids[i].uid[0];
-							sprintf(str, "%010u" , *(uint32_t *)(tempuid));
+							sprintf(str, "%010u" , *(uint32_t *)( wl.uids[i].uid));
 							cJSON_AddStringToObject(card, "cardId", str );
+							
 							cJSON_AddStringToObject(card, "uptime",(char *) ClickerAnswerTime[i] );
+
 							for(j=0;j<ClickerAnswerData[i][0]*2;)
 							{
+								const char AnswerTypeName[3][7] = {
+									{0xB5, 0xA5, 0xD1, 0xA1, 0xCC, 0xE2 }, // 单选题
+									{0xB6, 0xE0, 0xD1, 0xA1, 0xCC, 0xE2 }, // 多选题
+									{0xC5, 0xD0, 0xB6, 0xCF, 0xCC, 0xE2 }  // 判断题
+								};
+
 								char item[10],str[20];
 								char *pdata = str;
 
 								memset(item,0,10);
 								memset(str, 0,20);
+								switch(ClickerAnswerData[i][2+j]&0xC0)
+								{
+									
+									case 0x40:
+										cJSON_AddStringToObject(card, "AnswerTypeName", AnswerTypeName[0]);
+									break;
+									case 0x80:
+										cJSON_AddStringToObject(card, "AnswerTypeName", AnswerTypeName[1]);
+									break;
+									case 0xC0:
+										cJSON_AddStringToObject(card, "AnswerTypeName", AnswerTypeName[2]);
+									break;
+									default:break;
+								}
+
 								sprintf(item, "q%d" , ClickerAnswerData[i][1+j]);
 
 								switch(ClickerAnswerData[i][2+j]&0xC0)

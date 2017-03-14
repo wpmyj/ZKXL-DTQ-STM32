@@ -441,8 +441,8 @@ void App_card_process(void)
 				{
 					#ifndef OPEN_CARD_DATA_SHOW 
 					//serial_ringbuffer_write_data(SEND_RINGBUFFER,&card_message);
-					//printf("CaedID:%02x%02x%02x%02x" , *(uint8_t *)(g_cSNR+4),*(uint8_t *)(g_cSNR+5),*(uint8_t *)(g_cSNR+6),*(uint8_t *)(g_cSNR+7));
-					//printf("CaedID:%010u" , *(uint32_t *)(g_cSNR+4));
+					//printf("CaedIDHex:%02x%02x%02x%02x\t" , *(uint8_t *)(g_cSNR+4),*(uint8_t *)(g_cSNR+5),*(uint8_t *)(g_cSNR+6),*(uint8_t *)(g_cSNR+7));
+					//printf("CaedID:%010u\r\n" , *(uint32_t *)(g_cSNR+4));
 					DEBUG_CARD_DATA_LOG("NDEF_DataRead and NDEF_DataWrite Clear!\r\n");
 					#endif
 				}
