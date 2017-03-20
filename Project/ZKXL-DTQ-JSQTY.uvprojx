@@ -48,7 +48,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>..\Hex\</OutputDirectory>
-          <OutputName>ZKXL-DTQ-JSQTY</OutputName>
+          <OutputName>DTQ_RP551CPU_ZKXL0200_V0100_20170320_E.hex</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -330,7 +330,7 @@
             <vShortWch>1</vShortWch>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>STM32F10X_MD, USE_STDPERIPH_DRIVER,ZL_RP551_MAIN_F</Define>
+              <Define>STM32F10X_MD, USE_STDPERIPH_DRIVER,ZL_RP551_MAIN_E</Define>
               <Undefine></Undefine>
               <IncludePath>..\Libraries\CMSIS\CM3\CoreSupport;..\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x;..\Libraries\STM32F10x_StdPeriph_Driver\inc;..\include;..\User;..\Bsp</IncludePath>
             </VariousControls>
