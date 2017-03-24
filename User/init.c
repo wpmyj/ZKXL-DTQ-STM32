@@ -90,8 +90,8 @@ void Platform_Init(void)
 	card_timer_init();
 
 	/*Init default status mechine */
-	init_default_state_mechine();
-	App_seiral_process_init();
+	//init_default_state_mechine();
+	//App_seiral_process_init();
 
 	/* 复位并初始化RC500 */
 	mfrc500_init();

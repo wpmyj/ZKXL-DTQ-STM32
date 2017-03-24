@@ -12,7 +12,7 @@ volatile send_data_process_tcb_tydef send_data_process_tcb;
 
 extern uint8_t spi_status_buffer[SPI_DATA_IRQ_BUFFER_BLOCK_COUNT][20];
 extern uint8_t spi_status_write_index, spi_status_read_index, spi_status_count;
-extern uint8_t P_Vresion[2];
+//extern uint8_t P_Vresion[2];
 
 uint8_t is_open_statistic = 0;
 uint8_t retranmist_data_status = 0;
@@ -24,7 +24,7 @@ static uint8_t sum_clicker_count = 0;
 extern nrf_communication_t nrf_data;
 extern uint16_t list_tcb_table[UID_LIST_TABLE_SUM][WHITE_TABLE_LEN];
 
-extern Uart_MessageTypeDef backup_massage;
+//extern Uart_MessageTypeDef backup_massage;
 extern uint8_t sum_clicker_count;
 /* 统计与重发过程所使用变量 */
 // 在线状态检索
@@ -46,7 +46,7 @@ static uint8_t after_retransmit_status;
 
 static message_tcb_tydef    message_tcb ;
 static retransmit_tcb_tydef retransmit_tcb;
-static Uart_MessageTypeDef  revice_lost_massage,revice_ok_massage;
+//static Uart_MessageTypeDef  revice_lost_massage,revice_ok_massage;
 extern WhiteList_Typedef    wl;
 extern Revicer_Typedef      revicer;
 
@@ -340,108 +340,108 @@ void clicker_send_data_statistics( uint8_t send_data_status, uint16_t uidpos )
 ******************************************************************************/
 void rf_move_data_to_buffer( uint8_t *Message )
 {
-	Uart_MessageTypeDef rf_message;
+//	Uart_MessageTypeDef rf_message;
 
-	uint8_t  q_num = 0;
-	uint16_t uidpos;
-	uint8_t  Cmdtype;
-	uint16_t AckTableLen,DataLen,Len;
+//	uint8_t  q_num = 0;
+//	uint16_t uidpos;
+//	uint8_t  Cmdtype;
+//	uint16_t AckTableLen,DataLen,Len;
 
-	AckTableLen = Message[14];
-	DataLen     = Message[14+AckTableLen+2];
-	Len         = AckTableLen + DataLen + 19;
-	Cmdtype     = Message[14+AckTableLen+1];
+//	AckTableLen = Message[14];
+//	DataLen     = Message[14+AckTableLen+2];
+//	Len         = AckTableLen + DataLen + 19;
+//	Cmdtype     = Message[14+AckTableLen+1];
 	
-	if(DataLen>0)
-	{
-		uint16_t s_index = 0, r_index = 0;
-		uint8_t is_last_data_full = 0;
-		uint8_t *prdata; 
+//	if(DataLen>0)
+//	{
+//		uint16_t s_index = 0, r_index = 0;
+//		uint8_t is_last_data_full = 0;
+//		uint8_t *prdata; 
 
-		rf_message.HEAD    = 0x5C;
-		rf_message.CMDTYPE = 0x12;
-		rf_message.DEVICE  = 0x01;
-		memcpy(rf_message.VERSION,P_Vresion,2);
-		memcpy(rf_message.DSTID,send_data_task.srcid,UID_LEN);
-		memcpy(rf_message.SRCID,revicer.uid,UID_LEN);
-		memset(rf_message.REVICED,0xAA,2);
+//		rf_message.HEAD    = 0x5C;
+//		rf_message.CMDTYPE = 0x12;
+//		rf_message.DEVICE  = 0x01;
+////		memcpy(rf_message.VERSION,P_Vresion,2);
+//		memcpy(rf_message.DSTID,send_data_task.srcid,UID_LEN);
+//		memcpy(rf_message.SRCID,revicer.uid,UID_LEN);
+//		memset(rf_message.REVICED,0xAA,2);
 
-		/* 获取消息的有效长度 */
-		*(uint16_t *)rf_message.LEN = Len;
+//		/* 获取消息的有效长度 */
+//		*(uint16_t *)rf_message.LEN = Len;
 
-		/* 获取数据的起始地址 */
-		prdata = Message+14+AckTableLen+2+1;
+//		/* 获取数据的起始地址 */
+//		prdata = Message+14+AckTableLen+2+1;
 
-		if( Cmdtype == 0x10 )
-		{
-			rf_message.DATA[0] = 0x01;
-			memcpy(rf_message.DATA+1,Message+5,UID_LEN);
-			s_index = 6;
+//		if( Cmdtype == 0x10 )
+//		{
+//			rf_message.DATA[0] = 0x01;
+//			memcpy(rf_message.DATA+1,Message+5,UID_LEN);
+//			s_index = 6;
 
-			while( s_index < DataLen +6 )
-			{                                                 
-				if(is_last_data_full == 0)
-				{
-					rf_message.DATA[s_index++] = prdata[r_index] & 0x0F;
-					rf_message.DATA[s_index++] = ((prdata[r_index] & 0xF0) >> 4)   | ((prdata[r_index+1] & 0x0F) << 4);
-					rf_message.DATA[s_index++] = ((prdata[r_index+1] & 0xF0) >> 4) | ((prdata[r_index+2] & 0x0F) << 4);
-					r_index = r_index + 2;
-					is_last_data_full = 1;
-				}
-				else
-				{
-					rf_message.DATA[s_index++] = (prdata[r_index] & 0xF0) >> 4;
-					rf_message.DATA[s_index++] = prdata[r_index+1];
-					rf_message.DATA[s_index++] = prdata[r_index+2];
-					r_index = r_index + 3;
-					is_last_data_full = 0;
-				}
-				q_num++;
-			}
-			rf_message.DATA[5] = q_num;
-			*(uint16_t *)rf_message.LEN = s_index;
-		}
+//			while( s_index < DataLen +6 )
+//			{                                                 
+//				if(is_last_data_full == 0)
+//				{
+//					rf_message.DATA[s_index++] = prdata[r_index] & 0x0F;
+//					rf_message.DATA[s_index++] = ((prdata[r_index] & 0xF0) >> 4)   | ((prdata[r_index+1] & 0x0F) << 4);
+//					rf_message.DATA[s_index++] = ((prdata[r_index+1] & 0xF0) >> 4) | ((prdata[r_index+2] & 0x0F) << 4);
+//					r_index = r_index + 2;
+//					is_last_data_full = 1;
+//				}
+//				else
+//				{
+//					rf_message.DATA[s_index++] = (prdata[r_index] & 0xF0) >> 4;
+//					rf_message.DATA[s_index++] = prdata[r_index+1];
+//					rf_message.DATA[s_index++] = prdata[r_index+2];
+//					r_index = r_index + 3;
+//					is_last_data_full = 0;
+//				}
+//				q_num++;
+//			}
+//			rf_message.DATA[5] = q_num;
+//			*(uint16_t *)rf_message.LEN = s_index;
+//		}
 		
-		if( Cmdtype == 0x24 )
-		{
-			rf_message.DATA[0] = 0x02;
-			prdata = Message+14+AckTableLen+2+1;
-			memcpy(rf_message.DATA+1,Message+5,UID_LEN);
-			s_index = 5;
-			rf_message.DATA[s_index++] = 0x01;
-			rf_message.DATA[s_index++] = 0x03;
-			if(*(uint16_t *)(prdata+2) < 3300)
-				memcpy(rf_message.DATA+s_index,prdata+2,2);
-			else
-				memset(rf_message.DATA+s_index,0x00,2);
-			s_index = s_index + 2;
-			*(uint16_t *)rf_message.LEN = s_index;
+//		if( Cmdtype == 0x24 )
+//		{
+//			rf_message.DATA[0] = 0x02;
+//			prdata = Message+14+AckTableLen+2+1;
+//			memcpy(rf_message.DATA+1,Message+5,UID_LEN);
+//			s_index = 5;
+//			rf_message.DATA[s_index++] = 0x01;
+//			rf_message.DATA[s_index++] = 0x03;
+//			if(*(uint16_t *)(prdata+2) < 3300)
+//				memcpy(rf_message.DATA+s_index,prdata+2,2);
+//			else
+//				memset(rf_message.DATA+s_index,0x00,2);
+//			s_index = s_index + 2;
+//			*(uint16_t *)rf_message.LEN = s_index;
 			//printf("[%02x%02x%02x%02x]:",Message[5],Message[6],Message[7],Message[8]);
 			//printf("IsReviceData:%1d RSSI:%3d Battery:%4d \r\n",*(prdata),*(prdata+1),*(uint16_t *)(prdata+2));
-		}
+//		}
 
-		rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.DSTID)), *(uint16_t *)rf_message.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
-		rf_message.END = 0xCA;
+//		//rf_message.XOR =  XOR_Cal((uint8_t *)(&(rf_message.DSTID)), *(uint16_t *)rf_message.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
+//		rf_message.END = 0xCA;
 
-		if(( Cmdtype == 0x10 ) || ( Cmdtype == 0x24 ))
-		{
-			if( wl.start == ON )
-			{
-				uint8_t Is_whitelist_uid = search_uid_in_white_list(Message+5,&uidpos);
-				if(Message[12] != wl.uids[uidpos].rev_num)//收到的是有效数据
-				{
-					/* 存入缓存 */
-					if(BUF_FULL != buffer_get_buffer_status(UART_SBUF))
-					{
-						serial_ringbuffer_write_data(UART_SBUF,&rf_message);
-						/* 更新接收数据帧号与包号 */
-						wl.uids[uidpos].rev_seq = Message[11];
-						wl.uids[uidpos].rev_num = Message[12];	
-					}
-				}
-			}
-		}
-	}
+//		if(( Cmdtype == 0x10 ) || ( Cmdtype == 0x24 ))
+//		{
+//			if( wl.start == ON )
+//			{
+//				uint8_t Is_whitelist_uid = search_uid_in_white_list(Message+5,&uidpos);
+//				if(Message[12] != wl.uids[uidpos].rev_num)//收到的是有效数据
+//				{
+//					/* 存入缓存 */
+//					if(BUF_FULL != buffer_get_buffer_status(UART_SBUF))
+//					{
+//						serial_ringbuffer_write_data(UART_SBUF,&rf_message);
+//						/* 更新接收数据帧号与包号 */
+//						wl.uids[uidpos].rev_seq = Message[11];
+//						wl.uids[uidpos].rev_num = Message[12];	
+//					}
+//				}
+//			}
+//		}
+//	}
 }
 
 /******************************************************************************
@@ -547,35 +547,35 @@ uint8_t spi_process_revice_data( void )
 						uint8_t Is_reviceed_uid = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,uidpos);
 						if( Is_reviceed_uid == 0 )
 						{
-							Uart_MessageTypeDef result_message;
-							uint8_t *pdata = (uint8_t *)(result_message.DATA+2);
-							
-							/* 填充UID信息 */
-							*((uint16_t *)pdata)= uidpos;
-							pdata = pdata + 2;
-							memcpy(pdata,spi_message+5,4);
+//							Uart_MessageTypeDef result_message;
+//							uint8_t *pdata = (uint8_t *)(result_message.DATA+2);
+//							
+//							/* 填充UID信息 */
+//							*((uint16_t *)pdata)= uidpos;
+//							pdata = pdata + 2;
+//							memcpy(pdata,spi_message+5,4);
 							
 							/* 填充包信息 */
-							result_message.HEAD = UART_SOF;
-							result_message.DEVICE = 0x01;
-							memcpy(result_message.VERSION,P_Vresion,2);
-							memcpy(result_message.SRCID,revicer.uid,UID_LEN);
-							memcpy(result_message.DSTID,send_data_task.srcid,UID_LEN);
-							memset(result_message.REVICED,0xAA,2);
-							result_message.CMDTYPE = 0x11;
-							*(uint16_t *)(result_message.LEN) = 6;
-							*(uint16_t *)(result_message.LEN) = *(uint16_t *)(result_message.LEN)+2;
-							result_message.DATA[0] = 0x00;
-							result_message.DATA[1] = 0;
-							result_message.XOR = XOR_Cal((uint8_t *)(&(result_message.DEVICE)), 
-							*(uint16_t *)(result_message.LEN) + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA + 2);
-							result_message.END = 0xCA;
+//							result_message.HEAD = UART_SOF;
+//							result_message.DEVICE = 0x01;
+//							memcpy(result_message.VERSION,P_Vresion,2);
+//							memcpy(result_message.SRCID,revicer.uid,UID_LEN);
+//							memcpy(result_message.DSTID,send_data_task.srcid,UID_LEN);
+//							memset(result_message.REVICED,0xAA,2);
+//							result_message.CMDTYPE = 0x11;
+//							*(uint16_t *)(result_message.LEN) = 6;
+//							*(uint16_t *)(result_message.LEN) = *(uint16_t *)(result_message.LEN)+2;
+//							result_message.DATA[0] = 0x00;
+//							result_message.DATA[1] = 0;
+//							//result_message.XOR = XOR_Cal((uint8_t *)(&(result_message.DEVICE)), 
+//							//*(uint16_t *)(result_message.LEN) + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA + 2);
+//							result_message.END = 0xCA;
 
 							if(BUF_FULL != buffer_get_buffer_status(UART_SBUF))
 							{
 								clear_index_of_white_list_pos(SEND_PRE_TABLE,uidpos);
 								set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
-								serial_ringbuffer_write_data(UART_SBUF,&result_message);
+								//serial_ringbuffer_write_data(UART_SBUF,&result_message);
 							}
 						}
 					}
@@ -893,117 +893,117 @@ void send_data_result( uint8_t status )
 	   ( status == SEND_DATA4_UPDATE_STATUS ))
 	{
 
-		get_send_data_table_message(status);
+//		get_send_data_table_message(status);
 
-		DEBUG_DATA_DETAIL_LOG("\r\nlost:\r\n");
+//		DEBUG_DATA_DETAIL_LOG("\r\nlost:\r\n");
 
-		/* 返回失败的UID */
-		while( message_tcb.Is_lost_over != 0)
-		{
-			message_tcb.Is_lost_over = checkout_online_uids( result_check_tables[PRE_SUM_TABLE],result_check_tables[PRE_ACK_TABLE], 0,
-				revice_lost_massage.DATA+2,revice_lost_massage.LEN);
-			message_tcb.lostuidlen += *(uint16_t *)revice_lost_massage.LEN;
+//		/* 返回失败的UID */
+//		while( message_tcb.Is_lost_over != 0)
+//		{
+//			message_tcb.Is_lost_over = checkout_online_uids( result_check_tables[PRE_SUM_TABLE],result_check_tables[PRE_ACK_TABLE], 0,
+//				revice_lost_massage.DATA+2,revice_lost_massage.LEN);
+//			message_tcb.lostuidlen += *(uint16_t *)revice_lost_massage.LEN;
 
-#ifdef ENABLE_SEND_DATA_TO_PC
-			revice_lost_massage.HEAD = UART_SOF;
-			revice_lost_massage.DEVICE = 0x01;
-			memcpy(revice_lost_massage.VERSION,P_Vresion,2);
-			memcpy(revice_lost_massage.SRCID,revicer.uid,UID_LEN);
-			memcpy(revice_lost_massage.DSTID,send_data_task.srcid,UID_LEN);
-			memset(revice_lost_massage.REVICED,0xAA,2);
-			revice_lost_massage.CMDTYPE = 0x11;
-			*(uint16_t *)(revice_lost_massage.LEN) = *(uint16_t *)(revice_lost_massage.LEN)+2;
-			revice_lost_massage.DATA[0] = 0x01;
-			revice_lost_massage.DATA[1] = status / 3;
-			revice_lost_massage.XOR = XOR_Cal((uint8_t *)(&(revice_lost_massage.DEVICE)), 
-			*(uint16_t *)(revice_lost_massage.LEN) + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA + 2);
-			revice_lost_massage.END = 0xCA;
-			if(revice_lost_massage.LEN != 0)
-			{
-				if(BUF_FULL != buffer_get_buffer_status(UART_SBUF))
-				{
-					serial_ringbuffer_write_data(UART_SBUF,&revice_lost_massage);
-				}
-			}
-#endif
-			memset(revice_lost_massage.DATA,0,*(uint16_t *)(revice_lost_massage.LEN));
-			*(uint16_t *)revice_lost_massage.LEN = 0;
-		}
-		DEBUG_DATA_DETAIL_LOG("\r\nok:\r\n");
-		message_tcb.clicker_count = 0;
-		while(message_tcb.Is_ok_over != 0)
-		{
-			message_tcb.Is_ok_over = checkout_online_uids( result_check_tables[PRE_SUM_TABLE],result_check_tables[PRE_ACK_TABLE], 1,
-				revice_ok_massage.DATA+2,revice_ok_massage.LEN);
-			revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.DEVICE)),
-			                                 *(uint16_t *)revice_ok_massage.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
-			revice_ok_massage.END = 0xCA;
-			message_tcb.clicker_count += *(uint16_t *)revice_ok_massage.LEN/5;
-			message_tcb.okuidlen += *(uint16_t *)revice_ok_massage.LEN;
+//#ifdef ENABLE_SEND_DATA_TO_PC
+//			revice_lost_massage.HEAD = UART_SOF;
+//			revice_lost_massage.DEVICE = 0x01;
+////			memcpy(revice_lost_massage.VERSION,P_Vresion,2);
+//			memcpy(revice_lost_massage.SRCID,revicer.uid,UID_LEN);
+//			memcpy(revice_lost_massage.DSTID,send_data_task.srcid,UID_LEN);
+//			memset(revice_lost_massage.REVICED,0xAA,2);
+//			revice_lost_massage.CMDTYPE = 0x11;
+//			*(uint16_t *)(revice_lost_massage.LEN) = *(uint16_t *)(revice_lost_massage.LEN)+2;
+//			revice_lost_massage.DATA[0] = 0x01;
+//			revice_lost_massage.DATA[1] = status / 3;
+//			//revice_lost_massage.XOR = XOR_Cal((uint8_t *)(&(revice_lost_massage.DEVICE)), \
+//			*(uint16_t *)(revice_lost_massage.LEN) + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA + 2);
+//			revice_lost_massage.END = 0xCA;
+//			if(revice_lost_massage.LEN != 0)
+//			{
+//				if(BUF_FULL != buffer_get_buffer_status(UART_SBUF))
+//				{
+////					serial_ringbuffer_write_data(UART_SBUF,&revice_lost_massage);
+//				}
+//			}
+//#endif
+//			memset(revice_lost_massage.DATA,0,*(uint16_t *)(revice_lost_massage.LEN));
+//			*(uint16_t *)revice_lost_massage.LEN = 0;
+//		}
+//		DEBUG_DATA_DETAIL_LOG("\r\nok:\r\n");
+//		message_tcb.clicker_count = 0;
+//		while(message_tcb.Is_ok_over != 0)
+//		{
+//			message_tcb.Is_ok_over = checkout_online_uids( result_check_tables[PRE_SUM_TABLE],result_check_tables[PRE_ACK_TABLE], 1,
+//				revice_ok_massage.DATA+2,revice_ok_massage.LEN);
+//			//revice_ok_massage.XOR =  XOR_Cal((uint8_t *)(&(revice_ok_massage.DEVICE)),\
+//			                                 *(uint16_t *)revice_ok_massage.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
+//			revice_ok_massage.END = 0xCA;
+//			message_tcb.clicker_count += *(uint16_t *)revice_ok_massage.LEN/5;
+//			message_tcb.okuidlen += *(uint16_t *)revice_ok_massage.LEN;
 
-#ifdef ENABLE_SEND_DATA_TO_PC
-			revice_ok_massage.HEAD = UART_SOF;
-			revice_ok_massage.DEVICE = 0x01;
-			memcpy(revice_ok_massage.VERSION,P_Vresion,2);
-			memcpy(revice_ok_massage.SRCID,revicer.uid,UID_LEN);
-			memcpy(revice_lost_massage.DSTID,send_data_task.srcid,UID_LEN);
-			memset(revice_ok_massage.REVICED,0xAA,2);
-			revice_ok_massage.CMDTYPE = 0x11;
-			*(uint16_t *)revice_ok_massage.LEN = *(uint16_t *)revice_ok_massage.LEN+2;
-			revice_ok_massage.DATA[0] = 0x00;
-			revice_ok_massage.DATA[1] = status / 3;
-			revice_ok_massage.XOR = XOR_Cal((uint8_t *)(&(revice_ok_massage.DEVICE)), 
-			*(uint16_t *)revice_ok_massage.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA+2);
-			revice_ok_massage.END = 0xCA;
-			if( revice_ok_massage.LEN != 0)
-			{
-				if(BUF_FULL != buffer_get_buffer_status(UART_SBUF))
-				{
-					serial_ringbuffer_write_data(UART_SBUF,&revice_ok_massage);
-				}
-			}
-#endif
-			memset(revice_lost_massage.DATA,0,*(uint16_t *)revice_lost_massage.LEN);
-			*(uint16_t *)revice_ok_massage.LEN = 0;
-		}
-		DEBUG_STATISTICS_LOG("\r\ncount:%d\r\n",message_tcb.clicker_count);
-		sum_clicker_count += message_tcb.clicker_count;
-		message_tcb.clicker_count = 0;
+//#ifdef ENABLE_SEND_DATA_TO_PC
+//			revice_ok_massage.HEAD = UART_SOF;
+//			revice_ok_massage.DEVICE = 0x01;
+////			memcpy(revice_ok_massage.VERSION,P_Vresion,2);
+//			memcpy(revice_ok_massage.SRCID,revicer.uid,UID_LEN);
+//			memcpy(revice_lost_massage.DSTID,send_data_task.srcid,UID_LEN);
+//			memset(revice_ok_massage.REVICED,0xAA,2);
+//			revice_ok_massage.CMDTYPE = 0x11;
+//			*(uint16_t *)revice_ok_massage.LEN = *(uint16_t *)revice_ok_massage.LEN+2;
+//			revice_ok_massage.DATA[0] = 0x00;
+//			revice_ok_massage.DATA[1] = status / 3;
+//			//revice_ok_massage.XOR = XOR_Cal((uint8_t *)(&(revice_ok_massage.DEVICE)), \
+//			*(uint16_t *)revice_ok_massage.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA+2);
+//			revice_ok_massage.END = 0xCA;
+//			if( revice_ok_massage.LEN != 0)
+//			{
+//				if(BUF_FULL != buffer_get_buffer_status(UART_SBUF))
+//				{
+////					serial_ringbuffer_write_data(UART_SBUF,&revice_ok_massage);
+//				}
+//			}
+//#endif
+//			memset(revice_lost_massage.DATA,0,*(uint16_t *)revice_lost_massage.LEN);
+//			*(uint16_t *)revice_ok_massage.LEN = 0;
+//		}
+//		DEBUG_STATISTICS_LOG("\r\ncount:%d\r\n",message_tcb.clicker_count);
+//		sum_clicker_count += message_tcb.clicker_count;
+//		message_tcb.clicker_count = 0;
 
-		/* 上传在线状态 */
-		if(message_tcb.lostuidlen != 0)
-		{
-			if( status == SEND_DATA3_UPDATE_STATUS )
-			{
-				uint8_t retransmit_clickers;
-				DEBUG_DATA_DETAIL_LOG("\r\n\r\n[3].retransmit:\r\n");
-				retransmit_clickers = checkout_retransmit_clickers(SEND_DATA3_SUM_TABLE,SEND_DATA3_ACK_TABLE,
-																			SEND_DATA4_SUM_TABLE);
-				if(retransmit_clickers > 0)
-				{
-					retransmit_tcb.sum = RETRANSMIT_SEND_DATA_COUNT;
-				}
-				else
-				{
-					retransmit_tcb.sum = 0;
-				}
-				whitelist_checktable_or(SEND_DATA3_ACK_TABLE,SEND_DATA_ACK_TABLE);
-			}
+//		/* 上传在线状态 */
+//		if(message_tcb.lostuidlen != 0)
+//		{
+//			if( status == SEND_DATA3_UPDATE_STATUS )
+//			{
+//				uint8_t retransmit_clickers;
+//				DEBUG_DATA_DETAIL_LOG("\r\n\r\n[3].retransmit:\r\n");
+//				retransmit_clickers = checkout_retransmit_clickers(SEND_DATA3_SUM_TABLE,SEND_DATA3_ACK_TABLE,
+//																			SEND_DATA4_SUM_TABLE);
+//				if(retransmit_clickers > 0)
+//				{
+//					retransmit_tcb.sum = RETRANSMIT_SEND_DATA_COUNT;
+//				}
+//				else
+//				{
+//					retransmit_tcb.sum = 0;
+//				}
+//				whitelist_checktable_or(SEND_DATA3_ACK_TABLE,SEND_DATA_ACK_TABLE);
+//			}
 
-			change_clicker_send_data_status( after_result_status );
-			if(after_result_status == SEND_IDLE_STATUS)
-				clear_uid_check_table();
-		}
-		else
-		{
-			change_clicker_send_data_status(0);
-			clear_uid_check_table();
-		}
-		message_tcb.okuidlen     = 0;
-		message_tcb.lostuidlen   = 0;
-		message_tcb.Is_lost_over = 1;
-		message_tcb.Is_ok_over   = 1;
-		return ;
+//			change_clicker_send_data_status( after_result_status );
+//			if(after_result_status == SEND_IDLE_STATUS)
+//				clear_uid_check_table();
+//		}
+//		else
+//		{
+//			change_clicker_send_data_status(0);
+//			clear_uid_check_table();
+//		}
+//		message_tcb.okuidlen     = 0;
+//		message_tcb.lostuidlen   = 0;
+//		message_tcb.Is_lost_over = 1;
+//		message_tcb.Is_ok_over   = 1;
+//		return ;
 	}
 }
 
