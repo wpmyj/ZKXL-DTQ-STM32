@@ -42,27 +42,13 @@ void App_seirial_cmd_process(void);
 
 
 /* Uart Message frame header and tail */
-#define UART_SOF								                           (0x5C)							
-#define UART_EOF 								                           (0xCA)							
+#define UART_SOF								          ('{')							//֡ͷ
+#define UART_EOF 								          ('}')							//֡β
 
 /* Uart message status */
-#define UartOK	 								                           (0)
-#define UartHEAD  							                           (1+UartOK)
-#define UartEVICETYPE                                      (1+UartHEAD)
-#define UartVERSION                                        (1+UartEVICETYPE)
-#define UartDSTID								                           (1+UartVERSION)
-#define UartSRCID								                           (1+UartDSTID)		
-#define UartPACNUM								                         (1+UartSRCID)
-#define UartSEQNUM								                         (1+UartPACNUM)
-#define UartPACKTYPE								                       (1+UartSEQNUM)	
-#define UartREVICED                                        (1+UartPACKTYPE)
-#define UartCMD								                             (1+UartREVICED)										                         		
-#define UartLEN									                           (1+UartCMD)		
-#define UartDATA 								                           (1+UartLEN)	
-#define UartXOR									                           (1+UartDATA)
-#define UartEND 								                           (1+UartXOR)	
-
-#define MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA                19
+#define UartSTART 							          (1)
+#define UartDATA	 								        (2)
+#define UartEND 								          (3)
 
 typedef enum
 {
@@ -99,35 +85,35 @@ typedef enum
 
 
 /* Uart Message structure definition */
-typedef struct
-{
-	uint8_t HEAD;                        // 1 byte
-	uint8_t DEVICE;                      // 1 byte   1
-	uint8_t VERSION[VERSION_LEN];        // 2 byte   3
-	uint8_t DSTID[UID_LEN];              // 4 byte   7
-	uint8_t SRCID[UID_LEN];              // 4 byte   11
-	uint8_t PACNUM;                      // 1 byte   12
-	uint8_t SEQNUM;                      // 1 byte   13
-	uint8_t PACKTYPE;            // 1 byte   14
-	uint8_t REVICED[2];                  // 2 byte   16
-	uint8_t CMDTYPE;             // 1 byte   17
-	uint8_t LEN[LEN_LEN];                // 2byte    19
-	uint8_t DATA[REVICER_MESSAGE_LEN];
-	uint8_t XOR;                         // 1byte: form DEVICE to DATA
-	uint8_t END;                         // 1byte
-} Uart_MessageTypeDef;
+//typedef struct
+//{
+//	uint8_t HEAD;                        // 1 byte
+//	uint8_t DEVICE;                      // 1 byte   1
+//	uint8_t VERSION[VERSION_LEN];        // 2 byte   3
+//	uint8_t DSTID[UID_LEN];              // 4 byte   7
+//	uint8_t SRCID[UID_LEN];              // 4 byte   11
+//	uint8_t PACNUM;                      // 1 byte   12
+//	uint8_t SEQNUM;                      // 1 byte   13
+//	uint8_t PACKTYPE;            // 1 byte   14
+//	uint8_t REVICED[2];                  // 2 byte   16
+//	uint8_t CMDTYPE;             // 1 byte   17
+//	uint8_t LEN[LEN_LEN];                // 2byte    19
+//	uint8_t DATA[REVICER_MESSAGE_LEN];
+//	uint8_t XOR;                         // 1byte: form DEVICE to DATA
+//	uint8_t END;                         // 1byte
+//} Uart_MessageTypeDef;
 
-typedef struct
-{
-	uint8_t HEADER;						  
-	uint8_t ID[4];								  
-	uint8_t RFU;
-	uint8_t TYPE;		          
-	uint8_t LEN;								
-	uint8_t DATA[UART_NBUF-10];		
-	uint8_t XOR;								
-	uint8_t END;								
-}Rf_MessageTypeDef;
+//typedef struct
+//{
+//	uint8_t HEADER;						  
+//	uint8_t ID[4];								  
+//	uint8_t RFU;
+//	uint8_t TYPE;		          
+//	uint8_t LEN;								
+//	uint8_t DATA[UART_NBUF-10];		
+//	uint8_t XOR;								
+//	uint8_t END;								
+//}Rf_MessageTypeDef;
 
 typedef struct
 {
@@ -157,5 +143,5 @@ uint8_t get_backup_massage_status( void );
 void change_clicker_send_data_status( uint8_t newstatus );
 uint8_t get_clicker_send_data_status( void );
 void App_seiral_process_init( void );
-uint8_t App_returnErr( Uart_MessageTypeDef *sMessage, uint8_t cmd_type, uint8_t err_type );
+//uint8_t App_returnErr( Uart_MessageTypeDef *sMessage, uint8_t cmd_type, uint8_t err_type );
 #endif // __POS_HANDLE_LAYER_H_

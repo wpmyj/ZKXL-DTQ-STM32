@@ -48,8 +48,8 @@
 
 /* Private functions ---------------------------------------------------------*/
 uint8_t buffer_get_buffer_status( uint8_t sel );
-void serial_ringbuffer_write_data( uint8_t sel, Uart_MessageTypeDef *data );
-void serial_ringbuffer_read_data( uint8_t sel, Uart_MessageTypeDef *data );
+//void serial_ringbuffer_write_data( uint8_t sel, Uart_MessageTypeDef *data );
+//void serial_ringbuffer_read_data( uint8_t sel, Uart_MessageTypeDef *data );
 uint8_t serial_ringbuffer_get_usage_rate(uint8_t sel);
 void spi_read_data_from_buffer( uint8_t sel,uint8_t SpiMessage[] );
 void spi_write_data_to_buffer( uint8_t sel, uint8_t SpiMessage[], uint8_t status );
