@@ -3,7 +3,7 @@
 
 //#define USE_BUFFER_FOR_PRINT
 
-#define READ_STRING_LEN                        30
+#define READ_STRING_LEN                        50
 
 #ifdef USE_BUFFER_FOR_PRINT
 #define DEBUG_LOG							                 b_print

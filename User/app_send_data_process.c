@@ -132,7 +132,7 @@ static void update_data_to_buffer( uint8_t *Message )
 		uint8_t id;
 		uint8_t range;
 	}answer_info_typedef;
-		
+
 	uint16_t uidpos;
 	uint8_t  Cmdtype;
 	uint16_t AckTableLen,DataLen;
@@ -149,13 +149,6 @@ static void update_data_to_buffer( uint8_t *Message )
 
 		/* 获取数据的起始地址 */
 		uint8_t *prdata = Message+14+AckTableLen+2+1;
-//	{
-//		uint8_t i=0;
-//		printf("\r\nprdata:");
-//		for(i=0;i<DataLen;i++)
-//			printf(" %02x",prdata[i]);
-//		printf("\r\n");
-//	}
 
 		if(( Cmdtype == 0x10 ) || ( Cmdtype == 0x24 ))
 		{
@@ -169,16 +162,17 @@ static void update_data_to_buffer( uint8_t *Message )
 					cJSON *answers;
 					cJSON *answer;
 					uint8_t ClickerAnswerTime[CLICKER_TIMER_STR_LEN];
-
-					cJSON *root = cJSON_CreateObject();
-					cJSON_AddStringToObject(root, "fun", "update_answer_list" );
+					
+					b_print("{\r\n");
+					b_print("  \'fun\': \'update_answer_list\',\r\n");
 					memset(str,0,20);
 					sprintf(str, "%010u" , *(uint32_t *)( wl.uids[uidpos].uid));
-					cJSON_AddStringToObject(root, "card_id", str );
+					b_print("  \'card_id\': \'%s\',\r\n", str );
 					memset(ClickerAnswerTime,0x00,CLICKER_TIMER_STR_LEN);
 					Parse_time_to_str((char *)ClickerAnswerTime);
-					cJSON_AddStringToObject(root, "update_time",(char *) ClickerAnswerTime );
-					cJSON_AddItemToObject(root, "answers", answers = cJSON_CreateArray());
+					b_print("  \'update_time\': \'%s\',\r\n",(char *) ClickerAnswerTime );
+					b_print("  \'answers\': [\r\n");
+					
 					if( Cmdtype == 0x10 )
 					{
 						char answer_type[2];
@@ -187,8 +181,7 @@ static void update_data_to_buffer( uint8_t *Message )
 						
 						while( r_index < DataLen-2 )
 						{
-							cJSON_AddItemToArray(answers, answer = cJSON_CreateObject());
-							
+							b_print("    {\r\n");
 							if(is_last_data_full == 0)
 							{
 								answer_temp.type  = prdata[r_index] & 0x0F;
@@ -211,7 +204,6 @@ static void update_data_to_buffer( uint8_t *Message )
 							memset(answer_id,   0x00,3);
 							
 							sprintf(answer_id, "%d" , answer_temp.id);
-							cJSON_AddStringToObject(answer, "id", answer_id );
 							
 							switch( answer_temp.type )
 							{
@@ -309,34 +301,23 @@ static void update_data_to_buffer( uint8_t *Message )
 								
 								default: break;
 							}
-							cJSON_AddStringToObject(answer, "type", answer_type );
-							cJSON_AddStringToObject(answer, "answer", answer_range );
-
+							b_print("      \'type\': \'%s\',\r\n",answer_type);
+							b_print("      \'id\': \'%s\',\r\n",answer_id);
+							b_print("      \'answer\': \'%s\'\r\n",answer_range);
+							if( r_index < DataLen-2 )
+								b_print("    },\r\n");
+							else
+								b_print("    }\r\n");
 						}
-						
 					}
+					
+					b_print("  ]\r\n");
+					b_print("}\r\n");
 
 					if( Cmdtype == 0x24 )
 					{
 						
 					}
-		
-					out = cJSON_Print(root);
-					{
-						char *pdata = out;
-
-						while(*pdata != '\0')
-						{
-							if(*pdata == '\"')
-							{
-								*pdata = '\'';
-							}
-							pdata++;
-						}
-					}
-					printf("%s", out);
-					cJSON_Delete(root);
-					free(out); 
 		
 					/* 更新接收数据帧号与包号 */
 					wl.uids[uidpos].rev_seq = Message[11];
@@ -452,14 +433,7 @@ uint8_t spi_process_revice_data( void )
 		}
 		else
 		{
-			#ifdef OPEN_SEND_STATUS_SHOW
-			int i;
-			for(i=0;i<17;i++)
-			{
-				b_print("%2x ",spi_message[i]);
-			}
-			b_print("%2x \r\n",spi_message[17]);
-			#endif
+
 		}
 	}
 	else

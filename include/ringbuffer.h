@@ -25,7 +25,7 @@
 #define UART_RBUF_SIZE       (1024)
 #define UART_SBUF_SIZE       (1024*2)
 #define SPI_RBUF_SIZE        (1024*2)
-#define PRINT_RBUF_SIZE      (1)
+#define PRINT_RBUF_SIZE      (1024)
 #define BUF_NUM              (4)
 
 /* buffer status  */

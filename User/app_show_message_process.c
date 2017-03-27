@@ -34,10 +34,10 @@ void message_show_process( void )
 ******************************************************************************/
 void b_print(const char *fmt, ...)                                       
 {                                                          
-	char str[100], len ;
+	char str[256], len ;
 	va_list args;
 	
-	memset(str,0,100);
+	memset(str,0,256);
 	
 	va_start(args, fmt);
 	len = vsprintf(str,fmt,args);
