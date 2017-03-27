@@ -20,6 +20,7 @@
 #include "cJSON.h"
 #include "app_send_data_process.h"
 #include "app_card_process.h"
+#include "app_show_message_process.h"
 
 /* Private variables ---------------------------------------------------------*/
 StateMechineTcb_Typedef uart_rev_status,uart_sen_status;
@@ -153,7 +154,7 @@ void serial_cmd_process(void)
 		json = cJSON_Parse((char *)uart_irq_revice_massage[revice_json_read_index]); 
 		if (!json)  
 		{
-				printf("Error before: [%s]\n",cJSON_GetErrorPtr());  
+				b_print("Error before: [%s]\n",cJSON_GetErrorPtr());  
 		} 
 		else
 		{
@@ -218,7 +219,7 @@ void serial_cmd_clear_uid_list(void)
 			pdata++;
 		}
 	}
-	printf("%s", out);
+	b_print("%s", out);
 	cJSON_Delete(root);
 	free(out); 
 }
@@ -264,7 +265,7 @@ void serial_cmd_bind_operation(const cJSON *object)
 			pdata++;
 		}
 	}
-	printf("%s", out);
+	b_print("%s", out);
 	cJSON_Delete(root);
 	free(out); 	
 }
@@ -346,9 +347,9 @@ void serial_cmd_answer_start(const cJSON *object)
 						}
 					}
 				}
-				//printf("type  = %02x\r\n", answer_temp.type);
-				//printf("id    = %02x\r\n", answer_temp.id);
-				//printf("range = %02x\r\n", answer_temp.range);
+				printf("type  = %02x\r\n", answer_temp.type);
+				printf("id    = %02x\r\n", answer_temp.id);
+				printf("range = %02x\r\n", answer_temp.range);
 
 				if(is_last_data_full == 0)
 				{
@@ -371,15 +372,6 @@ void serial_cmd_answer_start(const cJSON *object)
 		
 		rf_var.cmd = 0x10;
 		rf_var.tx_len = sdata_index+1 ;
-//	{
-//		uint8_t i;
-//		printf("rf_var.tx_buf:");
-//		for(i=0;i<rf_var.tx_len;i++)
-//		{
-//			printf(" %02x",rf_var.tx_buf[i]);
-//		}
-//		printf("\r\n");
-//	}
 	}
 
 	/* send data */
@@ -424,7 +416,7 @@ void serial_cmd_answer_start(const cJSON *object)
 			pdata++;
 		}
 	}
-	printf("%s", out);
+	b_print("%s", out);
 	cJSON_Delete(root);
 	free(out); 
 }
@@ -459,7 +451,7 @@ void serial_cmd_get_device_no(void)
 			pdata++;
 		}
 	}
-	printf("%s", out);
+	b_print("%s", out);
 	cJSON_Delete(root);
 	free(out); 
 }

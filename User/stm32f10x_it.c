@@ -34,10 +34,10 @@ static bool     flag_uart_rxing       = 0;
 static uint8_t  uart_status           = UartSTART;
 static uint8_t  uart_json_nesting_num = 0;
 
-#define JSON_ITEM_MAX    3
-uint8_t  uart_irq_revice_massage[JSON_ITEM_MAX][300];
-uint8_t revice_json_count = 0;
-uint8_t revice_json_write_index = 0;
+#define JSON_ITEM_MAX    2
+uint8_t  uart_irq_revice_massage[JSON_ITEM_MAX][1000];
+uint16_t revice_json_count = 0;
+uint8_t  revice_json_write_index = 0;
 
 // send part
 uint8_t uart_tx_status      = 0;
@@ -341,7 +341,7 @@ void NRF1_RFIRQ_EXTI_IRQHandler(void)
 		{
 			if(BUF_FULL != buffer_get_buffer_status(SPI_RBUF))
 			{
-				uint8_t send_data_status = 0;//get_clicker_send_data_status();
+				uint8_t send_data_status = 0; //get_clicker_send_data_status();
 				spi_write_data_to_buffer(SPI_RBUF,nrf_data.rbuf, send_data_status);
 			}
 			else

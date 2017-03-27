@@ -175,62 +175,6 @@ static void update_bottom( uint8_t sel, uint16_t Len )
 }
 
 /******************************************************************************
-  Function:serial_ringbuffer_write_data
-  Description:
-  Input:None
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-//void serial_ringbuffer_write_data(uint8_t sel, Uart_MessageTypeDef *message)
-//{
-////	uint16_t i;
-////	uint8_t *pdata = (uint8_t *)message;
-////	uint16_t MessageLen = *(uint16_t *)(message->LEN) + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA;
-
-////	for(i=0;i<=MessageLen;i++)
-////	{
-////		set(sel,top[sel]+i,*pdata);
-////		pdata++;
-////	}
-
-////	set(sel,top[sel]+i+0,message->XOR);
-////	set(sel,top[sel]+i+1,message->END);
-
-////	update_top( sel, MessageLen+3);
-////	update_write_status(sel);
-//}
-/******************************************************************************
-  Function:serial_ringbuffer_read_data
-  Description:
-  Input:None
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-//void serial_ringbuffer_read_data( uint8_t sel, Uart_MessageTypeDef *message )
-//{
-////		uint16_t i;
-////	  uint8_t *pdata = (uint8_t *)message;
-
-////	  uint16_t MessageLen = get( sel,bottom[sel]+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA-1) +
-////												  get( sel,bottom[sel]+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA)*256
-////	                        + MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA;
-
-////		for(i=0;i<=MessageLen;i++)
-////		{
-////			*pdata = get(sel,bottom[sel]+i);
-////			pdata++;
-////		}
-////		*(uint16_t *)(message->LEN) = MessageLen - MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA;
-////		message->XOR = get(sel,bottom[sel]+i+0);
-////		message->END = get(sel,bottom[sel]+i+1);
-
-////		update_bottom(sel, MessageLen+3);
-////		update_read_status(sel);
-//}
-
-/******************************************************************************
   Function:App_rf_check_process
   Description:
 		spi RF 消息缓存处理函数
