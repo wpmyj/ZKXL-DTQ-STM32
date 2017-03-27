@@ -341,7 +341,7 @@ void NRF1_RFIRQ_EXTI_IRQHandler(void)
 		{
 			if(BUF_FULL != buffer_get_buffer_status(SPI_RBUF))
 			{
-				uint8_t send_data_status = get_clicker_send_data_status();
+				uint8_t send_data_status = 0;//get_clicker_send_data_status();
 				spi_write_data_to_buffer(SPI_RBUF,nrf_data.rbuf, send_data_status);
 			}
 			else
