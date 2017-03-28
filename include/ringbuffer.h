@@ -22,11 +22,12 @@
 #define SPI_RBUF             3
 
 #define PACKETSIZE           (UART_NBUF+9)
-#define UART_RBUF_SIZE       (1024)
-#define UART_SBUF_SIZE       (1024*2)
+#define UART_RBUF_SIZE       (1)
+#define UART_SBUF_SIZE       (1)
 #define SPI_RBUF_SIZE        (1024*2)
-#define PRINT_RBUF_SIZE      (1024)
+#define PRINT_RBUF_SIZE      (1024*2)
 #define BUF_NUM              (4)
+
 
 /* buffer status  */
 #define BUF_EMPTY            1
