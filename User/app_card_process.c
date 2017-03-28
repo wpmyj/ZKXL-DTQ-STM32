@@ -14,7 +14,6 @@
 #include "app_card_process.h"
 
 //#define SHOW_CARD_PROCESS_TIME
-////extern uint8_t P_Vresion[2];
 extern uint8_t g_cSNR[10];	
 extern WhiteList_Typedef wl;
 extern Revicer_Typedef   revicer;
@@ -26,7 +25,6 @@ extern __IO uint32_t     PowerOnTime;
 uint32_t StartTime,EndTime;
 #endif
 
-//static Uart_MessageTypeDef card_message;
 static uint8_t card_process_status = 0;
 static uint8_t is_white_list_uid = 0;
 /* ∑µªÿø®¿‡–Õ */
@@ -462,32 +460,31 @@ void App_card_process(void)
 			}
 		}
 
-//		card_message.HEAD = UART_SOF;
-//		card_message.DEVICE = 0x01;
-//		memcpy(card_message.VERSION,P_Vresion,2);
-//		memcpy(card_message.DSTID,card_task.srcid,UID_LEN);
-//		memcpy(card_message.SRCID,revicer.uid,UID_LEN);
-//		card_message.PACNUM = 0x00;
-//		card_message.SEQNUM = revicer.uart_seq_num++;
-//		card_message.CMDTYPE = 0x30;
-//		memset(card_message.REVICED,0xAA,2);
-//		memset(card_message.DATA,0x00,25);
 		if( wl.match_status == ON )
 		{
 			if(wl.weite_std_id_status == ON)
 			{
-//				card_message.DATA[0] = 0x18;
-//				if( card_message_err == 1 )
-//				{
-//					card_message.DATA[1] = 0x00;
-//					memcpy(card_message.DATA+2,rID.stdid,10);
-//				}
-//				if( card_message_err == 2 )
-//				{
-//					card_message.DATA[1] = 0x01;
-//					memset(card_message.DATA+2,0,10);
-//				}
-//				*(uint16_t *)card_message.LEN = 0x0B;
+				char str[21];
+				b_print("{\r\n");
+				b_print("  \'fun\': \'set_student_id\',\r\n");
+				memset(str,0,20);
+				sprintf(str, "%010u" , *(uint32_t *)( wl.uids[write_uid_pos].uid));
+				b_print("  \'card_id\': \'%s\',\r\n", str );
+				
+				memset(str,0,21);
+				{
+					uint8_t i;
+					char *p_student_data = str;
+
+					char temp[3];
+					for(i=0;i<10;i++)
+					{
+						sprintf(p_student_data+2*i,  "%d" , (rID.stdid[i]&0xF0)>>4);
+						sprintf(p_student_data+2*i+1,"%d" , (rID.stdid[i]&0x0F));
+					}
+				}
+				b_print("  \'student_id\': \'%s\'\r\n", str );
+				b_print("}\r\n");
 			}
 			else
 			{
@@ -528,10 +525,6 @@ void App_card_process(void)
 //			*(uint16_t *)card_message.LEN = 0x12;
 		}
 
-		//card_message.XOR = XOR_Cal(&card_message.DEVICE,
-		//	*(uint16_t *)card_message.LEN+MESSAGE_DATA_LEN_FROM_DEVICE_TO_DATA);
-		//card_message.END  = 0xCA;	
-
 		if(card_message_err != 0)
 		{
 			if( wtrte_flash_ok == 1 )
@@ -539,7 +532,6 @@ void App_card_process(void)
 				if(BUF_FULL != buffer_get_buffer_status(UART_SBUF))
 				{
 					#ifndef OPEN_CARD_DATA_SHOW 
-//					serial_ringbuffer_write_data(UART_SBUF,&card_message);
 					DEBUG_CARD_DATA_LOG("NDEF_DataRead and NDEF_DataWrite Clear!\r\n");
 					#endif
 				}
