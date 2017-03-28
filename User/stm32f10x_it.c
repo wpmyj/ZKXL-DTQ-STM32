@@ -34,7 +34,6 @@ static bool     flag_uart_rxing       = 0;
 static uint8_t  uart_status           = UartSTART;
 static uint8_t  uart_json_nesting_num = 0;
 
-#define JSON_ITEM_MAX    2
 uint8_t  uart_irq_revice_massage[JSON_ITEM_MAX][1000];
 uint16_t revice_json_count = 0;
 uint8_t  revice_json_write_index = 0;
@@ -95,6 +94,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 							revice_json_write_index = (revice_json_write_index+1) % JSON_ITEM_MAX;
 							revice_json_count++;
 						}
+						printf("uart_rx_cnt = %d\r\n",uart_rx_cnt);
 						uart_rx_cnt     = 0;
 						uart_status     = UartSTART;
 						flag_uart_rxing = 0;

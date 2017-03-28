@@ -158,9 +158,6 @@ static void update_data_to_buffer( uint8_t *Message )
 				if(Message[12] != wl.uids[uidpos].rev_num)//收到的是有效数据
 				{
 					char str[20];
-					char *out;
-					cJSON *answers;
-					cJSON *answer;
 					uint8_t ClickerAnswerTime[CLICKER_TIMER_STR_LEN];
 					
 					b_print("{\r\n");
@@ -181,7 +178,7 @@ static void update_data_to_buffer( uint8_t *Message )
 						
 						while( r_index < DataLen-2 )
 						{
-							b_print("    {\r\n");
+							b_print("    {");
 							if(is_last_data_full == 0)
 							{
 								answer_temp.type  = prdata[r_index] & 0x0F;
@@ -301,13 +298,13 @@ static void update_data_to_buffer( uint8_t *Message )
 								
 								default: break;
 							}
-							b_print("      \'type\': \'%s\',\r\n",answer_type);
-							b_print("      \'id\': \'%s\',\r\n",answer_id);
-							b_print("      \'answer\': \'%s\'\r\n",answer_range);
+							b_print("\'type\': \'%s\', ",answer_type);
+							b_print("\'id\': \'%2s\', ",answer_id);
+							b_print("\'answer\': \'%7s\' ",answer_range);
 							if( r_index < DataLen-2 )
-								b_print("    },\r\n");
+								b_print("},\r\n");
 							else
-								b_print("    }\r\n");
+								b_print("}\r\n");
 						}
 					}
 					

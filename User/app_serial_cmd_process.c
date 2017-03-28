@@ -36,8 +36,8 @@ extern uint16_t list_tcb_table[UID_LIST_TABLE_SUM][WHITE_TABLE_LEN];
 
 /* 暂存题目信息，以备重发使用 */
 //Uart_MessageTypeDef backup_massage;
-extern uint8_t  uart_irq_revice_massage[2][300];
-extern uint8_t revice_json_count;
+//extern uint8_t  uart_irq_revice_massage[2][300];
+//extern uint8_t revice_json_count;
 uint8_t revice_json_read_index = 0;
 
 extern WhiteList_Typedef wl;
@@ -178,8 +178,8 @@ void serial_cmd_process(void)
 		{
 			cJSON_Delete(json);
 			revice_json_count--;
-			memset(uart_irq_revice_massage[revice_json_read_index],0,300);
-			revice_json_read_index = (revice_json_read_index + 1) % 3;
+			memset(uart_irq_revice_massage[revice_json_read_index],0,JSON_BUFFER_LEN);
+			revice_json_read_index = (revice_json_read_index + 1) % JSON_ITEM_MAX;
 		}
 	}
 }
@@ -347,9 +347,9 @@ void serial_cmd_answer_start(const cJSON *object)
 						}
 					}
 				}
-				printf("type  = %02x\r\n", answer_temp.type);
-				printf("id    = %02x\r\n", answer_temp.id);
-				printf("range = %02x\r\n", answer_temp.range);
+				//printf("type  = %02x\r\n", answer_temp.type);
+				//printf("id    = %02x\r\n", answer_temp.id);
+				//printf("range = %02x\r\n", answer_temp.range);
 
 				if(is_last_data_full == 0)
 				{
