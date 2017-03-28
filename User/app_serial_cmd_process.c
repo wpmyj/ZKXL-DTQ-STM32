@@ -661,30 +661,25 @@ void serial_cmd_set_student_id(const cJSON *object)
 {
 	cJSON *root;
 	char *out;
-	char student_id_str[20];
-	uint8_t student_id_bcd[10];
 	int8_t status;
 	uint8_t i = 0;
 	uint8_t len = strlen(cJSON_GetObjectItem(object, "student_id")->valuestring);
 	char    *prdata = cJSON_GetObjectItem(object, "student_id")->valuestring;
-	uint8_t *pwdata = student_id_bcd;
+	uint8_t *pwdata = card_task.stdid;
 
 	if((len > 0) && (len <= 20))
 	{
-		memset(student_id_bcd,0,10);
+		memset(pwdata,0,10);
 
 		for(i=0;2*i<len;i++)
 		{
-			char temp[3] = {0,0,0};
-			temp[0] = prdata[2*i];
-			temp[1] = prdata[2*i+1];
-			*pwdata = ((((temp[0]-'0') << 4) & 0xF0) | ((temp[1]-'0') & 0x0F));
+			*pwdata = ((((prdata[2*i]-'0') << 4) & 0xF0) | 
+			             ((prdata[2*i+1]-'0') & 0x0F));
 			pwdata++;
 		}
 
 		wl.match_status = ON;
 		wl.weite_std_id_status = ON;
-		memcpy(card_task.stdid,student_id_bcd,10);
 		rf_set_card_status(1);
 		status = 0;
 	}

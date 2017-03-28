@@ -30,23 +30,16 @@
 /* uart global variables */
 // revice part
 static uint32_t uart_rx_timeout       = 0;
-static bool     flag_uart_rxing       = 0;
+static uint8_t  flag_uart_rxing       = 0;
 static uint8_t  uart_status           = UartSTART;
 static uint8_t  uart_json_nesting_num = 0;
 
-uint8_t  uart_irq_revice_massage[JSON_ITEM_MAX][1000];
+uint8_t  uart_irq_revice_massage[JSON_ITEM_MAX][JSON_BUFFER_LEN];
 uint16_t revice_json_count = 0;
 uint8_t  revice_json_write_index = 0;
 
-// send part
-uint8_t uart_tx_status      = 0;
-
 /* uart global variables */
 extern nrf_communication_t	nrf_data;
-
-/* rf systick data */
-uint8_t spi_status_buffer[SPI_DATA_IRQ_BUFFER_BLOCK_COUNT][20];
-uint8_t spi_status_write_index = 0, spi_status_read_index = 0, spi_status_count = 0;
 
 /******************************************************************************
   Function:uart_revice_data_state_mechine
@@ -79,25 +72,35 @@ void uart_revice_data_state_mechine( uint8_t data )
 
 		case UartDATA:
 			{
-				uart_irq_revice_massage[revice_json_write_index][uart_rx_cnt++] = data ;
-				if(UART_SOF == data)
+				if(( data != ' ') && (data != '\t') && (data != '\r') && (data != '\n'))
 				{
-					uart_json_nesting_num++;
-				}
-				if(UART_EOF == data)
-				{
-					uart_json_nesting_num--;
-					if(uart_json_nesting_num == 0)
+					uart_irq_revice_massage[revice_json_write_index][uart_rx_cnt++] = data ;
+					if(UART_SOF == data)
 					{
-						if(revice_json_count < JSON_ITEM_MAX  )
-						{
-							revice_json_write_index = (revice_json_write_index+1) % JSON_ITEM_MAX;
-							revice_json_count++;
-						}
-						printf("uart_rx_cnt = %d\r\n",uart_rx_cnt);
-						uart_rx_cnt     = 0;
-						uart_status     = UartSTART;
+						uart_json_nesting_num++;
+					}
+					if( uart_rx_cnt > JSON_BUFFER_LEN )
+					{
 						flag_uart_rxing = 0;
+						uart_status = UartSTART;
+						printf("uart_rx_cnt is full! data will lost.\r\n");
+						break;
+					}
+					if(UART_EOF == data)
+					{
+						uart_json_nesting_num--;
+						if(uart_json_nesting_num == 0)
+						{
+							if(revice_json_count < JSON_ITEM_MAX  )
+							{
+								revice_json_write_index = (revice_json_write_index+1) % JSON_ITEM_MAX;
+								revice_json_count++;
+							}
+							printf("uart_rx_cnt = %d\r\n",uart_rx_cnt);
+							uart_rx_cnt     = 0;
+							uart_status     = UartSTART;
+							flag_uart_rxing = 0;
+						}
 					}
 				}
 			}
