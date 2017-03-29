@@ -2,6 +2,7 @@
 #define	__POS_HANDLE_LAYER_H_
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cJSON.h"
 /* Private define ------------------------------------------------------------*/
 
 /* Uart to App cmd */
@@ -53,19 +54,21 @@ typedef struct
 	uint8_t retransmit;
 }task_tcb_typedef;
 
-typedef struct
-{
-	uint8_t state;
-	uint8_t desc[30];
-}State_Typedef;
 
 typedef struct
 {
-	State_Typedef state;
-	void    (*set_status)( State_Typedef *state, uint8_t new_status );
-	uint8_t (*get_status)( State_Typedef *state );
-}StateMechineTcb_Typedef;
+	const char *cmd_str;
+	uint8_t    cmd_len;
+	void      (*cmd_fun)(const cJSON *object);
+}serial_cmd_typedef;
 
-extern StateMechineTcb_Typedef uart_rev_status,uart_sen_status;
+void serial_cmd_clear_uid_list(const cJSON *object);
+void serial_cmd_bind_operation(const cJSON *object);
+void serial_cmd_answer_start(const cJSON *object);
+void serial_cmd_answer_stop(const cJSON *object);
+void serial_cmd_get_device_no(const cJSON *object);
+void serial_cmd_set_channel(const cJSON *object);
+void serial_cmd_set_tx_power(const cJSON *object);
+void serial_cmd_set_student_id(const cJSON *object);
 
 #endif // __POS_HANDLE_LAYER_H_

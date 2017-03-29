@@ -11,16 +11,14 @@
 #include "string.h"
 
 /* Private variables ---------------------------------------------------------*/
-static uint8_t  uart_rbuf[UART_RBUF_SIZE];
-static uint8_t  uart_sbuf[UART_SBUF_SIZE];
 static uint8_t  spi_rbuf[SPI_RBUF_SIZE];
 static uint8_t  ptint_buf[PRINT_RBUF_SIZE];
-const uint32_t  buf_size[BUF_NUM]        = {UART_RBUF_SIZE,UART_SBUF_SIZE,PRINT_RBUF_SIZE,SPI_RBUF_SIZE};
-static uint8_t *pbuf[BUF_NUM]            = {uart_rbuf,uart_sbuf,ptint_buf,spi_rbuf};
-static volatile uint16_t top[BUF_NUM]    = { 0, 0, 0, 0 };
-static volatile uint16_t bottom[BUF_NUM] = { 0, 0, 0, 0 };
-static volatile int32_t  Size[BUF_NUM]   = { 0, 0, 0, 0 };
-static volatile uint8_t  status[BUF_NUM] = { BUF_EMPTY, BUF_EMPTY,BUF_EMPTY, BUF_EMPTY};
+const uint32_t  buf_size[BUF_NUM]        = { PRINT_RBUF_SIZE, SPI_RBUF_SIZE };
+static uint8_t  *pbuf[BUF_NUM]           = { ptint_buf, spi_rbuf };
+static volatile uint16_t top[BUF_NUM]    = { 0, 0 };
+static volatile uint16_t bottom[BUF_NUM] = { 0, 0 };
+static volatile int32_t  Size[BUF_NUM]   = { 0, 0 };
+static volatile uint8_t  status[BUF_NUM] = { BUF_EMPTY, BUF_EMPTY };
 
 /* Private functions ---------------------------------------------------------*/
 static void    update_read_status( uint8_t sel) ;
@@ -70,7 +68,6 @@ void set( uint8_t sel, uint16_t index, uint8_t data)
 {
 	pbuf[sel][index % buf_size[sel]] = data;
 }
-
 
 /******************************************************************************
   Function:update_read_status
@@ -182,14 +179,14 @@ static void update_bottom( uint8_t sel, uint16_t Len )
   Return:
   Others:None
 ******************************************************************************/
-void spi_write_data_to_buffer( uint8_t sel, uint8_t SpiMessage[], uint8_t status )
+void spi_write_data_to_buffer( uint8_t sel, uint8_t SpiMessage[] )
 {
 	uint16_t AckTableLen,DataLen,Len, i;
 	uint8_t *pdata;
 
 	AckTableLen = SpiMessage[14];
 	DataLen     = SpiMessage[14+AckTableLen+2];
-	Len         = AckTableLen + DataLen + 19;
+	Len         = AckTableLen + DataLen + 18;
 	pdata       = SpiMessage;
 
 	//printf("writebuf:");
@@ -199,10 +196,6 @@ void spi_write_data_to_buffer( uint8_t sel, uint8_t SpiMessage[], uint8_t status
 		//printf(" %02x",*pdata);
 		pdata++;
 	}
-	
-	set(sel,top[sel]+i++,status);
-	//printf(" %02x",status);
-	//printf("\r\n");
 
 	update_top( sel, Len);
 	update_write_status(sel);
@@ -219,14 +212,14 @@ void spi_write_data_to_buffer( uint8_t sel, uint8_t SpiMessage[], uint8_t status
 void spi_read_data_from_buffer( uint8_t sel, uint8_t SpiMessage[] )
 {
 	uint16_t i;
-	uint16_t AckTableLen =  get( sel,bottom[sel] + 14);
-	uint16_t DataLen     =  get( sel,bottom[sel] + 14 + AckTableLen + 2);
-	uint16_t Len         = AckTableLen + DataLen + 19;
+	uint16_t AckTableLen = get( sel,bottom[sel] + 14);
+	uint16_t DataLen     = get( sel,bottom[sel] + 14 + AckTableLen + 2);
+	uint16_t Len         = AckTableLen + DataLen + 18;
 	uint8_t *pdata;
 
 	pdata = SpiMessage;
 	//printf("readbuf :");
-	for(i=0;i<Len+1;i++)
+	for(i=0;i<Len;i++)
 	{
 		*pdata = get(sel,bottom[sel]+i);
 		//printf(" %02x",*pdata);
@@ -242,14 +235,14 @@ void spi_read_data_from_buffer( uint8_t sel, uint8_t SpiMessage[] )
 }
 
 /******************************************************************************
-  Function:serial_ringbuffer_get_usage_rate
+  Function:ringbuffer_get_usage_rate
   Description:
   Input:None
   Output:
   Return:
   Others:None
 ******************************************************************************/
-uint8_t serial_ringbuffer_get_usage_rate(uint8_t sel)
+uint8_t ringbuffer_get_usage_rate(uint8_t sel)
 {
 	return (Size[sel]*100/buf_size[sel]);
 }

@@ -14,8 +14,8 @@ static uint8_t send_data_status = 0;
 extern nrf_communication_t nrf_data;
 extern uint16_t list_tcb_table[UID_LIST_TABLE_SUM][WHITE_TABLE_LEN];
 
-extern WhiteList_Typedef    wl;
-extern Revicer_Typedef      revicer;
+extern wl_typedef      wl;
+extern revicer_typedef revicer;
 
 void retransmit_env_init( void );
 
@@ -121,6 +121,14 @@ void Parse_time_to_str( char *str )
 	sprintf(str1, "%02d" , system_rtc_timer.sec);
 	memcpy(pdata,str1,2);
 	pdata = pdata + 2;
+	*pdata  = ':';
+	pdata++;
+	
+	/*system_rtc_timer:ms*/
+	memset(str1,0,5);
+	sprintf(str1, "%03d" , system_rtc_timer.ms);
+	memcpy(pdata,str1,3);
+	pdata = pdata + 3;
 	*pdata  = ' ';
 }
 
@@ -137,190 +145,180 @@ static void update_data_to_buffer( uint8_t *Message )
 	uint8_t  Cmdtype;
 	uint16_t AckTableLen,DataLen;
 	answer_info_typedef answer_temp = {0,0,0};
-
+	uint16_t r_index = 0;
+	uint8_t  is_last_data_full = 0;
+		/* 获取数据的起始地址 */
+	uint8_t *prdata;
+	
 	AckTableLen = Message[14];
 	DataLen     = Message[14+AckTableLen+2];
 	Cmdtype     = Message[14+AckTableLen+1];
+	prdata      = Message+14+AckTableLen+2+1;
 
-	if( DataLen > 0 )
+	if( DataLen == 0 )
+		return;
+
+	if((( Cmdtype == 0x10 )||( Cmdtype == 0x24 )) && ( wl.start == ON ))
 	{
-		uint16_t r_index = 0;
-		uint8_t  is_last_data_full = 0;
-
-		/* 获取数据的起始地址 */
-		uint8_t *prdata = Message+14+AckTableLen+2+1;
-
-		if(( Cmdtype == 0x10 ) || ( Cmdtype == 0x24 ))
+		uint8_t Is_whitelist_uid = search_uid_in_white_list(Message+5,&uidpos);
+		if(Message[12] != wl.uids[uidpos].rev_num)//收到的是有效数据
 		{
-			if( wl.start == ON )
+			char str[20];
+			char answer_len = 0;
+			uint8_t ClickerAnswerTime[CLICKER_TIMER_STR_LEN];
+			
+			b_print("{\r\n");
+			b_print("  \'fun\': \'update_answer_list\',\r\n");
+			memset(str,0,20);
+			sprintf(str, "%010u" , *(uint32_t *)( wl.uids[uidpos].uid));
+			b_print("  \'card_id\': \'%s\',\r\n", str );
+			memset(ClickerAnswerTime,0x00,CLICKER_TIMER_STR_LEN);
+			Parse_time_to_str((char *)ClickerAnswerTime);
+			b_print("  \'update_time\': \'%s\',\r\n",(char *) ClickerAnswerTime );
+			
+			while( r_index < DataLen-2 )
 			{
-				uint8_t Is_whitelist_uid = search_uid_in_white_list(Message+5,&uidpos);
-				if(Message[12] != wl.uids[uidpos].rev_num)//收到的是有效数据
+				if( is_last_data_full == 0 )
 				{
-					char str[20];
-					uint8_t ClickerAnswerTime[CLICKER_TIMER_STR_LEN];
-					
-					b_print("{\r\n");
-					b_print("  \'fun\': \'update_answer_list\',\r\n");
-					memset(str,0,20);
-					sprintf(str, "%010u" , *(uint32_t *)( wl.uids[uidpos].uid));
-					b_print("  \'card_id\': \'%s\',\r\n", str );
-					memset(ClickerAnswerTime,0x00,CLICKER_TIMER_STR_LEN);
-					Parse_time_to_str((char *)ClickerAnswerTime);
-					b_print("  \'update_time\': \'%s\',\r\n",(char *) ClickerAnswerTime );
-					b_print("  \'answers\': [\r\n");
-					
-					if( Cmdtype == 0x10 )
+					r_index = r_index + 2;
+					is_last_data_full = 1;
+				}
+				else
+				{
+					r_index = r_index + 3;
+					is_last_data_full = 0;
+				}
+				answer_len++;
+			}
+			memset(str,0,20);
+			sprintf(str, "%d" , answer_len);
+			b_print("  \'total\': \'%s\',\r\n",str );
+			b_print("  \'answers\': [\r\n");
+			
+			if( Cmdtype == 0x10 )
+			{
+				char answer_type[2];
+				char answer_range[7];
+				char answer_id[3];
+				is_last_data_full = 0;
+				r_index = 0;
+				while( r_index < DataLen-2 )
+				{
+					b_print("    {");
+					if(is_last_data_full == 0)
 					{
-						char answer_type[2];
-						char answer_range[7];
-						char answer_id[3];
-						
-						while( r_index < DataLen-2 )
+						answer_temp.type  = prdata[r_index] & 0x0F;
+						answer_temp.id    = ((prdata[r_index]   & 0xF0) >> 4)| 
+																((prdata[r_index+1] & 0x0F) << 4);
+						answer_temp.range = ((prdata[r_index+1] & 0xF0) >> 4)| 
+																((prdata[r_index+2] & 0x0F) << 4);
+						r_index = r_index + 2;
+						is_last_data_full = 1;
+					}
+					else
+					{
+						answer_temp.type  = (prdata[r_index] & 0xF0) >> 4;
+						answer_temp.id    = prdata[r_index+1];
+						answer_temp.range = prdata[r_index+2];
+						r_index = r_index + 3;
+						is_last_data_full = 0;
+					}
+					
+					memset(answer_range,0x00,7);
+					memset(answer_type, 0x00,2);
+					memset(answer_id,   0x00,3);
+					
+					sprintf(answer_id, "%d" , answer_temp.id);
+					
+					switch( answer_temp.type )
+					{
+						case 0: 
 						{
-							b_print("    {");
-							if(is_last_data_full == 0)
+							uint8_t answer = (answer_temp.range)&0x3F;
+							uint8_t *pdata = (uint8_t *)answer_range;
+							switch(answer)
 							{
-								answer_temp.type  = prdata[r_index] & 0x0F;
-								answer_temp.id    = ((prdata[r_index] & 0xF0) >> 4)   | ((prdata[r_index+1] & 0x0F) << 4);
-								answer_temp.range = ((prdata[r_index+1] & 0xF0) >> 4) | ((prdata[r_index+2] & 0x0F) << 4);
-								r_index = r_index + 2;
-								is_last_data_full = 1;
-							}
-							else
-							{
-								answer_temp.type  = (prdata[r_index] & 0xF0) >> 4;
-								answer_temp.id    = prdata[r_index+1];
-								answer_temp.range = prdata[r_index+2];
-								r_index = r_index + 3;
-								is_last_data_full = 0;
-							}
-							
-							memset(answer_range,0x00,7);
-							memset(answer_type, 0x00,2);
-							memset(answer_id,   0x00,3);
-							
-							sprintf(answer_id, "%d" , answer_temp.id);
-							
-							switch( answer_temp.type )
-							{
-								case 0: 
-								{
-									uint8_t answer = (answer_temp.range)&0x3F;
-									uint8_t *pdata = (uint8_t *)answer_range;
-									switch(answer)
-									{
-										case 0x01: *pdata = 'A'; break;
-										case 0x02: *pdata = 'B'; break;
-										case 0x04: *pdata = 'C'; break;
-										case 0x08: *pdata = 'D'; break;
-										case 0x10: *pdata = 'E'; break;
-										case 0x20: *pdata = 'F'; break;
-										default: break;
-									}
-									memcpy(answer_type,"s",sizeof("s"));
-								}
-								break;
-
-								case 1: 
-								{
-									uint8_t answer = (answer_temp.range)&0x3F;
-									uint8_t *pdata = (uint8_t *)answer_range;
-									
-									if((answer&0x01) == 0x01)
-									{
-										*pdata = 'A';
-										pdata = pdata + 1;
-									}
-
-									if((answer&0x02) == 0x02)
-									{
-										*pdata = 'B';
-										pdata = pdata + 1;
-									}
-
-									if((answer&0x04) == 0x04)
-									{
-										*pdata = 'C';
-										pdata = pdata + 1;
-									}
-
-									if((answer&0x08) == 0x08)
-									{
-										*pdata = 'D';
-										pdata = pdata + 1;
-									}
-
-									if((answer&0x10) == 0x10)
-									{
-										*pdata = 'E';
-										pdata = pdata + 1;
-									}
-									if((answer&0x20) == 0x20)
-									{
-										*pdata = 'F';
-										pdata = pdata + 1;
-									}
-
-									memcpy(answer_type,"m",sizeof("m"));
-								}
-								break;
-
-								case 2: 
-								{
-									uint8_t answer = (answer_temp.range)&0x3F;
-									
-									switch(answer)
-									{
-										case 0x01: // true
-										{
-											memcpy(answer_range,"true",sizeof("true"));
-										}
-										break;
-										case 0x02: // false
-										{
-											memcpy(answer_range,"false",sizeof("false"));
-										}
-										break;
-										default: break;
-									}
-										
-									memcpy(answer_type,"j",sizeof("j"));
-								}
-								break;
-
-								case 3: 
-								{
-									sprintf(answer_range, "%d" , answer_temp.range);
-									memcpy(answer_type,"d",sizeof("d"));
-								}
-								break;
-								
+								case 0x01: *pdata = 'A'; break;
+								case 0x02: *pdata = 'B'; break;
+								case 0x04: *pdata = 'C'; break;
+								case 0x08: *pdata = 'D'; break;
+								case 0x10: *pdata = 'E'; break;
+								case 0x20: *pdata = 'F'; break;
 								default: break;
 							}
-							b_print("\'type\': \'%s\', ",answer_type);
-							b_print("\'id\': \'%2s\', ",answer_id);
-							b_print("\'answer\': \'%7s\' ",answer_range);
-							if( r_index < DataLen-2 )
-								b_print("},\r\n");
-							else
-								b_print("}\r\n");
+							memcpy(answer_type,"s",sizeof("s"));
 						}
-					}
-					
-					b_print("  ]\r\n");
-					b_print("}\r\n");
+						break;
 
-					if( Cmdtype == 0x24 )
-					{
+						case 1: 
+						{
+							uint8_t i;
+							uint8_t answer = (answer_temp.range)&0x3F;
+							uint8_t *pdata = (uint8_t *)answer_range;
+							
+							for(i=0;i<'F'-'A';i++)
+							{
+								uint8_t mask_bit = 1 << i;
+								if( (answer & mask_bit) == mask_bit )
+								{
+									*pdata = 'A'+i;
+									pdata = pdata + 1;
+								}
+							}
+
+							memcpy(answer_type,"m",sizeof("m"));
+						}
+						break;
+
+						case 2: 
+						{
+							uint8_t answer = (answer_temp.range)&0x3F;
+							
+							switch(answer)
+							{
+								case 0x01: // true
+									memcpy(answer_range,"true",sizeof("true"));
+								break;
+								case 0x02: // false
+									memcpy(answer_range,"false",sizeof("false"));
+								break;
+								default: break;
+							}
+								
+							memcpy(answer_type,"j",sizeof("j"));
+						}
+						break;
+
+						case 3: 
+						{
+							sprintf(answer_range, "%d" , answer_temp.range);
+							memcpy(answer_type,"d",sizeof("d"));
+						}
+						break;
 						
+						default: break;
 					}
-		
-					/* 更新接收数据帧号与包号 */
-					wl.uids[uidpos].rev_seq = Message[11];
-					wl.uids[uidpos].rev_num = Message[12];	
+					b_print("\'type\': \'%s\', ",answer_type);
+					b_print("\'id\': \'%2s\', ",answer_id);
+					b_print("\'answer\': \'%7s\' ",answer_range);
+					if( r_index < DataLen-2 )
+						b_print("},\r\n");
+					else
+						b_print("}\r\n");
 				}
 			}
+			
+			b_print("  ]\r\n");
+			b_print("}\r\n");
+
+			if( Cmdtype == 0x24 )
+			{
+				
+			}
+
+			/* 更新接收数据帧号与包号 */
+			wl.uids[uidpos].rev_seq = Message[11];
+			wl.uids[uidpos].rev_num = Message[12];	
 		}
 	}
 }
@@ -333,111 +331,84 @@ static void update_data_to_buffer( uint8_t *Message )
   Return:
   Others:None
 ******************************************************************************/
-uint8_t spi_process_revice_data( void )
+void spi_process_revice_data( void )
 {
 	uint8_t  spi_message[255];
 	uint8_t  spi_message_type = 0;
 	uint8_t  Is_whitelist_uid = OPERATION_ERR;
 	uint16_t uidpos = 0xFFFF;
-	uint8_t  clicker_send_data_status = 0;
 
-	if(buffer_get_buffer_status(SPI_RBUF) != BUF_EMPTY)
+	if(buffer_get_buffer_status(SPI_RBUF) == BUF_EMPTY)
+		return;
+
+	memset(spi_message,0,255);
+	spi_read_data_from_buffer( SPI_RBUF, spi_message );
+	spi_message_type = spi_message[13];
+
+	#ifdef OPEN_BUFFER_DATA_SHOW
 	{
-		uint16_t AckTableLen,DataLen,Len;
+		int i;
+		DEBUG_BUFFER_ACK_LOG("%4d ", buffer_get_buffer_status(SPI_RBUF));
+		DEBUG_BUFFER_ACK_LOG("Buffer Read :");
+		for(i=5;i<9;i++)
+			DEBUG_BUFFER_ACK_LOG("%02x",spi_message[i]);
+	}
+	#endif
 
-		memset(spi_message,0,255);
-		spi_read_data_from_buffer( SPI_RBUF, spi_message );
-		AckTableLen = spi_message[14];
-		DataLen     = spi_message[14+AckTableLen+2];
-		Len         = AckTableLen + DataLen + 19;
-		clicker_send_data_status = spi_message[Len];
-		spi_message_type = spi_message[13];
+	/* 检索白名单 */
+	Is_whitelist_uid = search_uid_in_white_list(spi_message+5,&uidpos);
 
-		#ifdef OPEN_BUFFER_DATA_SHOW
+	/* 白名单开关状态 */
+	if(wl.switch_status == OFF)
+	{
+		/* 关闭白名单是不过滤白名单 */
+		Is_whitelist_uid = OPERATION_SUCCESS;
+	}
+
+	if(Is_whitelist_uid != OPERATION_SUCCESS)
+		return;
+
+	/* 收到的是Data */
+	if(spi_message_type == NRF_DATA_IS_USEFUL) 
+	{
+		DEBUG_BUFFER_DTATA_LOG("[DATA] uid:%02x%02x%02x%02x, ",\
+			*(spi_message+5),*(spi_message+6),*(spi_message+7),*(spi_message+8));
+		DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x\r\n",(uint8_t)*(spi_message+11),\
+			(uint8_t)*(spi_message+12));
+
+		if( wl.start == ON )
 		{
-			int i;
-			DEBUG_BUFFER_ACK_LOG("%4d ", buffer_get_buffer_status(SPI_RBUF));
-			DEBUG_BUFFER_ACK_LOG("Buffer Read :");
-			for(i=5;i<9;i++)
-				DEBUG_BUFFER_ACK_LOG("%02x",spi_message[i]);
-		}
-		#endif
+			nrf_transmit_parameter_t transmit_config;
+			/* 回复ACK */
+			memcpy(transmit_config.dist,spi_message+5, 4 );
+			transmit_config.package_type   = NRF_DATA_IS_ACK;
+			transmit_config.transmit_count = 2;
+			transmit_config.delay100us     = 20;
+			transmit_config.is_pac_add     = PACKAGE_NUM_SAM;
+			transmit_config.data_buf       = NULL;
+			transmit_config.data_len       = 0;
+			nrf_transmit_start( &transmit_config );
 
-		/* 判断是否为状态帧 */
-		if(spi_message_type != 0x0A)
-		{
-			/* 检索白名单 */
-			Is_whitelist_uid = search_uid_in_white_list(spi_message+5,&uidpos);
-
-			/* 白名单开关状态 */
-			if(wl.switch_status == OFF)
-			{
-				/* 关闭白名单是不过滤白名单 */
-				Is_whitelist_uid = OPERATION_SUCCESS;
-			}
-
-			/* 过滤通过 */
-			if(Is_whitelist_uid == OPERATION_SUCCESS)
-			{
-				/* 收到的是Data */
-				if(spi_message_type == NRF_DATA_IS_USEFUL)
-				{
-					DEBUG_BUFFER_DTATA_LOG("[DATA] uid:%02x%02x%02x%02x, ",\
-						*(spi_message+5),*(spi_message+6),*(spi_message+7),*(spi_message+8));
-					DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x\r\n",(uint8_t)*(spi_message+11),\
-						(uint8_t)*(spi_message+12));
-
-					if( wl.start == ON )
-					{
-						nrf_transmit_parameter_t transmit_config;
-						/* 回复ACK */
-						memcpy(transmit_config.dist,spi_message+5, 4 );
-						transmit_config.package_type   = NRF_DATA_IS_ACK;
-						transmit_config.transmit_count = 2;
-						transmit_config.delay100us     = 20;
-						transmit_config.is_pac_add     = PACKAGE_NUM_SAM;
-						transmit_config.data_buf       = NULL;
-						transmit_config.data_len       = 0;
-						nrf_transmit_start( &transmit_config );
-
-						/* 有效数据告到PC */
-						update_data_to_buffer( spi_message );
-					}
-				}
-				/* 收到的是Ack */
-				else if(spi_message_type == NRF_DATA_IS_ACK)
-				{
-					DEBUG_BUFFER_DTATA_LOG("[ACK] uid:%02x%02x%02x%02x, ",\
-						*(spi_message+5),*(spi_message+6),*(spi_message+7),*(spi_message+8));
-					DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x \r\n",(uint8_t)*(spi_message+11), \
-						(uint8_t)*(spi_message+12));
-
-					if( get_send_data_status() != 0 )
-					{
-						uint8_t Is_reviceed_uid = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,uidpos);
-						if( Is_reviceed_uid == 0 )
-						{
-							clear_index_of_white_list_pos(SEND_PRE_TABLE,uidpos);
-							set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
-						}
-					}
-				}
-				else
-				{
-					DEBUG_BUFFER_DTATA_LOG("[STATUS]:%d \r\n",spi_message[spi_message[15]+18]);
-				}
-			}
-		}
-		else
-		{
-
+			/* 有效数据告到PC */
+			update_data_to_buffer( spi_message );
 		}
 	}
-	else
+	/* 收到的是Ack */
+	if(spi_message_type == NRF_DATA_IS_ACK)
 	{
-		// ok to update to pc
+		uint8_t Is_reviceed_uid = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,uidpos);
+
+		DEBUG_BUFFER_DTATA_LOG("[ACK] uid:%02x%02x%02x%02x, ",\
+			*(spi_message+5),*(spi_message+6),*(spi_message+7),*(spi_message+8));
+		DEBUG_BUFFER_DTATA_LOG("seq:%2x, pac:%2x \r\n",(uint8_t)*(spi_message+11), \
+			(uint8_t)*(spi_message+12));
+
+		if(( get_send_data_status() == 0 ) || ( Is_reviceed_uid != 0 ))
+			return;
+
+		clear_index_of_white_list_pos(SEND_PRE_TABLE,uidpos);
+		set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
 	}
-	return (clicker_send_data_status);
 }
 
 void App_retransmit_data( uint8_t is_new_pack )
@@ -476,8 +447,8 @@ void App_clickers_send_data_process( void )
 {
 	spi_process_revice_data();
 	
-	if(( send_data_status == SEND_500MS_DATA_STATUS ) || 
-		 ( send_data_status == SEND_2S_DATA_STATUS))
+	if(( send_data_status == SEND_500MS_DATA_STATUS )|| 
+		 ( send_data_status == SEND_2S_DATA_STATUS    ))
 	{
 		/* 发送前导帧 */
 		whitelist_checktable_and( 0, SEND_DATA_ACK_TABLE, SEND_PRE_TABLE );

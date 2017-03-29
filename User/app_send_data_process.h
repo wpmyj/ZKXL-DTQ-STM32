@@ -7,21 +7,6 @@
 //#define OPEN_BUFFER_ACK_SHOW
 //#define OPEN_BUFFER_DATA_SHOW
 //#define OPEN_ACK_TABLE_SHOW
-//#define OPEN_SEND_STATUS_SHOW
-#define OPEN_SEND_STATUS_MESSAGE_SHOW
-//#define RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
-//#define SEND_DATA_DETAIL_MESSAGE_SHOW
-//#define SEND_DATA_UID_MESSAGE_SHOW
-//#define SUM_DATA_STATISTICS
-#define ENABLE_SEND_DATA_TO_PC
-//#define ENABLE_SET_SEND_DATA_PARAMETER
-
-
-#ifdef 	ENABLE_SET_SEND_DATA_PARAMETER
-#define DEBUG_SET_SEND_DATA_PARAMETER					 DEBUG_LOG
-#else
-#define DEBUG_SET_SEND_DATA_PARAMETER(...)
-#endif
 
 /* 打印信息控制 */
 #ifdef 	OPEN_BUFFER_ACK_SHOW
@@ -31,28 +16,11 @@
 #endif
 
 #ifdef 	OPEN_BUFFER_DATA_SHOW
-#define DEBUG_BUFFER_DTATA_LOG							     DEBUG_LOG
+#define DEBUG_BUFFER_DTATA_LOG							   DEBUG_LOG
 #else
 #define DEBUG_BUFFER_DTATA_LOG(...)
 #endif
 
-#ifdef 	RETRANSMIT_DATA_DETAIL_MESSAGE_SHOW
-#define DEBUG_DATA_DETAIL_LOG							     DEBUG_LOG
-#else
-#define DEBUG_DATA_DETAIL_LOG(...)
-#endif
-
-#ifdef 	SEND_DATA_UID_MESSAGE_SHOW
-#define DEBUG_UID_LOG							             DEBUG_LOG
-#else
-#define DEBUG_UID_LOG(...)
-#endif
-
-#ifdef 	SUM_DATA_STATISTICS
-#define DEBUG_STATISTICS_LOG							     DEBUG_LOG
-#else
-#define DEBUG_STATISTICS_LOG(...)
-#endif
 
 /* 状态 */
 #define SEND_IDLE_STATUS                0
@@ -79,25 +47,7 @@
 #define PACKAGE_NUM_ADD             1
 #define PACKAGE_NUM_SAM             0
 
-#define CLICKER_TIMER_STR_LEN       30
-
-typedef struct
-{
-	uint8_t count;
-	uint8_t sum;
-	uint8_t uid[4];
-	uint8_t pos;
-	uint8_t status;
-}retransmit_tcb_tydef;
-
-typedef struct
-{
-	uint8_t  clicker_count;
-	uint8_t  Is_ok_over;
-	uint8_t  Is_lost_over;
-	uint16_t lostuidlen;
-	uint16_t okuidlen;
-}message_tcb_tydef;
+#define CLICKER_TIMER_STR_LEN       35
 
 typedef struct
 {
@@ -114,6 +64,7 @@ extern task_tcb_typedef send_data_task;
 extern volatile send_data_process_tcb_tydef send_data_process_tcb;
 
 void set_send_data_status( uint8_t new_status );
+uint8_t get_send_data_status( void );
 void send_data_process_timer_init( void );
 void App_retransmit_data( uint8_t is_new_pack );
 void App_clickers_send_data_process( void );
