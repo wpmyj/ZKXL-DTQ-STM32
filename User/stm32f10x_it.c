@@ -96,7 +96,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 								revice_json_write_index = (revice_json_write_index+1) % JSON_ITEM_MAX;
 								revice_json_count++;
 							}
-							printf("uart_rx_cnt = %d\r\n",uart_rx_cnt);
+							//printf("uart_rx_cnt = %d\r\n",uart_rx_cnt);
 							uart_rx_cnt     = 0;
 							uart_status     = UartSTART;
 							flag_uart_rxing = 0;

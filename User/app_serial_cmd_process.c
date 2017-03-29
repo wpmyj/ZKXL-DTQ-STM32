@@ -200,7 +200,7 @@ void serial_cmd_process(void)
 				}
 
 				if(is_know_cmd == 0)
-					printf("{\'result\': \'unknow cmd\'}\r\n");
+					b_print("{\'result\': \'unknow cmd\'}\r\n");
 			}
 			cJSON_Delete(json);
 		}

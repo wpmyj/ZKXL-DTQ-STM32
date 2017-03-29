@@ -67,22 +67,49 @@ void message_show_process( void )
   Others:None
 ******************************************************************************/
 void b_print(const char *fmt, ...)                                       
-{                                                          
-	char str[256], len ;
+{
+	uint8_t r_index = 0;		
+	char *pdata;
+	static uint8_t skip_flag = 0x00;                                                         
+	char str[256];
 	va_list args;
-	
+
 	memset(str,0,256);
-	
+
 	va_start(args, fmt);
-	len = vsprintf(str,fmt,args);
+	vsprintf(str,fmt,args);
 	va_end(args);
-	
-	if(buffer_get_buffer_status(PRINT_BUF) != BUF_FULL) 
-	{                                                        
-		print_write_data_to_buffer(str,len);                   
-	}                                                        
-	else                                                     
-	{                                                        
-		printf("print buffer full,data lost\r\n");             
-	}	                                                       
+
+	/* JSON 剔除格式化输出字符 */
+	pdata = str;
+	while( *pdata != '\0' )
+	{
+		if( *pdata ==  '\'')
+			skip_flag = skip_flag ^ 0x01;
+
+		if( skip_flag == 0x00 )
+		{
+			if( *pdata > 32)  
+			{	
+				if(*pdata != str[r_index])
+					str[r_index] = *pdata;
+				pdata++;
+				r_index++;
+			}
+			else
+			{
+				pdata++;
+			}
+		}
+		else
+		{
+			if(*pdata != str[r_index])
+					str[r_index] = *pdata;
+			pdata++;
+			r_index++;
+		}
+	}
+	if( *pdata == '\0' )
+		str[r_index] = '\0';
+	printf("%s",str);		                                                       
 }
