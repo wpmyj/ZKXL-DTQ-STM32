@@ -37,7 +37,7 @@ extern task_tcb_typedef card_task;
 const static serial_cmd_typedef cmd_list[] = {
 {"clear_wl",       sizeof("clear_wl"),       serial_cmd_clear_uid_list},
 {"bind",           sizeof("bind")-1,           serial_cmd_bind_operation},
-{"answer_start",   sizeof("answer_start"),   serial_cmd_answer_start  },
+//{"answer_start",   sizeof("answer_start"),   serial_cmd_answer_start  },
 {"answer_stop",    sizeof("answer_stop"),    serial_cmd_answer_stop   },
 {"get_device_info",sizeof("get_device_info"),serial_cmd_get_device_no },
 {"set_channel",    sizeof("set_channel"),    serial_cmd_set_channel   },
@@ -45,6 +45,32 @@ const static serial_cmd_typedef cmd_list[] = {
 {"set_student_id", sizeof("set_student_id"), serial_cmd_set_student_id},
 {"NO_USE",         sizeof("NO_USE"),         NULL                     }
 };
+
+typedef struct
+{
+	char    *key;
+	uint8_t key_str_len;
+	uint8_t status;
+}json_item_typedef;
+
+#define ANSWER_STATUS_FUN         1
+#define ANSWER_STATUS_TIME        2
+#define ANSWER_STATUS_TOTAL       3
+#define ANSWER_STATUS_QUESTION    4
+#define ANSWER_STATUS_DATA_TYPE   5
+#define ANSWER_STATUS_DATA_ID     6
+#define ANSWER_STATUS_DATA_RANGE  7
+const static json_item_typedef answer_item_list[] = {
+{"fun",      sizeof("fun"),       ANSWER_STATUS_FUN},
+{"time",     sizeof("time"),      ANSWER_STATUS_TIME},
+{"total",    sizeof("total"),     ANSWER_STATUS_TOTAL},
+{"questions",sizeof("questions"), ANSWER_STATUS_QUESTION},
+{"type",     sizeof("type"),      ANSWER_STATUS_DATA_TYPE},
+{"id",       sizeof("id"),        ANSWER_STATUS_DATA_ID},
+{"range",    sizeof("range"),     ANSWER_STATUS_DATA_RANGE},
+{"over",     sizeof("over"),   0xFF}
+};
+	
 
 static void serial_send_data_to_pc(void);
 static void serial_cmd_process(void);
@@ -144,36 +170,44 @@ void serial_cmd_process(void)
 {
 	if( revice_json_count > 0 )
 	{
-		cJSON *json;
+		char header[30];
 		char *pdata = (char *)uart_irq_revice_massage[json_read_index];
 		/* 增加对'的支持 */
 		exchange_json_format( pdata, '\'', '\"' );
-		
-		json = cJSON_Parse((char *)uart_irq_revice_massage[json_read_index]); 
-		if (!json)  
+		memcpy(header,pdata+8,12);
+	
+		if(strncmp( header, "answer_start", sizeof("answer_start")-1)!= 0)
 		{
-				b_print("Error before: [%s]\n",cJSON_GetErrorPtr());  
-		} 
+			cJSON *json;
+			json = cJSON_Parse((char *)uart_irq_revice_massage[json_read_index]); 
+			if (!json)  
+			{
+					b_print("Error before: [%s]\n",cJSON_GetErrorPtr());  
+			} 
+			else
+			{
+				uint8_t i = 0, is_know_cmd = 0;
+				char *p_cmd_str = cJSON_GetObjectItem(json, "fun")->valuestring;
+
+				while(cmd_list[i].cmd_fun != NULL)
+				{
+					if(strncmp(p_cmd_str, cmd_list[i].cmd_str, cmd_list[i].cmd_len)== 0)
+					{
+						cmd_list[i].cmd_fun(json);
+						is_know_cmd = 1;
+					}
+					i++;
+				}
+
+				if(is_know_cmd == 0)
+					printf("{\'result\': \'unknow cmd\'}\r\n");
+			}
+			cJSON_Delete(json);
+		}
 		else
 		{
-			uint8_t i = 0, is_know_cmd = 0;
-			char *p_cmd_str = cJSON_GetObjectItem(json, "fun")->valuestring;
-
-			while(cmd_list[i].cmd_fun != NULL)
-			{
-				if(strncmp(p_cmd_str, cmd_list[i].cmd_str, cmd_list[i].cmd_len)== 0)
-				{
-					cmd_list[i].cmd_fun(json);
-					is_know_cmd = 1;
-				}
-				i++;
-			}
-
-			if(is_know_cmd == 0)
-				printf("{\'result\': \'unknow cmd\'}\r\n");
+			serial_cmd_answer_start(pdata);
 		}
-
-		cJSON_Delete(json);
 		revice_json_count--;
 		memset( pdata, 0, JSON_BUFFER_LEN );
 		json_read_index = (json_read_index + 1) % JSON_ITEM_MAX;
@@ -247,146 +281,6 @@ void serial_cmd_bind_operation(const cJSON *object)
 	free(out); 	
 }
 
-void serial_cmd_answer_start(const cJSON *object)
-{
-	char *out;
-	cJSON *root;
-
-	uint8_t send_data_status = 0 ;
-
-	/* 填充内容 */
-	root = cJSON_CreateObject();
-
-	/* update time */
-	parse_str_to_time(cJSON_GetObjectItem(object, "time")->valuestring);
-
-	/* create data for clicker */
-	{
-		typedef struct
-		{
-			uint8_t type;
-			uint8_t id;
-			uint8_t range;
-		}answer_info_typedef;
-
-		uint8_t  *pSdata = (uint8_t *)rf_var.tx_buf;
-		uint16_t sdata_index = 0;
-  	uint8_t  is_last_data_full = 0;
-		cJSON *question_array;
-
-		question_array = cJSON_GetObjectItem(object, "questions");
-	
-		/* 解析题目数组 */
-		{
-			cJSON *question = question_array->child;
-		
-			/* get answer message */
-			while(question != NULL)
-			{
-				char *p_question_range = cJSON_GetObjectItem(question,"range")->valuestring;
-				char *p_question_type  = cJSON_GetObjectItem(question,"type")->valuestring;
-
-				answer_info_typedef answer_temp = {0,0,0};
-				answer_temp.id = atoi(cJSON_GetObjectItem(question, "id")->valuestring);
-				
-				switch( p_question_type[0] )
-				{
-					case 's': answer_temp.type = 0; break;
-					case 'm': answer_temp.type = 1; break;
-					case 'j': answer_temp.type = 2; break;
-					case 'd': answer_temp.type = 3; break;
-					default: break;
-				}
-
-				/* change an from dec to hex */
-				{
-					char range_end;
-					
-					if( answer_temp.type == 2 )
-						answer_temp.range = 0x03;
-					else
-					{
-						range_end  = p_question_range[2];
-						if(( range_end >= 'A') && ( range_end <= 'G'))
-						{
-							uint8_t j;
-							for(j=0;j<=range_end-'A';j++)
-								answer_temp.range |= 1<<j; 
-						}
-						
-						if(( range_end >= '0') && ( range_end <= '9'))
-						{
-								answer_temp.range |= range_end - '0'; 
-						}
-					}
-				}
-				//printf("type  = %02x\r\n", answer_temp.type);
-				//printf("id    = %02x\r\n", answer_temp.id);
-				//printf("range = %02x\r\n", answer_temp.range);
-
-				if(is_last_data_full == 0)
-				{
-					*(pSdata+(sdata_index++)) = ((answer_temp.type) & 0x0F ) | ((answer_temp.id & 0x0F) << 4);
-					*(pSdata+(sdata_index++)) = ((answer_temp.id & 0xF0)>>4) | ((answer_temp.range & 0x0F) << 4);
-					*(pSdata+(sdata_index))   = (answer_temp.range & 0xF0)>>4;
-					is_last_data_full = 1;
-				}
-				else
-				{
-					*(pSdata+(sdata_index))   = *(pSdata+(sdata_index)) | ((answer_temp.type & 0x0F) << 4);
-					sdata_index++;
-					*(pSdata+(sdata_index++)) = answer_temp.id ;
-					*(pSdata+(sdata_index++)) = answer_temp.range ;
-					is_last_data_full = 0;
-				}
-				question = question->next;
-			}
-		}
-		
-		rf_var.cmd = 0x10;
-		if(is_last_data_full == 1)
-			rf_var.tx_len = sdata_index+1 ;
-		else
-			rf_var.tx_len = sdata_index ;
-	}
-
-	/* send data */
-	send_data_status = get_send_data_status();
-	cJSON_AddStringToObject(root, "fun", "answer_start" );
-	send_data_status = 0;
-
-	/* 发送数据 */
-	if(( send_data_status == SEND_IDLE_STATUS ) ||
-		 ( send_data_status >= SEND_2S_DATA_STATUS))
-	{
-		nrf_transmit_parameter_t transmit_config;
-
-		/* 准备发送数据管理块 */
-		memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
-		
-		memset(nrf_data.dtq_uid,    0x00, 4);
-		memset(transmit_config.dist,0x00, 4);
-
-		send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
-
-		/* 启动发送数据状态机 */
-		set_send_data_status( SEND_500MS_DATA_STATUS );
-
-		/* return data */	
-		cJSON_AddStringToObject(root, "result", "0" );			
-	}
-	else
-	{
-		cJSON_AddStringToObject(root, "result", "1" );
-	}
-
-	/* 打印返回 */
-	out = cJSON_Print(root);
-	exchange_json_format( out, '\"', '\'' );
-	b_print("%s", out);
-	cJSON_Delete(root);
-	free(out); 
-}
 
 void serial_cmd_get_device_no(const cJSON *object)
 {		
@@ -613,4 +507,204 @@ void serial_cmd_set_student_id(const cJSON *object)
 		free(out); 		
 	}	
 }
+
+char *parse_json_item(char *pdata_str, char *key_str, char *value_str)
+{
+	uint8_t i = 0;
+	char *pdata = pdata_str;
+	
+	while(*pdata != ':')
+	{
+		if(*pdata != '{')
+		{
+			if((*pdata != '"') && (*pdata != ','))
+			{
+			//printf("%c",*pdata);
+				key_str[i++] = *pdata;
+			}
+		}
+		pdata++;
+	}
+	key_str[i] = '\0';
+
+	i = 0;
+	pdata++;
+	while((*pdata != ',') && (*pdata != '[') && (*pdata != '}'))
+	{
+		if(*pdata != '"')
+		{
+		//printf("%c",*pdata);
+			value_str[i++] = *pdata;
+		}
+		pdata++;
+	}
+	pdata++;
+	value_str[i] = '\0';
+//b_print("KEY:%7s  VALUE:%s \r\n",key_str,value_str);
+	return (pdata);
+}
+
+void serial_cmd_answer_start(char *pdata_str)
+{
+	typedef struct
+	{
+		uint8_t type;
+		uint8_t id;
+		uint8_t range;
+	}answer_info_typedef;
+	
+	/* prase data control */ 
+	char *p_end,*p_next_start; 
+	char value_str[25],key_str[10];
+	uint8_t parse_data_status = 0;
+	uint16_t len = strlen(pdata_str);
+
+	/* send data control */
+	uint8_t  *pSdata = (uint8_t *)rf_var.tx_buf;
+	uint16_t sdata_index = 0;
+  uint8_t  is_last_data_full = 0;
+	answer_info_typedef answer_temp = {0,0,0};
+	uint8_t send_data_status;
+	
+	/* print result */
+	cJSON *root;
+	char *out;
+	
+	/* prase the first key and value */
+	p_end = parse_json_item( pdata_str, key_str, value_str );
+
+	while( (p_end - pdata_str) < len-3 )
+	{
+		uint8_t i = 0;
+		p_next_start = p_end;
+		
+		/* prase next key and value, and get string status*/
+		p_end = parse_json_item( p_next_start, key_str, value_str );
+		while(answer_item_list[i].status != 0xFF)
+		{
+			if(strncmp( key_str, answer_item_list[i].key, answer_item_list[i].key_str_len)== 0)
+			{
+				parse_data_status = answer_item_list[i].status;
+				break;
+			}
+			i++;
+		}
+		
+		/* process string status, get prase data */
+		switch( parse_data_status )
+		{
+			
+			case ANSWER_STATUS_FUN: 
+				break;
+			case ANSWER_STATUS_TIME:
+				{
+					parse_str_to_time( value_str );
+				}
+				break;
+			case ANSWER_STATUS_TOTAL:
+				break;
+			case ANSWER_STATUS_QUESTION:
+				break;	
+			case ANSWER_STATUS_DATA_TYPE:
+				switch( value_str[0] )
+				{
+					case 's': answer_temp.type = 0; break;
+					case 'm': answer_temp.type = 1; break;
+					case 'j': answer_temp.type = 2; break;
+					case 'd': answer_temp.type = 3; break;
+					default: break;
+				}
+				break;
+			case ANSWER_STATUS_DATA_ID:
+				answer_temp.id = atoi(value_str);
+			break;
+			case ANSWER_STATUS_DATA_RANGE:
+				{
+					char range_end;
+					if( answer_temp.type == 2 )
+						answer_temp.range = 0x03;
+					else
+					{
+						range_end  = value_str[2];
+						if(( range_end >= 'A') && ( range_end <= 'G'))
+						{
+							uint8_t j;
+							for(j=0;j<=range_end-'A';j++)
+								answer_temp.range |= 1<<j; 
+						}
+						
+						if(( range_end >= '0') && ( range_end <= '9'))
+						{
+								answer_temp.range |= range_end - '0'; 
+						}
+					}
+//				printf("type  = %02x\r\n", answer_temp.type);
+//				printf("id    = %02x\r\n", answer_temp.id);
+//				printf("range = %02x\r\n", answer_temp.range);
+					if(is_last_data_full == 0)
+					{
+						*(pSdata+(sdata_index++)) = ((answer_temp.type) & 0x0F ) | ((answer_temp.id & 0x0F) << 4);
+						*(pSdata+(sdata_index++)) = ((answer_temp.id & 0xF0)>>4) | ((answer_temp.range & 0x0F) << 4);
+						*(pSdata+(sdata_index))   = (answer_temp.range & 0xF0)>>4;
+						is_last_data_full = 1;
+					}
+					else
+					{
+						*(pSdata+(sdata_index))   = *(pSdata+(sdata_index)) | ((answer_temp.type & 0x0F) << 4);
+						sdata_index++;
+						*(pSdata+(sdata_index++)) = answer_temp.id ;
+						*(pSdata+(sdata_index++)) = answer_temp.range ;
+						is_last_data_full = 0;
+					}
+				}
+				break;
+			default:
+				break;
+		}
+	}
+	/* set rf buffer len */
+	rf_var.cmd = 0x10;
+	if(is_last_data_full == 1)
+		rf_var.tx_len = sdata_index+1 ;
+	else
+		rf_var.tx_len = sdata_index ;
+	
+	send_data_status = get_send_data_status();
+	root = cJSON_CreateObject();
+	cJSON_AddStringToObject(root, "fun", "answer_start" );
+	send_data_status = 0;
+
+	/* 发送数据 */
+	if(( send_data_status == SEND_IDLE_STATUS ) ||
+		 ( send_data_status >= SEND_2S_DATA_STATUS))
+	{
+		nrf_transmit_parameter_t transmit_config;
+
+		/* 准备发送数据管理块 */
+		memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
+		
+		memset(nrf_data.dtq_uid,    0x00, 4);
+		memset(transmit_config.dist,0x00, 4);
+
+		send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
+
+		/* 启动发送数据状态机 */
+		set_send_data_status( SEND_500MS_DATA_STATUS );
+
+		/* return data */	
+		cJSON_AddStringToObject(root, "result", "0" );			
+	}
+	else
+	{
+		cJSON_AddStringToObject(root, "result", "1" );
+	}
+
+	/* 打印返回 */
+	out = cJSON_Print(root);
+	exchange_json_format( out, '\"', '\'' );
+	b_print("%s", out);
+	cJSON_Delete(root);
+	free(out); 
+}
+
 /**************************************END OF FILE****************************/

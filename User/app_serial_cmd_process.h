@@ -64,7 +64,7 @@ typedef struct
 
 void serial_cmd_clear_uid_list(const cJSON *object);
 void serial_cmd_bind_operation(const cJSON *object);
-void serial_cmd_answer_start(const cJSON *object);
+void serial_cmd_answer_start(char *pdata_str);
 void serial_cmd_answer_stop(const cJSON *object);
 void serial_cmd_get_device_no(const cJSON *object);
 void serial_cmd_set_channel(const cJSON *object);

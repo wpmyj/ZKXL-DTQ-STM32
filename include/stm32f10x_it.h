@@ -29,7 +29,7 @@
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 #define JSON_ITEM_MAX    2
-#define JSON_BUFFER_LEN  1000
+#define JSON_BUFFER_LEN  3500
 extern uint8_t  uart_irq_revice_massage[JSON_ITEM_MAX][JSON_BUFFER_LEN];
 extern uint16_t revice_json_count;
 

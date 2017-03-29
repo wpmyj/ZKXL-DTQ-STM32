@@ -96,7 +96,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 								revice_json_write_index = (revice_json_write_index+1) % JSON_ITEM_MAX;
 								revice_json_count++;
 							}
-							//printf("uart_rx_cnt = %d\r\n",uart_rx_cnt);
+							printf("uart_rx_cnt = %d\r\n",uart_rx_cnt);
 							uart_rx_cnt     = 0;
 							uart_status     = UartSTART;
 							flag_uart_rxing = 0;
@@ -271,7 +271,7 @@ void SysTick_Handler(void)
 	if(flag_uart_rxing)												//串口接收超时计数器
 	{
 		uart_rx_timeout++;
-		if(uart_rx_timeout>5)										//5ms超时后重新开始接收
+		if(uart_rx_timeout>20)										//5ms超时后重新开始接收
 		{
 			flag_uart_rxing = 0;
 			uart_status = UartSTART;
