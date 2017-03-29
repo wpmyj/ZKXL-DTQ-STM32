@@ -72,7 +72,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 
 		case UartDATA:
 			{
-				if(( data != ' ') && (data != '\t') && (data != '\r') && (data != '\n'))
+				if( data > 32)
 				{
 					uart_irq_revice_massage[revice_json_write_index][uart_rx_cnt++] = data ;
 					if(UART_SOF == data)
@@ -96,7 +96,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 								revice_json_write_index = (revice_json_write_index+1) % JSON_ITEM_MAX;
 								revice_json_count++;
 							}
-							printf("uart_rx_cnt = %d\r\n",uart_rx_cnt);
+							//printf("uart_rx_cnt = %d\r\n",uart_rx_cnt);
 							uart_rx_cnt     = 0;
 							uart_status     = UartSTART;
 							flag_uart_rxing = 0;
@@ -312,7 +312,6 @@ void USART1pos_IRQHandler(void)
 		uart_rx_timeout = 0;
 	}
 
-
 	if(USART_GetITStatus(USART1pos, USART_IT_TXE) != RESET)
   {
     uart_send_data_state_machine( );
@@ -337,15 +336,18 @@ void NRF1_RFIRQ_EXTI_IRQHandler(void)
 //		printf("\r\n");
 //	}
 		/* 进行 UID 校验,判断是否发送给自己的数据 */
-		if( *(nrf_data.rbuf+1) == nrf_data.jsq_uid[0] &&
+		if((*(nrf_data.rbuf+1) == nrf_data.jsq_uid[0] &&
 			  *(nrf_data.rbuf+2) == nrf_data.jsq_uid[1] &&
 				*(nrf_data.rbuf+3) == nrf_data.jsq_uid[2] &&
-				*(nrf_data.rbuf+4) == nrf_data.jsq_uid[3])
+				*(nrf_data.rbuf+4) == nrf_data.jsq_uid[3]) ||
+		   (*(nrf_data.rbuf+1) == 0x00 &&
+			  *(nrf_data.rbuf+2) == 0x00 &&
+				*(nrf_data.rbuf+3) == 0x00 &&
+				*(nrf_data.rbuf+4) == 0x00 ))
 		{
 			if(BUF_FULL != buffer_get_buffer_status(SPI_RBUF))
 			{
-				uint8_t send_data_status = 0; //get_clicker_send_data_status();
-				spi_write_data_to_buffer(SPI_RBUF,nrf_data.rbuf, send_data_status);
+				spi_write_data_to_buffer(SPI_RBUF,nrf_data.rbuf);
 			}
 			else
 			{

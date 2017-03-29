@@ -38,10 +38,10 @@ typedef struct
 	uint8_t  N_CH_TX;
 	uint8_t  N_CH_RX;
 	int8_t   N_TX_POWER;
-}clicker_config_typedef;
+}rf_config_typedef;
 
 extern uint8_t 	              g_cSNR[10];						// M1ø®–Ú¡–∫≈
-extern clicker_config_typedef clicker_set;
+extern rf_config_typedef clicker_set;
 
 uint8_t get_index_of_uid( uint16_t index, uint8_t  uid[4] );
 void clear_index_of_uid(uint16_t index);

@@ -20,9 +20,9 @@
 #endif
 
 extern nrf_communication_t nrf_data;
-extern uint16_t          list_tcb_table[UID_LIST_TABLE_SUM][WHITE_TABLE_LEN];
-extern WhiteList_Typedef wl;
-extern Revicer_Typedef   revicer;
+extern uint16_t            list_tcb_table[UID_LIST_TABLE_SUM][WHITE_TABLE_LEN];
+extern wl_typedef          wl;
+extern revicer_typedef     revicer;
 
 #ifdef ZL_RP551_MAIN_F
 void nrf1_spi_init(void)
@@ -353,7 +353,7 @@ void nrf_transmit_start( nrf_transmit_parameter_t *t_conf)
 		send_delay = 10;
 	}
 	
-#ifdef OPEN_ACT_TABLE_SHOW
+#ifdef OPEN_ACK_TABLE_SHOW
 	{
 		uint8_t i = 0, printf_flg = 0;
 		uint8_t *pdata = (uint8_t *)list_tcb_table[t_conf->sel_table];
@@ -396,7 +396,11 @@ void nrf_transmit_start( nrf_transmit_parameter_t *t_conf)
 	nrf_data.tlen = i;
 
 	/* 开始通讯之前先发2次，之后开启定时判断重发机制 */
-	spi_send_data_write_tx_payload(nrf_data.tbuf,nrf_data.tlen,t_conf->transmit_count,t_conf->delay100us,send_delay);
+	spi_send_data_write_tx_payload(nrf_data.tbuf,
+																 nrf_data.tlen,
+																 t_conf->transmit_count,
+																 t_conf->delay100us,
+																 send_delay);
 }
 
 /**************************************END OF FILE****************************/

@@ -15,9 +15,9 @@
 
 //#define SHOW_CARD_PROCESS_TIME
 extern uint8_t g_cSNR[10];	
-extern WhiteList_Typedef wl;
-extern Revicer_Typedef   revicer;
-extern clicker_config_typedef clicker_set;
+extern wl_typedef        wl;
+extern revicer_typedef   revicer;
+extern rf_config_typedef clicker_set;
 task_tcb_typedef card_task;
 
 #ifdef SHOW_CARD_PROCESS_TIME
@@ -267,15 +267,8 @@ void App_card_process(void)
 				wID.len_l = card_data_len;
 				memcpy(wID.uid,revicer.uid,4);
 				wID.upos  = write_uid_pos;
-				memcpy(&(wID.rf_conf),&clicker_set,sizeof(clicker_config_typedef));
+				memcpy(&(wID.rf_conf),&clicker_set,sizeof(rf_config_typedef));
 				memset(wID.rev,0xFF,2);
-				if(wl.weite_std_id_status == ON)
-				{
-					memcpy(wID.stdid,card_task.stdid,10);
-				}
-				else
-					memset(wID.stdid,0x00,10);
-				wID.data_xor = XOR_Cal(wID.uid,card_data_len-3);;
 
 				/* 重新写入数据检测 */
 				status = ReadNDEFfile(rpdata, &NDEF_Len);
@@ -301,8 +294,15 @@ void App_card_process(void)
 						DEBUG_CARD_DATA_LOG("%02x ",rpdata[i]);
 					DEBUG_CARD_DATA_LOG("\r\n");
 
+					memcpy( wID.stdid, rID.stdid, 10 );
+					if(wl.weite_std_id_status == ON)
+					{
+						memcpy(wID.stdid,card_task.stdid,10);
+					}
+					wID.data_xor = XOR_Cal(wID.uid,card_data_len-3);
+
 					/* 完全比较，否则存在异或校验的巧合*/
-					for(i=0;i<card_data_len;i++)
+				  for(i=0;i<card_data_len;i++)
 					{
 						if(rpdata[i] != wpdata[i])
 							write_flg = 1;
@@ -476,7 +476,6 @@ void App_card_process(void)
 					uint8_t i;
 					char *p_student_data = str;
 
-					char temp[3];
 					for(i=0;i<10;i++)
 					{
 						sprintf(p_student_data+2*i,  "%d" , (rID.stdid[i]&0xF0)>>4);
@@ -488,53 +487,21 @@ void App_card_process(void)
 			}
 			else
 			{
-//				card_message.DATA[0] = 0x11;
-//				if( card_message_err == 1 )
-//				{
-//					card_message.DATA[1] = 0x00;
-//					*(uint16_t *)(card_message.DATA+2) = write_uid_pos;
-//					memcpy(card_message.DATA+4,g_cSNR+4,4);
-//				}
-//				if( card_message_err == 2 )
-//				{
-//					card_message.DATA[1] = 0x01;
-//					card_message.DATA[2] = 0xFF;
-//					card_message.DATA[3] = 0xFF;
-//					memset(card_message.DATA+4,0,4);
-//				}
-//				*(uint16_t *)card_message.LEN = 0x08;
+
 			}
 		}
 		if( wl.attendance_sttaus == ON )
 		{
-//			card_message.DATA[0] = 0x16;
-//			if( card_message_err == 1 )
-//			{
-//				card_message.DATA[1] = 0x00;
-//				*(uint16_t *)(card_message.DATA+2) = write_uid_pos;
-//				memcpy(card_message.DATA+4,g_cSNR+4,4);
-//				memcpy(card_message.DATA+8,rID.stdid,10);
-//			}
-//			if( card_message_err == 2 )
-//			{
-//				card_message.DATA[1] = 0x01;
-//				card_message.DATA[2] = 0xFF;
-//				card_message.DATA[3] = 0xFF;
-//				memset(card_message.DATA+4,0,14);
-//			}
-//			*(uint16_t *)card_message.LEN = 0x12;
+
 		}
 
 		if(card_message_err != 0)
 		{
 			if( wtrte_flash_ok == 1 )
 			{
-				if(BUF_FULL != buffer_get_buffer_status(UART_SBUF))
-				{
-					#ifndef OPEN_CARD_DATA_SHOW 
-					DEBUG_CARD_DATA_LOG("NDEF_DataRead and NDEF_DataWrite Clear!\r\n");
-					#endif
-				}
+				#ifndef OPEN_CARD_DATA_SHOW 
+				DEBUG_CARD_DATA_LOG("NDEF_DataRead and NDEF_DataWrite Clear!\r\n");
+				#endif
 			}
 		}
 		rf_set_card_status(4);

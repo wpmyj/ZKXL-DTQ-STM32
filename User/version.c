@@ -41,7 +41,7 @@ const uint8_t company[16] = {
 uint8_t  jsq_uid[8];
 
 extern nrf_communication_t nrf_data;
-extern Revicer_Typedef   revicer;
+extern revicer_typedef   revicer;
 /*******************************************************************************
   * @brief  Get stm32 MCU.
   * @param  None

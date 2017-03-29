@@ -25,22 +25,9 @@ uint16_t          list_tcb_table[UID_LIST_TABLE_SUM][WHITE_TABLE_LEN] =
 	{0,0,0,0,0,0,0,0}  // [E]:REQUST TEMP ACK
 };
 
-uint16_t               rf_current_uid_index = 0;
-WhiteList_Typedef      wl;
-Revicer_Typedef        revicer;
-clicker_config_typedef clicker_set;
-/******************************************************************************
-  Function:clear_current_uid_index
-  Description:
-  Input:None
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-void clear_current_uid_index( void )
-{
-	rf_current_uid_index = 0;
-}
+wl_typedef        wl;
+revicer_typedef   revicer;
+rf_config_typedef clicker_set;
 
 /******************************************************************************
   Function:clear_white_list_table
@@ -539,43 +526,4 @@ uint8_t add_uid_to_white_list(uint8_t *g_uid, uint16_t *position)
 			return OPERATION_SUCCESS;
 		}
 	}
-}
-
-/******************************************************************************
-  Function:get_next_uid_of_white_list
-  Description:
-  Input:None
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-uint8_t get_next_uid_of_white_list(uint8_t sel_table, uint8_t uid[], uint16_t *uidpos )
-{
-	uint16_t i;
-
-	/* 向后查找下一个UID */
-	for(i=rf_current_uid_index;i<MAX_WHITE_LEN;i++)
-	{
-		if(get_index_of_white_list_pos_status(sel_table,i) == 1)
-		{
-			get_index_of_uid(i,uid);
-			*uidpos = i;
-			rf_current_uid_index = i+1;
-			return OPERATION_SUCCESS;
-		}
-	}
-
-	/* 向前查找下一个UID */
-	for(i=0;i<rf_current_uid_index;i++)
-	{
-		if(get_index_of_white_list_pos_status(sel_table,i) == 1)
-		{
-			get_index_of_uid(i,uid);
-			*uidpos = i;
-			rf_current_uid_index = i+1;
-			return OPERATION_SUCCESS;
-		}
-	}
-
-	return OPERATION_ERR;
 }

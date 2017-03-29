@@ -94,15 +94,7 @@ typedef struct
 	uint8_t 				xor;														//为所有数据异或结果
 } spi_cmd_type_t;
 
-typedef struct
-{
-	uint8_t 				spi_header;
-	uint8_t         cmd;
-	uint8_t         signal;
-	uint8_t					data_len;
-	uint8_t 				data[BUFFER_SIZE_MAX];
-	uint8_t 				xor;														//为所有数据异或结果
-} nrf_to_stm32_cmd_type_t;
+
 
 typedef struct
 {

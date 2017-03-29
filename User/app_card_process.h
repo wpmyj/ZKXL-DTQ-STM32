@@ -26,7 +26,7 @@ typedef struct
 	uint8_t  len_l;
 	uint8_t  uid[4];
 	uint16_t upos;
-	clicker_config_typedef rf_conf;
+	rf_config_typedef rf_conf;
 	uint8_t  rev[2];
 	uint8_t  stdid[10];
 	uint8_t  data_xor;

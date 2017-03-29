@@ -23,38 +23,31 @@
 #include "app_show_message_process.h"
 
 /* Private variables ---------------------------------------------------------*/
-StateMechineTcb_Typedef uart_rev_status,uart_sen_status;
-//uint8_t P_Vresion[2] = { 0x00, 0x02 };
-
-extern StateMechineTcb_Typedef default_state_mechine_tcb;
-extern uint8_t is_open_statistic;
 extern nrf_communication_t nrf_data;
 extern uint16_t list_tcb_table[UID_LIST_TABLE_SUM][WHITE_TABLE_LEN];
-       uint8_t serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
-			 uint8_t serial_cmd_type = 0;
-			 uint8_t err_cmd_type = 0;
 
 /* 暂存题目信息，以备重发使用 */
-uint8_t revice_json_read_index = 0;
+uint8_t json_read_index = 0;
 
-extern WhiteList_Typedef wl;
-extern Revicer_Typedef   revicer;
-extern task_tcb_typedef  card_task;
+extern wl_typedef       wl;
+extern revicer_typedef  revicer;
+extern task_tcb_typedef card_task;
 /* Private functions ---------------------------------------------------------*/
+
+const static serial_cmd_typedef cmd_list[] = {
+{"clear_wl",       sizeof("clear_wl"),       serial_cmd_clear_uid_list},
+{"bind",           sizeof("bind")-1,           serial_cmd_bind_operation},
+{"answer_start",   sizeof("answer_start"),   serial_cmd_answer_start  },
+{"answer_stop",    sizeof("answer_stop"),    serial_cmd_answer_stop   },
+{"get_device_info",sizeof("get_device_info"),serial_cmd_get_device_no },
+{"set_channel",    sizeof("set_channel"),    serial_cmd_set_channel   },
+{"set_tx_power",   sizeof("set_tx_power"),   serial_cmd_set_tx_power  },
+{"set_student_id", sizeof("set_student_id"), serial_cmd_set_student_id},
+{"NO_USE",         sizeof("NO_USE"),         NULL                     }
+};
+
 static void serial_send_data_to_pc(void);
 static void serial_cmd_process(void);
-
-void serial_cmd_clear_uid_list(void);
-void serial_cmd_bind_operation(const cJSON *object);
-
-void serial_cmd_answer_start(const cJSON *object);
-void serial_cmd_answer_stop(const cJSON *object);
-
-//void serial_cmd_one_key_power_off(const cJSON *object);
-void serial_cmd_get_device_no(void);
-void serial_cmd_set_channel(const cJSON *object);
-void serial_cmd_set_tx_power(const cJSON *object);
-void serial_cmd_set_student_id(const cJSON *object);
 
 void parse_str_to_time( char *str )
 {
@@ -92,7 +85,19 @@ void parse_str_to_time( char *str )
 //printf("Parse:sec  = %d \r\n",system_rtc_timer.sec);
 }
 
+void exchange_json_format( char *out, char old_format, char new_format)
+{
+	char *pdata = out;
 
+	while(*pdata != '\0')
+	{
+		if(*pdata == old_format)
+		{
+			*pdata = new_format;
+		}
+		pdata++;
+	}
+}
 /******************************************************************************
   Function:App_seirial_cmd_process
   Description:
@@ -140,72 +145,42 @@ void serial_cmd_process(void)
 	if( revice_json_count > 0 )
 	{
 		cJSON *json;
-
+		char *pdata = (char *)uart_irq_revice_massage[json_read_index];
 		/* 增加对'的支持 */
-		{
-			char *pdata = (char *)uart_irq_revice_massage[revice_json_read_index];
-
-			while(*pdata != '\0')
-			{
-				if(*pdata == '\'')
-				{
-					*pdata = '\"';
-				}
-				pdata++;
-			}
-		}
+		exchange_json_format( pdata, '\'', '\"' );
 		
-		json = cJSON_Parse((char *)uart_irq_revice_massage[revice_json_read_index]); 
+		json = cJSON_Parse((char *)uart_irq_revice_massage[json_read_index]); 
 		if (!json)  
 		{
 				b_print("Error before: [%s]\n",cJSON_GetErrorPtr());  
 		} 
 		else
 		{
-			/* clear_wl */
-			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"clear_wl",8) == 0)
-				serial_cmd_clear_uid_list();
+			uint8_t i = 0, is_know_cmd = 0;
+			char *p_cmd_str = cJSON_GetObjectItem(json, "fun")->valuestring;
 
-			/* bind_operation */
-			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"bind",4) == 0)
-				serial_cmd_bind_operation(json);
+			while(cmd_list[i].cmd_fun != NULL)
+			{
+				if(strncmp(p_cmd_str, cmd_list[i].cmd_str, cmd_list[i].cmd_len)== 0)
+				{
+					cmd_list[i].cmd_fun(json);
+					is_know_cmd = 1;
+				}
+				i++;
+			}
 
-			/* answer_start */
-			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"answer_start",12) == 0)
-				serial_cmd_answer_start(json);
-
-			/* answer_stop */
-			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"answer_stop",11) == 0)
-				serial_cmd_answer_stop(json);
-
-			/* get_device_no */
-			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"get_device_info",13) == 0)
-				serial_cmd_get_device_no();
-			
-			/* set_channel */
-			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"set_channel",11) == 0)
-				serial_cmd_set_channel(json);
-
-			/* set_tx_power */
-			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"set_tx_power",12) == 0)
-				serial_cmd_set_tx_power(json);
-
-			/* set_student_id */
-			if(strncmp(cJSON_GetObjectItem(json, "fun")->valuestring,"set_student_id",14) == 0)
-				serial_cmd_set_student_id(json);
+			if(is_know_cmd == 0)
+				printf("{\'result\': \'unknow cmd\'}\r\n");
 		}
 
-		{
-			cJSON_Delete(json);
-			revice_json_count--;
-			memset(uart_irq_revice_massage[revice_json_read_index],0,JSON_BUFFER_LEN);
-			revice_json_read_index = (revice_json_read_index + 1) % JSON_ITEM_MAX;
-		}
+		cJSON_Delete(json);
+		revice_json_count--;
+		memset( pdata, 0, JSON_BUFFER_LEN );
+		json_read_index = (json_read_index + 1) % JSON_ITEM_MAX;
 	}
 }
 
-
-void serial_cmd_clear_uid_list(void)
+void serial_cmd_clear_uid_list(const cJSON *object)
 {
 	char *out;
 	cJSON *root;
@@ -227,18 +202,7 @@ void serial_cmd_clear_uid_list(void)
 
 	/* 打印返回 */
 	out = cJSON_Print(root);
-	{
-		char *pdata = out;
-
-		while(*pdata != '\0')
-		{
-			if(*pdata == '\"')
-			{
-				*pdata = '\'';
-			}
-			pdata++;
-		}
-	}
+	exchange_json_format( out, '\"', '\'' );
 	b_print("%s", out);
 	cJSON_Delete(root);
 	free(out); 
@@ -249,11 +213,12 @@ void serial_cmd_bind_operation(const cJSON *object)
 	char *out;
 	cJSON *root;
 	uint8_t card_status = 0;
+	char *p_cmd_str = cJSON_GetObjectItem(object, "fun")->valuestring;
 	
 	root = cJSON_CreateObject();
 	card_status = rf_get_card_status();
 	
-	if(strncmp(cJSON_GetObjectItem(object, "fun")->valuestring,"bind_start",10) == 0)
+	if(strncmp( p_cmd_str, "bind_start", 10) == 0)
 	{
 		wl.match_status = ON;
 		rf_set_card_status(1);
@@ -264,28 +229,19 @@ void serial_cmd_bind_operation(const cJSON *object)
 			cJSON_AddStringToObject(root, "result", "-1" );
 	}
 
-	if(strncmp(cJSON_GetObjectItem(object, "fun")->valuestring,"bind_stop",9) == 0)
+	if(strncmp( p_cmd_str, "bind_stop", 9 ) == 0)
 	{
 		wl.match_status = OFF;
 		rf_set_card_status(0);
+		PcdHalt();
+		PcdAntennaOff();
 		cJSON_AddStringToObject(root, "fun", "bind_stop" );
 		cJSON_AddStringToObject(root, "result", "0" );
 	}
 
 	/* 打印返回 */
 	out = cJSON_Print(root);
-	{
-		char *pdata = out;
-
-		while(*pdata != '\0')
-		{
-			if(*pdata == '\"')
-			{
-				*pdata = '\'';
-			}
-			pdata++;
-		}
-	}
+	exchange_json_format( out, '\"', '\'' );
 	b_print("%s", out);
 	cJSON_Delete(root);
 	free(out); 	
@@ -327,17 +283,13 @@ void serial_cmd_answer_start(const cJSON *object)
 			/* get answer message */
 			while(question != NULL)
 			{
-				char range_str[4];
-				char type;
+				char *p_question_range = cJSON_GetObjectItem(question,"range")->valuestring;
+				char *p_question_type  = cJSON_GetObjectItem(question,"type")->valuestring;
+
 				answer_info_typedef answer_temp = {0,0,0};
-				type = cJSON_GetObjectItem(question, "type")->valuestring[0];
-				//printf("type = %s\r\n", cJSON_GetObjectItem(question, "type")->valuestring);
 				answer_temp.id = atoi(cJSON_GetObjectItem(question, "id")->valuestring);
-				//printf("id = %s\r\n", cJSON_GetObjectItem(question, "id")->valuestring);
-				memcpy(range_str, cJSON_GetObjectItem(question, "range")->valuestring, 4);
-				//printf("range = %s\r\n", cJSON_GetObjectItem(question, "range")->valuestring);
 				
-				switch( type )
+				switch( p_question_type[0] )
 				{
 					case 's': answer_temp.type = 0; break;
 					case 'm': answer_temp.type = 1; break;
@@ -354,7 +306,7 @@ void serial_cmd_answer_start(const cJSON *object)
 						answer_temp.range = 0x03;
 					else
 					{
-						range_end  = range_str[2];
+						range_end  = p_question_range[2];
 						if(( range_end >= 'A') && ( range_end <= 'G'))
 						{
 							uint8_t j;
@@ -396,17 +348,17 @@ void serial_cmd_answer_start(const cJSON *object)
 	}
 
 	/* send data */
-	//status = send_data_status ;
+	send_data_status = get_send_data_status();
 	cJSON_AddStringToObject(root, "fun", "answer_start" );
 	send_data_status = 0;
 
 	/* 发送数据 */
-	if( send_data_status == 0 )
+	if(( send_data_status == SEND_IDLE_STATUS ) ||
+		 ( send_data_status >= SEND_2S_DATA_STATUS))
 	{
 		nrf_transmit_parameter_t transmit_config;
 
 		/* 准备发送数据管理块 */
-		//send_data_env_init();
 		memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
 		
 		memset(nrf_data.dtq_uid,    0x00, 4);
@@ -427,24 +379,13 @@ void serial_cmd_answer_start(const cJSON *object)
 
 	/* 打印返回 */
 	out = cJSON_Print(root);
-	{
-		char *pdata = out;
-
-		while(*pdata != '\0')
-		{
-			if(*pdata == '\"')
-			{
-				*pdata = '\'';
-			}
-			pdata++;
-		}
-	}
+	exchange_json_format( out, '\"', '\'' );
 	b_print("%s", out);
 	cJSON_Delete(root);
 	free(out); 
 }
 
-void serial_cmd_get_device_no(void)
+void serial_cmd_get_device_no(const cJSON *object)
 {		
 	char *out,str[20];
 	cJSON *root;
@@ -462,23 +403,11 @@ void serial_cmd_get_device_no(void)
 	
 	/* 打印返回 */
 	out = cJSON_Print(root);
-	{
-		char *pdata = out;
-
-		while(*pdata != '\0')
-		{
-			if(*pdata == '\"')
-			{
-				*pdata = '\'';
-			}
-			pdata++;
-		}
-	}
+	exchange_json_format( out, '\"', '\'' );
 	b_print("%s", out);
 	cJSON_Delete(root);
 	free(out); 
 }
-
 
 void serial_cmd_answer_stop(const cJSON *object)
 {
@@ -522,18 +451,7 @@ void serial_cmd_answer_stop(const cJSON *object)
 
 	/* 打印返回 */
 	out = cJSON_Print(root);
-	{
-		char *pdata = out;
-
-		while(*pdata != '\0')
-		{
-			if(*pdata == '\"')
-			{
-				*pdata = '\'';
-			}
-			pdata++;
-		}
-	}
+	exchange_json_format( out, '\"', '\'' );
 	b_print("%s", out);
 	cJSON_Delete(root);
 	free(out); 	
@@ -574,18 +492,7 @@ void serial_cmd_set_channel(const cJSON *object)
 	cJSON_AddStringToObject(root, "result", str );
 	/* 打印返回 */
 	out = cJSON_Print(root);
-	{
-		char *pdata = out;
-
-		while(*pdata != '\0')
-		{
-			if(*pdata == '\"')
-			{
-				*pdata = '\'';
-			}
-			pdata++;
-		}
-	}
+	exchange_json_format( out, '\"', '\'' );
 	b_print("%s", out);
 	cJSON_Delete(root);
 	free(out); 			
@@ -640,18 +547,7 @@ void serial_cmd_set_tx_power(const cJSON *object)
 	cJSON_AddStringToObject(root, "result", str );
 	/* 打印返回 */
 	out = cJSON_Print(root);
-	{
-		char *pdata = out;
-
-		while(*pdata != '\0')
-		{
-			if(*pdata == '\"')
-			{
-				*pdata = '\'';
-			}
-			pdata++;
-		}
-	}
+	exchange_json_format( out, '\"', '\'' );
 	b_print("%s", out);
 	cJSON_Delete(root);
 	free(out); 			
@@ -664,7 +560,7 @@ void serial_cmd_set_student_id(const cJSON *object)
 	int8_t status;
 	uint8_t i = 0;
 	uint8_t len = strlen(cJSON_GetObjectItem(object, "student_id")->valuestring);
-	char    *prdata = cJSON_GetObjectItem(object, "student_id")->valuestring;
+	char    *prdata = cJSON_GetObjectItem(object,    "student_id")->valuestring;
 	uint8_t *pwdata = card_task.stdid;
 
 	if((len > 0) && (len <= 20))
@@ -695,18 +591,7 @@ void serial_cmd_set_student_id(const cJSON *object)
 		cJSON_AddStringToObject(root, "result", str );
 		/* 打印返回 */
 		out = cJSON_Print(root);
-		{
-			char *pdata = out;
-
-			while(*pdata != '\0')
-			{
-				if(*pdata == '\"')
-				{
-					*pdata = '\'';
-				}
-				pdata++;
-			}
-		}
+		exchange_json_format( out, '\"', '\'' );
 		b_print("%s", out);
 		cJSON_Delete(root);
 		free(out); 		
