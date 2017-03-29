@@ -16,11 +16,31 @@
 void message_show_process( void )
 {
 	uint8_t str[READ_STRING_LEN] = "";
+	uint8_t r_index = 0;
 
 	if(buffer_get_buffer_status(PRINT_BUF) != BUF_EMPTY) 
-	{                                                        
-		print_read_data_to_buffer(str,READ_STRING_LEN);   
-		printf("%s",str);		
+	{        
+		uint8_t *pdata;
+		print_read_data_to_buffer(str,READ_STRING_LEN); 
+		/* JSON 剔除格式化输出字符 */
+		pdata = str;
+		while( *pdata != '\0' )
+		{
+			if( *pdata > 32 )
+			{	
+				if(*pdata != str[r_index])
+					str[r_index] = *pdata;
+				pdata++;
+				r_index++;
+			}
+			else
+			{
+				pdata++;
+			}
+		}
+		if( *pdata == '\0' )
+			str[r_index] = '\0';
+		printf("%s",str);
 	}  
 }
 

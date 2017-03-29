@@ -397,7 +397,7 @@ void serial_cmd_get_device_no(const cJSON *object)
 	memset(str,0,20);
 	sprintf(str, "%010u" , *(uint32_t *)(revicer.uid));
 	cJSON_AddStringToObject(root, "device_id", str );
-	cJSON_AddStringToObject(root, "software_version", "v0.1.0" );
+	cJSON_AddStringToObject(root, "software_version", "v0.1.1" );
 	cJSON_AddStringToObject(root, "hardware_version", "ZL-RP551-MAIN-F" );
 	cJSON_AddStringToObject(root, "company", "zkxltech" );
 	
