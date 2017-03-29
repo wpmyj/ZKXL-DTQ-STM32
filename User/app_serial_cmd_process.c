@@ -565,12 +565,25 @@ void serial_cmd_set_student_id(const cJSON *object)
 
 	if((len > 0) && (len <= 20))
 	{
+		uint8_t wdata_index = 0,rdata_index = 0;
+		
 		memset(pwdata,0,10);
-
-		for(i=0;2*i<len;i++)
+		
+		while( rdata_index < len )
 		{
-			*pwdata = ((((prdata[2*i]-'0') << 4) & 0xF0) | 
-			             ((prdata[2*i+1]-'0') & 0x0F));
+			*pwdata = (((prdata[rdata_index  ]-'0') << 4) & 0xF0) | 
+			           ((prdata[rdata_index+1]-'0') & 0x0F);
+			pwdata++;
+			wdata_index++;
+			rdata_index = rdata_index + 2;
+		}
+		
+		if( len % 2 )
+			*(pwdata-1) |= 0x0F; 
+
+		for(i=wdata_index; i<10; i++)
+		{
+			*pwdata = 0xFF;
 			pwdata++;
 		}
 
