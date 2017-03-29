@@ -473,13 +473,15 @@ void App_card_process(void)
 				
 				memset(str,0,21);
 				{
-					uint8_t i;
+					uint8_t i, temp_data;
 					char *p_student_data = str;
 
-					for(i=0;i<10;i++)
+					for(i=0;(i<10) && ((rID.stdid[i]&0xF0) != 0xF0);i++)
 					{
 						sprintf(p_student_data+2*i,  "%d" , (rID.stdid[i]&0xF0)>>4);
-						sprintf(p_student_data+2*i+1,"%d" , (rID.stdid[i]&0x0F));
+						temp_data = rID.stdid[i]&0x0F;
+						if(temp_data != 0x0F)
+							sprintf(p_student_data+2*i+1,"%d" ,temp_data);
 					}
 				}
 				b_print("  \'student_id\': \'%s\'\r\n", str );
