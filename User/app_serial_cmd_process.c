@@ -344,7 +344,10 @@ void serial_cmd_answer_start(const cJSON *object)
 		}
 		
 		rf_var.cmd = 0x10;
-		rf_var.tx_len = sdata_index+1 ;
+		if(is_last_data_full == 1)
+			rf_var.tx_len = sdata_index+1 ;
+		else
+			rf_var.tx_len = sdata_index ;
 	}
 
 	/* send data */
