@@ -129,7 +129,6 @@ void Parse_time_to_str( char *str )
 	sprintf(str1, "%03d" , system_rtc_timer.ms);
 	memcpy(pdata,str1,3);
 	pdata = pdata + 3;
-	*pdata  = ' ';
 }
 
 static void update_data_to_buffer( uint8_t *Message )
@@ -299,8 +298,8 @@ static void update_data_to_buffer( uint8_t *Message )
 						default: break;
 					}
 					b_print("\'type\': \'%s\', ",answer_type);
-					b_print("\'id\': \'%2s\', ",answer_id);
-					b_print("\'answer\': \'%7s\' ",answer_range);
+					b_print("\'id\': \'%s\', ",answer_id);
+					b_print("\'answer\': \'%s\' ",answer_range);
 					if( r_index < DataLen-2 )
 						b_print("},\r\n");
 					else

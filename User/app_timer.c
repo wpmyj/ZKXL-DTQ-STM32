@@ -373,8 +373,8 @@ void system_timer_init( void )
 	sw_create_timer(&system_timer , 100, 0, 1,&(system_timer_status), systemtick_timeout_callback);
 
 	system_rtc_timer.year = 2016;
-	system_rtc_timer.mon  = 0;
-	system_rtc_timer.date = 0;
+	system_rtc_timer.mon  = 1;
+	system_rtc_timer.date = 1;
 	system_rtc_timer.hour = 0;
 	system_rtc_timer.min  = 0;
 	system_rtc_timer.sec  = 0;

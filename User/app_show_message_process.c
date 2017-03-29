@@ -21,21 +21,35 @@ void message_show_process( void )
 	if(buffer_get_buffer_status(PRINT_BUF) != BUF_EMPTY) 
 	{        
 		uint8_t *pdata;
+		static uint8_t skip_flag = 0x00;
 		print_read_data_to_buffer(str,READ_STRING_LEN); 
 		/* JSON 剔除格式化输出字符 */
 		pdata = str;
 		while( *pdata != '\0' )
 		{
-			if( *pdata > 32 )
-			{	
-				if(*pdata != str[r_index])
-					str[r_index] = *pdata;
-				pdata++;
-				r_index++;
+			if( *pdata ==  '\'')
+				skip_flag = skip_flag ^ 0x01;
+
+			if( skip_flag == 0x00 )
+			{
+				if( *pdata > 32)  
+				{	
+					if(*pdata != str[r_index])
+						str[r_index] = *pdata;
+					pdata++;
+					r_index++;
+				}
+				else
+				{
+					pdata++;
+				}
 			}
 			else
 			{
+				if(*pdata != str[r_index])
+						str[r_index] = *pdata;
 				pdata++;
+				r_index++;
 			}
 		}
 		if( *pdata == '\0' )
