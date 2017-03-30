@@ -669,11 +669,11 @@ void serial_cmd_answer_start(char *pdata_str)
 	{
 		result = -2;
 	}
-	if(real_total != json_total)
-	{
-		printf("real_total = %d, json_total = %d",real_total,json_total);
-		result = -3;
-	}
+//if(real_total != json_total)
+//{
+//	printf("real_total = %d, json_total = %d",real_total,json_total);
+//	result = -3;
+//}
 	
 	real_total = 0;
 	json_total = 0;
