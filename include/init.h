@@ -25,6 +25,7 @@ typedef struct
 	uint16_t pos;
 	uint8_t  rev_num;
 	uint8_t  rev_seq;
+	uint8_t  rssi;
 }Clicker_Typedef;
 
 typedef struct

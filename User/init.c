@@ -288,7 +288,12 @@ uint8_t spi_read_tx_payload(SPI_TypeDef* SPIx, uint8_t *rx_data_len, uint8_t *rx
   /* 若接收到数据校验正确 */
 	if(retval[spi_cmd_type.data_len-2] == revice_cal_xor) 			
 	{
+		uint16_t uidpos = 0xFFFF;
+		uint8_t Is_whitelist_uid;
 		memcpy(rx_data, &retval[4],*rx_data_len);
+		Is_whitelist_uid = search_uid_in_white_list(rx_data+5,&uidpos);
+		if( Is_whitelist_uid == OPERATION_SUCCESS )
+			wl.uids[uidpos].rssi = retval[2];
 		return 0;
 	}
 	else

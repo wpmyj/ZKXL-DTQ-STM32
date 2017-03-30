@@ -1,0 +1,10 @@
+[QI]
+001=answer_start|{'fun': 'answer_start','time': '2017-02-15:17:41:07:137','total': '4','questions': [{'type': 's','id': '1','range': 'A-D'},{'type': 'm','id': '13','range': 'A-F'},{'type': 'j','id': '24','range': ''},{'type': 'd','id': '27','range': '1-5'}]}
+002=answer_stop|{'fun': 'answer_stop'}
+003=get_info|{'fun': 'get_device_info'}
+004=bind_start|{'fun': 'bind_start'}
+005=bind_stop|{'fun': 'bind_stop'}
+006=clear_wl|{'fun': 'clear_wl'}
+007=set_tx_power|{'fun': 'set_tx_power','tx_power': '4'}
+008=set_tx_channel|{'fun': 'set_channel','tx_ch': '2','rx_ch': '4'}
+009=set_student_id|{'fun': 'set_student_id','student_id': '20170328173312345678'}

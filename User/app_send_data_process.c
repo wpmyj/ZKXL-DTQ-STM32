@@ -171,6 +171,9 @@ static void update_data_to_buffer( uint8_t *Message )
 			memset(str,0,20);
 			sprintf(str, "%010u" , *(uint32_t *)( wl.uids[uidpos].uid));
 			b_print("  \'card_id\': \'%s\',\r\n", str );
+			memset(str,0,20);
+			sprintf(str, "%d" , ( wl.uids[uidpos].rssi));
+			b_print("  \'rssi\': \'-%s\',\r\n", str );
 			memset(ClickerAnswerTime,0x00,CLICKER_TIMER_STR_LEN);
 			Parse_time_to_str((char *)ClickerAnswerTime);
 			b_print("  \'update_time\': \'%s\',\r\n",(char *) ClickerAnswerTime );
