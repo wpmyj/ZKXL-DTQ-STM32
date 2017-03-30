@@ -34,9 +34,6 @@ void app_handle_layer(void)
 
 	/* MI Card processing process */
 	App_card_process();
-	
-	/*printf message show process */
-	//message_show_process();
 
 	/*revicer spi send data process */
 	App_spi_send_data_process();

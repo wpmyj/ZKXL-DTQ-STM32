@@ -34,6 +34,22 @@ void App_seirial_cmd_process(void);
 #define UartDATA	 								        (2)
 #define UartEND 								          (3)
 
+#define ANSWER_STATUS_FUN                  1
+#define ANSWER_STATUS_TIME                 2
+#define ANSWER_STATUS_TOTAL                3
+#define ANSWER_STATUS_QUESTION             4
+#define ANSWER_STATUS_DATA_TYPE            5
+#define ANSWER_STATUS_DATA_ID              6
+#define ANSWER_STATUS_DATA_RANGE           7
+
+typedef struct
+{
+	char    *key;
+	uint8_t key_str_len;
+	uint8_t status;
+}json_item_typedef;
+
+
 typedef enum
 {
 	CLOSE = 0,
@@ -53,7 +69,6 @@ typedef struct
 	uint8_t stdid[10];
 	uint8_t retransmit;
 }task_tcb_typedef;
-
 
 typedef struct
 {

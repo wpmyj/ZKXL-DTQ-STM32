@@ -36,8 +36,7 @@ extern task_tcb_typedef card_task;
 
 const static serial_cmd_typedef cmd_list[] = {
 {"clear_wl",       sizeof("clear_wl"),       serial_cmd_clear_uid_list},
-{"bind",           sizeof("bind")-1,           serial_cmd_bind_operation},
-//{"answer_start",   sizeof("answer_start"),   serial_cmd_answer_start  },
+{"bind",           sizeof("bind")-1,         serial_cmd_bind_operation},
 {"answer_stop",    sizeof("answer_stop"),    serial_cmd_answer_stop   },
 {"get_device_info",sizeof("get_device_info"),serial_cmd_get_device_no },
 {"set_channel",    sizeof("set_channel"),    serial_cmd_set_channel   },
@@ -46,20 +45,6 @@ const static serial_cmd_typedef cmd_list[] = {
 {"NO_USE",         sizeof("NO_USE"),         NULL                     }
 };
 
-typedef struct
-{
-	char    *key;
-	uint8_t key_str_len;
-	uint8_t status;
-}json_item_typedef;
-
-#define ANSWER_STATUS_FUN         1
-#define ANSWER_STATUS_TIME        2
-#define ANSWER_STATUS_TOTAL       3
-#define ANSWER_STATUS_QUESTION    4
-#define ANSWER_STATUS_DATA_TYPE   5
-#define ANSWER_STATUS_DATA_ID     6
-#define ANSWER_STATUS_DATA_RANGE  7
 const static json_item_typedef answer_item_list[] = {
 {"fun",      sizeof("fun"),       ANSWER_STATUS_FUN},
 {"time",     sizeof("time"),      ANSWER_STATUS_TIME},
@@ -68,7 +53,7 @@ const static json_item_typedef answer_item_list[] = {
 {"type",     sizeof("type"),      ANSWER_STATUS_DATA_TYPE},
 {"id",       sizeof("id"),        ANSWER_STATUS_DATA_ID},
 {"range",    sizeof("range"),     ANSWER_STATUS_DATA_RANGE},
-{"over",     sizeof("over"),   0xFF}
+{"over",     sizeof("over"),      0xFF}
 };
 	
 
@@ -176,7 +161,7 @@ void serial_cmd_process(void)
 		exchange_json_format( pdata, '\'', '\"' );
 		memcpy(header,pdata+8,12);
 	
-		if(strncmp( header, "answer_start", sizeof("answer_start")-1)!= 0)
+		if( strncmp( header, "answer_start", sizeof("answer_start")-1)!= 0 )
 		{
 			cJSON *json;
 			json = cJSON_Parse((char *)uart_irq_revice_massage[json_read_index]); 
@@ -191,7 +176,8 @@ void serial_cmd_process(void)
 
 				while(cmd_list[i].cmd_fun != NULL)
 				{
-					if(strncmp(p_cmd_str, cmd_list[i].cmd_str, cmd_list[i].cmd_len)== 0)
+					if(strncmp(p_cmd_str, cmd_list[i].cmd_str,
+						 cmd_list[i].cmd_len)== 0)
 					{
 						cmd_list[i].cmd_fun(json);
 						is_know_cmd = 1;
@@ -206,7 +192,7 @@ void serial_cmd_process(void)
 		}
 		else
 		{
-			serial_cmd_answer_start(pdata);
+			serial_cmd_answer_start( pdata );
 		}
 		revice_json_count--;
 		memset( pdata, 0, JSON_BUFFER_LEN );
@@ -221,9 +207,7 @@ void serial_cmd_clear_uid_list(const cJSON *object)
 	uint8_t result = 0;
 
 	root = cJSON_CreateObject();
-
 	result = initialize_white_list();
-
 	cJSON_AddStringToObject(root, "fun", "clear_wl" );
 	if(OPERATION_SUCCESS == result)
 	{
@@ -281,7 +265,6 @@ void serial_cmd_bind_operation(const cJSON *object)
 	free(out); 	
 }
 
-
 void serial_cmd_get_device_no(const cJSON *object)
 {		
 	char *out,str[20];
@@ -289,7 +272,6 @@ void serial_cmd_get_device_no(const cJSON *object)
 	
 	/* 填充内容 */
 	root = cJSON_CreateObject();
-	
 	cJSON_AddStringToObject(root, "fun", "get_device_info" );
 	memset(str,0,20);
 	sprintf(str, "%010u" , *(uint32_t *)(revicer.uid));
@@ -297,7 +279,7 @@ void serial_cmd_get_device_no(const cJSON *object)
 	cJSON_AddStringToObject(root, "software_version", "v0.1.1" );
 	cJSON_AddStringToObject(root, "hardware_version", "ZL-RP551-MAIN-F" );
 	cJSON_AddStringToObject(root, "company", "zkxltech" );
-	
+
 	/* 打印返回 */
 	out = cJSON_Print(root);
 	exchange_json_format( out, '\"', '\'' );
@@ -312,20 +294,12 @@ void serial_cmd_answer_stop(const cJSON *object)
 	uint8_t *pSdata;
 	cJSON *root;
 	char *out;
-	
-	/* 填充内容 */
-	root = cJSON_CreateObject();
-
-	cJSON_AddStringToObject(root, "fun", "answer_stop" );
-	
-	pSdata = (uint8_t *)rf_var.tx_buf;
 
 	/* 准备发送数据 */
-	{
-		*(pSdata+(sdata_index++)) = 0x01;
-		rf_var.cmd = 0x11;
-		rf_var.tx_len = sdata_index+1 ;
-	}
+	pSdata = (uint8_t *)rf_var.tx_buf;
+	*(pSdata+(sdata_index++)) = 0x01;
+	rf_var.cmd = 0x11;
+	rf_var.tx_len = sdata_index+1 ;
 	
 	/* 发送数据 */
 	{
@@ -343,10 +317,10 @@ void serial_cmd_answer_stop(const cJSON *object)
 		set_send_data_status( SEND_500MS_DATA_STATUS );
 	}
 
-	/* return data */	
-	cJSON_AddStringToObject(root, "result", "0" );	
-
 	/* 打印返回 */
+	root = cJSON_CreateObject();
+	cJSON_AddStringToObject(root, "fun", "answer_stop" );
+	cJSON_AddStringToObject(root, "result", "0" );	
 	out = cJSON_Print(root);
 	exchange_json_format( out, '\"', '\'' );
 	b_print("%s", out);
@@ -381,13 +355,11 @@ void serial_cmd_set_channel(const cJSON *object)
 		status = -1;
 	}
 	
-	/* 填充内容 */
+	/* 打印返回 */
 	root = cJSON_CreateObject();
-
 	cJSON_AddStringToObject(root, "fun", "set_channel" );
 	sprintf(str, "%d" , (int8_t)(status));
 	cJSON_AddStringToObject(root, "result", str );
-	/* 打印返回 */
 	out = cJSON_Print(root);
 	exchange_json_format( out, '\"', '\'' );
 	b_print("%s", out);
@@ -409,24 +381,12 @@ void serial_cmd_set_tx_power(const cJSON *object)
 	{
 		switch( tx_power )
 		{
-			case 1:
-				clicker_set.N_TX_POWER = -4;
-			break;
-			case 2:
-				clicker_set.N_TX_POWER = -2;
-			break;
-			case 3:
-				clicker_set.N_TX_POWER = 0;
-			break;
-			case 4:
-				clicker_set.N_TX_POWER = 2;
-			break;
-			case 5:
-				clicker_set.N_TX_POWER = 4;
-			break;
-			default:
-				clicker_set.N_TX_POWER = 4;
-			break;
+			case 1: clicker_set.N_TX_POWER = -4; break;
+			case 2: clicker_set.N_TX_POWER = -2; break;
+			case 3: clicker_set.N_TX_POWER = 0;  break;
+			case 4: clicker_set.N_TX_POWER = 2;  break;
+			case 5: clicker_set.N_TX_POWER = 4;  break;
+			default:clicker_set.N_TX_POWER = 4;  break;
 		}
 		EE_WriteVariable( CPU_TX_POWER_POS_OF_FEE , clicker_set.N_TX_POWER );
 		status = 0;
@@ -436,13 +396,11 @@ void serial_cmd_set_tx_power(const cJSON *object)
 		status = -1;
 	}
 	
-	/* 填充内容 */
+	/* 打印返回 */
 	root = cJSON_CreateObject();
-
 	cJSON_AddStringToObject(root, "fun", "set_tx_power" );
 	sprintf(str, "%d" , (int8_t)(status));
 	cJSON_AddStringToObject(root, "result", str );
-	/* 打印返回 */
 	out = cJSON_Print(root);
 	exchange_json_format( out, '\"', '\'' );
 	b_print("%s", out);
@@ -456,8 +414,10 @@ void serial_cmd_set_student_id(const cJSON *object)
 	char *out;
 	int8_t status;
 	uint8_t i = 0;
-	uint8_t len = strlen(cJSON_GetObjectItem(object, "student_id")->valuestring);
-	char    *prdata = cJSON_GetObjectItem(object,    "student_id")->valuestring;
+
+	char    *prdata = cJSON_GetObjectItem(object,"student_id")->valuestring;
+	uint8_t len = strlen( prdata );
+
 	uint8_t *pwdata = card_task.stdid;
 
 	if((len > 0) && (len <= 20))
@@ -493,13 +453,12 @@ void serial_cmd_set_student_id(const cJSON *object)
 	{
 		char str[3];
 
+		/* 打印返回 */
 		status = -1;
 		root = cJSON_CreateObject();
-
 		cJSON_AddStringToObject(root, "fun", "student_id" );
 		sprintf(str, "%d" , (int8_t)(status));
 		cJSON_AddStringToObject(root, "result", str );
-		/* 打印返回 */
 		out = cJSON_Print(root);
 		exchange_json_format( out, '\"', '\'' );
 		b_print("%s", out);
@@ -558,6 +517,7 @@ void serial_cmd_answer_start(char *pdata_str)
 	char value_str[25],key_str[10];
 	uint8_t parse_data_status = 0;
 	uint16_t len = strlen(pdata_str);
+	uint8_t real_total = 0, json_total = 0;
 
 	/* send data control */
 	uint8_t  *pSdata = (uint8_t *)rf_var.tx_buf;
@@ -568,7 +528,8 @@ void serial_cmd_answer_start(char *pdata_str)
 	
 	/* print result */
 	cJSON *root;
-	char *out;
+	char  *out, result_str[3];
+	int8_t result = 0;
 	
 	/* prase the first key and value */
 	p_end = parse_json_item( pdata_str, key_str, value_str );
@@ -582,7 +543,8 @@ void serial_cmd_answer_start(char *pdata_str)
 		p_end = parse_json_item( p_next_start, key_str, value_str );
 		while(answer_item_list[i].status != 0xFF)
 		{
-			if(strncmp( key_str, answer_item_list[i].key, answer_item_list[i].key_str_len)== 0)
+			if(strncmp( key_str, answer_item_list[i].key,
+				          answer_item_list[i].key_str_len)== 0)
 			{
 				parse_data_status = answer_item_list[i].status;
 				break;
@@ -594,14 +556,12 @@ void serial_cmd_answer_start(char *pdata_str)
 		switch( parse_data_status )
 		{
 			
-			case ANSWER_STATUS_FUN: 
-				break;
+			case ANSWER_STATUS_FUN: break;
 			case ANSWER_STATUS_TIME:
-				{
 					parse_str_to_time( value_str );
-				}
 				break;
 			case ANSWER_STATUS_TOTAL:
+					json_total = atoi(value_str);
 				break;
 			case ANSWER_STATUS_QUESTION:
 				break;	
@@ -638,19 +598,27 @@ void serial_cmd_answer_start(char *pdata_str)
 								answer_temp.range |= range_end - '0'; 
 						}
 					}
-//				printf("type  = %02x\r\n", answer_temp.type);
-//				printf("id    = %02x\r\n", answer_temp.id);
-//				printf("range = %02x\r\n", answer_temp.range);
+					real_total++;
+//				printf("[%3d]:{ type  = %02x, ", real_total,answer_temp.type);
+//				printf("id = %2d, ",answer_temp.id);
+//				printf("range = %02x }\r\n",answer_temp.range);
+
+					if( real_total >= 80 )
+						break;
+
 					if(is_last_data_full == 0)
 					{
-						*(pSdata+(sdata_index++)) = ((answer_temp.type) & 0x0F ) | ((answer_temp.id & 0x0F) << 4);
-						*(pSdata+(sdata_index++)) = ((answer_temp.id & 0xF0)>>4) | ((answer_temp.range & 0x0F) << 4);
+						*(pSdata+(sdata_index++)) = ((answer_temp.type) & 0x0F ) | 
+						                            ((answer_temp.id & 0x0F) << 4);
+						*(pSdata+(sdata_index++)) = ((answer_temp.id & 0xF0)>>4) | 
+						                            ((answer_temp.range & 0x0F) << 4);
 						*(pSdata+(sdata_index))   = (answer_temp.range & 0xF0)>>4;
 						is_last_data_full = 1;
 					}
 					else
 					{
-						*(pSdata+(sdata_index))   = *(pSdata+(sdata_index)) | ((answer_temp.type & 0x0F) << 4);
+						*(pSdata+(sdata_index))   = *(pSdata+(sdata_index)) | 
+						                            ((answer_temp.type & 0x0F) << 4);
 						sdata_index++;
 						*(pSdata+(sdata_index++)) = answer_temp.id ;
 						*(pSdata+(sdata_index++)) = answer_temp.range ;
@@ -662,44 +630,59 @@ void serial_cmd_answer_start(char *pdata_str)
 				break;
 		}
 	}
-	/* set rf buffer len */
-	rf_var.cmd = 0x10;
-	if(is_last_data_full == 1)
-		rf_var.tx_len = sdata_index+1 ;
-	else
-		rf_var.tx_len = sdata_index ;
 	
-	send_data_status = get_send_data_status();
-	root = cJSON_CreateObject();
-	cJSON_AddStringToObject(root, "fun", "answer_start" );
-	send_data_status = 0;
-
-	/* 发送数据 */
-	if(( send_data_status == SEND_IDLE_STATUS ) ||
-		 ( send_data_status >= SEND_2S_DATA_STATUS))
+	if( real_total <= 80)
 	{
-		nrf_transmit_parameter_t transmit_config;
-
-		/* 准备发送数据管理块 */
-		memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
+		/* set rf buffer len */
+		rf_var.cmd = 0x10;
+		if(is_last_data_full == 1)
+			rf_var.tx_len = sdata_index+1 ;
+		else
+			rf_var.tx_len = sdata_index ;
 		
-		memset(nrf_data.dtq_uid,    0x00, 4);
-		memset(transmit_config.dist,0x00, 4);
+		send_data_status = get_send_data_status();
 
-		send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
+		/* 发送数据 */
+		if(( send_data_status == SEND_IDLE_STATUS ) ||
+			 ( send_data_status >= SEND_2S_DATA_STATUS))
+		{
+			nrf_transmit_parameter_t transmit_config;
 
-		/* 启动发送数据状态机 */
-		set_send_data_status( SEND_500MS_DATA_STATUS );
+			/* 准备发送数据管理块 */
+			memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
+			
+			memset(nrf_data.dtq_uid,    0x00, 4);
+			memset(transmit_config.dist,0x00, 4);
 
-		/* return data */	
-		cJSON_AddStringToObject(root, "result", "0" );			
+			send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
+
+			/* 启动发送数据状态机 */
+			set_send_data_status( SEND_500MS_DATA_STATUS );
+
+			/* return data */	
+			result = 0;
+		}
+		else
+			result = -1;
 	}
 	else
 	{
-		cJSON_AddStringToObject(root, "result", "1" );
+		result = -2;
 	}
+	if(real_total != json_total)
+	{
+		printf("real_total = %d, json_total = %d",real_total,json_total);
+		result = -3;
+	}
+	
+	real_total = 0;
+	json_total = 0;
 
 	/* 打印返回 */
+	root = cJSON_CreateObject();
+	cJSON_AddStringToObject(root, "fun", "answer_start" );
+	sprintf(result_str, "%d" , result);
+	cJSON_AddStringToObject(root, "result", result_str );
 	out = cJSON_Print(root);
 	exchange_json_format( out, '\"', '\'' );
 	b_print("%s", out);

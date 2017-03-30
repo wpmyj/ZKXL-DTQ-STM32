@@ -255,7 +255,7 @@ static void update_data_to_buffer( uint8_t *Message )
 							uint8_t answer = (answer_temp.range)&0x3F;
 							uint8_t *pdata = (uint8_t *)answer_range;
 							
-							for(i=0;i<'F'-'A';i++)
+							for( i=0; i<='F'-'A'; i++ )
 							{
 								uint8_t mask_bit = 1 << i;
 								if( (answer & mask_bit) == mask_bit )
