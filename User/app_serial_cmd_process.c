@@ -42,6 +42,7 @@ const static serial_cmd_typedef cmd_list[] = {
 {"set_channel",    sizeof("set_channel"),    serial_cmd_set_channel   },
 {"set_tx_power",   sizeof("set_tx_power"),   serial_cmd_set_tx_power  },
 {"set_student_id", sizeof("set_student_id"), serial_cmd_set_student_id},
+{"one_key_off",    sizeof("one_key_off"),    serial_cmd_one_key_off   },
 {"NO_USE",         sizeof("NO_USE"),         NULL                     }
 };
 
@@ -286,6 +287,46 @@ void serial_cmd_get_device_no(const cJSON *object)
 	b_print("%s", out);
 	cJSON_Delete(root);
 	free(out); 
+}
+
+void serial_cmd_one_key_off(const cJSON *object)
+{
+	uint8_t sdata_index;
+	uint8_t *pSdata;
+	cJSON *root;
+	char *out;
+
+	/* 准备发送数据 */
+	pSdata = (uint8_t *)rf_var.tx_buf;
+	*(pSdata+(sdata_index++)) = 0x01;
+	rf_var.cmd = 0x25;
+	rf_var.tx_len = sdata_index+1 ;
+	
+	/* 发送数据 */
+	{
+		nrf_transmit_parameter_t transmit_config;
+
+		/* 准备发送数据管理块 */
+		memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
+		
+		memset(nrf_data.dtq_uid,    0x00, 4);
+		memset(transmit_config.dist,0x00, 4);
+
+		send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
+
+		/* 启动发送数据状态机 */
+		set_send_data_status( SEND_500MS_DATA_STATUS );
+	}
+
+	/* 打印返回 */
+	root = cJSON_CreateObject();
+	cJSON_AddStringToObject(root, "fun", "one_key_off" );
+	cJSON_AddStringToObject(root, "result", "0" );	
+	out = cJSON_Print(root);
+	exchange_json_format( out, '\"', '\'' );
+	b_print("%s", out);
+	cJSON_Delete(root);
+	free(out); 	
 }
 
 void serial_cmd_answer_stop(const cJSON *object)
@@ -690,4 +731,7 @@ void serial_cmd_answer_start(char *pdata_str)
 	free(out); 
 }
 
+
+
+	
 /**************************************END OF FILE****************************/
