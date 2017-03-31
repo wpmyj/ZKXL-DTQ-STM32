@@ -66,10 +66,10 @@ void get_mcu_uid(void)
 	jsq_uid[1]=(uint8_t)(MCUID[3]>>24)&0x0f;
 	jsq_uid[0]=(uint8_t)(MCUID[3]>>28)&0x0f;
 
-	nrf_data.jsq_uid[0] = (jsq_uid[1]&0x0F)|((jsq_uid[0]<<4)&0xF0);
-	nrf_data.jsq_uid[1] = (jsq_uid[3]&0x0F)|((jsq_uid[2]<<4)&0xF0);
-	nrf_data.jsq_uid[2] = (jsq_uid[5]&0x0F)|((jsq_uid[4]<<4)&0xF0);
-	nrf_data.jsq_uid[3] = (jsq_uid[7]&0x0F)|((jsq_uid[6]<<4)&0xF0);
+	revicer.uid[0] = (jsq_uid[1]&0x0F)|((jsq_uid[0]<<4)&0xF0);
+	revicer.uid[1] = (jsq_uid[3]&0x0F)|((jsq_uid[2]<<4)&0xF0);
+	revicer.uid[2] = (jsq_uid[5]&0x0F)|((jsq_uid[4]<<4)&0xF0);
+	revicer.uid[3] = (jsq_uid[7]&0x0F)|((jsq_uid[6]<<4)&0xF0);
 	
-	memcpy(revicer.uid,nrf_data.jsq_uid,4);
+	memcpy(nrf_data.jsq_uid,revicer.uid,4);
 }

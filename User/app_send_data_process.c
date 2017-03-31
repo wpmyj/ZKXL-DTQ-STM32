@@ -360,13 +360,6 @@ void spi_process_revice_data( void )
 	/* 检索白名单 */
 	Is_whitelist_uid = search_uid_in_white_list(spi_message+5,&uidpos);
 
-	/* 白名单开关状态 */
-	if(wl.switch_status == OFF)
-	{
-		/* 关闭白名单是不过滤白名单 */
-		Is_whitelist_uid = OPERATION_SUCCESS;
-	}
-
 	if(Is_whitelist_uid != OPERATION_SUCCESS)
 		return;
 

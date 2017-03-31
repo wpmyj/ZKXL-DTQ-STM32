@@ -36,7 +36,6 @@ extern task_tcb_typedef card_task;
 
 const static serial_cmd_typedef cmd_list[] = {
 {"clear_wl",       sizeof("clear_wl"),       serial_cmd_clear_uid_list},
-{"show_wl",        sizeof("show_wl"),        serial_cmd_show_wl       },
 {"bind",           sizeof("bind")-1,         serial_cmd_bind_operation},
 {"answer_stop",    sizeof("answer_stop"),    serial_cmd_answer_stop   },
 {"get_device_info",sizeof("get_device_info"),serial_cmd_get_device_no },
@@ -59,6 +58,19 @@ const static json_item_typedef answer_item_list[] = {
 {"over",     sizeof("over"),      0xFF}
 };
 
+const static json_item_typedef import_item_list[] = {
+{"fun",      sizeof("fun"),       IMPORT_STATUS_FUN},
+{"addr",     sizeof("addr"),      IMPORT_STATUS_ADDR},
+{"tx_ch",    sizeof("tx_ch"),     IMPORT_STATUS_TX_CH},
+{"rx_ch",    sizeof("rx_ch"),     IMPORT_STATUS_RX_CH},
+{"tx_power", sizeof("tx_power"),  IMPORT_STATUS_TX_POWER},
+{"list",     sizeof("list"),      IMPORT_STATUS_LIST},
+{"upos",     sizeof("upos"),      IMPORT_STATUS_UPOS},
+{"uid",      sizeof("uid"),       IMPORT_STATUS_UID},
+{"over",     sizeof("over"),      0xFF}
+};
+
+
 static void serial_send_data_to_pc(void);
 static void serial_cmd_process(void);
 void exchange_json_format( char *out, char old_format, char new_format);
@@ -79,9 +91,17 @@ void serial_cmd_process(void)
 		char *pdata = (char *)uart_irq_revice_massage[json_read_index];
 		/* 增加对'的支持 */
 		exchange_json_format( pdata, '\'', '\"' );
-		memcpy(header,pdata+8,12);
+		memcpy(header,pdata+8,14);
 
-		if( strncmp( header, "answer_start", sizeof("answer_start")-1)!= 0 )
+		if( strncmp( header, "answer_start", sizeof("answer_start")-1)== 0 )
+		{
+			serial_cmd_answer_start( pdata );
+		}
+		else if( strncmp( header, "import_config", sizeof("import_config")-1)== 0 )
+		{
+			serial_cmd_import_config( pdata );
+		}
+		else
 		{
 			cJSON *json;
 			json = cJSON_Parse((char *)uart_irq_revice_massage[json_read_index]);
@@ -110,10 +130,7 @@ void serial_cmd_process(void)
 			}
 			cJSON_Delete(json);
 		}
-		else
-		{
-			serial_cmd_answer_start( pdata );
-		}
+
 		revice_json_count--;
 		memset( pdata, 0, JSON_BUFFER_LEN );
 		json_read_index = (json_read_index + 1) % JSON_ITEM_MAX;
@@ -483,7 +500,7 @@ char *parse_json_item(char *pdata_str, char *key_str, char *value_str)
 	}
 	pdata++;
 	value_str[i] = '\0';
-//b_print("KEY:%7s  VALUE:%s \r\n",key_str,value_str);
+  //b_print("KEY:%7s  VALUE:%s \r\n",key_str,value_str);
 	return (pdata);
 }
 
@@ -666,10 +683,15 @@ void serial_cmd_answer_start(char *pdata_str)
 void serial_cmd_check_config(const cJSON *object)
 {
 	int8_t tx_power = 0;
-	char str[10];
+	char str[20];
+	uint8_t i,is_pos_use = 0;
+	uint8_t count = 0;
 
 	b_print("{\r\n");
 	b_print("  \'fun\': \'check_config\',\r\n");
+	memset(str,0,20);
+	sprintf(str, "%010u" , *(uint32_t *)(revicer.uid));
+	b_print("  \'addr\': \'%s\',\r\n",str);
 	memset(str,0,10);
 	sprintf(str, "%d" , clicker_set.N_CH_TX);
 	b_print("  \'tx_ch\': \'%s\',\r\n",str);
@@ -679,20 +701,9 @@ void serial_cmd_check_config(const cJSON *object)
 	memset(str,0,10);
 	tx_power = clicker_set.N_TX_POWER / 2 + 3;
 	sprintf(str, "%d" , tx_power);
-	b_print("  \'tx_power\': \'%s\'\r\n",str);
-	b_print("}\r\n");
-}
-
-void serial_cmd_show_wl(const cJSON *object)
-{
-	char str[20];
-	uint8_t i,is_pos_use = 0;
-	uint8_t count = 0;
-
-	b_print("{\r\n");
-	b_print("  \'fun\': \'show_wl\',\r\n");
+	b_print("  \'tx_power\': \'%s\',\r\n",str);
+	
 	b_print("  \'list\': [\r\n");
-	memset(str,0,20);
 
 	for(i=0; i < MAX_WHITE_LEN; i++)
 	{
@@ -717,8 +728,133 @@ void serial_cmd_show_wl(const cJSON *object)
 	b_print("}\r\n");
 }
 
-void serial_cmd_import_wl(const cJSON *object)
+void serial_cmd_import_config(char *pdata_str)
 {
+	typedef struct
+		{
+			uint8_t type;
+			uint8_t id;
+			uint8_t range;
+		}answer_info_typedef;
 	
+	/* prase data control */ 
+	char *p_end,*p_next_start; 
+	char value_str[25],key_str[10];
+	uint8_t parse_data_status = 0;
+	uint16_t len = strlen(pdata_str);
+	uint16_t upos;
+	uint32_t uid;
+
+	/* print result */
+	char   result_str[3];
+	int8_t result = 0;
+	
+	/* prase the first key and value */
+	p_end = parse_json_item( pdata_str, key_str, value_str );
+
+	while( (p_end - pdata_str) < len-3 )
+	{
+		uint8_t i = 0;
+		p_next_start = p_end;
+		
+		/* prase next key and value, and get string status*/
+		p_end = parse_json_item( p_next_start, key_str, value_str );
+		while(import_item_list[i].status != 0xFF)
+		{
+			if(strncmp( key_str, import_item_list[i].key,
+				          import_item_list[i].key_str_len)== 0)
+			{
+				parse_data_status = import_item_list[i].status;
+				break;
+			}
+			i++;
+		}
+
+		/* process string status, get prase data */
+		switch( parse_data_status )
+		{
+			
+			case IMPORT_STATUS_FUN:
+				break;
+			case IMPORT_STATUS_ADDR:
+				{
+					uint32_t uid;
+					uid = atof(value_str);
+					memcpy(revicer.uid,(uint8_t *)&uid,4);
+				}
+				break;
+			case IMPORT_STATUS_TX_CH:
+				{
+					uint8_t tx_ch;
+					tx_ch = atoi(value_str);
+
+					if(( tx_ch > 1) && ( tx_ch < 11))
+					{
+						clicker_set.N_CH_TX = tx_ch;
+
+						/* 设置接收的信道：答题器与接收是反的 */
+						spi_set_cpu_rx_signal_ch(clicker_set.N_CH_TX);
+						result = 0;
+					}
+					else
+					{
+						result = -1;
+					}
+				}
+				break;
+			case IMPORT_STATUS_RX_CH:
+				{
+					uint8_t rx_ch = atoi(value_str);
+					if((( rx_ch > 1) && ( rx_ch < 11)))
+					{
+						clicker_set.N_CH_RX = rx_ch;
+
+						/* 设置接收的信道：答题器与接收是反的 */
+						spi_set_cpu_tx_signal_ch(clicker_set.N_CH_RX);
+						result = 0;
+					}
+					else
+					{
+						result = -1;
+					}
+				}
+				break;
+			case IMPORT_STATUS_TX_POWER:
+				{
+					uint8_t tx_power = atoi(value_str);
+					if(( tx_power >= 1) && ( tx_power <= 5))
+						{
+							clicker_set.N_TX_POWER = ( tx_power - 3 )*2;
+							EE_WriteVariable( CPU_TX_POWER_POS_OF_FEE , clicker_set.N_TX_POWER );
+							result = 0;
+						}
+						else
+						{
+							result = -1;
+						}
+				}
+				break;
+			case IMPORT_STATUS_UPOS: 
+				upos = atoi(value_str);
+				break;
+			case IMPORT_STATUS_UID: 
+			{
+				uint8_t *pdata;
+				uid = atof(value_str);
+				pdata = (uint8_t *)&uid;
+				add_index_of_uid(upos,pdata);
+			}
+				break;
+			default:
+				break;
+		}
+	}
+
+	/* 打印返回 */
+	b_print("{\r\n");
+	b_print("  \'fun\': \'import_config\',\r\n");
+	sprintf(result_str, "%d" , result);
+	b_print("  \'result\': \'%s\'\r\n",result_str);
+	b_print("}\r\n");
 }
 /**************************************END OF FILE****************************/

@@ -42,6 +42,15 @@ void App_seirial_cmd_process(void);
 #define ANSWER_STATUS_DATA_ID              6
 #define ANSWER_STATUS_DATA_RANGE           7
 
+#define IMPORT_STATUS_FUN                  0x01
+#define IMPORT_STATUS_ADDR                 0x02
+#define IMPORT_STATUS_TX_CH                0x03
+#define IMPORT_STATUS_RX_CH                0x04
+#define IMPORT_STATUS_TX_POWER             0x05
+#define IMPORT_STATUS_LIST                 0x06
+#define IMPORT_STATUS_UPOS                 0x07
+#define IMPORT_STATUS_UID                  0x08
+
 typedef struct
 {
 	char    *key;
@@ -79,7 +88,7 @@ typedef struct
 
 void serial_cmd_clear_uid_list(const cJSON *object);
 void serial_cmd_show_wl(const cJSON *object);
-void serial_cmd_import_wl(const cJSON *object);
+void serial_cmd_import_config(char *pdata_str);
 void serial_cmd_bind_operation(const cJSON *object);
 void serial_cmd_answer_start(char *pdata_str);
 void serial_cmd_answer_stop(const cJSON *object);
