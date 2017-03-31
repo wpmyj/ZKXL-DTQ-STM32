@@ -29,6 +29,7 @@ void b_print(const char *fmt, ...)
 
 	/* JSON 剔除格式化输出字符 */
 	pdata = str;
+#ifdef FILTER_NOUSE_CHAR
 	while( *pdata != '\0' )
 	{
 		if( *pdata ==  '\'')
@@ -58,5 +59,6 @@ void b_print(const char *fmt, ...)
 	}
 	if( *pdata == '\0' )
 		str[r_index] = '\0';
+#endif
 	printf("%s",str);		                                                       
 }

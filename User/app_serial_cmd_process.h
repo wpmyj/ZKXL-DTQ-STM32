@@ -78,6 +78,8 @@ typedef struct
 }serial_cmd_typedef;
 
 void serial_cmd_clear_uid_list(const cJSON *object);
+void serial_cmd_show_wl(const cJSON *object);
+void serial_cmd_import_wl(const cJSON *object);
 void serial_cmd_bind_operation(const cJSON *object);
 void serial_cmd_answer_start(char *pdata_str);
 void serial_cmd_answer_stop(const cJSON *object);
@@ -86,4 +88,5 @@ void serial_cmd_set_channel(const cJSON *object);
 void serial_cmd_set_tx_power(const cJSON *object);
 void serial_cmd_set_student_id(const cJSON *object);
 void serial_cmd_one_key_off(const cJSON *object);
+void serial_cmd_check_config(const cJSON *object);
 #endif // __POS_HANDLE_LAYER_H_
