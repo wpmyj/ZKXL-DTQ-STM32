@@ -70,7 +70,6 @@ const static json_item_typedef import_item_list[] = {
 {"over",     sizeof("over"),      0xFF}
 };
 
-
 static void serial_send_data_to_pc(void);
 static void serial_cmd_process(void);
 void exchange_json_format( char *out, char old_format, char new_format);
@@ -744,11 +743,14 @@ void serial_cmd_import_config(char *pdata_str)
 	uint16_t len = strlen(pdata_str);
 	uint16_t upos;
 	uint32_t uid;
+	uint8_t count = 0;
 
 	/* print result */
 	char   result_str[3];
 	int8_t result = 0;
-	
+
+	result = initialize_white_list();
+
 	/* prase the first key and value */
 	p_end = parse_json_item( pdata_str, key_str, value_str );
 
@@ -835,15 +837,27 @@ void serial_cmd_import_config(char *pdata_str)
 				}
 				break;
 			case IMPORT_STATUS_UPOS: 
-				upos = atoi(value_str);
+				{
+					upos = atoi(value_str);
+					if(upos > 120)
+						result = -1;
+				}
 				break;
 			case IMPORT_STATUS_UID: 
-			{
-				uint8_t *pdata;
-				uid = atof(value_str);
-				pdata = (uint8_t *)&uid;
-				add_index_of_uid(upos,pdata);
-			}
+				{
+					uint8_t *pdata;
+					if(count <= 120)
+					{
+						uid = atof(value_str);
+						pdata = (uint8_t *)&uid;
+						add_index_of_uid(upos,pdata);
+						count++;
+					}
+					else
+					{
+						result = -1;
+					}
+				}
 				break;
 			default:
 				break;
