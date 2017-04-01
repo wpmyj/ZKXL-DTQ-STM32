@@ -37,6 +37,7 @@ typedef struct
 	uint8_t  uart_pac_num;
 	uint8_t  uart_seq_num;
 	uint32_t data_statistic_count;
+	uint8_t  addr_clone_flag;
 }revicer_typedef;
 
 typedef struct

@@ -108,7 +108,7 @@ void get_white_list_from_flash(void)
 {
 	uint8_t i,Is_use_pos;
 	uint16_t index;
-	uint16_t viraddr,tmpuid[4],switch_status;
+	uint16_t viraddr,tmpuid[4],switch_status,addr_clone_flag;
 
 	/* get use table */
 	for(i=0;i<8;i++)
@@ -134,7 +134,21 @@ void get_white_list_from_flash(void)
 	/* get switch_status */
 	EE_ReadVariable(WHITE_LIST_SW_POS_OF_FEE,&switch_status);
 	wl.switch_status = switch_status;
+	
+	/* get clone addr flag */
+	EE_ReadVariable(CPU_ADDR_CLONE_FLAG,&addr_clone_flag);
+	revicer.addr_clone_flag = addr_clone_flag;
 
+  /* get clone addr */
+	if(revicer.addr_clone_flag == 1)
+	{
+		for(i=0;i<4;i++)
+		{
+			EE_ReadVariable(CPU_CLONE_ADDR+i,tmpuid+i);
+			revicer.uid[i] = (uint8_t)(tmpuid[i]&0xFF);
+		}
+	}
+	
 	wl.start = ON;
 }
 

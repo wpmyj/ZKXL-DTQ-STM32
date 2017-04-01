@@ -225,6 +225,9 @@ void serial_cmd_clear_uid_list(const cJSON *object)
 	uint8_t result = 0;
 
 	result = initialize_white_list();
+	EE_WriteVariable(CPU_ADDR_CLONE_FLAG,0);
+	get_mcu_uid();
+	
 	b_print("{\r\n");
 	b_print("  \'fun\': \'clear_wl\',\r\n");
 
@@ -783,6 +786,11 @@ void serial_cmd_import_config(char *pdata_str)
 					uint32_t uid;
 					uid = atof(value_str);
 					memcpy(revicer.uid,(uint8_t *)&uid,4);
+					EE_WriteVariable(CPU_ADDR_CLONE_FLAG,1);
+					EE_WriteVariable(CPU_CLONE_ADDR+0,revicer.uid[0]);
+					EE_WriteVariable(CPU_CLONE_ADDR+1,revicer.uid[1]);
+					EE_WriteVariable(CPU_CLONE_ADDR+2,revicer.uid[2]);
+					EE_WriteVariable(CPU_CLONE_ADDR+3,revicer.uid[3]);
 				}
 				break;
 			case IMPORT_STATUS_TX_CH:
