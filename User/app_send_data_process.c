@@ -163,7 +163,6 @@ static void update_data_to_buffer( uint8_t *Message )
 		if(Message[12] != wl.uids[uidpos].rev_num)//收到的是有效数据
 		{
 			char str[20];
-			char answer_len = 0;
 			uint8_t ClickerAnswerTime[CLICKER_TIMER_STR_LEN];
 			
 			b_print("{\r\n");
@@ -177,24 +176,6 @@ static void update_data_to_buffer( uint8_t *Message )
 			memset(ClickerAnswerTime,0x00,CLICKER_TIMER_STR_LEN);
 			Parse_time_to_str((char *)ClickerAnswerTime);
 			b_print("  \'update_time\': \'%s\',\r\n",(char *) ClickerAnswerTime );
-			
-			while( r_index < DataLen-2 )
-			{
-				if( is_last_data_full == 0 )
-				{
-					r_index = r_index + 2;
-					is_last_data_full = 1;
-				}
-				else
-				{
-					r_index = r_index + 3;
-					is_last_data_full = 0;
-				}
-				answer_len++;
-			}
-			memset(str,0,20);
-			sprintf(str, "%d" , answer_len);
-			b_print("  \'total\': \'%s\',\r\n",str );
 			b_print("  \'answers\': [\r\n");
 			
 			if( Cmdtype == 0x10 )

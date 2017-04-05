@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>ZKXL-DTQ-JSQTY</TargetName>
+      <TargetName>ZKXL-DTQ-ZKXL</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pCCUsed>5060061::V5.06 update 1 (build 61)::ARMCC</pCCUsed>
@@ -48,7 +48,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>..\Hex\</OutputDirectory>
-          <OutputName>DTQ_RP551CPU_ZKXL0200_V0100_20170320_E.hex</OutputName>
+          <OutputName>DTQ_RP551CPU_ZKXL_V0101.hex</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>

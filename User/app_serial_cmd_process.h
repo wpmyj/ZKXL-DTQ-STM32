@@ -36,11 +36,10 @@ void App_seirial_cmd_process(void);
 
 #define ANSWER_STATUS_FUN                  1
 #define ANSWER_STATUS_TIME                 2
-#define ANSWER_STATUS_TOTAL                3
-#define ANSWER_STATUS_QUESTION             4
-#define ANSWER_STATUS_DATA_TYPE            5
-#define ANSWER_STATUS_DATA_ID              6
-#define ANSWER_STATUS_DATA_RANGE           7
+#define ANSWER_STATUS_QUESTION             3
+#define ANSWER_STATUS_DATA_TYPE            4
+#define ANSWER_STATUS_DATA_ID              5
+#define ANSWER_STATUS_DATA_RANGE           6
 
 #define IMPORT_STATUS_FUN                  0x01
 #define IMPORT_STATUS_ADDR                 0x02

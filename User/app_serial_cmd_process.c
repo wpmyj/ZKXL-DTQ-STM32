@@ -50,7 +50,6 @@ const static serial_cmd_typedef cmd_list[] = {
 const static json_item_typedef answer_item_list[] = {
 {"fun",      sizeof("fun"),       ANSWER_STATUS_FUN},
 {"time",     sizeof("time"),      ANSWER_STATUS_TIME},
-{"total",    sizeof("total"),     ANSWER_STATUS_TOTAL},
 {"questions",sizeof("questions"), ANSWER_STATUS_QUESTION},
 {"type",     sizeof("type"),      ANSWER_STATUS_DATA_TYPE},
 {"id",       sizeof("id"),        ANSWER_STATUS_DATA_ID},
@@ -394,7 +393,7 @@ void serial_cmd_set_tx_power(const cJSON *object)
 	
 	if(( tx_power >= 1) && ( tx_power <= 5))
 	{
-		clicker_set.N_TX_POWER = ( tx_power - 3 )*2;
+		clicker_set.N_TX_POWER = tx_power;
 		EE_WriteVariable( CPU_TX_POWER_POS_OF_FEE , clicker_set.N_TX_POWER );
 		status = 0;
 	}
@@ -562,8 +561,6 @@ void serial_cmd_answer_start(char *pdata_str)
 			case ANSWER_STATUS_TIME:
 					parse_str_to_time( value_str );
 				break;
-			case ANSWER_STATUS_TOTAL:
-				break;
 			case ANSWER_STATUS_QUESTION:
 				break;	
 			case ANSWER_STATUS_DATA_TYPE:
@@ -701,7 +698,7 @@ void serial_cmd_check_config(const cJSON *object)
 	sprintf(str, "%d" , clicker_set.N_CH_RX);
 	b_print("  \'rx_ch\': \'%s\',\r\n",str);
 	memset(str,0,10);
-	tx_power = clicker_set.N_TX_POWER / 2 + 3;
+	tx_power = clicker_set.N_TX_POWER;
 	sprintf(str, "%d" , tx_power);
 	b_print("  \'tx_power\': \'%s\',\r\n",str);
 	
@@ -834,7 +831,7 @@ void serial_cmd_import_config(char *pdata_str)
 					uint8_t tx_power = atoi(value_str);
 					if(( tx_power >= 1) && ( tx_power <= 5))
 						{
-							clicker_set.N_TX_POWER = ( tx_power - 3 )*2;
+							clicker_set.N_TX_POWER = tx_power;
 							EE_WriteVariable( CPU_TX_POWER_POS_OF_FEE , clicker_set.N_TX_POWER );
 							result = 0;
 						}
