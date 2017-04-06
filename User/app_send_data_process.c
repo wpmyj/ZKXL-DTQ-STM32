@@ -481,6 +481,7 @@ uint8_t spi_process_revice_data( void )
 						uint8_t Is_reviceed_uid = get_index_of_white_list_pos_status(SEND_DATA_ACK_TABLE,uidpos);
 						if( Is_reviceed_uid == 0 )
 						{
+							#ifdef 	BRANCH_WHTY
 							Uart_MessageTypeDef result_message;
 
 							result_message.TYPE   = 0x31;
@@ -492,12 +493,14 @@ uint8_t spi_process_revice_data( void )
 							memcpy(result_message.DATA+2,spi_message+5,4);
 							result_message.XOR = XOR_Cal(&result_message.TYPE,12);
 							result_message.END  = 0xCA;
-
+							#endif
 							if(BUFFERFULL != buffer_get_buffer_status(SEND_RINGBUFFER))
 							{
 								clear_index_of_white_list_pos(SEND_PRE_TABLE,uidpos);
 								set_index_of_white_list_pos(SEND_DATA_ACK_TABLE,uidpos);
+								#ifdef 	BRANCH_WHTY
 								serial_ringbuffer_write_data(SEND_RINGBUFFER,&result_message);
+								#endif
 							}
 						}
 					}

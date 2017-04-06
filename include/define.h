@@ -32,6 +32,9 @@
 #define UART_NBUF								(240)
 #define RF_NBUF									(UART_NBUF)
 
+//#define BRANCH_WHTY
+#define BRANCH_WHNH
+
 #endif //_DEFINE_H_
 /**
   * @}

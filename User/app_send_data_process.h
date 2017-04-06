@@ -13,7 +13,9 @@
 //#define SEND_DATA_DETAIL_MESSAGE_SHOW
 //#define SEND_DATA_UID_MESSAGE_SHOW
 //#define SUM_DATA_STATISTICS
+#ifdef 	BRANCH_WHTY
 #define ENABLE_SEND_DATA_TO_PC
+#endif
 //#define ENABLE_SET_SEND_DATA_PARAMETER
 
 
@@ -109,7 +111,7 @@
 #define REQUEST_TABLE               13
 #define REQUEST_TEMP_PRE_TABLE      14
 #define REQUEST_TEMP_ACK_TABLE      15
-#define RETRANSMIT_DATA_TIME_UNIT   3000
+#define RETRANSMIT_DATA_TIME_UNIT   2000
 
 typedef struct
 {
