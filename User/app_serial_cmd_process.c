@@ -271,7 +271,10 @@ void serial_cmd_bind_operation(const cJSON *object)
 
 void serial_cmd_get_device_no(const cJSON *object)
 {
+	int8_t tx_power = 0;
 	char str[20];
+	uint8_t i,is_pos_use = 0;
+	uint8_t count = 0;
 
 	b_print("{\r\n");
 	b_print("  \'fun\': \'get_device_info\',\r\n");
@@ -280,7 +283,40 @@ void serial_cmd_get_device_no(const cJSON *object)
 	b_print("  \'device_id\': \'%s\',\r\n",str);
 	b_print("  \'software_version\': \'v0.1.1\',\r\n");
 	b_print("  \'hardware_version\': \'ZL-RP551-MAIN-F\',\r\n");
-	b_print("  \'company\': \'zkxltech\'\r\n");
+	b_print("  \'company\': \'zkxltech\',\r\n");
+	memset(str,0,10);
+	sprintf(str, "%d" , clicker_set.N_CH_TX);
+	b_print("  \'tx_ch\': \'%s\',\r\n",str);
+	memset(str,0,10);
+	sprintf(str, "%d" , clicker_set.N_CH_RX);
+	b_print("  \'rx_ch\': \'%s\',\r\n",str);
+	memset(str,0,10);
+	tx_power = clicker_set.N_TX_POWER;
+	sprintf(str, "%d" , tx_power);
+	b_print("  \'tx_power\': \'%s\',\r\n",str);
+	
+	b_print("  \'list\': [\r\n");
+
+	for(i=0; i < MAX_WHITE_LEN; i++)
+	{
+		is_pos_use = get_index_of_white_list_pos_status(0,i);
+		if( is_pos_use == 1 )
+		{
+			count++;
+			b_print("    {");
+			memset(str,0,20);
+			sprintf(str, "%d" , i);
+			b_print("  \'upos\': \'%s\',", str );
+			memset(str,0,20);
+			sprintf(str, "%010u" , *(uint32_t *)( wl.uids[i].uid));
+			b_print("  \'uid\': \'%s\'", str );
+			if( count < wl.len )
+				b_print(" },\r\n");
+			else
+				b_print(" }\r\n");
+		}
+	}
+	b_print("  ]\r\n");
 	b_print(" }\r\n");
 }
 
