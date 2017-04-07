@@ -1,36 +1,160 @@
 /**
   ******************************************************************************
-  * @file   	Main.c
-  * @author  	Tian erjun
-  * @version 	V1.0.0.0
-  * @date   	2015.11.05
-  * @brief   	main function for STM32F103RB
+  * @file    IAP_Main/Src/main.c 
+  * @author  MCD Application Team
+  * @version 1.0.0
+  * @date    8-April-2015
+  * @brief   Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; COPYRIGHT(c) 2015 STMicroelectronics</center></h2>
+  *
+  * Redistribution and use in source and binary forms, with or without modification,
+  * are permitted provided that the following conditions are met:
+  *   1. Redistributions of source code must retain the above copyright notice,
+  *      this list of conditions and the following disclaimer.
+  *   2. Redistributions in binary form must reproduce the above copyright notice,
+  *      this list of conditions and the following disclaimer in the documentation
+  *      and/or other materials provided with the distribution.
+  *   3. Neither the name of STMicroelectronics nor the names of its contributors
+  *      may be used to endorse or promote products derived from this software
+  *      without specific prior written permission.
+  *
+  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  *
   ******************************************************************************
   */
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "stdlib.h"
-#include "board.h"
+#include "menu.h"
 
-extern void app_handle_layer(void);
+/** @addtogroup STM32F1xx_IAP_Main
+  * @{
+  */
 
-/******************************************************************************
-  Function:main
-  Description:
-  Input:None
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
+/* Exported variables --------------------------------------------------------*/
+/* UART handler declaration */
+UART_HandleTypeDef UartHandle;
+
+
+/* Private typedef -----------------------------------------------------------*/
+/* Private define ------------------------------------------------------------*/
+/* Private macro -------------------------------------------------------------*/
+/* Private variables ---------------------------------------------------------*/
+extern pFunction JumpToApplication;
+extern uint32_t JumpAddress;
+
+/* Private function prototypes -----------------------------------------------*/
+static void IAP_Init(void);
+void SystemClock_Config(void);
+
+/**
+  * @brief  Main program
+  * @param  None
+  * @retval None
+  */
 int main(void)
 {
-	/* System initialize -------------------------------------------------------*/
-	Platform_Init();
+  /* STM32F107xC HAL library initialization:
+       - Configure the Flash prefetch
+       - Systick timer is configured by default as source of time base, but user 
+         can eventually implement his proper time base source (a general purpose 
+         timer for example or other time source), keeping in mind that Time base 
+         duration should be kept 1ms since PPP_TIMEOUT_VALUEs are defined and 
+         handled in milliseconds basis.
+       - Set NVIC Group Priority to 4
+       - Low Level Initialization
+     */
+  HAL_Init();
 
-	while(1)
-	{	
-		app_handle_layer();
+  /* Test if Key push-button on STM3210C-EVAL RevC Board is pressed */
+  if (0 == GPIO_PIN_RESET)
+  { 
+  	/* Initialise Flash */
+  	FLASH_If_Init();
+  	/* Execute the IAP driver in order to reprogram the Flash */
+    IAP_Init();
+    /* Display main menu */
+    Main_Menu ();
+  }
+  /* Keep the user application running */
+  else
+  {
+    /* Test if user code is programmed starting from address "APPLICATION_ADDRESS" */
+    if (((*(__IO uint32_t*)APPLICATION_ADDRESS) & 0x2FFE0000 ) == 0x20000000)
+    {
+      /* Jump to user application */
+      JumpAddress = *(__IO uint32_t*) (APPLICATION_ADDRESS + 4);
+      JumpToApplication = (pFunction) JumpAddress;
+      /* Initialize user application's Stack Pointer */
+      __set_MSP(*(__IO uint32_t*) APPLICATION_ADDRESS);
+      JumpToApplication();
+    }
+  }
 
-	}	
+  while (1)
+  {}
 }
+
+/**
+  * @brief  Initialize the IAP: Configure USART.
+  * @param  None
+  * @retval None
+  */
+void IAP_Init(void)
+{
+  /* USART resources configuration (Clock, GPIO pins and USART registers) ----*/
+  /* USART configured as follow:
+        - BaudRate = 115200 baud  
+        - Word Length = 8 Bits
+        - One Stop Bit
+        - No parity
+        - Hardware flow control disabled (RTS and CTS signals)
+        - Receive and transmit enabled
+  */
+  UartHandle.Init.BaudRate = 1152000;
+  UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
+  UartHandle.Init.StopBits = UART_STOPBITS_1;
+  UartHandle.Init.Parity = UART_PARITY_NONE;
+  UartHandle.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  UartHandle.Init.Mode = UART_MODE_RX | UART_MODE_TX;
+
+  BSP_COM_Init(COM1, &UartHandle);
+
+}
+
+#ifdef USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+
+  /* Infinite loop */
+  while (1)
+  {}
+}
+#endif
+
+/**
+  * @}
+  */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
