@@ -1,0 +1,23 @@
+--cpu Cortex-M0
+".\main.o"
+".\my_uart.o"
+".\my_misc_fun.o"
+".\my_timer.o"
+".\my_radio.o"
+".\my_spi.o"
+".\ringbuf2.o"
+".\simple_uart.o"
+".\nrf_delay.o"
+".\nrf_esb.o"
+".\app_timer.o"
+".\app_error.o"
+".\nrf_assert.o"
+".\app_error_weak.o"
+".\nrf_drv_spis.o"
+".\nrf_drv_common.o"
+".\system_nrf51.o"
+".\arm_startup_nrf51.o"
+--library_type=microlib --strict --scatter ".\drl51822project.sct"
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list ".\drl51822project.map" -o .\drl51822project.axf
