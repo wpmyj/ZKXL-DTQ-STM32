@@ -502,6 +502,21 @@ void App_card_process(void)
 			if( wtrte_flash_ok == 1 )
 			{
 				#ifndef OPEN_CARD_DATA_SHOW 
+				char str[20];
+				uint8_t i,uid[4];
+				b_print("{\r\n");
+				memset(str,0,20);
+				b_print("  \'HEX\': \'%02X%02X%02X%02X\',\r\n",
+				wl.uids[write_uid_pos].uid[0],wl.uids[write_uid_pos].uid[1],
+				wl.uids[write_uid_pos].uid[2],wl.uids[write_uid_pos].uid[3]);
+				sprintf(str, "%010u" , *(uint32_t *)( wl.uids[write_uid_pos].uid));
+				b_print("  \'·´Âë\': \'%s\',\r\n",str);
+				memset(str,0,20);
+				for(i=0;i<4;i++)
+					uid[i] = wl.uids[write_uid_pos].uid[3-i];
+				sprintf(str, "%010u" , *(uint32_t *)( uid ));
+				b_print("  \'ÕýÂë\': \'%s\'\r\n", str );
+				b_print("}\r\n");
 				DEBUG_CARD_DATA_LOG("NDEF_DataRead and NDEF_DataWrite Clear!\r\n");
 				#endif
 			}
@@ -545,6 +560,8 @@ void App_card_process(void)
 ******************************************************************************/
 void card_timer_init( void )
 {
+	wl.match_status = ON;
+	rf_set_card_status(1);
 	sw_create_timer(&card_buzzer_timer    , 150, 4, 5,&(card_process_status), NULL);
 	sw_create_timer(&card_second_find_timer,100, 1, 2,&(find_card_ok), NULL);
 }

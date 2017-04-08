@@ -27,7 +27,7 @@ int main(void)
 {
 	/* System initialize -------------------------------------------------------*/
 	Platform_Init();
-
+	
 	while(1)
 	{	
 		app_handle_layer();
