@@ -560,8 +560,6 @@ void App_card_process(void)
 ******************************************************************************/
 void card_timer_init( void )
 {
-	wl.match_status = ON;
-	rf_set_card_status(1);
 	sw_create_timer(&card_buzzer_timer    , 150, 4, 5,&(card_process_status), NULL);
 	sw_create_timer(&card_second_find_timer,100, 1, 2,&(find_card_ok), NULL);
 }
