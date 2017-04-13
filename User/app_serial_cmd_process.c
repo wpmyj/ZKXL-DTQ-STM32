@@ -629,7 +629,7 @@ void serial_cmd_answer_start(char *pdata_str)
 						
 						if(( range_end >= '0') && ( range_end <= '9'))
 						{
-								answer_temp.range |= range_end - '0'; 
+								answer_temp.range = range_end - '0'; 
 						}
 					}
 					real_total++;
