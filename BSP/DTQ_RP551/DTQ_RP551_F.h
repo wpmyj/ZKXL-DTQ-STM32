@@ -58,9 +58,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
-#ifdef HAL_I2C_MODULE_ENABLED
-#include "DTQ_RP551_F_io.h"
-#endif /* HAL_I2C_MODULE_ENABLED */
 
 /** @defgroup DTQ_RP551_F_Exported_Types Exported Types
   * @{
@@ -84,7 +81,6 @@ typedef enum
 typedef enum 
 {
   COM1 = 0,
-  COM2 = 1
 } COM_TypeDef;
 /**
   * @}
@@ -104,17 +100,17 @@ typedef enum
 /** @addtogroup DTQ_RP551_F_LED
   * @{
   */
-#define LEDn                             4
+#define LEDn                             2
 
-#define LED1_PIN                         GPIO_PIN_7             /* PD.07*/
-#define LED1_GPIO_PORT                   GPIOD
-#define LED1_GPIO_CLK_ENABLE()           __HAL_RCC_GPIOD_CLK_ENABLE()
-#define LED1_GPIO_CLK_DISABLE()          __HAL_RCC_GPIOD_CLK_DISABLE()
+#define LED1_PIN                         GPIO_PIN_0             /* PA.00*/
+#define LED1_GPIO_PORT                   GPIOA
+#define LED1_GPIO_CLK_ENABLE()           __HAL_RCC_GPIOA_CLK_ENABLE()
+#define LED1_GPIO_CLK_DISABLE()          __HAL_RCC_GPIOA_CLK_DISABLE()
   
-#define LED2_PIN                         GPIO_PIN_13            /* PD.13*/
-#define LED2_GPIO_PORT                   GPIOD
-#define LED2_GPIO_CLK_ENABLE()           __HAL_RCC_GPIOD_CLK_ENABLE()
-#define LED2_GPIO_CLK_DISABLE()          __HAL_RCC_GPIOD_CLK_DISABLE()
+#define LED2_PIN                         GPIO_PIN_1             /* PA.01*/
+#define LED2_GPIO_PORT                   GPIOA
+#define LED2_GPIO_CLK_ENABLE()           __HAL_RCC_GPIOA_CLK_ENABLE()
+#define LED2_GPIO_CLK_DISABLE()          __HAL_RCC_GPIOA_CLK_DISABLE()
 
 
 #define LEDx_GPIO_CLK_ENABLE(__LED__)    do { if ((__LED__) == LED1) LED1_GPIO_CLK_ENABLE(); else \
@@ -142,23 +138,22 @@ typedef enum
  * @brief Definition for COM port1, connected to USART2
  */ 
 #define DTQ_RP551_COM1                        USART1
-#define DTQ_RP551_COM1_CLK_ENABLE()           __HAL_RCC_USART2_CLK_ENABLE()
-#define DTQ_RP551_COM1_CLK_DISABLE()          __HAL_RCC_USART2_CLK_DISABLE()
+#define DTQ_RP551_COM1_CLK_ENABLE()           __HAL_RCC_USART1_CLK_ENABLE()
+#define DTQ_RP551_COM1_CLK_DISABLE()          __HAL_RCC_USART1_CLK_DISABLE()
 
-#define AFIOCOM1_CLK_ENABLE()                 __HAL_RCC_AFIO_CLK_ENABLE()
-#define AFIOCOM1_CLK_DISABLE()                __HAL_RCC_AFIO_CLK_DISABLE()
+#define AFIOCOM1_CLK_ENABLE()                 __HAL_RCC_USART1_CLK_ENABLE()
 
-#define DTQ_RP551_COM1_TX_PIN                 GPIO_PIN_5             /* PD.05*/
-#define DTQ_RP551_COM1_TX_GPIO_PORT           GPIOD
-#define DTQ_RP551_COM1_TX_GPIO_CLK_ENABLE()   __HAL_RCC_GPIOD_CLK_ENABLE()
-#define DTQ_RP551_COM1_TX_GPIO_CLK_DISABLE()  __HAL_RCC_GPIOD_CLK_DISABLE()
+#define DTQ_RP551_COM1_TX_PIN                 GPIO_PIN_9             /* PA.09*/
+#define DTQ_RP551_COM1_TX_GPIO_PORT           GPIOA
+#define DTQ_RP551_COM1_TX_GPIO_CLK_ENABLE()   __HAL_RCC_GPIOA_CLK_ENABLE()
+#define DTQ_RP551_COM1_TX_GPIO_CLK_DISABLE()  __HAL_RCC_GPIOA_CLK_DISABLE()
 
-#define DTQ_RP551_COM1_RX_PIN                 GPIO_PIN_6             /* PD.06*/
-#define DTQ_RP551_COM1_RX_GPIO_PORT           GPIOD
-#define DTQ_RP551_COM1_RX_GPIO_CLK_ENABLE()   __HAL_RCC_GPIOD_CLK_ENABLE()
-#define DTQ_RP551_COM1_RX_GPIO_CLK_DISABLE()  __HAL_RCC_GPIOD_CLK_DISABLE()
+#define DTQ_RP551_COM1_RX_PIN                 GPIO_PIN_10             /* PA.10*/
+#define DTQ_RP551_COM1_RX_GPIO_PORT           GPIOA
+#define DTQ_RP551_COM1_RX_GPIO_CLK_ENABLE()   __HAL_RCC_GPIOA_CLK_ENABLE()
+#define DTQ_RP551_COM1_RX_GPIO_CLK_DISABLE()  __HAL_RCC_GPIOA_CLK_DISABLE()
 
-#define DTQ_RP551_COM1_IRQn                   USART2_IRQn
+#define DTQ_RP551_COM1_IRQn                   USART1_IRQn
 
 #define COMx_CLK_ENABLE(__INDEX__)              do { if((__INDEX__) == COM1) DTQ_RP551_COM1_CLK_ENABLE();} while(0)
 #define COMx_CLK_DISABLE(__INDEX__)             (((__INDEX__) == COM1) ? DTQ_RP551_COM1_CLK_DISABLE() : 0)
