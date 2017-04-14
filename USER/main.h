@@ -43,6 +43,7 @@
 #include "stm32f1xx_hal.h"
 #include "DTQ_RP551_F.h"
 
+
 /* Exported variables --------------------------------------------------------*/
 extern UART_HandleTypeDef UartHandle;
 

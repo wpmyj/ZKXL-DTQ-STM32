@@ -58,7 +58,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
-
+#include "stdio.h"
 /** @defgroup DTQ_RP551_F_Exported_Types Exported Types
   * @{
   */

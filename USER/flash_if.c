@@ -41,7 +41,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "flash_if.h"
-
+#include "stdio.h"
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -118,10 +118,10 @@ uint32_t FLASH_If_Erase(uint32_t start)
 uint32_t FLASH_If_Write(uint32_t destination, uint32_t *p_source, uint32_t length)
 {
   uint32_t i = 0;
-
+	
   /* Unlock the Flash to enable the flash control register access *************/
   HAL_FLASH_Unlock();
-
+	//printf("destination:%u p_source:%u length:%u\r\n",destination, p_source,length);
   for (i = 0; (i < length) && (destination <= (USER_FLASH_END_ADDRESS-4)); i++)
   {
     /* Device voltage range supposed to be [2.7V to 3.6V], the operation will
@@ -160,33 +160,33 @@ uint32_t FLASH_If_Write(uint32_t destination, uint32_t *p_source, uint32_t lengt
   */
 uint32_t FLASH_If_GetWriteProtectionStatus(void)
 {
-//  uint32_t ProtectedPAGE = FLASHIF_PROTECTION_NONE;
-//  FLASH_OBProgramInitTypeDef OptionsBytesStruct;
+  uint32_t ProtectedPAGE = FLASHIF_PROTECTION_NONE;
+  FLASH_OBProgramInitTypeDef OptionsBytesStruct;
 
-//  /* Unlock the Flash to enable the flash control register access *************/
-//  HAL_FLASH_Unlock();
+  /* Unlock the Flash to enable the flash control register access *************/
+  HAL_FLASH_Unlock();
 
-//  /* Check if there are write protected sectors inside the user flash area ****/
-//  HAL_FLASHEx_OBGetConfig(&OptionsBytesStruct);
+  /* Check if there are write protected sectors inside the user flash area ****/
+  HAL_FLASHEx_OBGetConfig(&OptionsBytesStruct);
 
-//  /* Lock the Flash to disable the flash control register access (recommended
-//     to protect the FLASH memory against possible unwanted operation) *********/
-//  HAL_FLASH_Lock();
+  /* Lock the Flash to disable the flash control register access (recommended
+     to protect the FLASH memory against possible unwanted operation) *********/
+  HAL_FLASH_Lock();
 
-//  /* Get pages already write protected ****************************************/
-//  ProtectedPAGE = ~(OptionsBytesStruct.WRPPage) & FLASH_PAGE_TO_BE_PROTECTED;
+  /* Get pages already write protected ****************************************/
+  ProtectedPAGE = ~(OptionsBytesStruct.WRPPage) & FLASH_PAGE_TO_BE_PROTECTED;
 
-//  /* Check if desired pages are already write protected ***********************/
-//  if(ProtectedPAGE != 0)
-//  {
-//    /* Some sectors inside the user flash area are write protected */
-//    return FLASHIF_PROTECTION_WRPENABLED;
-//  }
-//  else
-//  { 
-//    /* No write protected sectors inside the user flash area */
-//    return FLASHIF_PROTECTION_NONE;
-//  }
+  /* Check if desired pages are already write protected ***********************/
+  if(ProtectedPAGE != 0)
+  {
+    /* Some sectors inside the user flash area are write protected */
+    return FLASHIF_PROTECTION_WRPENABLED;
+  }
+  else
+  { 
+    /* No write protected sectors inside the user flash area */
+    return FLASHIF_PROTECTION_NONE;
+  }
 }
 
 /**
@@ -196,42 +196,42 @@ uint32_t FLASH_If_GetWriteProtectionStatus(void)
   */
 uint32_t FLASH_If_WriteProtectionConfig(uint32_t protectionstate)
 {
-//  uint32_t ProtectedPAGE = 0x0;
-//  FLASH_OBProgramInitTypeDef config_new, config_old;
-//  HAL_StatusTypeDef result = HAL_OK;
-//  
+  uint32_t ProtectedPAGE = 0x0;
+  FLASH_OBProgramInitTypeDef config_new, config_old;
+  HAL_StatusTypeDef result = HAL_OK;
+  
 
-//  /* Get pages write protection status ****************************************/
-//  HAL_FLASHEx_OBGetConfig(&config_old);
+  /* Get pages write protection status ****************************************/
+  HAL_FLASHEx_OBGetConfig(&config_old);
 
-//  /* The parameter says whether we turn the protection on or off */
-//  config_new.WRPState = (protectionstate == FLASHIF_WRP_ENABLE ? OB_WRPSTATE_ENABLE : OB_WRPSTATE_DISABLE);
+  /* The parameter says whether we turn the protection on or off */
+  config_new.WRPState = (protectionstate == FLASHIF_WRP_ENABLE ? OB_WRPSTATE_ENABLE : OB_WRPSTATE_DISABLE);
 
-//  /* We want to modify only the Write protection */
-//  config_new.OptionType = OPTIONBYTE_WRP;
-//  
-//  /* No read protection, keep BOR and reset settings */
-//  config_new.RDPLevel = OB_RDP_LEVEL_0;
-//  config_new.USERConfig = config_old.USERConfig;  
-//  /* Get pages already write protected ****************************************/
-//  ProtectedPAGE = config_old.WRPPage | FLASH_PAGE_TO_BE_PROTECTED;
+  /* We want to modify only the Write protection */
+  config_new.OptionType = OPTIONBYTE_WRP;
+  
+  /* No read protection, keep BOR and reset settings */
+  config_new.RDPLevel = OB_RDP_LEVEL_0;
+  config_new.USERConfig = config_old.USERConfig;  
+  /* Get pages already write protected ****************************************/
+  ProtectedPAGE = config_old.WRPPage | FLASH_PAGE_TO_BE_PROTECTED;
 
-//  /* Unlock the Flash to enable the flash control register access *************/ 
-//  HAL_FLASH_Unlock();
+  /* Unlock the Flash to enable the flash control register access *************/ 
+  HAL_FLASH_Unlock();
 
-//  /* Unlock the Options Bytes *************************************************/
-//  HAL_FLASH_OB_Unlock();
-//  
-//  /* Erase all the option Bytes ***********************************************/
-//  result = HAL_FLASHEx_OBErase();
-//    
-//  if (result == HAL_OK)
-//  {
-//    config_new.WRPPage    = ProtectedPAGE;
-//    result = HAL_FLASHEx_OBProgram(&config_new);
-//  }
-//  
-//  return (result == HAL_OK ? FLASHIF_OK: FLASHIF_PROTECTION_ERRROR);
+  /* Unlock the Options Bytes *************************************************/
+  HAL_FLASH_OB_Unlock();
+  
+  /* Erase all the option Bytes ***********************************************/
+  result = HAL_FLASHEx_OBErase();
+    
+  if (result == HAL_OK)
+  {
+    config_new.WRPPage    = ProtectedPAGE;
+    result = HAL_FLASHEx_OBProgram(&config_new);
+  }
+  
+  return (result == HAL_OK ? FLASHIF_OK: FLASHIF_PROTECTION_ERRROR);
 }
 /**
   * @}

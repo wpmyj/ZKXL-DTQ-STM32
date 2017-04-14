@@ -47,6 +47,14 @@
 /* UART handler declaration */
 UART_HandleTypeDef UartHandle;
 
+/* Private function prototypes -----------------------------------------------*/
+#ifdef __GNUC__
+/* With GCC/RAISONANCE, small printf (option LD Linker->Libraries->Small printf
+   set to 'Yes') calls __io_putchar() */
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -82,6 +90,7 @@ int main(void)
 	FLASH_If_Init();
 	/* Execute the IAP driver in order to reprogram the Flash */
 	IAP_Init();
+
 	/* Display main menu */
 	Main_Menu ();
 
@@ -98,7 +107,7 @@ int main(void)
   */
 void IAP_Init(void)
 {
-  UartHandle.Init.BaudRate = 1152000;
+  UartHandle.Init.BaudRate = 115200;
   UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
   UartHandle.Init.StopBits = UART_STOPBITS_1;
   UartHandle.Init.Parity = UART_PARITY_NONE;
@@ -135,6 +144,19 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
   GPIO_InitStruct.Mode      = GPIO_MODE_INPUT;
 	
   HAL_GPIO_Init(DTQ_RP551_COM1_RX_GPIO_PORT, &GPIO_InitStruct);
+}
+/**
+  * @brief  Retargets the C library printf function to the USART.
+  * @param  None
+  * @retval None
+  */
+PUTCHAR_PROTOTYPE
+{
+  /* Place your implementation of fputc here */
+  /* e.g. write a character to the USART1 and Loop until the end of transmission */
+  HAL_UART_Transmit(&UartHandle, (uint8_t *)&ch, 1, 0xFFFF);
+
+  return ch;
 }
 
 /**

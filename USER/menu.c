@@ -51,6 +51,7 @@
 #include "flash_if.h"
 #include "menu.h"
 #include "ymodem.h"
+#include "stdio.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -78,33 +79,34 @@ void SerialDownload(void)
   uint32_t size = 0;
   COM_StatusTypeDef result;
 
-  Serial_PutString("Waiting for the file to be sent ... (press 'a' to abort)\n\r");
+  printf("Waiting for the file to be sent ... (press 'a' to abort)\n\r");
   result = Ymodem_Receive( &size );
   if (result == COM_OK)
   {
-    Serial_PutString("\n\n\r Programming Completed Successfully!\n\r--------------------------------\r\n Name: ");
-    Serial_PutString(aFileName);
-    Int2Str(number, size);
-    Serial_PutString("\n\r Size: ");
-    Serial_PutString(number);
-    Serial_PutString(" Bytes\r\n");
-    Serial_PutString("-------------------\n");
+//	printf("\n\n\r Programming Completed Successfully!\n\r--------------------------------\r\n Name: ");
+//	printf(aFileName);
+//	Int2Str(number, size);
+//	printf("\n\r Size: ");
+//	printf(number);
+//	printf(" Bytes\r\n");
+//	printf("-------------------\n");
   }
+	
   else if (result == COM_LIMIT)
   {
-    Serial_PutString("\n\n\rThe image size is higher than the allowed space memory!\n\r");
+    printf("\n\n\rThe image size is higher than the allowed space memory!\n\r");
   }
   else if (result == COM_DATA)
   {
-    Serial_PutString("\n\n\rVerification failed!\n\r");
+    printf("\n\n\rVerification failed!\n\r");
   }
   else if (result == COM_ABORT)
   {
-    Serial_PutString("\r\n\nAborted by user.\n\r");
+    printf("\r\n\nAborted by user.\n\r");
   }
   else
   {
-    Serial_PutString("\n\rFailed to receive the file!\n\r");
+    printf("\n\rFailed to receive the file!\n\r");
   }
 }
 
@@ -117,7 +119,7 @@ void SerialUpload(void)
 {
   uint8_t status = 0;
 
-  Serial_PutString("\n\n\rSelect Receive File\n\r");
+  printf("\n\n\rSelect Receive File\n\r");
 
   HAL_UART_Receive(&UartHandle, &status, 1, RX_TIMEOUT);
   if ( status == CRC16)
@@ -127,11 +129,11 @@ void SerialUpload(void)
 
     if (status != 0)
     {
-      Serial_PutString("\n\rError Occurred while Transmitting File\n\r");
+      printf("\n\rError Occurred while Transmitting File\n\r");
     }
     else
     {
-      Serial_PutString("\n\rFile uploaded successfully \n\r");
+      printf("\n\rFile uploaded successfully \n\r");
     }
   }
 }
@@ -145,43 +147,33 @@ void Main_Menu(void)
 {
   uint8_t key = 0;
 
-  Serial_PutString("\r\n======================================================================");
-  Serial_PutString("\r\n=              (C) COPYRIGHT 2015 STMicroelectronics                 =");
-  Serial_PutString("\r\n=                                                                    =");
-  Serial_PutString("\r\n=  STM32F1xx In-Application Programming Application  (Version 1.0.0) =");
-  Serial_PutString("\r\n=                                                                    =");
-  Serial_PutString("\r\n=                                   By MCD Application Team          =");
-  Serial_PutString("\r\n======================================================================");
-  Serial_PutString("\r\n\r\n");
-
   /* Test if any sector of Flash memory where user application will be loaded is write protected */
   FlashProtection = FLASH_If_GetWriteProtectionStatus();
-
+	printf("FlashProtection:%u \r\n",FlashProtection);
   while (1)
   {
 
-    Serial_PutString("\r\n=================== Main Menu ============================\r\n\n");
-    Serial_PutString("  Download image to the internal Flash ----------------- 1\r\n\n");
-    Serial_PutString("  Upload image from the internal Flash ----------------- 2\r\n\n");
-    Serial_PutString("  Execute the loaded application ----------------------- 3\r\n\n");
+    printf("\r\n=================== Main Menu ============================\r\n\n");
+    printf("  Download image to the internal Flash ----------------- 1\r\n\n");
+    printf("  Upload image from the internal Flash ----------------- 2\r\n\n");
+    printf("  Execute the loaded application ----------------------- 3\r\n\n");
 
 
     if(FlashProtection != FLASHIF_PROTECTION_NONE)
     {
-      Serial_PutString("  Disable the write protection ------------------------- 4\r\n\n");
+      printf("  Disable the write protection ------------------------- 4\r\n\n");
     }
     else
     {
-      Serial_PutString("  Enable the write protection -------------------------- 4\r\n\n");
+      printf("  Enable the write protection -------------------------- 4\r\n\n");
     }
-    Serial_PutString("==========================================================\r\n\n");
+    printf("==========================================================\r\n\n");
 
     /* Clean the input path */
     __HAL_UART_FLUSH_DRREGISTER(&UartHandle);
 	
     /* Receive key */
     HAL_UART_Receive(&UartHandle, &key, 1, RX_TIMEOUT);
-
     switch (key)
     {
     case '1' :
@@ -193,7 +185,7 @@ void Main_Menu(void)
       SerialUpload();
       break;
     case '3' :
-      Serial_PutString("Start program execution......\r\n\n");
+      printf("Start program execution......\r\n\n");
       /* execute the new program */
       JumpAddress = *(__IO uint32_t*) (APPLICATION_ADDRESS + 4);
       /* Jump to user application */
@@ -208,33 +200,33 @@ void Main_Menu(void)
         /* Disable the write protection */
         if (FLASH_If_WriteProtectionConfig(FLASHIF_WRP_DISABLE) == FLASHIF_OK)
         {
-          Serial_PutString("Write Protection disabled...\r\n");
-          Serial_PutString("System will now restart...\r\n");
+          printf("Write Protection disabled...\r\n");
+          printf("System will now restart...\r\n");
           /* Launch the option byte loading */
           HAL_FLASH_OB_Launch();
         }
         else
         {
-          Serial_PutString("Error: Flash write un-protection failed...\r\n");
+          printf("Error: Flash write un-protection failed...\r\n");
         }
       }
       else
       {
         if (FLASH_If_WriteProtectionConfig(FLASHIF_WRP_ENABLE) == FLASHIF_OK)
         {
-          Serial_PutString("Write Protection enabled...\r\n");
-          Serial_PutString("System will now restart...\r\n");
+          printf("Write Protection enabled...\r\n");
+          printf("System will now restart...\r\n");
           /* Launch the option byte loading */
           HAL_FLASH_OB_Launch();
         }
         else
         {
-          Serial_PutString("Error: Flash write protection failed...\r\n");
+          printf("Error: Flash write protection failed...\r\n");
         }
       }
       break;
 	default:
-	Serial_PutString("Invalid Number ! ==> The number should be either 1, 2, 3 or 4\r");
+	printf("Invalid Number ! ==> The number should be either 1, 2, 3 or 4\r");
 	break;
     }
   }
