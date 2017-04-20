@@ -139,3 +139,4 @@
 {'fun':'set_student_id','result':'0'}
 {'fun':'set_student_id','card_id':'1340735750','student_id':'1234'}
 ```
+> 5. 修改寻卡逻辑间隔:100ms->300ms,解决一直刷卡一直叫的问题。
