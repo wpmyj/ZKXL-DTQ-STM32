@@ -105,7 +105,11 @@ void serial_cmd_process(void)
 			json = cJSON_Parse((char *)uart_irq_revice_massage[json_read_index]);
 			if (!json)
 			{
-					b_print("Error before: [%s]\n",cJSON_GetErrorPtr());
+				//b_print("Error before: [%s]\n",cJSON_GetErrorPtr());
+				  b_print("{\r\n");
+	        b_print("  \'fun\': \'Error\',\r\n");
+					b_print("  \'description\': \'json syntax error!\'\r\n");
+					b_print("}\r\n");
 			}
 			else
 			{
@@ -124,7 +128,12 @@ void serial_cmd_process(void)
 				}
 
 				if(is_know_cmd == 0)
-					b_print("{\'result\': \'unknow cmd\'}\r\n");
+				{
+					b_print("{\r\n");
+	        b_print("  \'fun\': \'Error\',\r\n");
+					b_print("  \'description\': \'unknow cmd!\'\r\n");
+					b_print("}\r\n");
+				}
 			}
 			cJSON_Delete(json);
 		}

@@ -109,7 +109,6 @@ void App_card_process(void)
 		memset(g_cardType, 0, 40);
 		/* reqA指令 :请求A卡，返回卡类型，不同类型卡对应不同的UID长度 */
 		status = PcdRequest(PICC_REQIDL,g_cardType);
-		DEBUG_CARD_DEBUG_LOG("PcdRequest status = %d\r\n",status);
 	  MRC500_DEBUG_END();
 		if( status == MI_OK )
 		{
