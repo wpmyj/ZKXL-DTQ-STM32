@@ -452,6 +452,8 @@ void serial_cmd_set_student_id(const cJSON *object)
 	char *out;
 	int8_t status;
 	uint8_t i = 0;
+	char str[3];
+	uint8_t card_status = rf_get_card_status();
 
 	char    *prdata = cJSON_GetObjectItem(object,"student_id")->valuestring;
 	uint8_t len = strlen( prdata );
@@ -481,28 +483,33 @@ void serial_cmd_set_student_id(const cJSON *object)
 			*pwdata = 0xFF;
 			pwdata++;
 		}
-
-		wl.match_status = ON;
-		wl.weite_std_id_status = ON;
-		rf_set_card_status(1);
-		status = 0;
+		if(card_status == 0)
+		{
+			wl.match_status = ON;
+			wl.weite_std_id_status = ON;
+			rf_set_card_status(1);
+			status = 0;
+		}
+		else
+		{
+			status = -1;
+		}
 	}
 	else
 	{
-		char str[3];
+		status = -2;
+	}
 
-		/* 打印返回 */
-		status = -1;
-		root = cJSON_CreateObject();
-		cJSON_AddStringToObject(root, "fun", "student_id" );
-		sprintf(str, "%d" , (int8_t)(status));
-		cJSON_AddStringToObject(root, "result", str );
-		out = cJSON_Print(root);
-		exchange_json_format( out, '\"', '\'' );
-		b_print("%s", out);
-		cJSON_Delete(root);
-		free(out); 		
-	}	
+	/* 打印返回 */
+	root = cJSON_CreateObject();
+	cJSON_AddStringToObject(root, "fun", "set_student_id" );
+	sprintf(str, "%d" , (int8_t)(status));
+	cJSON_AddStringToObject(root, "result", str );
+	out = cJSON_Print(root);
+	exchange_json_format( out, '\"', '\'' );
+	b_print("%s", out);
+	cJSON_Delete(root);
+	free(out);
 }
 
 char *parse_json_item(char *pdata_str, char *key_str, char *value_str)
