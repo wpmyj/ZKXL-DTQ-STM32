@@ -405,6 +405,10 @@ void App_card_process(void)
 			{
 				card_message_err = 2;
 				wtrte_flash_ok = 1;
+				b_print("{\r\n");
+				b_print("  \'fun\': \'Error\',\r\n");
+				b_print("  \'description\': \'white list full!\'\r\n");
+				b_print("}\r\n");
 			}
 			rf_set_card_status(3);
 		}

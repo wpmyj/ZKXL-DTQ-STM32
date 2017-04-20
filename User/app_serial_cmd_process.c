@@ -83,7 +83,7 @@ void exchange_json_format( char *out, char old_format, char new_format);
 ******************************************************************************/
 void serial_cmd_process(void)
 {
-	if( revice_json_count > 0 )
+	if( rjson_count > 0 )
 	{
 		char header[30];
 		char *pdata = (char *)uart_irq_revice_massage[json_read_index];
@@ -129,7 +129,7 @@ void serial_cmd_process(void)
 			cJSON_Delete(json);
 		}
 
-		revice_json_count--;
+		rjson_count--;
 		memset( pdata, 0, JSON_BUFFER_LEN );
 		json_read_index = (json_read_index + 1) % JSON_ITEM_MAX;
 	}
@@ -590,6 +590,9 @@ void serial_cmd_answer_start(char *pdata_str)
 		}
 		
 		/* process string status, get prase data */
+		if( result != 0 )
+			break ;
+				
 		switch( parse_data_status )
 		{
 			
@@ -637,8 +640,11 @@ void serial_cmd_answer_start(char *pdata_str)
 //				printf("id = %2d, ",answer_temp.id);
 //				printf("range = %02x }\r\n",answer_temp.range);
 
-					if( real_total >= 80 )
+					if( real_total > 80 )
+					{
+						result = -2;
 						break;
+					}
 
 					if(is_last_data_full == 0)
 					{
@@ -665,46 +671,34 @@ void serial_cmd_answer_start(char *pdata_str)
 		}
 	}
 	
-	if( real_total <= 80)
+	/* set rf buffer len */
+	rf_var.cmd = 0x10;
+	if(is_last_data_full == 1)
+		rf_var.tx_len = sdata_index+1 ;
+	else
+		rf_var.tx_len = sdata_index ;
+	
+	send_data_status = get_send_data_status();
+
+	/* 发送数据 */
+	if(( send_data_status == SEND_IDLE_STATUS ) ||
+		 ( send_data_status >= SEND_2S_DATA_STATUS))
 	{
-		/* set rf buffer len */
-		rf_var.cmd = 0x10;
-		if(is_last_data_full == 1)
-			rf_var.tx_len = sdata_index+1 ;
-		else
-			rf_var.tx_len = sdata_index ;
+		nrf_transmit_parameter_t transmit_config;
+
+		/* 准备发送数据管理块 */
+		memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
 		
-		send_data_status = get_send_data_status();
+		memset(nrf_data.dtq_uid,    0x00, 4);
+		memset(transmit_config.dist,0x00, 4);
 
-		/* 发送数据 */
-		if(( send_data_status == SEND_IDLE_STATUS ) ||
-			 ( send_data_status >= SEND_2S_DATA_STATUS))
-		{
-			nrf_transmit_parameter_t transmit_config;
+		send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
 
-			/* 准备发送数据管理块 */
-			memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
-			
-			memset(nrf_data.dtq_uid,    0x00, 4);
-			memset(transmit_config.dist,0x00, 4);
-
-			send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
-
-			/* 启动发送数据状态机 */
-			set_send_data_status( SEND_500MS_DATA_STATUS );
-
-			/* return data */	
-			result = 0;
-		}
-		else
-			result = -1;
+		/* 启动发送数据状态机 */
+		set_send_data_status( SEND_500MS_DATA_STATUS );
 	}
 	else
-	{
-		result = -2;
-	}
-
-	real_total = 0;
+		result = -1;
 
 	/* 打印返回 */
 	b_print("{\r\n");
@@ -809,6 +803,9 @@ void serial_cmd_import_config(char *pdata_str)
 		}
 
 		/* process string status, get prase data */
+		if( result != 0 )
+			break ;
+		
 		switch( parse_data_status )
 		{
 			
@@ -886,13 +883,18 @@ void serial_cmd_import_config(char *pdata_str)
 				break;
 			case IMPORT_STATUS_UID: 
 				{
-					uint8_t *pdata;
+					uint8_t *pdata,is_white_list_uid;
+					uint16_t uid_pos;
 					if(count <= 120)
 					{
 						uid = atof(value_str);
 						pdata = (uint8_t *)&uid;
-						add_index_of_uid(upos,pdata);
-						count++;
+						is_white_list_uid = search_uid_in_white_list((uint8_t *)&uid,&uid_pos);
+						if(is_white_list_uid == OPERATION_ERR)
+						{
+							add_index_of_uid(upos,pdata);
+							count++;
+						}
 					}
 					else
 					{

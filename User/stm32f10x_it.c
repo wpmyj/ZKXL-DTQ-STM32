@@ -35,8 +35,8 @@ static uint8_t  uart_status           = UartSTART;
 static uint8_t  uart_json_nesting_num = 0;
 
 uint8_t  uart_irq_revice_massage[JSON_ITEM_MAX][JSON_BUFFER_LEN];
-uint16_t revice_json_count = 0;
-uint8_t  revice_json_write_index = 0;
+uint16_t rjson_count = 0;
+uint8_t  rjson_index = 0;
 
 /* uart global variables */
 extern nrf_communication_t	nrf_data;
@@ -64,7 +64,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 					uart_json_nesting_num = 0;
 					uart_status           = UartDATA;
 					uart_json_nesting_num++;
-					uart_irq_revice_massage[revice_json_write_index][uart_rx_cnt++] = data ;
+					uart_irq_revice_massage[rjson_index][uart_rx_cnt++] = data ;
 					flag_uart_rxing = 1;
 				}
 			}
@@ -74,7 +74,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 			{
 				if( data > 32)
 				{
-					uart_irq_revice_massage[revice_json_write_index][uart_rx_cnt++] = data ;
+					uart_irq_revice_massage[rjson_index][uart_rx_cnt++] = data ;
 					if(UART_SOF == data)
 					{
 						uart_json_nesting_num++;
@@ -83,7 +83,15 @@ void uart_revice_data_state_mechine( uint8_t data )
 					{
 						flag_uart_rxing = 0;
 						uart_status = UartSTART;
-						printf("uart_rx_cnt is full! data will lost.\r\n");
+						b_print("{\r\n");
+						b_print("  \'fun\': \'Error\',\r\n");
+						b_print("  \'description\': \'uart buffer full!\'\r\n");
+						b_print("}\r\n");
+						memset(uart_irq_revice_massage[rjson_index],0,JSON_BUFFER_LEN);
+						uart_rx_cnt = 0;
+						uart_json_nesting_num = 0;
+						uart_rx_timeout = 0;
+						rjson_count = 0;
 						break;
 					}
 					if(UART_EOF == data)
@@ -91,12 +99,12 @@ void uart_revice_data_state_mechine( uint8_t data )
 						uart_json_nesting_num--;
 						if(uart_json_nesting_num == 0)
 						{
-							if(revice_json_count < JSON_ITEM_MAX  )
+							if(rjson_count < JSON_ITEM_MAX  )
 							{
-								revice_json_write_index = (revice_json_write_index+1) % JSON_ITEM_MAX;
-								revice_json_count++;
+								rjson_index = (rjson_index+1) % JSON_ITEM_MAX;
+								rjson_count++;
 							}
-							//printf("uart_rx_cnt = %d\r\n",uart_rx_cnt);
+						  //printf("uart_rx_cnt = %d\r\n",uart_rx_cnt);
 							uart_rx_cnt     = 0;
 							uart_status     = UartSTART;
 							flag_uart_rxing = 0;
@@ -273,8 +281,11 @@ void SysTick_Handler(void)
 		uart_rx_timeout++;
 		if(uart_rx_timeout>20)										//5ms超时后重新开始接收
 		{
-			flag_uart_rxing = 0;
-			uart_status = UartSTART;
+			memset(uart_irq_revice_massage[rjson_index],
+				     0,JSON_BUFFER_LEN);
+			uart_json_nesting_num = 0;
+			uart_rx_timeout = 0;
+			rjson_count = 0;
 		}
 	}
 }
