@@ -97,4 +97,5 @@ void serial_cmd_set_tx_power(const cJSON *object);
 void serial_cmd_set_student_id(const cJSON *object);
 void serial_cmd_one_key_off(const cJSON *object);
 void serial_cmd_check_config(const cJSON *object);
+void serial_cmd_bootloader(const cJSON *object);
 #endif // __POS_HANDLE_LAYER_H_

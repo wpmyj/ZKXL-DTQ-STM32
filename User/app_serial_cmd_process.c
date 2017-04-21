@@ -22,6 +22,8 @@
 #include "app_card_process.h"
 #include "app_show_message_process.h"
 
+typedef  void (*pFunction)(void);
+
 /* Private variables ---------------------------------------------------------*/
 extern nrf_communication_t nrf_data;
 extern uint16_t list_tcb_table[UID_LIST_TABLE_SUM][WHITE_TABLE_LEN];
@@ -44,6 +46,7 @@ const static serial_cmd_typedef cmd_list[] = {
 {"check_config",   sizeof("check_config"),   serial_cmd_check_config  },
 {"set_student_id", sizeof("set_student_id"), serial_cmd_set_student_id},
 {"one_key_off",    sizeof("one_key_off"),    serial_cmd_one_key_off   },
+{"bootloader",     sizeof("bootloader"),     serial_cmd_bootloader    },
 {"NO_USE",         sizeof("NO_USE"),         NULL                     }
 };
 
@@ -290,7 +293,7 @@ void serial_cmd_get_device_no(const cJSON *object)
 	memset(str,0,20);
 	sprintf(str, "%010u" , *(uint32_t *)(revicer.uid));
 	b_print("  \'device_id\': \'%s\',\r\n",str);
-	b_print("  \'software_version\': \'v0.1.1\',\r\n");
+	b_print("  \'software_version\': \'v0.1.2\',\r\n");
 	b_print("  \'hardware_version\': \'ZL-RP551-MAIN-F\',\r\n");
 	b_print("  \'company\': \'zkxltech\',\r\n");
 	memset(str,0,10);
@@ -930,4 +933,25 @@ void serial_cmd_import_config(char *pdata_str)
 	b_print("  \'result\': \'%s\'\r\n",result_str);
 	b_print("}\r\n");
 }
+
+void serial_cmd_bootloader(const cJSON *object)
+{
+	/* 打印返回 */
+	b_print("{\r\n");
+	b_print("  \'fun\': \'bootloader\',\r\n");
+	b_print("  \'result\': \'0\'\r\n");
+	b_print("}\r\n");
+	DelayMs(200);
+	{
+		uint32_t JumpAddress;
+		pFunction JumpToBootloader;
+		/* Jump to user application */
+		JumpAddress = *(__IO uint32_t*) (0x8000000 + 4);
+		JumpToBootloader = (pFunction) JumpAddress;
+		/* Initialize user application's Stack Pointer */
+		__set_MSP(*(__IO uint32_t*) 0x8000000);
+		JumpToBootloader();
+	}
+}
+
 /**************************************END OF FILE****************************/

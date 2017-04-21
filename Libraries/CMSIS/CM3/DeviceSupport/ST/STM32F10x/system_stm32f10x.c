@@ -277,6 +277,8 @@ void SystemInit (void)
 #else
   SCB->VTOR = FLASH_BASE | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal FLASH. */
 #endif
+
+	NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x4000); 
 }
 
 /**
