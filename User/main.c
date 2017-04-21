@@ -106,7 +106,17 @@ int main(void)
 
 	while(1)
 	{
+		static uint32_t times = 0;
+		static uint8_t  no_bin_flag = 0;
+
     status = HAL_UART_Receive(&UartHandle, &key, 1, 100);
+
+		if((times >= 30) && (no_bin_flag ==0))
+		{
+			status = 0;
+			key = '2';
+		}
+
 		if(status == 0)
 		{
 			switch( key )
@@ -121,7 +131,7 @@ int main(void)
 
 				case '2':
 				{
-					printf("Start program execution......\r\n\n");
+					printf("Start program execution......\r\n");
 					if (((*(__IO uint32_t*)APPLICATION_ADDRESS) & 0x2FFE0000 ) == 0x20000000)
 					{
 						/* Jump to user application */
@@ -130,6 +140,15 @@ int main(void)
 						/* Initialize user application's Stack Pointer */
 						__set_MSP(*(__IO uint32_t*) APPLICATION_ADDRESS);
 						JumpToApplication();
+					}
+					else
+					{
+						printf("Error: no program......\r\n\n");
+						printf("press '1' to download program......\r\n");
+						printf("press '2' to start program execution ......\r\n");
+						status = 1;
+						key = 0;
+						no_bin_flag = 1;
 					}
 				}
 				break;
@@ -141,6 +160,7 @@ int main(void)
 		else
 		{
 			BSP_LED_Toggle(LED_BLUE);
+			times++;
 		}
 	}
 }
