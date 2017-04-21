@@ -62,11 +62,14 @@ UART_HandleTypeDef UartHandle;
 /* Private variables ---------------------------------------------------------*/
 extern pFunction JumpToApplication;
 extern uint32_t JumpAddress;
+extern uint8_t aFileName[FILE_NAME_LENGTH];
 
 /* Private function prototypes -----------------------------------------------*/
 static void IAP_Init(void);
 void SystemClock_Config(void);
 void HAL_UART_MspInit(UART_HandleTypeDef *huart);
+void SerialDownload(void);
+
 
 /**
   * @brief  Main program
@@ -75,11 +78,17 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart);
   */
 int main(void)
 {
-  HAL_Init();
-	
-  /* Configure the system clock to 64 MHz */
+	HAL_StatusTypeDef status;
+	uint8_t  key;
+	uint32_t size = 0;
+	uint8_t  download_flag = 0;
+	uint32_t tickstart;
+
+	/* Configure the system clock to 64 MHz */
   SystemClock_Config();
-	
+
+  HAL_Init();
+
 	/* Initialize BSP Led*/
 	BSP_LED_Init(LED_RED);
 	BSP_LED_Init(LED_BLUE);
@@ -90,13 +99,49 @@ int main(void)
 	FLASH_If_Init();
 	/* Execute the IAP driver in order to reprogram the Flash */
 	IAP_Init();
+	printf("press '1' to download program......\r\n");
+	printf("press '2' to start program execution ......\r\n");
+	/* Clean the input path */
+  __HAL_UART_FLUSH_DRREGISTER(&UartHandle);
 
-	/* Display main menu */
-	Main_Menu ();
+	while(1)
+	{
+    status = HAL_UART_Receive(&UartHandle, &key, 1, 100);
+		if(status == 0)
+		{
+			switch( key )
+			{
+				case '1':
+				{
+					SerialDownload();
+					printf("press '1' to download program......\r\n");
+					printf("press '2' to start program execution ......\r\n");
+				}
+				break;
 
-  while (1)
-  {
-
+				case '2':
+				{
+					printf("Start program execution......\r\n\n");
+					if (((*(__IO uint32_t*)APPLICATION_ADDRESS) & 0x2FFE0000 ) == 0x20000000)
+					{
+						/* Jump to user application */
+						JumpAddress = *(__IO uint32_t*) (APPLICATION_ADDRESS + 4);
+						JumpToApplication = (pFunction) JumpAddress;
+						/* Initialize user application's Stack Pointer */
+						__set_MSP(*(__IO uint32_t*) APPLICATION_ADDRESS);
+						JumpToApplication();
+					}
+				}
+				break;
+				
+				default:
+					break;
+			}
+		}
+		else
+		{
+			BSP_LED_Toggle(LED_BLUE);
+		}
 	}
 }
 
@@ -107,7 +152,7 @@ int main(void)
   */
 void IAP_Init(void)
 {
-  UartHandle.Init.BaudRate = 115200;
+  UartHandle.Init.BaudRate = 1152000;
   UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
   UartHandle.Init.StopBits = UART_STOPBITS_1;
   UartHandle.Init.Parity = UART_PARITY_NONE;

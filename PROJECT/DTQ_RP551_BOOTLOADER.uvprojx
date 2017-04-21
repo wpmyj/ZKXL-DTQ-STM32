@@ -641,11 +641,6 @@
               <FilePath>..\USER\main.c</FilePath>
             </File>
             <File>
-              <FileName>menu.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\USER\menu.c</FilePath>
-            </File>
-            <File>
               <FileName>stm32f1xx_it.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\USER\stm32f1xx_it.c</FilePath>
@@ -654,6 +649,11 @@
               <FileName>ymodem.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\USER\ymodem.c</FilePath>
+            </File>
+            <File>
+              <FileName>menu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\USER\menu.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -81,15 +81,15 @@ void SerialDownload(void)
 
   printf("Waiting for the file to be sent ... (press 'a' to abort)\n\r");
   result = Ymodem_Receive( &size );
+	HAL_Delay( 300 );
   if (result == COM_OK)
   {
-//	printf("\n\n\r Programming Completed Successfully!\n\r--------------------------------\r\n Name: ");
-//	printf(aFileName);
-//	Int2Str(number, size);
-//	printf("\n\r Size: ");
-//	printf(number);
-//	printf(" Bytes\r\n");
-//	printf("-------------------\n");
+		printf("\n\n\r Programming Completed Successfully!");
+		printf("\n\r-------------------------------------");
+		printf("\n\r Name:%s",aFileName);
+		Int2Str(number, size);
+		printf("\n\r Size:%s Bytes\r\n",number);
+		printf("-------------------------------------\r\n");
   }
 	
   else if (result == COM_LIMIT)
@@ -153,22 +153,6 @@ void Main_Menu(void)
   while (1)
   {
 
-    printf("\r\n=================== Main Menu ============================\r\n\n");
-    printf("  Download image to the internal Flash ----------------- 1\r\n\n");
-    printf("  Upload image from the internal Flash ----------------- 2\r\n\n");
-    printf("  Execute the loaded application ----------------------- 3\r\n\n");
-
-
-    if(FlashProtection != FLASHIF_PROTECTION_NONE)
-    {
-      printf("  Disable the write protection ------------------------- 4\r\n\n");
-    }
-    else
-    {
-      printf("  Enable the write protection -------------------------- 4\r\n\n");
-    }
-    printf("==========================================================\r\n\n");
-
     /* Clean the input path */
     __HAL_UART_FLUSH_DRREGISTER(&UartHandle);
 	
@@ -179,13 +163,7 @@ void Main_Menu(void)
     case '1' :
       /* Download user application in the Flash */
       SerialDownload();
-      break;
-    case '2' :
-      /* Upload user application from the Flash */
-      SerialUpload();
-      break;
-    case '3' :
-      printf("Start program execution......\r\n\n");
+		      printf("Start program execution......\r\n\n");
       /* execute the new program */
       JumpAddress = *(__IO uint32_t*) (APPLICATION_ADDRESS + 4);
       /* Jump to user application */
@@ -193,6 +171,10 @@ void Main_Menu(void)
       /* Initialize user application's Stack Pointer */
       __set_MSP(*(__IO uint32_t*) APPLICATION_ADDRESS);
       JumpToApplication();
+      break;
+    case '2' :
+      break;
+    case '3' :
       break;
     case '4' :
       if (FlashProtection != FLASHIF_PROTECTION_NONE)
@@ -226,7 +208,6 @@ void Main_Menu(void)
       }
       break;
 	default:
-	printf("Invalid Number ! ==> The number should be either 1, 2, 3 or 4\r");
 	break;
     }
   }
