@@ -401,6 +401,7 @@ COM_StatusTypeDef Ymodem_Receive ( uint32_t *p_size )
                     Serial_PutByte(CA);
                     result = COM_DATA;
                   }
+									BSP_LED_Toggle(LED_BLUE);
                 }
                 packets_received ++;
                 session_begin = 1;

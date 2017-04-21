@@ -159,7 +159,7 @@ int main(void)
 		}
 		else
 		{
-			BSP_LED_Toggle(LED_BLUE);
+			BSP_LED_Toggle(LED_RED);
 			times++;
 		}
 	}
