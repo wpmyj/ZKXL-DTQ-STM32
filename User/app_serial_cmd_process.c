@@ -110,8 +110,8 @@ void serial_cmd_process(void)
 			{
 				//b_print("Error before: [%s]\n",cJSON_GetErrorPtr());
 				  b_print("{\r\n");
-	        b_print("  \'fun\': \'Error\',\r\n");
-					b_print("  \'description\': \'json syntax error!\'\r\n");
+	        b_print("  \"fun\": \"Error\",\r\n");
+					b_print("  \"description\": \"json syntax error!\"\r\n");
 					b_print("}\r\n");
 			}
 			else
@@ -133,8 +133,8 @@ void serial_cmd_process(void)
 				if(is_know_cmd == 0)
 				{
 					b_print("{\r\n");
-	        b_print("  \'fun\': \'Error\',\r\n");
-					b_print("  \'description\': \'unknow cmd!\'\r\n");
+	        b_print("  \"fun\": \"Error\",\r\n");
+					b_print("  \"description\": \"unknow cmd!\"\r\n");
 					b_print("}\r\n");
 				}
 			}
@@ -240,12 +240,12 @@ void serial_cmd_clear_uid_list(const cJSON *object)
 	get_mcu_uid();
 	
 	b_print("{\r\n");
-	b_print("  \'fun\': \'clear_wl\',\r\n");
+	b_print("  \"fun\": \"clear_wl\",\r\n");
 
 	if(OPERATION_SUCCESS == result)
-		b_print("  \'result\': \'0\'\r\n");
+		b_print("  \"result\": \"0\"\r\n");
 	else
-		b_print("  \'result\': \'-1\'\r\n");
+		b_print("  \"result\": \"-1\"\r\n");
 
 	b_print("}\r\n");
 }
@@ -262,11 +262,11 @@ void serial_cmd_bind_operation(const cJSON *object)
 	{
 		wl.match_status = ON;
 		rf_set_card_status(1);
-		b_print("  \'fun\': \'bind_start\',\r\n");
+		b_print("  \"fun\": \"bind_start\",\r\n");
 		if( card_status == 0 )
-			b_print("  \'result\': \'0\'\r\n");
+			b_print("  \"result\": \"0\"\r\n");
 		else
-			b_print("  \'result\': \'-1\'\r\n");
+			b_print("  \"result\": \"-1\"\r\n");
 	}
 
 	if(strncmp( p_cmd_str, "bind_stop", 9 ) == 0)
@@ -275,8 +275,8 @@ void serial_cmd_bind_operation(const cJSON *object)
 		rf_set_card_status(0);
 		PcdHalt();
 		PcdAntennaOff();
-		b_print("  \'fun\': \'bind_stop\',\r\n");
-		b_print("  \'result\': \'0\'\r\n");
+		b_print("  \"fun\": \"bind_stop\",\r\n");
+		b_print("  \"result\": \"0\"\r\n");
 	}
 	b_print("}\r\n");
 }
@@ -289,25 +289,25 @@ void serial_cmd_get_device_no(const cJSON *object)
 	uint8_t count = 0;
 
 	b_print("{\r\n");
-	b_print("  \'fun\': \'get_device_info\',\r\n");
+	b_print("  \"fun\": \"get_device_info\",\r\n");
 	memset(str,0,20);
 	sprintf(str, "%010u" , *(uint32_t *)(revicer.uid));
-	b_print("  \'device_id\': \'%s\',\r\n",str);
-	b_print("  \'software_version\': \'v0.1.2\',\r\n");
-	b_print("  \'hardware_version\': \'ZL-RP551-MAIN-F\',\r\n");
-	b_print("  \'company\': \'zkxltech\',\r\n");
+	b_print("  \"device_id\": \"%s\",\r\n",str);
+	b_print("  \"software_version\": \"v0.1.2\",\r\n");
+	b_print("  \"hardware_version\": \"ZL-RP551-MAIN-F\",\r\n");
+	b_print("  \"company\": \"zkxltech\",\r\n");
 	memset(str,0,10);
 	sprintf(str, "%d" , clicker_set.N_CH_TX);
-	b_print("  \'tx_ch\': \'%s\',\r\n",str);
+	b_print("  \"tx_ch\": \"%s\",\r\n",str);
 	memset(str,0,10);
 	sprintf(str, "%d" , clicker_set.N_CH_RX);
-	b_print("  \'rx_ch\': \'%s\',\r\n",str);
+	b_print("  \"rx_ch\": \"%s\",\r\n",str);
 	memset(str,0,10);
 	tx_power = clicker_set.N_TX_POWER;
 	sprintf(str, "%d" , tx_power);
-	b_print("  \'tx_power\': \'%s\',\r\n",str);
+	b_print("  \"tx_power\": \"%s\",\r\n",str);
 	
-	b_print("  \'list\': [\r\n");
+	b_print("  \"list\": [\r\n");
 
 	for(i=0; i < MAX_WHITE_LEN; i++)
 	{
@@ -318,10 +318,10 @@ void serial_cmd_get_device_no(const cJSON *object)
 			b_print("    {");
 			memset(str,0,20);
 			sprintf(str, "%d" , i);
-			b_print("  \'upos\': \'%s\',", str );
+			b_print("  \"upos\": \"%s\",", str );
 			memset(str,0,20);
 			sprintf(str, "%010u" , *(uint32_t *)( wl.uids[i].uid));
-			b_print("  \'uid\': \'%s\'", str );
+			b_print("  \"uid\": \"%s\"", str );
 			if( count < wl.len )
 				b_print(" },\r\n");
 			else
@@ -360,8 +360,8 @@ void serial_cmd_one_key_off(const cJSON *object)
 	}
 
 	b_print("{\r\n");
-	b_print("  \'fun\': \'one_key_off\',\r\n");
-	b_print("  \'result\': \'0\'\r\n");
+	b_print("  \"fun\": \"one_key_off\",\r\n");
+	b_print("  \"result\": \"0\"\r\n");
 	b_print("}\r\n");
 }
 
@@ -394,8 +394,8 @@ void serial_cmd_answer_stop(const cJSON *object)
 
 	/* 打印返回 */
 	b_print("{\r\n");
-	b_print("  \'fun\': \'answer_stop\',\r\n");
-	b_print("  \'result\': \'0\'\r\n");
+	b_print("  \"fun\": \"answer_stop\",\r\n");
+	b_print("  \"result\": \"0\"\r\n");
 	b_print("}\r\n");
 }
 
@@ -425,9 +425,9 @@ void serial_cmd_set_channel(const cJSON *object)
 	}
 	/* 打印返回 */
 	b_print("{\r\n");
-	b_print("  \'fun\': \'set_channel\',\r\n");
+	b_print("  \"fun\": \"set_channel\",\r\n");
 	sprintf(str, "%d" , (int8_t)(status));
-	b_print("  \'result\': \'%s\'\r\n",str);
+	b_print("  \"result\": \"%s\"\r\n",str);
 	b_print("}\r\n");
 }
 
@@ -452,9 +452,9 @@ void serial_cmd_set_tx_power(const cJSON *object)
 
 	/* 打印返回 */
 	b_print("{\r\n");
-	b_print("  \'fun\': \'set_tx_power\',\r\n");
+	b_print("  \"fun\": \"set_tx_power\",\r\n");
 	sprintf(str, "%d" , (int8_t)(status));
-	b_print("  \'result\': \'%s\'\r\n",str);
+	b_print("  \"result\": \"%s\"\r\n",str);
 	b_print("}\r\n");
 }
 
@@ -518,7 +518,7 @@ void serial_cmd_set_student_id(const cJSON *object)
 	sprintf(str, "%d" , (int8_t)(status));
 	cJSON_AddStringToObject(root, "result", str );
 	out = cJSON_Print(root);
-	exchange_json_format( out, '\"', '\'' );
+	exchange_json_format( out, '\"', '\"' );
 	b_print("%s", out);
 	cJSON_Delete(root);
 	free(out);
@@ -721,9 +721,9 @@ void serial_cmd_answer_start(char *pdata_str)
 
 	/* 打印返回 */
 	b_print("{\r\n");
-	b_print("  \'fun\': \'answer_start\',\r\n");
+	b_print("  \"fun\": \"answer_start\",\r\n");
 	sprintf(result_str, "%d" , result);
-	b_print("  \'result\': \'%s\'\r\n",result_str);
+	b_print("  \"result\": \"%s\"\r\n",result_str);
 	b_print("}\r\n");
 }
 
@@ -736,22 +736,22 @@ void serial_cmd_check_config(const cJSON *object)
 	uint8_t count = 0;
 
 	b_print("{\r\n");
-	b_print("  \'fun\': \'check_config\',\r\n");
+	b_print("  \"fun\": \"check_config\",\r\n");
 	memset(str,0,20);
 	sprintf(str, "%010u" , *(uint32_t *)(revicer.uid));
-	b_print("  \'addr\': \'%s\',\r\n",str);
+	b_print("  \"addr\": \"%s\",\r\n",str);
 	memset(str,0,10);
 	sprintf(str, "%d" , clicker_set.N_CH_TX);
-	b_print("  \'tx_ch\': \'%s\',\r\n",str);
+	b_print("  \"tx_ch\": \"%s\",\r\n",str);
 	memset(str,0,10);
 	sprintf(str, "%d" , clicker_set.N_CH_RX);
-	b_print("  \'rx_ch\': \'%s\',\r\n",str);
+	b_print("  \"rx_ch\": \"%s\",\r\n",str);
 	memset(str,0,10);
 	tx_power = clicker_set.N_TX_POWER;
 	sprintf(str, "%d" , tx_power);
-	b_print("  \'tx_power\': \'%s\',\r\n",str);
+	b_print("  \"tx_power\": \"%s\",\r\n",str);
 	
-	b_print("  \'list\': [\r\n");
+	b_print("  \"list\": [\r\n");
 
 	for(i=0; i < MAX_WHITE_LEN; i++)
 	{
@@ -762,10 +762,10 @@ void serial_cmd_check_config(const cJSON *object)
 			b_print("    {");
 			memset(str,0,20);
 			sprintf(str, "%d" , i);
-			b_print("  \'upos\': \'%s\',", str );
+			b_print("  \"upos\": \"%s\",", str );
 			memset(str,0,20);
 			sprintf(str, "%010u" , *(uint32_t *)( wl.uids[i].uid));
-			b_print("  \'uid\': \'%s\'", str );
+			b_print("  \"uid\": \"%s\"", str );
 			if( count < wl.len )
 				b_print(" },\r\n");
 			else
@@ -928,9 +928,9 @@ void serial_cmd_import_config(char *pdata_str)
 
 	/* 打印返回 */
 	b_print("{\r\n");
-	b_print("  \'fun\': \'import_config\',\r\n");
+	b_print("  \"fun\": \"import_config\",\r\n");
 	sprintf(result_str, "%d" , result);
-	b_print("  \'result\': \'%s\'\r\n",result_str);
+	b_print("  \"result\": \"%s\"\r\n",result_str);
 	b_print("}\r\n");
 }
 
@@ -938,8 +938,8 @@ void serial_cmd_bootloader(const cJSON *object)
 {
 	/* 打印返回 */
 	b_print("{\r\n");
-	b_print("  \'fun\': \'bootloader\',\r\n");
-	b_print("  \'result\': \'0\'\r\n");
+	b_print("  \"fun\": \"bootloader\",\r\n");
+	b_print("  \"result\": \"0\"\r\n");
 	b_print("}\r\n");
 	DelayMs(200);
 	{

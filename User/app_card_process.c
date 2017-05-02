@@ -383,7 +383,7 @@ void App_card_process(void)
 						return;
 					}
 				}
-				//b_print("  \'Interrupt\': \'Send\'\r\n");
+				//b_print("  \"Interrupt\": \"Send\"\r\n");
 				status = SendInterrupt();
 				DEBUG_CARD_DEBUG_LOG("SendInterrupt status = %d\r\n",status);
 				#ifdef SHOW_CARD_PROCESS_TIME
@@ -405,8 +405,8 @@ void App_card_process(void)
 				card_message_err = 2;
 				wtrte_flash_ok = 1;
 				b_print("{\r\n");
-				b_print("  \'fun\': \'Error\',\r\n");
-				b_print("  \'description\': \'white list full!\'\r\n");
+				b_print("  \"fun\": \"Error\",\r\n");
+				b_print("  \"description\": \"white list full!\"\r\n");
 				b_print("}\r\n");
 			}
 			rf_set_card_status(3);
@@ -469,10 +469,10 @@ void App_card_process(void)
 			{
 				char str[21];
 				b_print("{\r\n");
-				b_print("  \'fun\': \'set_student_id\',\r\n");
+				b_print("  \"fun\": \"set_student_id\",\r\n");
 				memset(str,0,20);
 				sprintf(str, "%010u" , *(uint32_t *)( wl.uids[write_uid_pos].uid));
-				b_print("  \'card_id\': \'%s\',\r\n", str );
+				b_print("  \"card_id\": \"%s\",\r\n", str );
 				
 				memset(str,0,21);
 				{
@@ -487,7 +487,7 @@ void App_card_process(void)
 							sprintf(p_student_data+2*i+1,"%d" ,temp_data);
 					}
 				}
-				b_print("  \'student_id\': \'%s\'\r\n", str );
+				b_print("  \"student_id\": \"%s\"\r\n", str );
 				b_print("}\r\n");
 			}
 			else
@@ -509,16 +509,16 @@ void App_card_process(void)
 //			uint8_t i,uid[4];
 //			b_print("{\r\n");
 //			memset(str,0,20);
-//			b_print("  \'HEX\': \'%02X%02X%02X%02X\',\r\n",
+//			b_print("  \"HEX\": \"%02X%02X%02X%02X\",\r\n",
 //			wl.uids[write_uid_pos].uid[0],wl.uids[write_uid_pos].uid[1],
 //			wl.uids[write_uid_pos].uid[2],wl.uids[write_uid_pos].uid[3]);
 //			sprintf(str, "%010u" , *(uint32_t *)( wl.uids[write_uid_pos].uid));
-//			b_print("  \'反码\': \'%s\',\r\n",str);
+//			b_print("  \"反码\": \"%s\",\r\n",str);
 //			memset(str,0,20);
 //			for(i=0;i<4;i++)
 //				uid[i] = wl.uids[write_uid_pos].uid[3-i];
 //			sprintf(str, "%010u" , *(uint32_t *)( uid ));
-//			b_print("  \'正码\': \'%s\'\r\n", str );
+//			b_print("  \"正码\": \"%s\"\r\n", str );
 //			b_print("}\r\n");
 				DEBUG_CARD_DATA_LOG("NDEF_DataRead and NDEF_DataWrite Clear!\r\n");
 				#endif

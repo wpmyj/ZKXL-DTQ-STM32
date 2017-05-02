@@ -32,7 +32,7 @@ void b_print(const char *fmt, ...)
 #ifdef FILTER_NOUSE_CHAR
 	while( *pdata != '\0' )
 	{
-		if( *pdata ==  '\'')
+		if( *pdata ==  '\"')
 			skip_flag = skip_flag ^ 0x01;
 
 		if( skip_flag == 0x00 )
