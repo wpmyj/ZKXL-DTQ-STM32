@@ -90,6 +90,9 @@ void clicker_config_default_set( void )
 	}
 	else
 		clicker_set.N_TX_POWER = 5;
+	
+	EE_ReadVariable( CPU_24G_ATTENDANCE_OF_FEE ,&data);
+	clicker_set.N_24G_ATTEND = *(uint8_t *)(&data);
 
 	/* 设置设置接收器的信道 */
 	spi_set_cpu_tx_signal_ch(clicker_set.N_CH_RX);

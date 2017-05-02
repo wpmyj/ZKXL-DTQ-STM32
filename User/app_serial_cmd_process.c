@@ -47,6 +47,7 @@ const static serial_cmd_typedef cmd_list[] = {
 {"set_student_id", sizeof("set_student_id"), serial_cmd_set_student_id},
 {"one_key_off",    sizeof("one_key_off"),    serial_cmd_one_key_off   },
 {"bootloader",     sizeof("bootloader"),     serial_cmd_bootloader    },
+{"24g_attendance", sizeof("24g_attendance"), serial_cmd_24g_attendance},
 {"NO_USE",         sizeof("NO_USE"),         NULL                     }
 };
 
@@ -283,7 +284,7 @@ void serial_cmd_bind_operation(const cJSON *object)
 
 void serial_cmd_get_device_no(const cJSON *object)
 {
-	int8_t tx_power = 0;
+	int8_t tx_power = 0,attend_tx_ch = 0;
 	char str[20];
 	uint8_t i,is_pos_use = 0;
 	uint8_t count = 0;
@@ -306,7 +307,16 @@ void serial_cmd_get_device_no(const cJSON *object)
 	tx_power = clicker_set.N_TX_POWER;
 	sprintf(str, "%d" , tx_power);
 	b_print("  \"tx_power\": \"%s\",\r\n",str);
-	
+	if( clicker_set.N_24G_ATTEND & 0x80 )
+	{
+		b_print("  \"attendance_status\": \"on\",\r\n");
+		memset(str,0,10);
+		attend_tx_ch = clicker_set.N_24G_ATTEND & 0x7F;
+		sprintf(str, "%d" , attend_tx_ch);
+		b_print("  \"attendance_tx_ch\": \"%s\",\r\n",str);
+	}
+	else
+		b_print("  \"attendance_status\": \"off\",\r\n");
 	b_print("  \"list\": [\r\n");
 
 	for(i=0; i < MAX_WHITE_LEN; i++)
@@ -731,6 +741,7 @@ void serial_cmd_answer_start(char *pdata_str)
 void serial_cmd_check_config(const cJSON *object)
 {
 	int8_t tx_power = 0;
+	int8_t attend_tx_ch = 0;
 	char str[20];
 	uint8_t i,is_pos_use = 0;
 	uint8_t count = 0;
@@ -750,7 +761,18 @@ void serial_cmd_check_config(const cJSON *object)
 	tx_power = clicker_set.N_TX_POWER;
 	sprintf(str, "%d" , tx_power);
 	b_print("  \"tx_power\": \"%s\",\r\n",str);
-	
+
+	if( clicker_set.N_24G_ATTEND & 0x80 )
+	{
+		b_print("  \"attendance_status\": \"on\",\r\n");
+		memset(str,0,10);
+		attend_tx_ch = clicker_set.N_24G_ATTEND & 0x7F;
+		sprintf(str, "%d" , attend_tx_ch);
+		b_print("  \"attendance_tx_ch\": \"%s\",\r\n",str);
+	}
+	else
+		b_print("  \"attendance_status\": \"off\",\r\n");
+
 	b_print("  \"list\": [\r\n");
 
 	for(i=0; i < MAX_WHITE_LEN; i++)
@@ -952,6 +974,40 @@ void serial_cmd_bootloader(const cJSON *object)
 		__set_MSP(*(__IO uint32_t*) 0x8000000);
 		JumpToBootloader();
 	}
+}
+
+void serial_cmd_24g_attendance(const cJSON *object)
+{
+	char str[3];
+	uint8_t attend = 0x00;
+	int8_t  tx_ch = 81;
+	int8_t status;
+
+	attend = atoi(cJSON_GetObjectItem(object, "attendance_status")->valuestring);
+	tx_ch  = atoi(cJSON_GetObjectItem(object, "attendance_tx_ch")->valuestring);
+	
+	if((( attend >= 0) && ( attend <= 1)) && (( tx_ch > 0) && ( tx_ch < 127)))
+	{
+		if (attend == 1)
+			clicker_set.N_24G_ATTEND = (uint8_t)tx_ch | 0x80;
+		else
+			clicker_set.N_24G_ATTEND = (uint8_t)tx_ch & 0x7F;
+
+		EE_WriteVariable( CPU_24G_ATTENDANCE_OF_FEE , clicker_set.N_24G_ATTEND );
+		status = 0;
+	}
+	else
+	{
+		status = -1;
+	}
+
+	/* 打印返回 */
+	b_print("{\r\n");
+	b_print("  \"fun\": \"24g_attendance\",\r\n");
+	sprintf(str, "%d" , (int8_t)(status));
+	b_print("  \"result\": \"%s\"\r\n",str);
+	b_print("}\r\n");
+
 }
 
 /**************************************END OF FILE****************************/

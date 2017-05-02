@@ -267,7 +267,7 @@ void App_card_process(void)
 				memcpy(wID.uid,revicer.uid,4);
 				wID.upos  = write_uid_pos;
 				memcpy(&(wID.rf_conf),&clicker_set,sizeof(rf_config_typedef));
-				memset(wID.rev,0xFF,2);
+				memset(wID.rev,0xFF,1);
 
 				/* 重新写入数据检测 */
 				status = ReadNDEFfile(rpdata, &NDEF_Len);
@@ -506,7 +506,7 @@ void App_card_process(void)
 			{
 				#ifndef OPEN_CARD_DATA_SHOW 
 				char str[20];
-				uint8_t i,uid[4];
+//  		uint8_t i,uid[4];
 				b_print("{\r\n");
 				b_print("  \"fun\": \"bind_start\",\r\n");
 				memset(str,0,20);

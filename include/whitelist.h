@@ -12,7 +12,9 @@
 #define CPU_TX_CH_POS_OF_FEE              (WHITE_LIST_USE_TABLE_POS_OF_FEE+WHITE_TABLE_LEN)
 #define CPU_RX_CH_POS_OF_FEE              (1+CPU_TX_CH_POS_OF_FEE)
 #define CPU_TX_POWER_POS_OF_FEE           (CPU_RX_CH_POS_OF_FEE+1)
-#define CPU_ADDR_CLONE_FLAG               (CPU_TX_POWER_POS_OF_FEE+1)
+#define CPU_24G_ATTENDANCE_OF_FEE         (CPU_TX_POWER_POS_OF_FEE+1)
+
+#define CPU_ADDR_CLONE_FLAG               (CPU_24G_ATTENDANCE_OF_FEE+1)
 #define CPU_CLONE_ADDR                    (CPU_ADDR_CLONE_FLAG+1)
 
 #define OPERATION_NOUSE                   (2)
@@ -40,6 +42,7 @@ typedef struct
 	uint8_t  N_CH_TX;
 	uint8_t  N_CH_RX;
 	int8_t   N_TX_POWER;
+	uint8_t  N_24G_ATTEND;
 }rf_config_typedef;
 
 extern uint8_t 	              g_cSNR[10];						// M1ø®–Ú¡–∫≈
