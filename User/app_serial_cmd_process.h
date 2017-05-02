@@ -99,4 +99,5 @@ void serial_cmd_one_key_off(const cJSON *object);
 void serial_cmd_check_config(const cJSON *object);
 void serial_cmd_bootloader(const cJSON *object);
 void serial_cmd_24g_attendance(const cJSON *object);
+void serial_cmd_self_inspection(const cJSON *object);
 #endif // __POS_HANDLE_LAYER_H_

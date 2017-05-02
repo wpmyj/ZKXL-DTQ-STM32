@@ -30,6 +30,7 @@ extern uint16_t list_tcb_table[UID_LIST_TABLE_SUM][WHITE_TABLE_LEN];
 
 /* 暂存题目信息，以备重发使用 */
 uint8_t json_read_index = 0;
+uint8_t dtq_self_inspection_flg = 0;
 
 extern wl_typedef       wl;
 extern revicer_typedef  revicer;
@@ -48,6 +49,7 @@ const static serial_cmd_typedef cmd_list[] = {
 {"one_key_off",    sizeof("one_key_off"),    serial_cmd_one_key_off   },
 {"bootloader",     sizeof("bootloader"),     serial_cmd_bootloader    },
 {"24g_attendance", sizeof("24g_attendance"), serial_cmd_24g_attendance},
+{"dtq_self_inspection",sizeof("dtq_self_inspection"),serial_cmd_self_inspection},
 {"NO_USE",         sizeof("NO_USE"),         NULL                     }
 };
 
@@ -344,7 +346,7 @@ void serial_cmd_get_device_no(const cJSON *object)
 
 void serial_cmd_one_key_off(const cJSON *object)
 {
-	uint8_t sdata_index;
+	uint8_t sdata_index = 0;
 	uint8_t *pSdata;
 
 	/* 准备发送数据 */
@@ -986,7 +988,7 @@ void serial_cmd_24g_attendance(const cJSON *object)
 	attend = atoi(cJSON_GetObjectItem(object, "attendance_status")->valuestring);
 	tx_ch  = atoi(cJSON_GetObjectItem(object, "attendance_tx_ch")->valuestring);
 	
-	if((( attend >= 0) && ( attend <= 1)) && (( tx_ch > 0) && ( tx_ch < 127)))
+	if(( attend <= 1) && (( tx_ch > 0) && ( tx_ch < 127)))
 	{
 		if (attend == 1)
 			clicker_set.N_24G_ATTEND = (uint8_t)tx_ch | 0x80;
@@ -1008,6 +1010,41 @@ void serial_cmd_24g_attendance(const cJSON *object)
 	b_print("  \"result\": \"%s\"\r\n",str);
 	b_print("}\r\n");
 
+}
+
+void serial_cmd_self_inspection(const cJSON *object)
+{
+	uint8_t sdata_index = 0;
+	uint8_t *pSdata;
+
+	/* 准备发送数据 */
+	pSdata = (uint8_t *)rf_var.tx_buf;
+	*(pSdata+(sdata_index++)) = 0x00;
+	*(pSdata+(sdata_index++)) = 0x00;
+	rf_var.cmd = 0xF1;
+	rf_var.tx_len = sdata_index+1 ;
+
+	/* 发送数据 */
+	{
+		nrf_transmit_parameter_t transmit_config;
+
+		/* 准备发送数据管理块 */
+		memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
+
+		memset(nrf_data.dtq_uid,    0x00, 4);
+		memset(transmit_config.dist,0x00, 4);
+
+		send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
+
+		/* 启动发送数据状态机 */
+		set_send_data_status( SEND_500MS_DATA_STATUS );
+		dtq_self_inspection_flg = 1;
+	}
+
+	b_print("{\r\n");
+	b_print("  \"fun\": \"dtq_self_inspection\",\r\n");
+	b_print("  \"result\": \"0\"\r\n");
+	b_print("}\r\n");
 }
 
 /**************************************END OF FILE****************************/

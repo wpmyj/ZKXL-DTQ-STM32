@@ -30,6 +30,7 @@ nrf_communication_t	    nrf_data;
 bool 						        gbf_hse_setup_fail = FALSE;		// 外部晶振起振标志
 RF_TypeDef 				      rf_var;
 extern wl_typedef       wl;
+extern uint8_t dtq_self_inspection_flg;
 
 void systick_timer_init( void );
 /*******************************************************************************
@@ -291,6 +292,51 @@ uint8_t spi_read_tx_payload(SPI_TypeDef* SPIx, uint8_t *rx_data_len, uint8_t *rx
 		uint16_t uidpos = 0xFFFF;
 		uint8_t Is_whitelist_uid;
 		memcpy(rx_data, &retval[4],*rx_data_len);
+
+		if(dtq_self_inspection_flg == 1)
+		{
+			uint8_t  Cmdtype;
+			uint16_t AckTableLen;
+			uint8_t *prdata;
+			uint8_t *prssi;
+
+			AckTableLen = retval[14+4];
+			Cmdtype     = retval[14+4+AckTableLen+1];
+			prdata      = retval+14+4+AckTableLen+2+1;
+			prssi       = retval+2;
+
+			if( Cmdtype == 0xF1 )
+			{
+				uint8_t test_buf[2] = {0,0};
+				char str[20];
+
+				nrf_transmit_parameter_t transmit_config;
+				test_buf[0] = prdata[0];
+				test_buf[1] = prssi[0];
+
+				memcpy(transmit_config.dist,nrf_data.rbuf+5, 4 );
+				transmit_config.package_type   = NRF_DATA_IS_USEFUL;
+				transmit_config.transmit_count = SEND_DATA_COUNT;
+				transmit_config.delay100us     = SEND_DATA_DELAY100US;
+				transmit_config.is_pac_add     = PACKAGE_NUM_SAM;
+				transmit_config.data_buf       = test_buf;
+				transmit_config.data_len       = 2;
+				transmit_config.sel_table      = SEND_DATA_ACK_TABLE+1;
+				nrf_transmit_start( &transmit_config );
+				b_print("{\r\n");
+				b_print("  \"fun\": \"dtq_self_inspection\",\r\n");
+				sprintf(str, "%010u" , *(uint32_t *)( nrf_data.rbuf+5));
+				b_print("  \"card_id\": \"%s\",\r\n", str );
+				memset(str,0,20);
+				sprintf(str, "%d" , ( test_buf[1]));
+				b_print("  \"dtq_rssi\": \"-%s\",\r\n", str );
+				memset(str,0,20);
+				sprintf(str, "%d" , ( test_buf[0]));
+				b_print("  \"jsq_rssi\": \"-%s\"\r\n", str );
+				b_print("}\r\n");
+			}
+		}
+
 		Is_whitelist_uid = search_uid_in_white_list(rx_data+5,&uidpos);
 		if( Is_whitelist_uid == OPERATION_SUCCESS )
 			wl.uids[uidpos].rssi = retval[2];
