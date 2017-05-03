@@ -48,7 +48,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>..\DTQ_RP551_HEX\</OutputDirectory>
-          <OutputName>DTQ_RP551_BOOTLOADER.hex</OutputName>
+          <OutputName>DTQ_RP551_BOOTLOADER</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -132,12 +132,12 @@
             <UseExternalTool>0</UseExternalTool>
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
-            <Capability>1</Capability>
-            <DriverSelection>4096</DriverSelection>
+            <Capability>0</Capability>
+            <DriverSelection>-1</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>BIN\UL2CM3.DLL</Flash2>
-          <Flash3>"" ()</Flash3>
+          <Flash3></Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -172,7 +172,7 @@
             <AdsLven>1</AdsLven>
             <AdsLsxf>1</AdsLsxf>
             <RvctClst>0</RvctClst>
-            <GenPPlst>1</GenPPlst>
+            <GenPPlst>0</GenPPlst>
             <AdsCpuType>"Cortex-M3"</AdsCpuType>
             <RvctDeviceName></RvctDeviceName>
             <mOS>0</mOS>
@@ -310,7 +310,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>4</Optim>
+            <Optim>1</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -329,7 +329,7 @@
             <vShortEn>1</vShortEn>
             <vShortWch>1</vShortWch>
             <VariousControls>
-              <MiscControls>--C99</MiscControls>
+              <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xB</Define>
               <Undefine></Undefine>
               <IncludePath>..\Inc;..\BSP\DTQ_RP551;..\STM32F1xx_HAL_Driver\Inc;..\CMSIS_CORE;..\CMSIS_BOOT;..\USER</IncludePath>
@@ -365,7 +365,7 @@
             <ScatterFile></ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
-            <Misc>--diag_suppress=L6329</Misc>
+            <Misc></Misc>
             <LinkerInputFile></LinkerInputFile>
             <DisabledWarnings></DisabledWarnings>
           </LDads>
@@ -379,51 +379,6 @@
               <FileName>stm32f1xx_hal.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_cortex.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_cortex.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_crc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_crc.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_flash.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_flash.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_gpio.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_gpio.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_rcc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_rcc.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_uart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_uart.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_usart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_usart.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_flash_ex.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_flash_ex.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f1xx_hal_dma.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_dma.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_adc.c</FileName>
@@ -446,6 +401,16 @@
               <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_cec.c</FilePath>
             </File>
             <File>
+              <FileName>stm32f1xx_hal_cortex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_cortex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx_hal_crc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_crc.c</FilePath>
+            </File>
+            <File>
               <FileName>stm32f1xx_hal_dac.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_dac.c</FilePath>
@@ -456,9 +421,29 @@
               <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_dac_ex.c</FilePath>
             </File>
             <File>
+              <FileName>stm32f1xx_hal_dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_dma.c</FilePath>
+            </File>
+            <File>
               <FileName>stm32f1xx_hal_eth.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_eth.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx_hal_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_flash.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx_hal_flash_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_flash_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx_hal_gpio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_gpio.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_gpio_ex.c</FileName>
@@ -491,11 +476,6 @@
               <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_iwdg.c</FilePath>
             </File>
             <File>
-              <FileName>stm32f1xx_hal_msp_template.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_msp_template.c</FilePath>
-            </File>
-            <File>
               <FileName>stm32f1xx_hal_nand.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_nand.c</FilePath>
@@ -524,6 +504,11 @@
               <FileName>stm32f1xx_hal_pwr.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_pwr.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx_hal_rcc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_rcc.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_rcc_ex.c</FileName>
@@ -576,6 +561,16 @@
               <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_tim_ex.c</FilePath>
             </File>
             <File>
+              <FileName>stm32f1xx_hal_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx_hal_usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_usart.c</FilePath>
+            </File>
+            <File>
               <FileName>stm32f1xx_hal_wwdg.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_wwdg.c</FilePath>
@@ -601,14 +596,29 @@
           <GroupName>CMSIS_BOOT</GroupName>
           <Files>
             <File>
+              <FileName>startup_stm32f103xb.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\CMSIS_BOOT\startup_stm32f103xb.s</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\CMSIS_BOOT\stm32f1xx.h</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f103xb.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\CMSIS_BOOT\stm32f103xb.h</FilePath>
+            </File>
+            <File>
               <FileName>system_stm32f1xx.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\CMSIS_BOOT\system_stm32f1xx.c</FilePath>
             </File>
             <File>
-              <FileName>startup_stm32f103xb.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>..\CMSIS_BOOT\startup_stm32f103xb.s</FilePath>
+              <FileName>system_stm32f1xx.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\CMSIS_BOOT\system_stm32f1xx.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -641,6 +651,11 @@
               <FilePath>..\USER\main.c</FilePath>
             </File>
             <File>
+              <FileName>menu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\USER\menu.c</FilePath>
+            </File>
+            <File>
               <FileName>stm32f1xx_it.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\USER\stm32f1xx_it.c</FilePath>
@@ -649,11 +664,6 @@
               <FileName>ymodem.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\USER\ymodem.c</FilePath>
-            </File>
-            <File>
-              <FileName>menu.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\USER\menu.c</FilePath>
             </File>
           </Files>
         </Group>
