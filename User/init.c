@@ -318,7 +318,7 @@ uint8_t spi_read_tx_payload(SPI_TypeDef* SPIx, uint8_t *rx_data_len, uint8_t *rx
 				transmit_config.package_type   = NRF_DATA_IS_USEFUL;
 				transmit_config.transmit_count = SEND_DATA_COUNT;
 				transmit_config.delay100us     = SEND_DATA_DELAY100US;
-				transmit_config.is_pac_add     = PACKAGE_NUM_SAM;
+				transmit_config.is_pac_add     = PACKAGE_NUM_ADD;
 				transmit_config.data_buf       = test_buf;
 				transmit_config.data_len       = 2;
 				transmit_config.sel_table      = SEND_DATA_ACK_TABLE+1;
