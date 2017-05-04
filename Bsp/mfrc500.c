@@ -143,7 +143,7 @@ uint8_t ReadNDEFfile (uint8_t *NDEFfile_Data, uint16_t *NDEFfile_len)
 	{
 		return 0x11;
 	}
-	NDEF_DataRead_Len = 26;
+	NDEF_DataRead_Len = 22;
 	memset(respon, 0, BUF_LEN);
 	len = 0;
 	//MRC500_DEBUG_START("ReadNDEFfile \r\n");

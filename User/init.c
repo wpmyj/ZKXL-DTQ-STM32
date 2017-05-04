@@ -72,6 +72,7 @@ void Platform_Init(void)
 	DelayMs(200);
 	BEEP_DISEN();
 	ledOff(LBLUE);
+	clicker_config_default_set();
 	IWDG_Configuration();
 }
 

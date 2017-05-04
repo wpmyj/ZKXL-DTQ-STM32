@@ -25,6 +25,7 @@ extern uint8_t is_open_statistic;
 extern uint8_t uart_tx_status;
 extern uint16_t list_tcb_table[16][8];
 extern nrf_communication_t nrf_data;
+extern rf_config_typedef clicker_set;
        uint8_t serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 			 uint8_t serial_cmd_type = 0;
 			 uint8_t err_cmd_type = 0;
@@ -56,6 +57,8 @@ void App_send_process_parameter_set( Uart_MessageTypeDef *RMessage, Uart_Message
 void App_card_match_single( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_card_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 void App_start_or_stop_answer( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_setting_24g_attendence( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
+void App_bootloader_attendence( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage );
 
 /******************************************************************************
   Function:App_seirial_cmd_process
@@ -345,6 +348,38 @@ static void serial_cmd_process(void)
 					else
 					{
 						App_start_or_stop_answer( &ReviceMessage, &SendMessage);
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+					}
+				}
+				break;
+				
+			case 0x43:
+				{
+					if(ReviceMessage.LEN != 2)
+					{
+						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;
+					}
+					else
+					{
+						App_setting_24g_attendence( &ReviceMessage, &SendMessage);
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
+					}
+				}
+				break;
+				
+			case 0x50:
+				{
+					if(ReviceMessage.LEN != 0)
+					{
+						err_cmd_type = serial_cmd_type;
+						serial_cmd_type = APP_CTR_DATALEN_ERR;
+						serial_cmd_status = APP_SERIAL_CMD_STATUS_ERR;
+					}
+					else
+					{
+						App_bootloader_attendence( &ReviceMessage, &SendMessage);
 						serial_cmd_status = APP_SERIAL_CMD_STATUS_IDLE;
 					}
 				}
@@ -866,8 +901,8 @@ void App_open_or_close_attendance_match( Uart_MessageTypeDef *RMessage, Uart_Mes
 				if(card_is_busy == 0)
 				{
 					wl.attendance_sttaus = ON;
-					memcpy(Card_process.sign,RMessage->SIGN,4);
-					Card_process.cmd_type = RMessage->TYPE;
+					memcpy(card_task.srcid,RMessage->SIGN,4);
+					card_task.cmd_type = RMessage->TYPE;
 					SMessage->DATA[i++] = 0;
 					rf_set_card_status(1);
 				}
@@ -879,7 +914,7 @@ void App_open_or_close_attendance_match( Uart_MessageTypeDef *RMessage, Uart_Mes
 			break;
 		case 0x27:
 			{
-				if( Card_process.cmd_type == 0x25 )
+				if( card_task.cmd_type == 0x25 )
 				{
 					wl.attendance_sttaus = OFF;
 					SMessage->DATA[i++] = 0;
@@ -944,6 +979,17 @@ void App_return_device_info( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef 
 	for(temp_count=0,i=0;(temp_count<8)&&(i<16);temp_count++,i=i+2)
 	{
 			*( pdata + ( j++ ) )=(company[i]<<4)|(company[i+1]);
+	}
+	
+	if( clicker_set.N_24G_ATTEND & 0x80 )
+	{
+		*( pdata + ( j++ ) ) = 0x01;
+		*( pdata + ( j++ ) ) = clicker_set.N_24G_ATTEND & 0x7F;
+	}
+	else
+	{
+		*( pdata + ( j++ ) ) = 0x00;
+		*( pdata + ( j++ ) ) = clicker_set.N_24G_ATTEND & 0x00;
 	}
 
 	SMessage->LEN = j;
@@ -1080,10 +1126,15 @@ void App_card_match_single( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *
 
 	if(card_is_busy == 0)
 	{
-		Card_process.cmd_type = RMessage->TYPE;
-		memcpy(Card_process.sign,RMessage->SIGN,4);
-		memcpy(Card_process.studentid,RMessage->DATA,20);
-		Card_process.match_single = 1;
+		card_task.cmd_type = RMessage->TYPE;
+		memcpy(card_task.srcid,RMessage->SIGN,4);
+		{
+			uint8_t j=0;
+			for(j=0;j<10;j++)
+				card_task.stdid[j] = (RMessage->DATA[2*j] % 10) << 4 
+			                     | (RMessage->DATA[2*j + 1] % 10);
+		}
+		card_task.match_single = 1;
 		wl.match_status = ON;
 		SMessage->DATA[i++] = 0;
 		rf_set_card_status(1);
@@ -1124,10 +1175,10 @@ void App_card_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessag
 			if(card_is_busy == 0)
 			{
 				wl.match_status = ON;
-				memset(Card_process.studentid,0x00,20);
-				Card_process.match_single = 0;
-				memcpy(Card_process.sign,RMessage->SIGN,4);
-				Card_process.cmd_type = RMessage->TYPE;
+				memset(card_task.stdid,0x00,10);
+				card_task.match_single = 0;
+				memcpy(card_task.srcid,RMessage->SIGN,4);
+				card_task.cmd_type = RMessage->TYPE;
 				SMessage->DATA[0] = 0;
 				rf_set_card_status(1);
 			}
@@ -1138,11 +1189,11 @@ void App_card_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessag
 		}
 		else
 		{
-			if( Card_process.cmd_type == 0x41 )
+			if( card_task.cmd_type == 0x41 )
 			{
 				wl.match_status = OFF;
-				memset(Card_process.studentid,0x00,20);
-				Card_process.match_single = 0;
+				memset(card_task.stdid,0x00,10);
+				card_task.match_single = 0;
 				rf_set_card_status(0);
 				SMessage->DATA[0] = 0;
 				PcdHalt();
@@ -1156,8 +1207,8 @@ void App_card_match( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessag
 	}
 	else
 	{
-		memset(Card_process.studentid,0x00,20);
-		Card_process.match_single = 0;
+		memset(card_task.stdid,0x00,20);
+		card_task.match_single = 0;
 		SMessage->DATA[0] = 1;
 		wl.match_status = OFF;
 	}
@@ -1187,7 +1238,7 @@ void App_start_or_stop_answer( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDe
 	SMessage->HEADER = 0x5C;
 	SMessage->TYPE = RMessage->TYPE;
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
-	memcpy(Card_process.sign,RMessage->SIGN,4);
+	memcpy(card_task.srcid,RMessage->SIGN,4);
 
 	SMessage->LEN = 0x01;
 
@@ -1209,6 +1260,84 @@ void App_start_or_stop_answer( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDe
 
 	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
 	SMessage->END = 0xCA;
+}
+
+/******************************************************************************
+  Function:App_setting_24g_attendence
+  Description:
+		2.4G考勤设置函数
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_setting_24g_attendence( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	uint8_t i = 0;
+	uint8_t result = 0;
+
+	uint8_t set_op = RMessage->DATA[0];
+	uint8_t tx_ch  = RMessage->DATA[1];
+
+	if(set_op <= 1)
+	{
+		if(set_op == 1)
+		{
+			if(tx_ch <= 127) 
+			{
+				result = 0;
+				clicker_set.N_24G_ATTEND = 0x80 | tx_ch;
+			}
+			else
+			{
+				result = 1;
+				clicker_set.N_24G_ATTEND = 0;
+			}
+		}
+		else
+		{
+			result = 0;
+			clicker_set.N_24G_ATTEND = 0x80 | tx_ch;
+		}
+	}
+	else
+	{
+		clicker_set.N_24G_ATTEND = 0;
+		result = 1;
+	}
+
+	SMessage->HEADER = 0x5C;
+	SMessage->TYPE = RMessage->TYPE;
+	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
+	SMessage->LEN = 0x01;
+	SMessage->DATA[i++] = result;
+	SMessage->XOR = XOR_Cal((uint8_t *)(&(SMessage->TYPE)), i+6);
+	SMessage->END = 0xCA;
+}
+
+/******************************************************************************
+  Function:App_setting_24g_attendence
+  Description:
+		2.4G考勤设置函数
+  Input :
+		RMessage:串口接收指令的消息指针
+		SMessage:串口发送指令的消息指针
+  Return:
+  Others:None
+******************************************************************************/
+void App_bootloader_attendence( Uart_MessageTypeDef *RMessage, Uart_MessageTypeDef *SMessage )
+{
+	typedef  void (*pFunction)(void);
+
+	uint32_t JumpAddress;
+	pFunction JumpToBootloader;
+	/* Jump to user application */
+	JumpAddress = *(__IO uint32_t*) (0x8000000 + 4);
+	JumpToBootloader = (pFunction) JumpAddress;
+	/* Initialize user application's Stack Pointer */
+	__set_MSP(*(__IO uint32_t*) 0x8000000);
+	JumpToBootloader();
 }
 
 /******************************************************************************
