@@ -330,7 +330,7 @@
             <vShortWch>1</vShortWch>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>STM32F10X_MD, USE_STDPERIPH_DRIVER,ZL_RP551_MAIN_F</Define>
+              <Define>STM32F10X_MD, USE_STDPERIPH_DRIVER,ZL_RP551_MAIN_H</Define>
               <Undefine></Undefine>
               <IncludePath>..\Libraries\CMSIS\CM3\CoreSupport;..\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x;..\Libraries\STM32F10x_StdPeriph_Driver\inc;..\include;..\User;..\Bsp;..\Libraries\cJSON</IncludePath>
             </VariousControls>
@@ -524,6 +524,11 @@
               <FileName>zl_rp551_main_f.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\include\zl_rp551_main_f.h</FilePath>
+            </File>
+            <File>
+              <FileName>zl_rp551_main_h.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\zl_rp551_main_h.h</FilePath>
             </File>
           </Files>
         </Group>

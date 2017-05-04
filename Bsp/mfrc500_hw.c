@@ -103,7 +103,7 @@ void mfrc500_gpio_init(void)
 	GPIO_WriteBit(MFRC500_DATA_Port, GPIO_InitStructure.GPIO_Pin, Bit_RESET);
 #endif
 
-#ifdef ZL_RP551_MAIN_F
+#if defined (ZL_RP551_MAIN_F) && defined (ZL_RP551_MAIN_H)
 GPIO_InitTypeDef GPIO_InitStructure;
 	
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable,ENABLE);

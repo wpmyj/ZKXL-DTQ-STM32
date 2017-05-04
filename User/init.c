@@ -378,6 +378,10 @@ void spi_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count
 #ifdef ZL_RP551_MAIN_F
 		retval[i] = hal_nrf_rw(SPI2, *(pdata+i));
 #endif
+
+#ifdef ZL_RP551_MAIN_H
+		retval[i] = hal_nrf_rw(SPI2, *(pdata+i));
+#endif
 		//printf(" %02x",*(pdata+i));
 	}
 	//printf("\r\n");
@@ -424,7 +428,7 @@ void spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 {
 	uint16_t data = tx_ch;
 	cpu_spi_cmd_typedef spi_cmd;
-	uint8_t *pdata,i,retval[sizeof(cpu_spi_cmd_typedef)];
+	uint8_t i,retval[sizeof(cpu_spi_cmd_typedef)];
 	
 	/* 存储数据到FEE */
 	EE_WriteVariable(CPU_TX_CH_POS_OF_FEE,data);
@@ -439,7 +443,6 @@ void spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 	/* 开始SPI传输 */
 	NRF2_CSN_LOW();	
 	//printf("SPI_TX_SET_CH:");
-	pdata = (uint8_t *)&spi_cmd;
 	memset(retval, 0, sizeof(cpu_spi_cmd_typedef));
 	for(i=0; i<sizeof(cpu_spi_cmd_typedef); i++)
 	{
@@ -447,7 +450,7 @@ void spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 		retval[i] = hal_nrf_rw(SPI1, *(pdata+i));
 #endif
 
-#ifdef ZL_RP551_MAIN_F
+#if defined (ZL_RP551_MAIN_F) && defined (ZL_RP551_MAIN_H)
 		retval[i] = hal_nrf_rw(SPI2, *(pdata+i));
 #endif
 		//printf(" %02x",*(pdata+i));
