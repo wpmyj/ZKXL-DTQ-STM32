@@ -79,34 +79,34 @@ void SerialDownload(void)
   uint32_t size = 0;
   COM_StatusTypeDef result;
 
-  printf("Waiting for the file to be sent ... (press 'a' to abort)\n\r");
+  printf("Waiting for the file to be sent ... (press 'a' to abort)\r\n");
   result = Ymodem_Receive( &size );
 	HAL_Delay( 300 );
   if (result == COM_OK)
   {
-		printf("\n\n\r Programming Completed Successfully!");
-		printf("\n\r-------------------------------------");
-		printf("\n\r Name:%s",aFileName);
+		printf(" Programming Completed Successfully!\r\n");
+		printf("-------------------------------------\r\n");
+		printf(" Name:%s\r\n",aFileName);
 		Int2Str(number, size);
-		printf("\n\r Size:%s Bytes\r\n",number);
+		printf(" Size:%s Bytes\r\n",number);
 		printf("-------------------------------------\r\n");
   }
 	
   else if (result == COM_LIMIT)
   {
-    printf("\n\n\rThe image size is higher than the allowed space memory!\n\r");
+    printf("The image size is higher than the allowed space memory!\r\n");
   }
   else if (result == COM_DATA)
   {
-    printf("\n\n\rVerification failed!\n\r");
+    printf("Verification failed!\r\n");
   }
   else if (result == COM_ABORT)
   {
-    printf("\r\n\nAborted by user.\n\r");
+    printf("Aborted by user.\r\n");
   }
   else
   {
-    printf("\n\rFailed to receive the file!\n\r");
+    printf("Failed to receive the file!\r\n");
   }
 }
 
@@ -119,7 +119,7 @@ void SerialUpload(void)
 {
   uint8_t status = 0;
 
-  printf("\n\n\rSelect Receive File\n\r");
+  printf("Select Receive File\r\n");
 
   HAL_UART_Receive(&UartHandle, &status, 1, RX_TIMEOUT);
   if ( status == CRC16)
@@ -129,11 +129,11 @@ void SerialUpload(void)
 
     if (status != 0)
     {
-      printf("\n\rError Occurred while Transmitting File\n\r");
+      printf("Error Occurred while Transmitting File\r\n");
     }
     else
     {
-      printf("\n\rFile uploaded successfully \n\r");
+      printf("File uploaded successfully \r\n");
     }
   }
 }
