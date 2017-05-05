@@ -1298,7 +1298,7 @@ void App_setting_24g_attendence( Uart_MessageTypeDef *RMessage, Uart_MessageType
 		else
 		{
 			result = 0;
-			clicker_set.N_24G_ATTEND = 0x80 | tx_ch;
+			clicker_set.N_24G_ATTEND = 0x7F & tx_ch;
 		}
 	}
 	else
@@ -1306,7 +1306,7 @@ void App_setting_24g_attendence( Uart_MessageTypeDef *RMessage, Uart_MessageType
 		clicker_set.N_24G_ATTEND = 0;
 		result = 1;
 	}
-
+	EE_WriteVariable( CPU_24G_ATTENDANCE_OF_FEE , clicker_set.N_24G_ATTEND );
 	SMessage->HEADER = 0x5C;
 	SMessage->TYPE = RMessage->TYPE;
 	memcpy(SMessage->SIGN, RMessage->SIGN, 4);
