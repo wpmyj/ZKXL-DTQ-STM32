@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>ZKXL-DTQ-JSQTY</TargetName>
+      <TargetName>DTQ_RP551CPU_WHTY0109</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pCCUsed>5060061::V5.06 update 1 (build 61)::ARMCC</pCCUsed>
