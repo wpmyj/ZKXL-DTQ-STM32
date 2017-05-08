@@ -39,6 +39,7 @@ void App_card_process(void);
 void rf_set_card_status(uint8_t new_status);
 uint8_t rf_get_card_status(void);
 void card_timer_init( void );
+void sync_old_first_uid_pos( void );
 
 
 #endif

@@ -4,13 +4,14 @@
 #include "main.h"
 
 #define UID_LIST_TABLE_SUM                (16)
-#define MAX_WHITE_LEN						          (120)
+#define MAX_WHITE_LEN						          120
 #define WHITE_TABLE_LEN                   (8)
 #define WHITE_LIST_LEN_POS_OF_FEE         (481)
-#define WHITE_LIST_SW_POS_OF_FEE          (482)
-#define WHITE_LIST_USE_TABLE_POS_OF_FEE   (483)
+#define WHITE_LIST_FIRST_UID_POS_OF_FEE   (WHITE_LIST_LEN_POS_OF_FEE+1)
+#define WHITE_LIST_SW_POS_OF_FEE          (WHITE_LIST_FIRST_UID_POS_OF_FEE+1)
+#define WHITE_LIST_USE_TABLE_POS_OF_FEE   (WHITE_LIST_SW_POS_OF_FEE+1)
 #define CPU_TX_CH_POS_OF_FEE              (WHITE_LIST_USE_TABLE_POS_OF_FEE+WHITE_TABLE_LEN)
-#define CPU_RX_CH_POS_OF_FEE              (1+CPU_TX_CH_POS_OF_FEE)
+#define CPU_RX_CH_POS_OF_FEE              (CPU_TX_CH_POS_OF_FEE+1)
 #define CPU_TX_POWER_POS_OF_FEE           (CPU_RX_CH_POS_OF_FEE+1)
 #define CPU_24G_ATTENDANCE_OF_FEE         (CPU_TX_POWER_POS_OF_FEE+1)
 

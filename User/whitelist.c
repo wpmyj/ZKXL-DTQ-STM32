@@ -1,4 +1,5 @@
 #include "whitelist.h"
+#include "app_card_process.h"
 
 /* Private variables ---------------------------------------------------------*/
 uint8_t 	        g_cSNR[10];						        // M1卡序列号
@@ -112,6 +113,7 @@ void get_white_list_from_flash(void)
 	uint8_t i,Is_use_pos;
 	uint16_t index;
 	uint16_t viraddr,tmpuid[4],switch_status,addr_clone_flag;
+	uint16_t temp;
 
 	/* get use table */
 	for(i=0;i<8;i++)
@@ -132,6 +134,17 @@ void get_white_list_from_flash(void)
 			}
 			wl.len++;
 		}
+	}
+	
+	/* get first_uid_pos */
+	EE_ReadVariable(WHITE_LIST_FIRST_UID_POS_OF_FEE,&temp);
+	if( temp <= MAX_WHITE_LEN )
+	{
+		wl.first_uid_pos = temp;
+	}
+	else
+	{
+		wl.first_uid_pos = 0;
 	}
 
 	/* get switch_status */
@@ -174,11 +187,11 @@ void set_index_of_white_list_pos( uint8_t use_or_online, uint16_t index )
 	if(use_or_online == 0)
 	{
 		flash_white_list_use_table();
-		if(wl.len<120)
+		if(wl.len<=MAX_WHITE_LEN)
 		{
 			wl.len++;
-			store_len_to_fee(wl.len);
 		}
+		store_len_to_fee(wl.len);
 	}
 }
 
@@ -204,8 +217,8 @@ void clear_index_of_white_list_pos( uint8_t use_or_online, uint16_t index )
 		if(wl.len>0)
 		{
 			wl.len--;
-			store_len_to_fee(wl.len);
 		}
+		store_len_to_fee(wl.len);
 	}
 }
 
@@ -330,6 +343,9 @@ void add_index_of_uid( uint16_t index, uint8_t  uid[4] )
 	memcpy(wl.uids[index].uid,uid,4);
 	wl.uids[index].pos = index;
 	set_index_of_white_list_pos(0,index);
+
+	if(wl.len >= MAX_WHITE_LEN)
+		EE_WriteVariable(WHITE_LIST_FIRST_UID_POS_OF_FEE,wl.first_uid_pos);
 }
 /******************************************************************************
   Function:get_len_of_white_list
@@ -373,7 +389,7 @@ uint8_t store_len_to_fee(uint16_t len)
 {
 	uint16_t FlashStatus = 0;
 
-	EE_WriteVariable(WHITE_LIST_LEN_POS_OF_FEE,len);
+	FlashStatus  = EE_WriteVariable(WHITE_LIST_LEN_POS_OF_FEE,len);
 
 	if (FlashStatus != FLASH_COMPLETE)
 	{
@@ -416,6 +432,7 @@ uint8_t initialize_white_list( void )
 {
 	uint16_t FlashStatus;
 	uint8_t i;
+	uint16_t temp;
 
 	/* 格式化FLASH */
 	FlashStatus = Fee_Init(FEE_INIT_CLEAR);
@@ -434,6 +451,10 @@ uint8_t initialize_white_list( void )
 	for(i=0;i<8;i++)
 		list_tcb_table[0][i] = 0;
 	flash_white_list_use_table();
+	
+	wl.first_uid_pos = 0;
+	temp = wl.first_uid_pos;
+	EE_WriteVariable(WHITE_LIST_FIRST_UID_POS_OF_FEE,temp);
 
 	wl.start = ON;
 
@@ -494,7 +515,7 @@ uint8_t delete_uid_from_white_list(uint8_t *g_uid)
 	/* search the uid form white list*/
 	status = search_uid_in_white_list( g_uid, &pos );
 
-	if(status == OPERATION_ERR)
+	if( status == OPERATION_ERR )
 	{
 		WhiteListDebug("<%s> The UID is not in white list \r\n",__func__);
 		return OPERATION_ERR;
@@ -529,18 +550,21 @@ uint8_t add_uid_to_white_list(uint8_t *g_uid, uint16_t *position)
 	}
 	else
 	{
-		status = get_nouse_pos_of_white_list(position);
-
-		if(status == OPERATION_ERR)
+		if( wl.len >= MAX_WHITE_LEN )
 		{
 			WhiteListDebug("<%s> The white list is full \r\n",__func__);
-			*position = 0;
-			return OPERATION_ERR;
+			*position = wl.first_uid_pos;
+			memcpy(wl.clear_uid,wl.uids[wl.first_uid_pos].uid,4);
+			wl.first_uid_pos = (wl.first_uid_pos + 1) % 119;
+			wl.is_printf_clear_uid = 1;
+			WhiteListDebug("wl.is_printf_clear_uid = %d\r\n",wl.is_printf_clear_uid);
 		}
 		else
 		{
-			add_index_of_uid( *position, g_uid );
-			return OPERATION_SUCCESS;
+			*position = wl.len;
+			WhiteListDebug("<%s> The white list isn't full \r\n",__func__);
 		}
+		add_index_of_uid( *position, g_uid );
+		return OPERATION_SUCCESS;
 	}
 }

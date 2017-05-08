@@ -920,7 +920,7 @@ void serial_cmd_import_config(char *pdata_str)
 			case IMPORT_STATUS_UPOS: 
 				{
 					upos = atoi(value_str);
-					if(upos > 120)
+					if(upos >= MAX_WHITE_LEN)
 						result = -1;
 				}
 				break;
@@ -928,7 +928,7 @@ void serial_cmd_import_config(char *pdata_str)
 				{
 					uint8_t *pdata,is_white_list_uid;
 					uint16_t uid_pos;
-					if(count <= 120)
+					if(count <= MAX_WHITE_LEN)
 					{
 						uid = atof(value_str);
 						pdata = (uint8_t *)&uid;

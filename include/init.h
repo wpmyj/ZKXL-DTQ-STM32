@@ -11,6 +11,7 @@
 #define _INIT_H_
 
 #include "define.h"
+#include "whitelist.h"
 
 typedef struct 
 {
@@ -44,6 +45,9 @@ typedef struct
 {
 	Clicker_Typedef uids[120];
 	uint16_t   len;
+	uint16_t   first_uid_pos;
+	uint8_t    is_printf_clear_uid;
+	uint8_t    clear_uid[4];
 	uint8_t    switch_status;
 	uint8_t    start;
 	uint8_t    attendance_sttaus;

@@ -40,18 +40,6 @@ static uint16_t write_uid_pos   = 0xFFFF;
 static uint8_t card_message_err = 0;
 static uint8_t find_card_ok     = 0;
 
-
-/******************************************************************************
-  Function:clicker_config_default_set
-  Description:
-		设置答题器的默认发送参数
-  Input :
-  Output:
-  Return:
-  Others:None
-******************************************************************************/
-
-
 /******************************************************************************
   Function:rf_set_card_status
   Description:
@@ -400,15 +388,6 @@ void App_card_process(void)
 				}
 				wtrte_flash_ok = 1;
 			}
-			else
-			{
-				card_message_err = 2;
-				wtrte_flash_ok = 1;
-				b_print("{\r\n");
-				b_print("  \"fun\": \"Error\",\r\n");
-				b_print("  \"description\": \"white list full!\"\r\n");
-				b_print("}\r\n");
-			}
 			rf_set_card_status(3);
 		}
 		
@@ -473,6 +452,15 @@ void App_card_process(void)
 				memset(str,0,20);
 				sprintf(str, "%010u" , *(uint32_t *)( wl.uids[write_uid_pos].uid));
 				b_print("  \"card_id\": \"%s\",\r\n", str );
+				b_print("  \"is_clear_uid\": \"%d\",\r\n",wl.is_printf_clear_uid);
+				if( wl.is_printf_clear_uid == 1 )
+				{
+					wl.is_printf_clear_uid = 0;
+					printf("wl.is_printf_clear_uid = %d\r\n",wl.is_printf_clear_uid);					
+					memset(str,0,20);
+					sprintf(str, "%010u" , *(uint32_t *)( wl.clear_uid));
+					b_print("  \"clear_uid\": \"%d\"\r\n",str);
+				}
 				
 				memset(str,0,21);
 				{
@@ -487,7 +475,7 @@ void App_card_process(void)
 							sprintf(p_student_data+2*i+1,"%d" ,temp_data);
 					}
 				}
-				b_print("  \"student_id\": \"%s\"\r\n", str );
+				b_print("  \"student_id\": \"%s\",\r\n", str );
 				b_print("}\r\n");
 			}
 			else
@@ -514,7 +502,18 @@ void App_card_process(void)
 //			wl.uids[write_uid_pos].uid[0],wl.uids[write_uid_pos].uid[1],
 //			wl.uids[write_uid_pos].uid[2],wl.uids[write_uid_pos].uid[3]);
 				sprintf(str, "%010u" , *(uint32_t *)( wl.uids[write_uid_pos].uid));
-				b_print("  \"card_id\": \"%s\"\r\n",str);
+				b_print("  \"card_id\": \"%s\",\r\n",str);
+				if( wl.is_printf_clear_uid == 1 )
+				{
+					b_print("  \"is_clear_uid\": \"%d\",\r\n",wl.is_printf_clear_uid);
+					wl.is_printf_clear_uid = 0;
+					b_print("  \"clear_uid\": \"%010u\"\r\n",*(uint32_t *)( wl.clear_uid));
+					memset(wl.clear_uid,0x00,4);
+				}
+				else
+				{
+					b_print("  \"is_clear_uid\": \"%d\"\r\n",wl.is_printf_clear_uid);
+				}
 //			memset(str,0,20);
 //			for(i=0;i<4;i++)
 //				uid[i] = wl.uids[write_uid_pos].uid[3-i];
