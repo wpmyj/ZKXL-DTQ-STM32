@@ -3,12 +3,18 @@
  * Auto generated Run-Time-Environment Component Configuration File
  *      *** Do not modify ! ***
  *
- * Project: 'Datiqi_Receiver_V1003' 
- * Target:  'Datiqi_Receiver' 
+ * Project: 'DTQ-STM32-ZKXL0200' 
+ * Target:  'v0.1.3' 
  */
 
 #ifndef RTE_COMPONENTS_H
 #define RTE_COMPONENTS_H
+
+
+/*
+ * Define the Device Header File: 
+ */
+#define CMSIS_device_header "stm32f10x.h"
 
 
 #endif /* RTE_COMPONENTS_H */
