@@ -146,13 +146,15 @@ static void update_data_to_buffer( uint8_t *Message )
 	answer_info_typedef answer_temp = {0,0,0};
 	uint16_t r_index = 0;
 	uint8_t  is_last_data_full = 0;
+	uint8_t  raise_sign = 0;
 		/* 获取数据的起始地址 */
 	uint8_t *prdata;
 	
 	AckTableLen = Message[14];
 	DataLen     = Message[14+AckTableLen+2];
 	Cmdtype     = Message[14+AckTableLen+1];
-	prdata      = Message+14+AckTableLen+2+1;
+	raise_sign  = *(Message+14+AckTableLen+2+1);
+	prdata      = Message+14+AckTableLen+2+2;
 
 	if( DataLen == 0 )
 		return;
@@ -176,8 +178,7 @@ static void update_data_to_buffer( uint8_t *Message )
 			memset(ClickerAnswerTime,0x00,CLICKER_TIMER_STR_LEN);
 			Parse_time_to_str((char *)ClickerAnswerTime);
 			b_print("  \"update_time\": \"%s\",\r\n",(char *) ClickerAnswerTime );
-			b_print("  \"answers\": [\r\n");
-			
+
 			if( Cmdtype == 0x10 )
 			{
 				char answer_type[2];
@@ -185,7 +186,12 @@ static void update_data_to_buffer( uint8_t *Message )
 				char answer_id[3];
 				is_last_data_full = 0;
 				r_index = 0;
-				while( r_index < DataLen-2 )
+
+				b_print("  \"raise_hand\": \"%d\",\r\n", (raise_sign & 0x01) ? 1: 0 );
+				b_print("  \"attendance\": \"%d\",\r\n", (raise_sign & 0x02) ? 1: 0 );
+
+				b_print("  \"answers\": [\r\n");
+				while( r_index < DataLen-3 )
 				{
 					b_print("    {");
 					if(is_last_data_full == 0)
@@ -276,6 +282,41 @@ static void update_data_to_buffer( uint8_t *Message )
 						{
 							sprintf(answer_range, "%d" , answer_temp.range);
 							memcpy(answer_type,"d",sizeof("d"));
+						}
+						break;
+						
+						case 4: 
+						{
+							uint8_t answer = 0;
+							{
+								uint8_t i;
+								uint8_t *pdata = (uint8_t *)answer_range;
+
+								answer = (answer_temp.range)&0x3F;
+
+								for( i=0; i<='F'-'A'; i++ )
+								{
+									uint8_t mask_bit = 1 << i;
+									if( (answer & mask_bit) == mask_bit )
+									{
+										*pdata = 'A'+i;
+										pdata = pdata + 1;
+									}
+								}
+							}
+							
+							switch(answer&0xC0)
+							{
+								case 0x40: // true
+									memcpy(answer_range,"true",sizeof("true"));
+								break;
+								case 0x80: // false
+									memcpy(answer_range,"false",sizeof("false"));
+								break;
+								default: break;
+							}
+
+							memcpy(answer_type,"g",sizeof("g"));
 						}
 						break;
 						

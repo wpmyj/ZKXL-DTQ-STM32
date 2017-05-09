@@ -40,6 +40,8 @@ void App_seirial_cmd_process(void);
 #define ANSWER_STATUS_DATA_TYPE            4
 #define ANSWER_STATUS_DATA_ID              5
 #define ANSWER_STATUS_DATA_RANGE           6
+#define ANSWER_STATUS_HAND                 7
+#define ANSWER_STATUS_SIGN                 8
 
 #define IMPORT_STATUS_FUN                  0x01
 #define IMPORT_STATUS_ADDR                 0x02

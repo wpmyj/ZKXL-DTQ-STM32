@@ -56,6 +56,8 @@ const static serial_cmd_typedef cmd_list[] = {
 const static json_item_typedef answer_item_list[] = {
 {"fun",      sizeof("fun"),       ANSWER_STATUS_FUN},
 {"time",     sizeof("time"),      ANSWER_STATUS_TIME},
+{"raise_hand",sizeof("raise_hand"), ANSWER_STATUS_HAND},
+{"attendance",sizeof("attendance"), ANSWER_STATUS_SIGN},
 {"questions",sizeof("questions"), ANSWER_STATUS_QUESTION},
 {"type",     sizeof("type"),      ANSWER_STATUS_DATA_TYPE},
 {"id",       sizeof("id"),        ANSWER_STATUS_DATA_ID},
@@ -589,11 +591,12 @@ void serial_cmd_answer_start(char *pdata_str)
 	uint8_t real_total = 0;
 
 	/* send data control */
-	uint8_t  *pSdata = (uint8_t *)rf_var.tx_buf;
+	uint8_t  *pSdata = (uint8_t *)rf_var.tx_buf+1;
 	uint16_t sdata_index = 0;
   uint8_t  is_last_data_full = 0;
 	answer_info_typedef answer_temp = {0,0,0};
 	uint8_t send_data_status;
+	uint8_t raise_hand_sign_in = 0;
 	
 	/* print result */
 	char   result_str[3];
@@ -632,7 +635,33 @@ void serial_cmd_answer_start(char *pdata_str)
 					parse_str_to_time( value_str );
 				break;
 			case ANSWER_STATUS_QUESTION:
-				break;	
+				break;
+			case ANSWER_STATUS_HAND:
+				{
+					uint32_t temp = atoi( value_str );
+					if( temp <= 1 )
+					{
+						if( temp == 0 )
+							raise_hand_sign_in &= 0xFE;
+						else
+							raise_hand_sign_in |= 0x01;
+						rf_var.tx_buf[0] = raise_hand_sign_in;
+					}
+				}
+				break;
+			case ANSWER_STATUS_SIGN:
+				{
+					uint32_t temp = atoi( value_str );
+					if( temp <= 1 )
+					{
+						if( temp == 0 )
+							raise_hand_sign_in &= 0xFD;
+						else
+							raise_hand_sign_in |= 0x02;
+						rf_var.tx_buf[0] = raise_hand_sign_in;
+					}
+				}
+				break;
 			case ANSWER_STATUS_DATA_TYPE:
 				switch( value_str[0] )
 				{
@@ -640,6 +669,7 @@ void serial_cmd_answer_start(char *pdata_str)
 					case 'm': answer_temp.type = 1; break;
 					case 'j': answer_temp.type = 2; break;
 					case 'd': answer_temp.type = 3; break;
+					case 'g': answer_temp.type = 4; break;
 					default: break;
 				}
 				break;
@@ -651,6 +681,8 @@ void serial_cmd_answer_start(char *pdata_str)
 					char range_end;
 					if( answer_temp.type == 2 )
 						answer_temp.range = 0x03;
+					else if( answer_temp.type == 4 )
+						answer_temp.range = 0xFF;
 					else
 					{
 						range_end  = value_str[2];
@@ -709,6 +741,7 @@ void serial_cmd_answer_start(char *pdata_str)
 	else
 		rf_var.tx_len = sdata_index ;
 	
+	rf_var.tx_len = rf_var.tx_len + 1;
 	send_data_status = get_send_data_status();
 
 	/* 发送数据 */
