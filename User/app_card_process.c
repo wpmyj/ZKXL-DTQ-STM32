@@ -452,14 +452,14 @@ void App_card_process(void)
 				memset(str,0,20);
 				sprintf(str, "%010u" , *(uint32_t *)( wl.uids[write_uid_pos].uid));
 				b_print("  \"card_id\": \"%s\",\r\n", str );
-				b_print("  \"is_clear_uid\": \"%d\",\r\n",wl.is_printf_clear_uid);
+				b_print("  \"is_replace_uid\": \"%d\",\r\n",wl.is_printf_clear_uid);
 				if( wl.is_printf_clear_uid == 1 )
 				{
 					wl.is_printf_clear_uid = 0;
 					printf("wl.is_printf_clear_uid = %d\r\n",wl.is_printf_clear_uid);					
 					memset(str,0,20);
 					sprintf(str, "%010u" , *(uint32_t *)( wl.clear_uid));
-					b_print("  \"clear_uid\": \"%d\"\r\n",str);
+					b_print("  \"replace_uid\": \"%d\"\r\n",str);
 				}
 				
 				memset(str,0,21);
@@ -496,7 +496,7 @@ void App_card_process(void)
 				char str[20];
 //  		uint8_t i,uid[4];
 				b_print("{\r\n");
-				b_print("  \"fun\": \"bind_start\",\r\n");
+				b_print("  \"fun\": \"update_card_info\",\r\n");
 				memset(str,0,20);
 //			b_print("  \"HEX\": \"%02X%02X%02X%02X\",\r\n",
 //			wl.uids[write_uid_pos].uid[0],wl.uids[write_uid_pos].uid[1],
@@ -505,14 +505,14 @@ void App_card_process(void)
 				b_print("  \"card_id\": \"%s\",\r\n",str);
 				if( wl.is_printf_clear_uid == 1 )
 				{
-					b_print("  \"is_clear_uid\": \"%d\",\r\n",wl.is_printf_clear_uid);
+					b_print("  \"is_replace_uid\": \"%d\",\r\n",wl.is_printf_clear_uid);
 					wl.is_printf_clear_uid = 0;
-					b_print("  \"clear_uid\": \"%010u\"\r\n",*(uint32_t *)( wl.clear_uid));
+					b_print("  \"replace_uid\": \"%010u\"\r\n",*(uint32_t *)( wl.clear_uid));
 					memset(wl.clear_uid,0x00,4);
 				}
 				else
 				{
-					b_print("  \"is_clear_uid\": \"%d\"\r\n",wl.is_printf_clear_uid);
+					b_print("  \"is_replace_uid\": \"%d\"\r\n",wl.is_printf_clear_uid);
 				}
 //			memset(str,0,20);
 //			for(i=0;i<4;i++)

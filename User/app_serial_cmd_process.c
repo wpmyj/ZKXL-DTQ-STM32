@@ -48,7 +48,7 @@ const static serial_cmd_typedef cmd_list[] = {
 {"set_student_id", sizeof("set_student_id"), serial_cmd_set_student_id},
 {"one_key_off",    sizeof("one_key_off"),    serial_cmd_one_key_off   },
 {"bootloader",     sizeof("bootloader"),     serial_cmd_bootloader    },
-{"24g_attendance", sizeof("24g_attendance"), serial_cmd_24g_attendance},
+{"24g_attendance", sizeof("attendance_24g"), serial_cmd_attendance_24g},
 {"dtq_self_inspection",sizeof("dtq_self_inspection"),serial_cmd_self_inspection},
 {"NO_USE",         sizeof("NO_USE"),         NULL                     }
 };
@@ -1011,7 +1011,7 @@ void serial_cmd_bootloader(const cJSON *object)
 	}
 }
 
-void serial_cmd_24g_attendance(const cJSON *object)
+void serial_cmd_attendance_24g(const cJSON *object)
 {
 	char str[3];
 	uint8_t attend = 0x00;
