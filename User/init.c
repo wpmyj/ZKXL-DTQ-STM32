@@ -378,6 +378,10 @@ void spi_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count
 #ifdef ZL_RP551_MAIN_F
 		retval[i] = hal_nrf_rw(SPI2, *(pdata+i));
 #endif
+		
+#ifdef ZL_RP551_MAIN_H
+		retval[i] = hal_nrf_rw(SPI2, *(pdata+i));
+#endif
 		//printf(" %02x",*(pdata+i));
 	}
 	//printf("\r\n");
@@ -448,6 +452,10 @@ void spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 #endif
 
 #ifdef ZL_RP551_MAIN_F
+		retval[i] = hal_nrf_rw(SPI2, *(pdata+i));
+#endif
+
+#ifdef ZL_RP551_MAIN_H
 		retval[i] = hal_nrf_rw(SPI2, *(pdata+i));
 #endif
 		//printf(" %02x",*(pdata+i));

@@ -143,6 +143,47 @@ GPIO_InitTypeDef GPIO_InitStructure;
   GPIO_Init(GPIOC, &GPIO_InitStructure);
 	GPIO_WriteBit(GPIOC, GPIO_InitStructure.GPIO_Pin, Bit_RESET);
 #endif
+
+#ifdef ZL_RP551_MAIN_H
+GPIO_InitTypeDef GPIO_InitStructure;
+	
+	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable,ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC , ENABLE);
+
+  /* Configure MFRC500 PIN */
+	GPIO_InitStructure.GPIO_Pin = MFRC500_PD_Pin | MFRC500_ALE_Pin | MFRC500_CS_Pin | MFRC500_IRQ_Pin;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(MFRC500_CTL_PORT, &GPIO_InitStructure);
+	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_PD_Pin, Bit_RESET);
+	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_ALE_Pin, Bit_RESET);
+	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_CS_Pin, Bit_SET);
+	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_IRQ_Pin, Bit_RESET);
+
+	GPIO_InitStructure.GPIO_Pin = MFRC500_WR_Pin;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(MFRC500_WR_PORT, &GPIO_InitStructure);
+	GPIO_WriteBit(MFRC500_WR_PORT, MFRC500_WR_Pin, Bit_SET);
+
+	GPIO_InitStructure.GPIO_Pin = MFRC500_RD_Pin;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(MFRC500_RD_PORT, &GPIO_InitStructure);
+	GPIO_WriteBit(MFRC500_RD_PORT, MFRC500_RD_Pin, Bit_SET);
+
+  GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_11 |GPIO_Pin_12;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+	GPIO_WriteBit(GPIOB, GPIO_InitStructure.GPIO_Pin, Bit_RESET);
+
+  GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_10 | GPIO_Pin_11 |GPIO_Pin_12;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+  GPIO_Init(GPIOC, &GPIO_InitStructure);
+	GPIO_WriteBit(GPIOC, GPIO_InitStructure.GPIO_Pin, Bit_RESET);
+#endif
 }
 /*******************************************************************************
   * @brief  ¶ÁRC500¼Ä´æÆ÷

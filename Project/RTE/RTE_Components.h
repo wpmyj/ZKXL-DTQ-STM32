@@ -4,7 +4,7 @@
  *      *** Do not modify ! ***
  *
  * Project: 'DTQ-STM32-ZKXL0200' 
- * Target:  'v0.1.3' 
+ * Target:  'v0.1.4' 
  */
 
 #ifndef RTE_COMPONENTS_H

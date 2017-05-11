@@ -49,12 +49,13 @@
 
 //#define ZL_RP551_MAIN_E
 //#define ZL_RP551_MAIN_F
+//#define ZL_RP551_MAIN_H
 
-#if !defined (ZL_RP551_MAIN_E) && !defined (ZL_RP551_MAIN_F)
+#if (!defined (ZL_RP551_MAIN_E) && !defined (ZL_RP551_MAIN_F)) && !defined (ZL_RP551_MAIN_H)
  #error "Please select board used in your application (in board.h file)"
 #endif
 
-#if defined (ZL_RP551_MAIN_E) && defined (ZL_RP551_MAIN_F)
+#if (defined (ZL_RP551_MAIN_E) && defined (ZL_RP551_MAIN_F)) && defined (ZL_RP551_MAIN_H)
  #error "Please select only one board used in your application (in board.h file)"
 #endif
 
@@ -64,6 +65,10 @@
 
 #ifdef ZL_RP551_MAIN_F
 #include "zl_rp551_main_f.h"
+#endif
+
+#ifdef ZL_RP551_MAIN_H
+#include "zl_rp551_main_h.h"
 #endif
 
 /* platform misc functions's declaritions */
