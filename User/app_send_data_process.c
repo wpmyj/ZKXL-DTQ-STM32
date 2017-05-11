@@ -304,8 +304,9 @@ static void update_data_to_buffer( uint8_t *Message )
 									}
 								}
 							}
-							
-							switch(answer&0xC0)
+
+							answer = (answer_temp.range)&0xC0;
+							switch(answer)
 							{
 								case 0x40: // true
 									memcpy(answer_range,"true",sizeof("true"));
