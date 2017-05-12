@@ -56,7 +56,7 @@ void Platform_Init(void)
 	get_mcu_uid();
 
 	/* initialize the spi interface with nrf51822 */
-	nrf51822_spi_init();
+	//nrf51822_spi_init();
 
 	/* eeprom init and white_list init*/
 	Fee_Init(FEE_INIT_POWERUP);
@@ -83,7 +83,7 @@ void Platform_Init(void)
 	DelayMs(200);
 	BEEP_DISEN();
 	ledOff(LBLUE);
-	clicker_config_default_set();
+	//clicker_config_default_set();
 	IWDG_Configuration();
 
 }
@@ -365,7 +365,9 @@ void spi_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count
 	spi_cmd_type.data[spi_cmd_type.data_len+1] = 0x76;
 	
 	/* 开始SPI传输 */
+#ifdef ZL_RP551_MAIN_F
 	NRF2_CSN_LOW();	
+#endif
 	memset(retval, 0, BUFFER_SIZE_MAX);
 	//printf("SPI_TX:");
 	pdata = (uint8_t *)&spi_cmd_type;
@@ -387,7 +389,9 @@ void spi_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count
 	//printf("\r\n");
 
 	/* 关闭SPI传输 */
+#ifdef ZL_RP551_MAIN_F
 	NRF2_CSN_HIGH();
+#endif
 }
 
 
@@ -441,7 +445,9 @@ void spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 	spi_cmd.end      = 0x76;
 	
 	/* 开始SPI传输 */
+#ifdef ZL_RP551_MAIN_F
 	NRF2_CSN_LOW();	
+#endif
 	//printf("SPI_TX_SET_CH:");
 	pdata = (uint8_t *)&spi_cmd;
 	memset(retval, 0, sizeof(cpu_spi_cmd_typedef));
@@ -463,7 +469,9 @@ void spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 	//printf("\r\n");
 
 	/* 关闭SPI传输 */
+#ifdef ZL_RP551_MAIN_F
 	NRF2_CSN_HIGH();
+#endif
 }
 
 /**************************************END OF FILE****************************/

@@ -50,9 +50,13 @@ void MRC500_DEBUG_END(void)
 		uint8_t index = 0;
 		for( index = 0; index<RegCount; index++ )
 		{
-			DEBUG_MF1702NL_LOG("index = %4d Addr = %4x ,OP = %d WR = %4x ,RD = %4x \r\n",
-			index,RegData[index].addr,
-			RegData[index].WR_OR_RD,RegData[index].wr_value,RegData[index].rd_value);
+			if (RegData[index].WR_OR_RD == 1)
+				DEBUG_MF1702NL_LOG("index = %4d Addr = %4x ,RD = %4x \r\n",
+			index,RegData[index].addr,RegData[index].rd_value);
+			else
+				DEBUG_MF1702NL_LOG("index = %4d Addr = %4x ,WR = %4x \r\n",
+			index,RegData[index].addr,RegData[index].wr_value);
+				
 		}
 		PrintfFlg = 0;
 	}
@@ -145,44 +149,66 @@ GPIO_InitTypeDef GPIO_InitStructure;
 #endif
 
 #ifdef ZL_RP551_MAIN_H
-GPIO_InitTypeDef GPIO_InitStructure;
-	
-	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable,ENABLE);
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC , ENABLE);
+	GPIO_InitTypeDef GPIO_InitStructure;
+	SPI_InitTypeDef  SPI_InitStructure;
 
-  /* Configure MFRC500 PIN */
-	GPIO_InitStructure.GPIO_Pin = MFRC500_PD_Pin | MFRC500_ALE_Pin | MFRC500_CS_Pin | MFRC500_IRQ_Pin;
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);      
+
+	/* Configure SPI_MISO Pin */
+	GPIO_InitStructure.GPIO_Pin   = MF_SPI_MISO_PIN;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(MFRC500_CTL_PORT, &GPIO_InitStructure);
-	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_PD_Pin, Bit_RESET);
-	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_ALE_Pin, Bit_RESET);
-	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_CS_Pin, Bit_SET);
-	GPIO_WriteBit(MFRC500_CTL_PORT, MFRC500_IRQ_Pin, Bit_RESET);
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+	GPIO_Init(MF_SPI_MISO_PORT, &GPIO_InitStructure);
 
-	GPIO_InitStructure.GPIO_Pin = MFRC500_WR_Pin;
+	/* Configure SPI_MOSI Pin */
+	GPIO_InitStructure.GPIO_Pin   = MF_SPI_MOSI_PIN;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(MFRC500_WR_PORT, &GPIO_InitStructure);
-	GPIO_WriteBit(MFRC500_WR_PORT, MFRC500_WR_Pin, Bit_SET);
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+	GPIO_Init(MF_SPI_MOSI_PORT, &GPIO_InitStructure);
 
-	GPIO_InitStructure.GPIO_Pin = MFRC500_RD_Pin;
+	/* Configure SPI_SCK Pin */
+	GPIO_InitStructure.GPIO_Pin   = MF_SPI_SCK_PIN;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(MFRC500_RD_PORT, &GPIO_InitStructure);
-	GPIO_WriteBit(MFRC500_RD_PORT, MFRC500_RD_Pin, Bit_SET);
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+	GPIO_Init(MF_SPI_SCK_PORT, &GPIO_InitStructure);
 
-  GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_11 |GPIO_Pin_12;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
-	GPIO_WriteBit(GPIOB, GPIO_InitStructure.GPIO_Pin, Bit_RESET);
+	/* Configure SPI_CSN Pin */								//CSN 配置
+	GPIO_InitStructure.GPIO_Pin   = MF_SPI_CSN_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(MF_SPI_CSN_PORT, &GPIO_InitStructure);
 
-  GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_10 | GPIO_Pin_11 |GPIO_Pin_12;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
-  GPIO_Init(GPIOC, &GPIO_InitStructure);
-	GPIO_WriteBit(GPIOC, GPIO_InitStructure.GPIO_Pin, Bit_RESET);
+	/* Configure SPI_CE Pin */
+	GPIO_InitStructure.GPIO_Pin   = MF_RSTPD_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(MF_RSTPD_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI_IRQ Pin */
+	GPIO_InitStructure.GPIO_Pin   = MF_IRQ_PIN;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+	GPIO_Init(MF_IRQ_PORT, &GPIO_InitStructure);
+
+	/* NRF2_SPI相关参数配置 */
+	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
+	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
+	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
+	/* 空闲为低 */
+	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
+	/* 第一个电平读取信号  模式0 */
+	SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
+	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
+	/* 不超过2M */
+	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
+	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
+	SPI_InitStructure.SPI_CRCPolynomial = 7;
+
+	SPI_Init(SPI2, &SPI_InitStructure);
+
+	SPI_Cmd(SPI2, ENABLE);
+	MF_CSN_HIGH();	
+	MF_RSTPD_LOW();	
 #endif
 }
 /*******************************************************************************
@@ -191,10 +217,18 @@ GPIO_InitTypeDef GPIO_InitStructure;
   * @retval 读出的值
   * @note 	None		  
 *******************************************************************************/
+uint8_t mf1702_spi_read_write( uint8_t data)
+{
+	while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) == RESET);
+	SPI_I2S_SendData(SPI2, data);
+	while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_RXNE) == RESET);
+	return SPI_I2S_ReceiveData(SPI2);
+}
+
 uint8_t ReadRC(uint8_t Address)
 {
 	u8 value;
-
+#ifdef ZL_RP551_MAIN_F
 	ALE(Bit_SET);  		 //ALE = 1
 	CS(Bit_SET);		   //CS = 1
   RD(Bit_SET);		   //RD = 1
@@ -216,6 +250,18 @@ uint8_t ReadRC(uint8_t Address)
 	CS(Bit_SET);		   //CS = 1	
 	Delay10us(1);
 	MFRC500_DATA_OUT();
+#endif
+
+#ifdef ZL_RP551_MAIN_H
+	MF_CSN_LOW();
+
+	mf1702_spi_read_write((Address<<1 & 0x7E) | 0x80);
+	value =  mf1702_spi_read_write((Address<<1 & 0x7E));
+	mf1702_spi_read_write(0x00);
+
+	MF_CSN_HIGH();
+#endif
+
 #ifdef 	ENABLE_MF1702NL_DEBUG_LOG
 	if(StartFlg == 1)
 	{
@@ -237,6 +283,7 @@ uint8_t ReadRC(uint8_t Address)
 *******************************************************************************/
 void WriteRC(uint16_t Address,uint16_t value)
 {
+#ifdef ZL_RP551_MAIN_F
 	ALE(Bit_SET);  			//ALE = 1
 	WR_DATA( Address ); //PC[10:12] + PB[8:12]
 	Delay10us(2);
@@ -248,6 +295,17 @@ void WriteRC(uint16_t Address,uint16_t value)
 	Delay10us(2);
 	WR(Bit_SET);		    //WR = 1
 	CS(Bit_SET);		    //CS = 1
+#endif
+
+#ifdef ZL_RP551_MAIN_H
+	MF_CSN_LOW();
+
+	mf1702_spi_read_write((Address<<1 & 0x7E));
+  mf1702_spi_read_write(value);
+
+	MF_CSN_HIGH();
+#endif
+
 #ifdef 	ENABLE_MF1702NL_DEBUG_LOG
 	if(StartFlg == 1)
 	{
@@ -313,16 +371,17 @@ uint8_t mfrc500_init(void)
 {
 	uint8_t status=MI_OK;
 	uint16_t  i=0x2000;
-
-  /* 初始化GPIO */
+	
 	mfrc500_gpio_init();
-
+	
+  /* 初始化GPIO */
 	PD(Bit_RESET);
 	Delay10us(2500);
 	PD(Bit_SET);
 	Delay10us(1000);
 	PD(Bit_RESET);
 	Delay10us(300);
+
 //MRC500_DEBUG_START("mfrc500_init\r\n");
 	/* 等待接口检测完成 */
 	while ((ReadRC(RegCommand) & 0x3F) && i--)
@@ -366,14 +425,14 @@ uint8_t mfrc500_init(void)
 		WriteRC(RegCwConductance,0x3f) ;
 		PcdAntennaOff();
 	}
-//MRC500_DEBUG_END();
-//MRC500_DEBUG_START("mfrc500_init check\r\n");
-//{
-//	uint8_t i = 0;
-//	for(i= 0x10; i<0x30;i++)
-//		ReadRC(i);
-//}
-//MRC500_DEBUG_END();
+	MRC500_DEBUG_END();
+	MRC500_DEBUG_START("mfrc500_init check\r\n");
+	{
+		uint8_t i = 0;
+		for(i= 0x10; i<0x30;i++)
+			ReadRC(i);
+	}
+	MRC500_DEBUG_END();
 	return status;
 }
 
