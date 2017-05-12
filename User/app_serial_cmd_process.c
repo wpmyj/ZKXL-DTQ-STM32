@@ -421,8 +421,8 @@ void serial_cmd_set_channel(const cJSON *object)
 
 	tx_ch = atoi(cJSON_GetObjectItem(object, "tx_ch")->valuestring);
 	rx_ch = atoi(cJSON_GetObjectItem(object, "rx_ch")->valuestring);
-	if((( tx_ch > 1) && ( tx_ch < 11)) && 
-		 (( rx_ch > 1) && ( rx_ch < 11)) &&
+	if((( tx_ch >= 1) && ( tx_ch <= 11)) && 
+		 (( rx_ch >= 1) && ( rx_ch <= 11)) &&
 	    ( tx_ch != rx_ch ))
 	{
 		clicker_set.N_CH_TX = tx_ch;
