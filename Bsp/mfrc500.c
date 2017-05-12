@@ -234,7 +234,6 @@ uint8_t SendInterrupt (void)
 	uint8_t status = 0;
 	memset(respon, 0, BUF_LEN);
 	status = ForceReadCCfile();
-	
 	if(MI_OK != status) 
 	{
 		return 0x11;
@@ -252,7 +251,7 @@ uint8_t SendInterrupt (void)
 	memset(respon, 0, BUF_LEN);
 	len = 0;
 	status = PcdReadSystemfile(0x0004, 0x01, respon, &len);
-	if( (MI_OK == status) && ((respon[1] & 0x40 ) == 0x40) )
+	if( (MI_OK == status) && ((respon[2] & 0x90 ) == 0x90) )
 	{
 	}
 	else
