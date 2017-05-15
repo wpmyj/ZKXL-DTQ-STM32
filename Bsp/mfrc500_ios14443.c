@@ -147,13 +147,10 @@ uint8_t PcdAnticoll(uint8_t antiFlag, uint8_t *snr)
 
 	if( !status )
 	{
-		printf("MfData:");
 		for(i=0;i<4;i++)
 		{
 			snr_check^=MfComData.MfData[i];
-			printf("%02x ",MfComData.MfData[i]);
 		}
-		printf("cal_check = %02x rev_check = %02x \r\n",snr_check,MfComData.MfData[i]);
 		if(snr_check!=MfComData.MfData[i])
 		{
 			status=MI_SERNRERR;

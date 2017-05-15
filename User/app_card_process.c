@@ -138,8 +138,8 @@ void App_card_process(void)
 		/* Ñ¡¿¨1 */
 		memset(respon, 0, 10);
 		status = PcdSelect1(g_cSNR, respon);
-		DEBUG_CARD_DEBUG_LOG("PcdSelect1 status = %d respon[0] = %02x respon[1] = %02x\r\n",
-		status , respon[0], respon[1] );
+		//DEBUG_CARD_DEBUG_LOG("PcdSelect1 status = %d respon[0] = %02x respon[1] = %02x\r\n",
+		//status , respon[0], respon[1] );
 		if( status == MI_OK )
 		{
 			if((g_uid_len == 8) && ((respon[0] & 0x04) == 0x04))
