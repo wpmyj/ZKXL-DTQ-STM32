@@ -61,8 +61,8 @@ extern uint8_t 						respon[];
 
 void Platform_Init(void);
 void Usart1_Init(void);
-void spi_set_cpu_tx_signal_ch( uint8_t tx_ch );
-void spi_set_cpu_rx_signal_ch( uint8_t rx_ch );
+uint8_t spi_set_cpu_tx_signal_ch( uint8_t tx_ch );
+uint8_t spi_set_cpu_rx_signal_ch( uint8_t rx_ch );
 #endif //_INIT_H_
 /**
   * @}

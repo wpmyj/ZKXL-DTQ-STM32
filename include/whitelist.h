@@ -74,5 +74,5 @@ uint8_t get_index_of_white_list_pos_status( uint8_t use_or_online, uint16_t inde
 void copy_online_to_store_table( void );
 void clear_white_list_table(uint8_t sel_table);
 void clear_current_uid_index( void );
-void clicker_config_default_set( void );
+uint8_t clicker_config_default_set( void );
 #endif // __WHITE_LIST_H_

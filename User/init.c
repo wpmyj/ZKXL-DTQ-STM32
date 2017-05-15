@@ -41,6 +41,8 @@ void systick_timer_init( void );
 *******************************************************************************/
 void Platform_Init(void)
 {
+	uint8_t status = 0;
+
 	/* disable all IRQ */
 	DISABLE_ALL_IRQ();
 
@@ -69,7 +71,8 @@ void Platform_Init(void)
 	card_timer_init();
 
 	/* 复位并初始化RC500 */
-	mfrc500_init();
+	status = mfrc500_init();
+	printf("[ INIT ] MF1702 INIT: %s !\r\n", (status == 0) ? "OK" : "FAIL");
 
 	/* enable all IRQ */
 	ENABLE_ALL_IRQ();
@@ -83,7 +86,8 @@ void Platform_Init(void)
 	DelayMs(200);
 	BEEP_DISEN();
 	ledOff(LBLUE);
-	clicker_config_default_set();
+	status = clicker_config_default_set();
+	printf("[ INIT ] SPI SET CPU RF : %s !\r\n", (status == 0) ? "OK" : "FAIL");
 	IWDG_Configuration();
 
 }
@@ -387,75 +391,162 @@ void spi_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count
 }
 
 
-void spi_set_cpu_rx_signal_ch( uint8_t rx_ch )
+uint8_t spi_set_cpu_rx_signal_ch( uint8_t rx_ch )
 {
+	uint8_t status = 0;
+	uint8_t set_count = 0;
+	uint8_t nop = 0xFF;
+
 	uint16_t data = rx_ch;
-	cpu_spi_cmd_typedef spi_cmd;
+	cpu_spi_cmd_typedef spi_cmd_w,spi_cmd_r;
 	uint8_t *pdata,i;
 	
 	/* 存储数据到FEE */
 	EE_WriteVariable(CPU_RX_CH_POS_OF_FEE,data);
 
 	/* 封装指令 */
-	spi_cmd.header   = 0x86;
-	spi_cmd.cmd      = 0x20;
-	spi_cmd.channel  = rx_ch;
-	spi_cmd.data_xor = XOR_Cal((uint8_t *)&(spi_cmd.cmd), 2);
-	spi_cmd.end      = 0x76;
+	spi_cmd_w.header   = 0x86;
+	spi_cmd_w.cmd      = 0x20;
+	spi_cmd_w.channel  = rx_ch;
+	spi_cmd_w.data_xor = XOR_Cal((uint8_t *)&(spi_cmd_w.cmd), 2);
+	spi_cmd_w.end      = 0x76;
 
-	/* 开始SPI传输 */
-	NRF1_CSN_LOW();
-	pdata = (uint8_t *)&spi_cmd;	
-
-	//printf("SPI_RX_SET_CH:");
-
-	for(i=0; i<sizeof(cpu_spi_cmd_typedef); i++)
+	do
 	{
-		hal_nrf_rw(SPI1, *(pdata+i));
-		//printf(" %02x",*(pdata+i));
-	}
-	//printf("\r\n");
+		/* 开始SPI传输 */
+		NRF1_CSN_LOW();
+		pdata = (uint8_t *)&spi_cmd_w;	
 
-	/* 关闭SPI传输 */
-	NRF1_CSN_HIGH();	
+		//printf("SPI_RX_SET_CH  :");
+		for(i=0; i<sizeof(cpu_spi_cmd_typedef); i++)
+		{
+			hal_nrf_rw(SPI1, *(pdata+i));
+			//printf(" %02x",*(pdata+i));
+		}
+		//printf("\r\n");
+		NRF1_CSN_HIGH();
+
+    // 等待参数设置成功
+		DelayMs(10);
+		
+		NRF1_CSN_LOW();
+		pdata = (uint8_t *)&spi_cmd_r;	
+		memset(pdata , 0, sizeof(cpu_spi_cmd_typedef));
+		//printf("SPI_RX_CHECK_CH:");
+		for(i=0; i<sizeof(cpu_spi_cmd_typedef); i++)
+		{
+			*(pdata+i) = hal_nrf_rw(SPI1, nop);
+			//printf(" %02x",*(pdata+i));
+		}
+		//printf("\r\n");
+		NRF1_CSN_HIGH();
+		if( spi_cmd_r.cmd == 0x21 )
+		{
+			if( spi_cmd_w.channel == spi_cmd_r.channel )
+			{
+				status = 0;
+				set_count = 3;
+			}
+			else
+			{
+				status = 1;
+				set_count++;
+			}
+		}
+		else
+		{
+			status = 1;
+			set_count++;
+		}
+	}while( set_count < 3 );
+	
+	return status;
 }
 
-void spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
+uint8_t spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 {
+	uint8_t status = 0;
+	uint8_t set_count = 0;
+	uint8_t nop = 0xFF;
+	
 	uint16_t data = tx_ch;
-	cpu_spi_cmd_typedef spi_cmd;
+	cpu_spi_cmd_typedef spi_cmd_w,spi_cmd_r;
 	uint8_t *pdata,i,retval[sizeof(cpu_spi_cmd_typedef)];
 	
 	/* 存储数据到FEE */
 	EE_WriteVariable(CPU_TX_CH_POS_OF_FEE,data);
 	
 	/* 封装指令 */
-	spi_cmd.header   = 0x86;
-	spi_cmd.cmd      = 0x20;
-	spi_cmd.channel  = tx_ch;
-	spi_cmd.data_xor = XOR_Cal((uint8_t *)&(spi_cmd.cmd), 2);
-	spi_cmd.end      = 0x76;
-	
-	/* 开始SPI传输 */
-	NRF2_CSN_LOW();	
-	//printf("SPI_TX_SET_CH:");
-	pdata = (uint8_t *)&spi_cmd;
-	memset(retval, 0, sizeof(cpu_spi_cmd_typedef));
-	for(i=0; i<sizeof(cpu_spi_cmd_typedef); i++)
+	spi_cmd_w.header   = 0x86;
+	spi_cmd_w.cmd      = 0x20;
+	spi_cmd_w.channel  = tx_ch;
+	spi_cmd_w.data_xor = XOR_Cal((uint8_t *)&(spi_cmd_w.cmd), 2);
+	spi_cmd_w.end      = 0x76;
+
+	do
 	{
-#ifdef ZL_RP551_MAIN_E
-		retval[i] = hal_nrf_rw(SPI1, *(pdata+i));
-#endif
+		/* 开始设置SPI数据 */
+		NRF2_CSN_LOW();	
+		//printf("SPI_TX_SET_CH  :");
+		pdata = (uint8_t *)&spi_cmd_w;
+		memset(retval, 0, sizeof(cpu_spi_cmd_typedef));
+		for(i=0; i<sizeof(cpu_spi_cmd_typedef); i++)
+		{
+			#ifdef ZL_RP551_MAIN_E
+			hal_nrf_rw(SPI1, *(pdata+i));
+			#endif
 
-#ifdef ZL_RP551_MAIN_F
-		retval[i] = hal_nrf_rw(SPI2, *(pdata+i));
-#endif
-		//printf(" %02x",*(pdata+i));
-	}
-	//printf("\r\n");
+			#ifdef ZL_RP551_MAIN_F
+			hal_nrf_rw(SPI2, *(pdata+i));
+			#endif
+			//printf(" %02x",*(pdata+i));
+		}
+		//printf("\r\n");
+		NRF2_CSN_HIGH();
+		
+    // 等待参数设置成功
+		DelayMs(10);
+		
+		/* 读取设置结果 */
+		NRF2_CSN_LOW();	
+		pdata = (uint8_t *)&spi_cmd_r;
+		memset(pdata , 0, sizeof(cpu_spi_cmd_typedef));
+		//printf("SPI_TX_CHECK_CH:");
+		for(i=0; i<sizeof(cpu_spi_cmd_typedef); i++)
+		{
+			#ifdef ZL_RP551_MAIN_E
+			*(pdata+i) = hal_nrf_rw(SPI1, nop);
+			#endif
 
-	/* 关闭SPI传输 */
-	NRF2_CSN_HIGH();
+			#ifdef ZL_RP551_MAIN_F
+			*(pdata+i) = hal_nrf_rw(SPI2, nop);
+			#endif
+			//printf(" %02x",*(pdata+i));
+		}
+		//printf("\r\n");
+		NRF2_CSN_HIGH();
+		
+	  if( spi_cmd_r.cmd == 0x21 )
+		{
+			if( spi_cmd_w.channel == spi_cmd_r.channel )
+			{
+				status = 0;
+				set_count = 3;
+			}
+			else
+			{
+				status = 1;
+				set_count++;
+			}
+		}
+		else
+		{
+			status = 1;
+			set_count++;
+		}
+	}while( set_count < 3 );
+
+	return status;
 }
 
 /**************************************END OF FILE****************************/

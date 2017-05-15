@@ -429,9 +429,8 @@ void serial_cmd_set_channel(const cJSON *object)
 		clicker_set.N_CH_RX = rx_ch;
 
 		/* 设置接收的信道：答题器与接收是反的 */
-		spi_set_cpu_rx_signal_ch(clicker_set.N_CH_TX);
-		spi_set_cpu_tx_signal_ch(clicker_set.N_CH_RX);
-		status = 0;
+		status  = spi_set_cpu_rx_signal_ch(clicker_set.N_CH_TX);
+		status |= spi_set_cpu_tx_signal_ch(clicker_set.N_CH_RX);
 	}
 	else
 	{

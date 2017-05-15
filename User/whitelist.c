@@ -61,9 +61,10 @@ void flash_white_list_use_table(void)
 		 EE_WriteVariable(WHITE_LIST_USE_TABLE_POS_OF_FEE+i,list_tcb_table[0][i]);
 }
 
-void clicker_config_default_set( void )
+uint8_t clicker_config_default_set( void )
 {
 	uint16_t data;
+	uint8_t  status;
 	
 	/* 读取信道配置参数 */
 	EE_ReadVariable(CPU_RX_CH_POS_OF_FEE,&data);
@@ -96,8 +97,10 @@ void clicker_config_default_set( void )
 	clicker_set.N_24G_ATTEND = *(uint8_t *)(&data);
 
 	/* 设置设置接收器的信道 */
-	spi_set_cpu_tx_signal_ch(clicker_set.N_CH_RX);
-	spi_set_cpu_rx_signal_ch(clicker_set.N_CH_TX);
+	status  = spi_set_cpu_tx_signal_ch(clicker_set.N_CH_RX);
+	status |= spi_set_cpu_rx_signal_ch(clicker_set.N_CH_TX);
+
+	return status;
 }
 
 /******************************************************************************
