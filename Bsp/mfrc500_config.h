@@ -12,7 +12,7 @@
 
 #include "main.h"
 
-#define ENABLE_MF1702NL_DEBUG_LOG
+//#define ENABLE_MF1702NL_DEBUG_LOG
 
 #ifdef 	ENABLE_MF1702NL_DEBUG_LOG
 #define DEBUG_MF1702NL_LOG							     DEBUG_LOG

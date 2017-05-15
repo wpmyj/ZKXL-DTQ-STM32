@@ -274,6 +274,41 @@ uint8_t ReadRC(uint8_t Address)
 #endif
 	return value;
 }
+
+void ReadFIFOData(uint8_t Address,uint8_t *buf, uint8_t len)
+{
+	u8 value;
+
+
+#ifdef ZL_RP551_MAIN_H
+	uint8_t *pdata = buf;
+	uint8_t i;
+	
+	MF_CSN_LOW();
+	
+
+	mf1702_spi_read_write((Address<<1 & 0x7E) | 0x80);
+	for( i=0; i<len; i++)
+	{
+		value =  mf1702_spi_read_write((Address<<1 & 0x7E));
+		*pdata = value;
+		pdata++;
+		#ifdef 	ENABLE_MF1702NL_DEBUG_LOG
+		if(StartFlg == 1)
+		{
+			RegData[RegCount].addr = Address;
+			RegData[RegCount].WR_OR_RD = 1;
+			RegData[RegCount].rd_value = value;
+			RegData[RegCount].wr_value = 0;
+			RegCount++;
+		}
+		#endif
+	}
+	mf1702_spi_read_write(0x00);
+
+	MF_CSN_HIGH();
+#endif
+}
 /*******************************************************************************
   * @brief  Ð´RC500¼Ä´æÆ÷
   * @param  Address=¼Ä´æÆ÷µØÖ·
@@ -301,7 +336,7 @@ void WriteRC(uint16_t Address,uint16_t value)
 	MF_CSN_LOW();
 
 	mf1702_spi_read_write((Address<<1 & 0x7E));
-  mf1702_spi_read_write(value);
+  mf1702_spi_read_write( value );
 
 	MF_CSN_HIGH();
 #endif
@@ -590,10 +625,17 @@ uint8_t PcdComTransceive(void *p)
 					{
 						 n=1;
 					}
+					#ifdef ZL_RP551_MAIN_F
 					for(i=0;i<n;i++)
 					{
 								pi->MfData[i]=ReadRC(RegFIFOData);
 					}
+					#endif
+
+					#ifdef ZL_RP551_MAIN_H
+					ReadFIFOData(RegFIFOData,pi->MfData,n);
+					#endif
+					
 					memcpy(p, pi, sizeof(struct TranSciveBuffer));
 				}
 			 }
