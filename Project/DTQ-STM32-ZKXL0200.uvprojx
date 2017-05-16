@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>v0.1.3</TargetName>
+      <TargetName>v0.1.4</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pCCUsed>5060061::V5.06 update 1 (build 61)::ARMCC</pCCUsed>
@@ -48,7 +48,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>DTQ_RP551CPU_ZKXL0200_V0103.hex</OutputName>
+          <OutputName>DTQ_RP551CPU_ZKXL0200_V0104.hex</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
@@ -330,7 +330,7 @@
             <vShortWch>1</vShortWch>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>STM32F10X_MD, USE_STDPERIPH_DRIVER,ZL_RP551_MAIN_F</Define>
+              <Define>STM32F10X_MD, USE_STDPERIPH_DRIVER,ZL_RP551_MAIN_H</Define>
               <Undefine></Undefine>
               <IncludePath>..\Libraries\CMSIS\CM3\CoreSupport;..\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x;..\Libraries\STM32F10x_StdPeriph_Driver\inc;..\include;..\User;..\Bsp;..\Libraries\cJSON</IncludePath>
             </VariousControls>
@@ -590,6 +590,11 @@
               <FileType>5</FileType>
               <FilePath>..\include\zl_rp551_main_f.h</FilePath>
             </File>
+            <File>
+              <FileName>zl_rp551_main_h.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\include\zl_rp551_main_h.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -735,7 +740,7 @@
       <component Cclass="CMSIS" Cgroup="CORE" Cvendor="ARM" Cversion="4.3.0" condition="Cortex-M Device">
         <package name="CMSIS" schemaVersion="1.3" url="http://www.keil.com/pack/" vendor="ARM" version="4.5.0"/>
         <targetInfos>
-          <targetInfo name="v0.1.3"/>
+          <targetInfo name="v0.1.4"/>
         </targetInfos>
       </component>
     </components>

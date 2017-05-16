@@ -89,7 +89,6 @@ void Platform_Init(void)
 	status = clicker_config_default_set();
 	printf("[ INIT ] SPI SET CPU RF : %s !\r\n", (status == 0) ? "OK" : "FAIL");
 	IWDG_Configuration();
-
 }
 
 /****************************************************************************
@@ -369,7 +368,9 @@ void spi_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count
 	spi_cmd_type.data[spi_cmd_type.data_len+1] = 0x76;
 	
 	/* 开始SPI传输 */
+#ifdef ZL_RP551_MAIN_F
 	NRF2_CSN_LOW();	
+#endif
 	memset(retval, 0, BUFFER_SIZE_MAX);
 	//printf("SPI_TX:");
 	pdata = (uint8_t *)&spi_cmd_type;
@@ -383,11 +384,17 @@ void spi_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count
 		retval[i] = hal_nrf_rw(SPI2, *(pdata+i));
 #endif
 		//printf(" %02x",*(pdata+i));
+#ifdef ZL_RP551_MAIN_H
+		retval[i] = hal_nrf_rw(SPI2, *(pdata+i));
+#endif
+		//printf(" %02x",*(pdata+i));
 	}
 	//printf("\r\n");
 
 	/* 关闭SPI传输 */
+#ifdef ZL_RP551_MAIN_F
 	NRF2_CSN_HIGH();
+#endif
 }
 
 
@@ -466,6 +473,7 @@ uint8_t spi_set_cpu_rx_signal_ch( uint8_t rx_ch )
 uint8_t spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 {
 	uint8_t status = 0;
+	#ifdef ZL_RP551_MAIN_F
 	uint8_t set_count = 0;
 	uint8_t nop = 0xFF;
 	
@@ -545,7 +553,7 @@ uint8_t spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 			set_count++;
 		}
 	}while( set_count < 3 );
-
+	#endif
 	return status;
 }
 

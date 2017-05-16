@@ -116,53 +116,55 @@ uint8_t PcdSelect1(uint8_t *snr, uint8_t *res)
 *******************************************************************************/
 uint8_t PcdAnticoll(uint8_t antiFlag, uint8_t *snr)
 {
-    uint8_t i;
+	uint8_t i;
 
-    uint8_t snr_check=0;
-    uint8_t status=MI_OK;
-    struct TranSciveBuffer{		uint8_t MfCommand;
-                                uint8_t MfLength;
-                                uint8_t MfData[5];
-                                }MfComData;
-    struct TranSciveBuffer *pi;
+	uint8_t snr_check=0;
+	uint8_t status=MI_OK;
+	struct TranSciveBuffer{
+		uint8_t MfCommand;
+		uint8_t MfLength;
+		uint8_t MfData[5];
+	}MfComData;
 
-    pi=&MfComData;
-    PcdSetTmo(106);
-    WriteRC(RegDecoderControl,0x28);
-    ClearBitMask(RegControl,0x08);
-    WriteRC(RegChannelRedundancy,0x03);
+	struct TranSciveBuffer *pi;
 
-    MfComData.MfCommand=PCD_TRANSCEIVE;
-    MfComData.MfLength=2;
-								
+	pi=&MfComData;
+	PcdSetTmo(106);
+	WriteRC(RegDecoderControl,0x28);
+	ClearBitMask(RegControl,0x08);
+	WriteRC(RegChannelRedundancy,0x03);
+
+	MfComData.MfCommand=PCD_TRANSCEIVE;
+	MfComData.MfLength=2;
+		
 	if(PICC_ANTICOLL1 == antiFlag)
-		MfComData.MfData[0]=PICC_ANTICOLL1;
+	MfComData.MfData[0]=PICC_ANTICOLL1;
 	else if(PICC_ANTICOLL2 == antiFlag)
-		MfComData.MfData[0]=PICC_ANTICOLL2;
-	
-    MfComData.MfData[1]=0x20;
-    status=PcdComTransceive(pi);
-    if(!status)
-    {
-    	 for(i=0;i<4;i++)
-         {
-             snr_check^=MfComData.MfData[i];
-         }
-         if(snr_check!=MfComData.MfData[i])
-         {
-             status=MI_SERNRERR;
-         }
-         else
-         {
-             for(i=0;i<4;i++)
-             {
-             	*(snr+i)=MfComData.MfData[i];
-             }
-         }
+	MfComData.MfData[0]=PICC_ANTICOLL2;
 
-    }
-    ClearBitMask(RegDecoderControl,0x20);
-    return status;
+	MfComData.MfData[1]=0x20;
+	status=PcdComTransceive(pi);
+
+	if( !status )
+	{
+		for(i=0;i<4;i++)
+		{
+			snr_check^=MfComData.MfData[i];
+		}
+		if(snr_check!=MfComData.MfData[i])
+		{
+			status=MI_SERNRERR;
+		}
+		else
+		{
+			for(i=0;i<4;i++)
+			{
+				*(snr+i)=MfComData.MfData[i];
+			}
+		}
+	}
+	ClearBitMask(RegDecoderControl,0x20);
+	return status;
 }
 /*******************************************************************************
   * @brief  Ñ¡¶¨¿¨Æ¬
