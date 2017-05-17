@@ -48,7 +48,7 @@ const static serial_cmd_typedef cmd_list[] = {
 {"set_student_id", sizeof("set_student_id"), serial_cmd_set_student_id},
 {"one_key_off",    sizeof("one_key_off"),    serial_cmd_one_key_off   },
 {"bootloader",     sizeof("bootloader"),     serial_cmd_bootloader    },
-{"24g_attendance", sizeof("attendance_24g"), serial_cmd_attendance_24g},
+{"attendance_24g", sizeof("attendance_24g"), serial_cmd_attendance_24g},
 {"dtq_self_inspection",sizeof("dtq_self_inspection"),serial_cmd_self_inspection},
 {"NO_USE",         sizeof("NO_USE"),         NULL                     }
 };
@@ -1039,7 +1039,7 @@ void serial_cmd_attendance_24g(const cJSON *object)
 
 	/* 打印返回 */
 	b_print("{\r\n");
-	b_print("  \"fun\": \"24g_attendance\",\r\n");
+	b_print("  \"fun\": \"attendance_24g\",\r\n");
 	sprintf(str, "%d" , (int8_t)(status));
 	b_print("  \"result\": \"%s\"\r\n",str);
 	b_print("}\r\n");
