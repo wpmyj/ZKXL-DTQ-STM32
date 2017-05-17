@@ -315,6 +315,16 @@ uint8_t spi_read_tx_payload(SPI_TypeDef* SPIx, uint8_t *rx_data_len, uint8_t *rx
 				char str[20];
 
 				nrf_transmit_parameter_t transmit_config;
+				
+				memcpy(transmit_config.dist,nrf_data.rbuf+5, 4 );
+				transmit_config.package_type   = NRF_DATA_IS_ACK;
+				transmit_config.transmit_count = 2;
+				transmit_config.delay100us     = 20;
+				transmit_config.is_pac_add     = PACKAGE_NUM_SAM;
+				transmit_config.data_buf       = NULL;
+				transmit_config.data_len       = 0;
+				nrf_transmit_start( &transmit_config );
+				
 				test_buf[0] = prdata[0];
 				test_buf[1] = prssi[0];
 
@@ -365,6 +375,7 @@ void spi_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count
 	spi_cmd_type.delay100us = delay100us;
 	spi_cmd_type.data_len   = length;
 	memcpy(spi_cmd_type.data, tx_pload, length);
+
 	spi_cmd_type.data[spi_cmd_type.data_len] = XOR_Cal((uint8_t *)&(spi_cmd_type.cmd), spi_cmd_type.data_len+4);
 	spi_cmd_type.data[spi_cmd_type.data_len+1] = 0x76;
 	

@@ -365,6 +365,7 @@ void serial_cmd_one_key_off(const cJSON *object)
 		memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
 		
 		memset(nrf_data.dtq_uid,    0x00, 4);
+		memcpy(nrf_data.jsq_uid,    revicer.uid, 4);
 		memset(transmit_config.dist,0x00, 4);
 
 		send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
@@ -753,6 +754,7 @@ void serial_cmd_answer_start(char *pdata_str)
 		memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
 		
 		memset(nrf_data.dtq_uid,    0x00, 4);
+		memcpy(nrf_data.jsq_uid,    revicer.uid, 4);
 		memset(transmit_config.dist,0x00, 4);
 
 		send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
@@ -1064,6 +1066,7 @@ void serial_cmd_self_inspection(const cJSON *object)
 		memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
 
 		memset(nrf_data.dtq_uid,    0x00, 4);
+		memset(nrf_data.jsq_uid,    0x00, 4);
 		memset(transmit_config.dist,0x00, 4);
 
 		send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;

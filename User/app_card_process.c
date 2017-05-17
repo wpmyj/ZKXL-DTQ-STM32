@@ -490,7 +490,7 @@ void App_card_process(void)
 
 		if(card_message_err != 0)
 		{
-			if( wtrte_flash_ok == 1 )
+			if(( wtrte_flash_ok == 1 ) && (wl.weite_std_id_status == OFF))
 			{
 				#ifndef OPEN_CARD_DATA_SHOW 
 				char str[20];
