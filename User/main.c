@@ -26,7 +26,7 @@ extern void app_handle_layer(void);
 int main(void)
 {
 	/* System initialize -------------------------------------------------------*/
-	Platform_Init();
+	board_init();
 	
 	while(1)
 	{	

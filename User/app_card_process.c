@@ -12,6 +12,7 @@
 #include "main.h"
 #include "app_serial_cmd_process.h"
 #include "app_card_process.h"
+#include "app_show_message_process.h"
 
 //#define SHOW_CARD_PROCESS_TIME
 extern uint8_t g_cSNR[10];	
