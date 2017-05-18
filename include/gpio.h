@@ -15,6 +15,6 @@ void ledOn(Led_TypeDef Led);
 void ledOff(Led_TypeDef Led);
 void ledToggle(Led_TypeDef Led);
 void GPIOInit_BEEP(void);
-void GpioInit(void);
+void bsp_board_init(void);
 
 #endif

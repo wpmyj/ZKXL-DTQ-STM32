@@ -119,7 +119,7 @@ void GPIOInit_BEEP(void)
   * @param  None
   * @retval None
 *******************************************************************************/
-void GpioInit(void)
+void bsp_board_init(void)
 {
 	/* Initialize Led function */
 	ledInit(LRED);

@@ -1,7 +1,9 @@
-#ifndef	__POS_HANDLE_LAYER_H_
-#define	__POS_HANDLE_LAYER_H_
+#ifndef	__APP_SERIAL_CMD_PROCESS_H_
+#define	__APP_SERIAL_CMD_PROCESS_H_
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+#include "board.h"
+#include "stm32f10x.h"
+#include "define.h"
 #include "cJSON.h"
 /* Private define ------------------------------------------------------------*/
 

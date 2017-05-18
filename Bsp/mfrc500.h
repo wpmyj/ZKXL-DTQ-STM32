@@ -16,6 +16,7 @@
 /* mfrc500_hw*/
 uint8_t mfrc500_init(void);
 uint8_t ReadRC(uint8_t Address);
+void ReadFIFOData(uint8_t Address,uint8_t *buf, uint8_t len);
 void WriteRC(uint16_t Address,uint16_t value);
 void SetBitMask(uint8_t reg,uint8_t mask);
 void ClearBitMask(uint8_t reg,uint8_t mask);

@@ -17,7 +17,6 @@
 #include "board.h"
 #include "stm32f10x.h"
 #include "define.h"
-#include "init.h"
 #include "stm32f10x_it.h"
 #include "mfrc500.h"
 #include "m24sr_cmd.h"
@@ -29,9 +28,7 @@
 #include "version.h"
 #include "nrf.h"
 #include "whitelist.h"
-#include "app_serial_cmd_process.h"
 #include "ringbuffer.h"
-#include "app_show_message_process.h"
 
 #endif //_MAIN_H_
 /**
