@@ -558,7 +558,7 @@ uint8_t add_uid_to_white_list(uint8_t *g_uid, uint16_t *position)
 			WhiteListDebug("<%s> The white list is full \r\n",__func__);
 			*position = wl.first_uid_pos;
 			memcpy(wl.clear_uid,wl.uids[wl.first_uid_pos].uid,4);
-			wl.first_uid_pos = (wl.first_uid_pos + 1) % 119;
+			wl.first_uid_pos = (wl.first_uid_pos + 1) % 120;
 			wl.is_printf_clear_uid = 1;
 			WhiteListDebug("wl.is_printf_clear_uid = %d\r\n",wl.is_printf_clear_uid);
 		}
