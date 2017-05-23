@@ -35,26 +35,16 @@ void b_print(const char *fmt, ...)
 		if( *pdata ==  '\"')
 			skip_flag = skip_flag ^ 0x01;
 
-		if( skip_flag == 0x00 )
+		if((skip_flag == 1) || (*pdata > 32))
 		{
-			if( *pdata > 32)  
-			{	
-				if(*pdata != str[r_index])
-					str[r_index] = *pdata;
-				pdata++;
-				r_index++;
-			}
-			else
-			{
-				pdata++;
-			}
+			if(*pdata != str[r_index])
+				str[r_index] = *pdata;
+			pdata++;
+			r_index++;
 		}
 		else
 		{
-			if(*pdata != str[r_index])
-					str[r_index] = *pdata;
 			pdata++;
-			r_index++;
 		}
 	}
 	if( *pdata == '\0' )

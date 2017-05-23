@@ -72,7 +72,12 @@ void uart_revice_data_state_mechine( uint8_t data )
 
 		case UartDATA:
 			{
-				if( data > 32)
+				static uint8_t skip = 0x00;
+
+				if(( data ==  '\"') || ( data ==  '\''))
+					skip = skip^0x01;
+
+				if((skip == 1) || (data > 32))
 				{
 					uart_irq_revice_massage[rjson_index][uart_rx_cnt++] = data ;
 					if(UART_SOF == data)

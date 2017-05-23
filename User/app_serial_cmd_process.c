@@ -50,31 +50,32 @@ const static serial_cmd_typedef cmd_list[] = {
 {"bootloader",     sizeof("bootloader"),     serial_cmd_bootloader    },
 {"attendance_24g", sizeof("attendance_24g"), serial_cmd_attendance_24g},
 {"dtq_self_inspection",sizeof("dtq_self_inspection"),serial_cmd_self_inspection},
+{"raise_hand_set", sizeof("raise_hand_set"), serial_cmd_raise_hand_sign_in_set},
+{"sign_in_set",    sizeof("sign_in_set"),    serial_cmd_raise_hand_sign_in_set},
 {"NO_USE",         sizeof("NO_USE"),         NULL                     }
 };
 
 const static json_item_typedef answer_item_list[] = {
-{"fun",      sizeof("fun"),       ANSWER_STATUS_FUN},
-{"time",     sizeof("time"),      ANSWER_STATUS_TIME},
-{"raise_hand",sizeof("raise_hand"), ANSWER_STATUS_HAND},
-{"attendance",sizeof("attendance"), ANSWER_STATUS_SIGN},
-{"questions",sizeof("questions"), ANSWER_STATUS_QUESTION},
-{"type",     sizeof("type"),      ANSWER_STATUS_DATA_TYPE},
-{"id",       sizeof("id"),        ANSWER_STATUS_DATA_ID},
-{"range",    sizeof("range"),     ANSWER_STATUS_DATA_RANGE},
-{"over",     sizeof("over"),      0xFF}
+{"fun",            sizeof("fun"),            ANSWER_STATUS_FUN},
+{"time",           sizeof("time"),           ANSWER_STATUS_TIME},
+{"raise_hand",     sizeof("raise_hand"),     ANSWER_STATUS_HAND},
+{"questions",      sizeof("questions"),      ANSWER_STATUS_QUESTION},
+{"type",           sizeof("type"),           ANSWER_STATUS_DATA_TYPE},
+{"id",             sizeof("id"),             ANSWER_STATUS_DATA_ID},
+{"range",          sizeof("range"),          ANSWER_STATUS_DATA_RANGE},
+{"over",           sizeof("over"),           0xFF}
 };
 
 const static json_item_typedef import_item_list[] = {
-{"fun",      sizeof("fun"),       IMPORT_STATUS_FUN},
-{"addr",     sizeof("addr"),      IMPORT_STATUS_ADDR},
-{"tx_ch",    sizeof("tx_ch"),     IMPORT_STATUS_TX_CH},
-{"rx_ch",    sizeof("rx_ch"),     IMPORT_STATUS_RX_CH},
-{"tx_power", sizeof("tx_power"),  IMPORT_STATUS_TX_POWER},
-{"list",     sizeof("list"),      IMPORT_STATUS_LIST},
-{"upos",     sizeof("upos"),      IMPORT_STATUS_UPOS},
-{"uid",      sizeof("uid"),       IMPORT_STATUS_UID},
-{"over",     sizeof("over"),      0xFF}
+{"fun",            sizeof("fun"),            IMPORT_STATUS_FUN},
+{"addr",           sizeof("addr"),           IMPORT_STATUS_ADDR},
+{"tx_ch",          sizeof("tx_ch"),          IMPORT_STATUS_TX_CH},
+{"rx_ch",          sizeof("rx_ch"),          IMPORT_STATUS_RX_CH},
+{"tx_power",       sizeof("tx_power"),       IMPORT_STATUS_TX_POWER},
+{"list",           sizeof("list"),           IMPORT_STATUS_LIST},
+{"upos",           sizeof("upos"),           IMPORT_STATUS_UPOS},
+{"uid",            sizeof("uid"),            IMPORT_STATUS_UID},
+{"over",           sizeof("over"),           0xFF}
 };
 
 static void serial_send_data_to_pc(void);
@@ -113,7 +114,6 @@ void serial_cmd_process(void)
 			json = cJSON_Parse((char *)uart_irq_revice_massage[json_read_index]);
 			if (!json)
 			{
-				//b_print("Error before: [%s]\n",cJSON_GetErrorPtr());
 				  b_print("{\r\n");
 	        b_print("  \"fun\": \"Error\",\r\n");
 					b_print("  \"description\": \"json syntax error!\"\r\n");
@@ -346,6 +346,7 @@ void serial_cmd_get_device_no(const cJSON *object)
 	b_print(" }\r\n");
 }
 
+
 void serial_cmd_one_key_off(const cJSON *object)
 {
 	uint8_t sdata_index = 0;
@@ -552,6 +553,11 @@ char *parse_json_item(char *pdata_str, char *key_str, char *value_str)
 			//printf("%c",*pdata);
 				key_str[i++] = *pdata;
 			}
+
+			if(*pdata == ',')
+			{
+				i = 0;
+			}
 		}
 		pdata++;
 	}
@@ -566,12 +572,69 @@ char *parse_json_item(char *pdata_str, char *key_str, char *value_str)
 		//printf("%c",*pdata);
 			value_str[i++] = *pdata;
 		}
+
 		pdata++;
 	}
 	pdata++;
 	value_str[i] = '\0';
-  //b_print("KEY:%7s  VALUE:%s \r\n",key_str,value_str);
+  b_print("KEY:%7s  VALUE:%s \r\n",key_str,value_str);
 	return (pdata);
+}
+
+void serial_cmd_raise_hand_sign_in_set(const cJSON *object)
+{
+	uint8_t raise_hand,sign_in;
+	char    *p_sign_in_data;
+	char    *p_raise_hand_data;
+	nrf_transmit_parameter_t transmit_config;
+	char *p_cmd_str = cJSON_GetObjectItem(object, "fun")->valuestring;
+
+	b_print("{\r\n");
+	if(strncmp(p_cmd_str, "raise_hand_set", sizeof("raise_hand_set")-1)== 0 )
+	{
+		p_raise_hand_data = cJSON_GetObjectItem(object,"raise_hand")->valuestring;
+		raise_hand = atoi(p_raise_hand_data);
+		b_print("  \"fun\": \"raise_hand_set\",\r\n");
+	}
+
+	if(strncmp(p_cmd_str, "sign_in_set", sizeof("sign_in_set")-1)== 0 )
+	{
+		p_sign_in_data = cJSON_GetObjectItem(object,"attendance")->valuestring;
+		sign_in = atoi(p_sign_in_data);
+		b_print("  \"fun\": \"sign_in_set\",\r\n");
+	}
+
+	/* 准备发送数据 */
+	if( raise_hand <= 1 )
+	{
+		if( raise_hand == 0 )
+			rf_var.tx_buf[0] &= 0xFE;
+		else
+			rf_var.tx_buf[0] |= 0x01;
+		printf("data = %d\r\n",rf_var.tx_buf[0]);
+	}
+
+	if( sign_in <= 1 )
+	{
+		if( sign_in == 0 )
+			rf_var.tx_buf[0] &= 0xFD;
+		else
+			rf_var.tx_buf[0] |= 0x02;
+		printf("data = %d\r\n",rf_var.tx_buf[0]);
+	}
+
+	/* 准备发送数据管理块 */
+	memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
+	memset(nrf_data.dtq_uid,    0x00, 4);
+	memcpy(nrf_data.jsq_uid,    revicer.uid, 4);
+	memset(transmit_config.dist,0x00, 4);
+	send_data_process_tcb.is_pack_add = PACKAGE_NUM_SAM;
+
+	/* 启动发送数据状态机 */
+	set_send_data_status( SEND_500MS_DATA_STATUS );
+
+	b_print("  \"result\": \"0\"\r\n");
+	b_print("}\r\n");
 }
 
 void serial_cmd_answer_start(char *pdata_str)
@@ -733,44 +796,47 @@ void serial_cmd_answer_start(char *pdata_str)
 				break;
 		}
 	}
-	
-	/* set rf buffer len */
-	rf_var.cmd = 0x10;
-	if(is_last_data_full == 1)
-		rf_var.tx_len = sdata_index+1 ;
-	else
-		rf_var.tx_len = sdata_index ;
-	
-	rf_var.tx_len = rf_var.tx_len + 1;
-	send_data_status = get_send_data_status();
 
-	/* 发送数据 */
-	if(( send_data_status == SEND_IDLE_STATUS ) ||
-		 ( send_data_status >= SEND_2S_DATA_STATUS))
+	if(real_total >= 1)
 	{
-		nrf_transmit_parameter_t transmit_config;
-
-		/* 准备发送数据管理块 */
-		memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
+		/* set rf buffer len */
+		rf_var.cmd = 0x10;
+		if(is_last_data_full == 1)
+			rf_var.tx_len = sdata_index+1 ;
+		else
+			rf_var.tx_len = sdata_index ;
 		
-		memset(nrf_data.dtq_uid,    0x00, 4);
-		memcpy(nrf_data.jsq_uid,    revicer.uid, 4);
-		memset(transmit_config.dist,0x00, 4);
+		rf_var.tx_len = rf_var.tx_len + 1;
+		send_data_status = get_send_data_status();
 
-		send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
+		/* 发送数据 */
+		if(( send_data_status == SEND_IDLE_STATUS ) ||
+			 ( send_data_status >= SEND_2S_DATA_STATUS))
+		{
+			nrf_transmit_parameter_t transmit_config;
 
-		/* 启动发送数据状态机 */
-		set_send_data_status( SEND_500MS_DATA_STATUS );
+			/* 准备发送数据管理块 */
+			memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
+
+			memset(nrf_data.dtq_uid,    0x00, 4);
+			memcpy(nrf_data.jsq_uid,    revicer.uid, 4);
+			memset(transmit_config.dist,0x00, 4);
+
+			send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
+
+			/* 启动发送数据状态机 */
+			set_send_data_status( SEND_500MS_DATA_STATUS );
+		}
+		else
+			result = -1;
+
+		/* 打印返回 */
+		b_print("{\r\n");
+		b_print("  \"fun\": \"answer_start\",\r\n");
+		sprintf(result_str, "%d" , result);
+		b_print("  \"result\": \"%s\"\r\n",result_str);
+		b_print("}\r\n");
 	}
-	else
-		result = -1;
-
-	/* 打印返回 */
-	b_print("{\r\n");
-	b_print("  \"fun\": \"answer_start\",\r\n");
-	sprintf(result_str, "%d" , result);
-	b_print("  \"result\": \"%s\"\r\n",result_str);
-	b_print("}\r\n");
 }
 
 
