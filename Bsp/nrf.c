@@ -379,18 +379,17 @@ void nrf_transmit_start( nrf_transmit_parameter_t *t_conf)
 		}
 	}
 #endif
-	
-	if( logic_pac_add == 1 )
-	{
-		logic_pac++;
-		if(logic_pac == 0)
-			logic_pac = 1;
-
-		t_conf->data_buf[0] = (logic_pac<<4) | (t_conf->data_buf[0] & 0x0F);
-	}
 
 	if(t_conf->package_type == NRF_DATA_IS_USEFUL)
 	{
+		if( logic_pac_add == 1 )
+		{
+			logic_pac++;
+			if(logic_pac == 0)
+				logic_pac = 1;
+
+			t_conf->data_buf[0] = (logic_pac<<4) | (t_conf->data_buf[0] & 0x0F);
+		}
 		nrf_data.tbuf[i++] = t_conf->data_len;
 		memcpy(nrf_data.tbuf+i,t_conf->data_buf,t_conf->data_len);
 		i = i + t_conf->data_len;

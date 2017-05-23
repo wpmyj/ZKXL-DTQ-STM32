@@ -299,7 +299,7 @@ void serial_cmd_get_device_no(const cJSON *object)
 	memset(str,0,20);
 	sprintf(str, "%010u" , *(uint32_t *)(revicer.uid));
 	b_print("  \"device_id\": \"%s\",\r\n",str);
-	b_print("  \"software_version\": \"v0.1.3\",\r\n");
+	b_print("  \"software_version\": \"v0.1.4\",\r\n");
 	b_print("  \"hardware_version\": \"ZL-RP551-MAIN-F\",\r\n");
 	b_print("  \"company\": \"zkxltech\",\r\n");
 	memset(str,0,10);
