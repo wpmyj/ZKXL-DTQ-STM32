@@ -23,7 +23,6 @@ extern nrf_communication_t nrf_data;
 extern uint16_t            list_tcb_table[UID_LIST_TABLE_SUM][WHITE_TABLE_LEN];
 extern wl_typedef          wl;
 extern revicer_typedef     revicer;
-extern uint8_t             logic_pac_add;
 
 #ifdef ZL_RP551_MAIN_F
 void nrf1_spi_init(void)
@@ -317,11 +316,17 @@ void nrf_transmit_start( nrf_transmit_parameter_t *t_conf)
 	/* data header */
 	uint8_t i = 0;
 	uint8_t send_delay = 0;
-	static uint8_t logic_pac = 1;
-	
+	static uint8_t logic_pac = 0;
+
 	if(t_conf->is_pac_add == 1)
 	{
 		revicer.sen_num++;
+		if( t_conf->logic_pac_add == 1 )
+		{
+			logic_pac = (logic_pac + 1) % 0x0F;
+			if(logic_pac == 0)
+				logic_pac = 1;
+		}
 	}
 
 	memset(nrf_data.tbuf,0,NRF_TOTAL_DATA_LEN);
@@ -359,7 +364,7 @@ void nrf_transmit_start( nrf_transmit_parameter_t *t_conf)
 	{
 		uint8_t i = 0, printf_flg = 0;
 		uint8_t *pdata = (uint8_t *)list_tcb_table[t_conf->sel_table];
-		printf("Seq:%2x Pac:%2x ",revicer.sen_seq-1,revicer.sen_num);
+		printf("Seq:%2x Pac:%2x LogicPac:%2x ",revicer.sen_seq-1,revicer.sen_num,logic_pac);
 		switch(t_conf->package_type)
 		{
 			
@@ -382,14 +387,7 @@ void nrf_transmit_start( nrf_transmit_parameter_t *t_conf)
 
 	if(t_conf->package_type == NRF_DATA_IS_USEFUL)
 	{
-		if( logic_pac_add == 1 )
-		{
-			logic_pac++;
-			if(logic_pac == 0)
-				logic_pac = 1;
-
-			t_conf->data_buf[0] = (logic_pac<<4) | (t_conf->data_buf[0] & 0x0F);
-		}
+		t_conf->data_buf[0] = (logic_pac<<4) | (t_conf->data_buf[0] & 0x0F);
 		nrf_data.tbuf[i++] = t_conf->data_len;
 		memcpy(nrf_data.tbuf+i,t_conf->data_buf,t_conf->data_len);
 		i = i + t_conf->data_len;

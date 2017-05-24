@@ -58,6 +58,7 @@ typedef struct
 	uint16_t rand_delayms;
 	uint8_t  retransmit_count;
 	uint8_t  is_pack_add;
+	uint8_t  logic_pac_add;
 }send_data_process_tcb_tydef;
 
 extern task_tcb_typedef send_data_task;
@@ -66,6 +67,6 @@ extern volatile send_data_process_tcb_tydef send_data_process_tcb;
 void set_send_data_status( uint8_t new_status );
 uint8_t get_send_data_status( void );
 void send_data_process_timer_init( void );
-void App_retransmit_data( uint8_t is_new_pack );
+void App_retransmit_data( uint8_t is_new_pack, uint8_t is_new_logic_pack);
 void App_clickers_send_data_process( void );
 #endif

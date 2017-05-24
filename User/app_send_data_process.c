@@ -429,7 +429,7 @@ void spi_process_revice_data( void )
 	}
 }
 
-void App_retransmit_data( uint8_t is_new_pack )
+void App_retransmit_data( uint8_t is_new_pack, uint8_t is_new_logic_pack)
 {		
 	nrf_transmit_parameter_t transmit_config;
 	memset(transmit_config.dist,0, 4);
@@ -437,6 +437,7 @@ void App_retransmit_data( uint8_t is_new_pack )
 	transmit_config.transmit_count = SEND_PRE_COUNT;
 	transmit_config.delay100us     = SEND_PRE_DELAY100US;
 	transmit_config.is_pac_add     = is_new_pack;
+	transmit_config.logic_pac_add  = is_new_logic_pack;
 	transmit_config.data_buf       = NULL;
 	transmit_config.data_len       = 0;
 	transmit_config.sel_table      = SEND_PRE_TABLE;
@@ -471,9 +472,12 @@ void App_clickers_send_data_process( void )
 		/* ·¢ËÍÇ°µ¼Ö¡ */
 		whitelist_checktable_and( 0, SEND_DATA_ACK_TABLE, SEND_PRE_TABLE );
 
-		App_retransmit_data(send_data_process_tcb.is_pack_add);
+		App_retransmit_data(send_data_process_tcb.is_pack_add,
+												send_data_process_tcb.logic_pac_add);
 		if(send_data_process_tcb.is_pack_add == PACKAGE_NUM_ADD)
 			send_data_process_tcb.is_pack_add = PACKAGE_NUM_SAM;
+		if(send_data_process_tcb.logic_pac_add == PACKAGE_NUM_ADD)
+			send_data_process_tcb.logic_pac_add = PACKAGE_NUM_SAM;
 
 		send_data_status = send_data_status + 1;
 	}

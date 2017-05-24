@@ -31,7 +31,7 @@ extern uint16_t list_tcb_table[UID_LIST_TABLE_SUM][WHITE_TABLE_LEN];
 /* 暂存题目信息，以备重发使用 */
 uint8_t json_read_index = 0;
 uint8_t dtq_self_inspection_flg = 0;
-uint8_t logic_pac_add = 1;
+//uint8_t logic_pac_add = 0;
 
 extern wl_typedef       wl;
 extern revicer_typedef  revicer;
@@ -359,7 +359,7 @@ void serial_cmd_one_key_off(const cJSON *object)
 	*(pSdata+(sdata_index++)) = 0x01;
 	rf_var.cmd = 0x25;
 	rf_var.tx_len = sdata_index+1 ;
-	logic_pac_add = 1;
+
 	/* 发送数据 */
 	{
 		nrf_transmit_parameter_t transmit_config;
@@ -370,8 +370,8 @@ void serial_cmd_one_key_off(const cJSON *object)
 		memset(nrf_data.dtq_uid,    0x00, 4);
 		memcpy(nrf_data.jsq_uid,    revicer.uid, 4);
 		memset(transmit_config.dist,0x00, 4);
-
-		send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
+		send_data_process_tcb.is_pack_add   = PACKAGE_NUM_ADD;
+		send_data_process_tcb.logic_pac_add = PACKAGE_NUM_SAM;
 
 		/* 启动发送数据状态机 */
 		set_send_data_status( SEND_500MS_DATA_STATUS );
@@ -404,7 +404,8 @@ void serial_cmd_answer_stop(const cJSON *object)
 		memset(nrf_data.dtq_uid,    0x00, 4);
 		memset(transmit_config.dist,0x00, 4);
 
-		send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
+		send_data_process_tcb.is_pack_add   = PACKAGE_NUM_ADD;
+		send_data_process_tcb.logic_pac_add = PACKAGE_NUM_SAM;
 
 		/* 启动发送数据状态机 */
 		set_send_data_status( SEND_500MS_DATA_STATUS );
@@ -623,14 +624,13 @@ void serial_cmd_raise_hand_sign_in_set(const cJSON *object)
 			rf_var.tx_buf[0] |= 0x02;
 	}
 
-	logic_pac_add = 0;
-
 	/* 准备发送数据管理块 */
 	memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
 	memset(nrf_data.dtq_uid,    0x00, 4);
 	memcpy(nrf_data.jsq_uid,    revicer.uid, 4);
 	memset(transmit_config.dist,0x00, 4);
-	send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
+	send_data_process_tcb.is_pack_add   = PACKAGE_NUM_ADD;
+	send_data_process_tcb.logic_pac_add = PACKAGE_NUM_SAM;
 
 	/* 启动发送数据状态机 */
 	set_send_data_status( SEND_500MS_DATA_STATUS );
@@ -810,7 +810,6 @@ void serial_cmd_answer_start(char *pdata_str)
 		
 		rf_var.tx_len = rf_var.tx_len + 1;
 		send_data_status = get_send_data_status();
-		logic_pac_add = 1;
 
 		/* 发送数据 */
 		if(( send_data_status == SEND_IDLE_STATUS ) ||
@@ -824,8 +823,8 @@ void serial_cmd_answer_start(char *pdata_str)
 			memset(nrf_data.dtq_uid,    0x00, 4);
 			memcpy(nrf_data.jsq_uid,    revicer.uid, 4);
 			memset(transmit_config.dist,0x00, 4);
-
-			send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
+			send_data_process_tcb.logic_pac_add = PACKAGE_NUM_ADD;
+			send_data_process_tcb.is_pack_add   = PACKAGE_NUM_ADD;
 
 			/* 启动发送数据状态机 */
 			set_send_data_status( SEND_500MS_DATA_STATUS );
@@ -1157,7 +1156,7 @@ void serial_cmd_self_inspection(const cJSON *object)
 	*(pSdata+(sdata_index++)) = 0x00;
 	rf_var.cmd = 0xF1;
 	rf_var.tx_len = sdata_index+1 ;
-	logic_pac_add = 1;
+
 	/* 发送数据 */
 	{
 		nrf_transmit_parameter_t transmit_config;
@@ -1168,8 +1167,8 @@ void serial_cmd_self_inspection(const cJSON *object)
 		memset(nrf_data.dtq_uid,    0x00, 4);
 		memset(nrf_data.jsq_uid,    0x00, 4);
 		memset(transmit_config.dist,0x00, 4);
-
-		send_data_process_tcb.is_pack_add = PACKAGE_NUM_ADD;
+		send_data_process_tcb.is_pack_add   = PACKAGE_NUM_ADD;
+		send_data_process_tcb.logic_pac_add = PACKAGE_NUM_SAM;
 
 		/* 启动发送数据状态机 */
 		set_send_data_status( SEND_500MS_DATA_STATUS );

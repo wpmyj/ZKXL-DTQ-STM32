@@ -102,6 +102,7 @@ typedef struct
 	uint8_t transmit_count;
 	uint8_t delay100us;
 	uint8_t is_pac_add;
+	uint8_t logic_pac_add;
 	uint8_t package_type;
 	uint8_t *data_buf;
 	uint8_t data_len;
