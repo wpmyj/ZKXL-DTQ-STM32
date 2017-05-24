@@ -301,21 +301,17 @@ uint8_t spi_read_tx_payload(SPI_TypeDef* SPIx, uint8_t *rx_data_len, uint8_t *rx
 		{
 			uint8_t  Cmdtype;
 			uint16_t AckTableLen;
-			uint8_t *prdata;
-			uint8_t *prssi;
 
 			AckTableLen = retval[14+4];
 			Cmdtype     = retval[14+4+AckTableLen+1];
-			prdata      = retval+14+4+AckTableLen+2+1;
-			prssi       = retval+2;
 
 			if( Cmdtype == 0xF1 )
 			{
+				uint8_t *prdata;
+				uint8_t *prssi;
 				uint8_t test_buf[2] = {0,0};
-				char str[20];
-
 				nrf_transmit_parameter_t transmit_config;
-				
+				// 返回ACK
 				memcpy(transmit_config.dist,nrf_data.rbuf+5, 4 );
 				transmit_config.package_type   = NRF_DATA_IS_ACK;
 				transmit_config.transmit_count = 2;
@@ -324,10 +320,11 @@ uint8_t spi_read_tx_payload(SPI_TypeDef* SPIx, uint8_t *rx_data_len, uint8_t *rx
 				transmit_config.data_buf       = NULL;
 				transmit_config.data_len       = 0;
 				nrf_transmit_start( &transmit_config );
-				
+				// 返回数据
+				prdata = retval+14+4+AckTableLen+2+1;
+				prssi  = retval+2;
 				test_buf[0] = prdata[0];
 				test_buf[1] = prssi[0];
-
 				memcpy(transmit_config.dist,nrf_data.rbuf+5, 4 );
 				transmit_config.package_type   = NRF_DATA_IS_USEFUL;
 				transmit_config.transmit_count = SEND_DATA_COUNT;
@@ -337,16 +334,12 @@ uint8_t spi_read_tx_payload(SPI_TypeDef* SPIx, uint8_t *rx_data_len, uint8_t *rx
 				transmit_config.data_len       = 2;
 				transmit_config.sel_table      = SEND_DATA_ACK_TABLE+1;
 				nrf_transmit_start( &transmit_config );
+				// 打印返回
 				b_print("{\r\n");
 				b_print("  \"fun\": \"dtq_self_inspection\",\r\n");
-				sprintf(str, "%010u" , *(uint32_t *)( nrf_data.rbuf+5));
-				b_print("  \"card_id\": \"%s\",\r\n", str );
-				memset(str,0,20);
-				sprintf(str, "%d" , ( test_buf[1]));
-				b_print("  \"dtq_rssi\": \"-%s\",\r\n", str );
-				memset(str,0,20);
-				sprintf(str, "%d" , ( test_buf[0]));
-				b_print("  \"jsq_rssi\": \"-%s\"\r\n", str );
+				b_print("  \"card_id\": \"%010u\",\r\n", *(uint32_t *)( nrf_data.rbuf+5) );
+				b_print("  \"dtq_rssi\": \"-%d\",\r\n", prssi[0] );
+				b_print("  \"jsq_rssi\": \"-%d\"\r\n", prdata[0] );
 				b_print("}\r\n");
 			}
 		}

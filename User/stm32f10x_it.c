@@ -338,8 +338,6 @@ void NRF1_RFIRQ_EXTI_IRQHandler(void)
 {
 	if(EXTI_GetITStatus(NRF1_EXTI_LINE_RFIRQ) != RESET)
 	{
-		EXTI_ClearITPendingBit(NRF1_EXTI_LINE_RFIRQ);
-
 		/* ¶ÁÈ¡Êý¾Ý */
 		spi_read_tx_payload(SPI1, &nrf_data.rlen, nrf_data.rbuf);
 //	{
@@ -372,6 +370,7 @@ void NRF1_RFIRQ_EXTI_IRQHandler(void)
 		}
 	}
 	ledToggle(LBLUE);
+	EXTI_ClearITPendingBit(NRF1_EXTI_LINE_RFIRQ);
 }
 
 /**
