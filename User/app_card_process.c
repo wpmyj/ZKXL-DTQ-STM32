@@ -255,7 +255,6 @@ void App_card_process(void)
 				memcpy(wID.uid,revicer.uid,4);
 				wID.upos  = write_uid_pos;
 				memcpy(&(wID.rf_conf),&clicker_set,sizeof(rf_config_typedef));
-				memset(wID.rev,0xFF,1);
 
 				/* 重新写入数据检测 */
 				status = ReadNDEFfile(rpdata, &NDEF_Len);

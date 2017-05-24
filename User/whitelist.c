@@ -96,6 +96,12 @@ uint8_t clicker_config_default_set( void )
 	EE_ReadVariable( CPU_24G_ATTENDANCE_OF_FEE ,&data);
 	clicker_set.N_24G_ATTEND = *(uint8_t *)(&data);
 
+	EE_ReadVariable( CPU_OPEN_DEBUG_OF_FEE ,&data);
+	if( data <= 1 )
+		clicker_set.N_OPEN_DENUG = *(uint8_t *)(&data);
+	else
+		clicker_set.N_OPEN_DENUG = 0;
+
 	/* 设置设置接收器的信道 */
 	status  = spi_set_cpu_tx_signal_ch(clicker_set.N_CH_RX);
 	status |= spi_set_cpu_rx_signal_ch(clicker_set.N_CH_TX);

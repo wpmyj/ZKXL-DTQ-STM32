@@ -103,4 +103,5 @@ void serial_cmd_bootloader(const cJSON *object);
 void serial_cmd_attendance_24g(const cJSON *object);
 void serial_cmd_self_inspection(const cJSON *object);
 void serial_cmd_raise_hand_sign_in_set(const cJSON *object);
+void serial_cmd_dtq_debug_set(const cJSON *object);
 #endif // __POS_HANDLE_LAYER_H_

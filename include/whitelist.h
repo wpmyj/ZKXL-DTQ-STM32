@@ -14,6 +14,7 @@
 #define CPU_RX_CH_POS_OF_FEE              (CPU_TX_CH_POS_OF_FEE+1)
 #define CPU_TX_POWER_POS_OF_FEE           (CPU_RX_CH_POS_OF_FEE+1)
 #define CPU_24G_ATTENDANCE_OF_FEE         (CPU_TX_POWER_POS_OF_FEE+1)
+#define CPU_OPEN_DEBUG_OF_FEE             (CPU_24G_ATTENDANCE_OF_FEE+1)
 
 #define CPU_ADDR_CLONE_FLAG               (CPU_24G_ATTENDANCE_OF_FEE+1)
 #define CPU_CLONE_ADDR                    (CPU_ADDR_CLONE_FLAG+1)
@@ -44,6 +45,7 @@ typedef struct
 	uint8_t  N_CH_RX;
 	int8_t   N_TX_POWER;
 	uint8_t  N_24G_ATTEND;
+	uint8_t  N_OPEN_DENUG;
 }rf_config_typedef;
 
 extern uint8_t 	              g_cSNR[10];						// M1ø®–Ú¡–∫≈

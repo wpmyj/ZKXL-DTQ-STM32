@@ -53,6 +53,7 @@ const static serial_cmd_typedef cmd_list[] = {
 {"dtq_self_inspection",sizeof("dtq_self_inspection"),serial_cmd_self_inspection},
 {"raise_hand_set", sizeof("raise_hand_set"), serial_cmd_raise_hand_sign_in_set},
 {"sign_in_set",    sizeof("sign_in_set"),    serial_cmd_raise_hand_sign_in_set},
+{"dtq_debug_set",  sizeof("dtq_debug_set"),  serial_cmd_dtq_debug_set},
 {"NO_USE",         sizeof("NO_USE"),         NULL                     }
 };
 
@@ -1108,6 +1109,37 @@ void serial_cmd_attendance_24g(const cJSON *object)
 	/* 打印返回 */
 	b_print("{\r\n");
 	b_print("  \"fun\": \"attendance_24g\",\r\n");
+	sprintf(str, "%d" , (int8_t)(status));
+	b_print("  \"result\": \"%s\"\r\n",str);
+	b_print("}\r\n");
+}
+
+void serial_cmd_dtq_debug_set(const cJSON *object)
+{
+	char str[3];
+	uint8_t open_debug = 0x00;
+	int8_t status;
+
+	open_debug = atoi(cJSON_GetObjectItem(object, "open_debug")->valuestring);
+	
+	if( open_debug <= 1 )
+	{
+		if (open_debug == 1)
+			clicker_set.N_OPEN_DENUG = (uint8_t)open_debug | 0x01;
+		else
+			clicker_set.N_OPEN_DENUG = (uint8_t)open_debug & 0xFE;
+
+		EE_WriteVariable( CPU_OPEN_DEBUG_OF_FEE , clicker_set.N_OPEN_DENUG );
+		status = 0;
+	}
+	else
+	{
+		status = -1;
+	}
+
+	/* 打印返回 */
+	b_print("{\r\n");
+	b_print("  \"fun\": \"dtq_debug_set\",\r\n");
 	sprintf(str, "%d" , (int8_t)(status));
 	b_print("  \"result\": \"%s\"\r\n",str);
 	b_print("}\r\n");

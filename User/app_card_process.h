@@ -27,7 +27,6 @@ typedef struct
 	uint8_t  uid[4];
 	uint16_t upos;
 	rf_config_typedef rf_conf;
-	uint8_t  rev[1];
 	uint8_t  stdid[10];
 	uint8_t  data_xor;
 }rf_id_typedf;
