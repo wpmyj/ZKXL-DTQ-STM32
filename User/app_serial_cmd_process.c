@@ -666,7 +666,6 @@ void serial_cmd_answer_start(char *pdata_str)
   uint8_t  is_last_data_full = 0;
 	answer_info_typedef answer_temp = {0,0,0};
 	uint8_t send_data_status;
-	uint8_t raise_hand_sign_in = 0;
 	
 	/* print result */
 	char   result_str[3];
@@ -712,10 +711,9 @@ void serial_cmd_answer_start(char *pdata_str)
 					if( temp <= 1 )
 					{
 						if( temp == 0 )
-							raise_hand_sign_in &= 0xFE;
+							rf_var.tx_buf[0] &= 0xFE;
 						else
-							raise_hand_sign_in |= 0x01;
-						rf_var.tx_buf[0] = raise_hand_sign_in;
+							rf_var.tx_buf[0] |= 0x01;
 					}
 				}
 				break;
@@ -725,10 +723,9 @@ void serial_cmd_answer_start(char *pdata_str)
 					if( temp <= 1 )
 					{
 						if( temp == 0 )
-							raise_hand_sign_in &= 0xFD;
+							rf_var.tx_buf[0] &= 0xFD;
 						else
-							raise_hand_sign_in |= 0x02;
-						rf_var.tx_buf[0] = raise_hand_sign_in;
+							rf_var.tx_buf[0] |= 0x02;
 					}
 				}
 				break;
