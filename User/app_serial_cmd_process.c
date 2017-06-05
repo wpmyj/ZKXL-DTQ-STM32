@@ -624,6 +624,11 @@ void serial_cmd_raise_hand_sign_in_set(const cJSON *object)
 			rf_var.tx_buf[0] |= 0x02;
 	}
 
+	if(rf_var.tx_len == 0)
+	{
+		rf_var.tx_len = 1;
+		rf_var.cmd = 0x10;
+	}
 	/* 准备发送数据管理块 */
 	memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
 	memset(nrf_data.dtq_uid,    0x00, 4);
