@@ -51,6 +51,14 @@ extern revicer_typedef   revicer;
   Return:
   Others:None
 ******************************************************************************/
+void json_skip(uint8_t data)
+{
+	if(( data ==  '\"') || ( data ==  '\''))
+		skip = skip^0x01;
+	if( data ==  ':')
+		skip = 0;
+}
+
 void uart_revice_data_state_mechine( uint8_t data )
 {
 	static uint16_t	uart_rx_cnt     = 0;
@@ -74,8 +82,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 
 		case UartDATA:
 			{
-				if(( data ==  '\"') || ( data ==  '\''))
-					skip = skip^0x01;
+				json_skip(data);
 
 				if((skip == 1) || (data > 32))
 				{
