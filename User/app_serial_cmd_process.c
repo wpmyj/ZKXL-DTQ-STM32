@@ -1090,9 +1090,9 @@ void serial_cmd_attendance_24g(const cJSON *object)
 	int8_t status;
 
 	attend = atoi(cJSON_GetObjectItem(object, "attendance_status")->valuestring);
-	tx_ch  = atoi(cJSON_GetObjectItem(object, "attendance_tx_ch")->valuestring);
+	tx_ch  = atoi(cJSON_GetObjectItem(object, "attendance_pro_index")->valuestring);
 	
-	if(( attend <= 1) && (( tx_ch > 0) && ( tx_ch < 127)))
+	if(( attend <= 1) && (( tx_ch >= 0) && ( tx_ch <= 12)))
 	{
 		if (attend == 1)
 			clicker_set.N_24G_ATTEND = (uint8_t)tx_ch | 0x80;
