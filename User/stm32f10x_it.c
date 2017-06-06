@@ -33,6 +33,7 @@ static uint32_t uart_rx_timeout       = 0;
 static uint8_t  flag_uart_rxing       = 0;
 static uint8_t  uart_status           = UartSTART;
 static uint8_t  uart_json_nesting_num = 0;
+static uint8_t  skip                  = 0x00;
 
 uint8_t  uart_irq_revice_massage[JSON_ITEM_MAX][JSON_BUFFER_LEN];
 uint16_t rjson_count = 0;
@@ -62,6 +63,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 				{
 					uart_rx_cnt           = 0;
 					uart_json_nesting_num = 0;
+					skip                  = 0x00;
 					uart_status           = UartDATA;
 					uart_json_nesting_num++;
 					uart_irq_revice_massage[rjson_index][uart_rx_cnt++] = data ;
@@ -72,8 +74,6 @@ void uart_revice_data_state_mechine( uint8_t data )
 
 		case UartDATA:
 			{
-				static uint8_t skip = 0x00;
-
 				if(( data ==  '\"') || ( data ==  '\''))
 					skip = skip^0x01;
 
