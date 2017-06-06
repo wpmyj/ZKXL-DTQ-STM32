@@ -389,10 +389,10 @@ void serial_cmd_answer_stop(const cJSON *object)
 	uint8_t *pSdata;
 
 	/* 准备发送数据 */
-	pSdata = (uint8_t *)rf_var.tx_buf;
+	pSdata = (uint8_t *)rf_var.tx_buf+1;
 	*(pSdata+(sdata_index++)) = 0x01;
 	rf_var.cmd = 0x11;
-	rf_var.tx_len = sdata_index+1 ;
+	rf_var.tx_len = sdata_index+2 ;
 	
 	/* 发送数据 */
 	{
