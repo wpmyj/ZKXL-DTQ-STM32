@@ -33,7 +33,10 @@ void b_print(const char *fmt, ...)
 	while( *pdata != '\0' )
 	{
 		if( *pdata ==  '\"')
+		{
 			skip_flag = skip_flag ^ 0x01;
+			*pdata    = '\'';
+		}
 
 		if((skip_flag == 1) || (*pdata > 32))
 		{
