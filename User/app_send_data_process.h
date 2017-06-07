@@ -3,6 +3,7 @@
 
 #include "main.h"
 #include "app_show_message_process.h"
+#include "app_serial_cmd_process.h"
 
 //#define OPEN_BUFFER_ACK_SHOW
 //#define OPEN_BUFFER_DATA_SHOW

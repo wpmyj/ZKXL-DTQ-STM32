@@ -300,8 +300,8 @@ void serial_cmd_get_device_no(const cJSON *object)
 	memset(str,0,20);
 	sprintf(str, "%010u" , *(uint32_t *)(revicer.uid));
 	b_print("  \"device_id\": \"%s\",\r\n",str);
-	b_print("  \"software_version\": \"v0.1.5\",\r\n");
-	b_print("  \"hardware_version\": \"ZL-RP551-MAIN-F\",\r\n");
+	b_print("  \"software_version\": \"v%d.%d.%d\",\r\n",software[0],software[1],software[2]);
+	b_print("  \"hardware_version\": \"%s\",\r\n",hardware);
 	b_print("  \"company\": \"zkxltech\",\r\n");
 	memset(str,0,10);
 	sprintf(str, "%d" , clicker_set.N_CH_TX);
@@ -347,8 +347,6 @@ void serial_cmd_get_device_no(const cJSON *object)
 	b_print("  ]\r\n");
 	b_print(" }\r\n");
 }
-
-
 void serial_cmd_one_key_off(const cJSON *object)
 {
 	uint8_t sdata_index = 0;

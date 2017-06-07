@@ -3,6 +3,7 @@
 
 #include "main.h"
 #include "app_serial_cmd_process.h"
+#include "whitelist.h"
 
 //#define OPEN_CARD_DEBUG_SHOW 
 //#define OPEN_CARD_DATA_SHOW
