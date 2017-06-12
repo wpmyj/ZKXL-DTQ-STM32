@@ -257,66 +257,67 @@ void nrf1_spi_init(void)
 
 void nrf2_spi_init(void)
 {
-//	GPIO_InitTypeDef GPIO_InitStructure;
-//	SPI_InitTypeDef  SPI_InitStructure;
+	GPIO_InitTypeDef GPIO_InitStructure;
+	SPI_InitTypeDef  SPI_InitStructure;
 
+	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable,ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC | \
+	                       RCC_APB2Periph_GPIOD | RCC_APB2Periph_AFIO, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);      
+	
+	/* Configure SPI_MISO Pin */
+	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_MISO_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+	GPIO_Init(NRF2_SPI_MISO_PORT, &GPIO_InitStructure);
 
-//	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE);
-//	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);      
-//	
-//	/* Configure SPI_MISO Pin */
-//	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_MISO_PIN;
-//	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
-//	GPIO_Init(NRF2_SPI_MISO_PORT, &GPIO_InitStructure);
+	/* Configure SPI_MOSI Pin */
+	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_MOSI_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+	GPIO_Init(NRF2_SPI_MOSI_PORT, &GPIO_InitStructure);
 
-//	/* Configure SPI_MOSI Pin */
-//	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_MOSI_PIN;
-//	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
-//	GPIO_Init(NRF2_SPI_MOSI_PORT, &GPIO_InitStructure);
+	/* Configure SPI_SCK Pin */
+	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_SCK_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
+	GPIO_Init(NRF2_SPI_SCK_PORT, &GPIO_InitStructure);
 
-//	/* Configure SPI_SCK Pin */
-//	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_SCK_PIN;
-//	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
-//	GPIO_Init(NRF2_SPI_SCK_PORT, &GPIO_InitStructure);
+	/* Configure SPI_CSN Pin */								//CSN 配置
+	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_CSN_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(NRF2_SPI_CSN_PORT, &GPIO_InitStructure);
 
-//	/* Configure SPI_CSN Pin */								//CSN 配置
-//	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_CSN_PIN;
-//	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
-//	GPIO_Init(NRF2_SPI_CSN_PORT, &GPIO_InitStructure);
+	/* Configure SPI_CE Pin */
+	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_CE_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(NRF2_SPI_CE_PORT, &GPIO_InitStructure);
 
-//	/* Configure SPI_CE Pin */
-//	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_CE_PIN;
-//	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
-//	GPIO_Init(NRF2_SPI_CE_PORT, &GPIO_InitStructure);
+	/* Configure SPI_IRQ Pin */
+	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_IRQ_PIN;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+	GPIO_Init(NRF2_SPI_IRQ_PORT, &GPIO_InitStructure);
 
-//	/* Configure SPI_IRQ Pin */
-//	GPIO_InitStructure.GPIO_Pin   = NRF2_SPI_IRQ_PIN;
-//	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
-//	GPIO_Init(NRF2_SPI_IRQ_PORT, &GPIO_InitStructure);
+	/* NRF2_SPI相关参数配置 */
+	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
+	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
+	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
+	/* 空闲为低 */
+	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
+	/* 第一个电平读取信号  模式0 */
+	SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
+	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
+	/* 不超过2M */
+	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
+	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
+	SPI_InitStructure.SPI_CRCPolynomial = 7;
 
-//	/* NRF2_SPI相关参数配置 */
-//	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
-//	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
-//	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
-//	/* 空闲为低 */
-//	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
-//	/* 第一个电平读取信号  模式0 */
-//	SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
-//	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
-//	/* 不超过2M */
-//	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
-//	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
-//	SPI_InitStructure.SPI_CRCPolynomial = 7;
+	SPI_Init(SPI3, &SPI_InitStructure);
 
-//	SPI_Init(SPI2, &SPI_InitStructure);
-
-//	SPI_Cmd(SPI2, ENABLE);
-//	NRF2_CSN_HIGH();		
+	SPI_Cmd(SPI3, ENABLE);
+	NRF2_CSN_HIGH();		
 }
 #endif
 /******************************************************************************

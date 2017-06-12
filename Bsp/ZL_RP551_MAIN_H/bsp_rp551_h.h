@@ -36,6 +36,32 @@
 #define NRF1_RFIRQ_EXTI_IRQn          EXTI9_5_IRQn
 #define NRF1_RFIRQ_EXTI_IRQHandler    EXTI9_5_IRQHandler
 
+/* TX:NRF2 IO Map */
+#define NRF2_SPI_MISO_PORT            GPIOB
+#define NRF2_SPI_MISO_CLK             RCC_APB2Periph_GPIOB
+#define NRF2_SPI_MISO_PIN             GPIO_Pin_4
+#define NRF2_SPI_MOSI_PORT            GPIOB
+#define NRF2_SPI_MOSI_CLK             RCC_APB2Periph_GPIOB
+#define NRF2_SPI_MOSI_PIN             GPIO_Pin_5
+#define NRF2_SPI_SCK_PORT             GPIOB
+#define NRF2_SPI_SCK_CLK              RCC_APB2Periph_GPIOB
+#define NRF2_SPI_SCK_PIN              GPIO_Pin_3
+#define NRF2_SPI_CSN_PORT             GPIOC
+#define NRF2_SPI_CSN_CLK              RCC_APB2Periph_GPIOC
+#define NRF2_SPI_CSN_PIN              GPIO_Pin_11
+#define NRF2_SPI_CE_PORT              GPIOC
+#define NRF2_SPI_CE_CLK               RCC_APB2Periph_GPIOC
+#define NRF2_SPI_CE_PIN               GPIO_Pin_12
+#define NRF2_SPI_IRQ_PORT             GPIOD
+#define NRF2_SPI_IRQ_CLK              RCC_APB2Periph_GPIOD
+#define NRF2_SPI_IRQ_PIN              GPIO_Pin_2
+#define NRF2_EXTI_LINE_RFIRQ          EXTI_Line5
+#define NRF2_RFIRQ_PinSource          GPIO_PinSource2
+#define NRF2_RFIRQ_PortSource         GPIO_PortSourceGPIOD
+#define NRF2_RFIRQ_EXTI_IRQn          EXTI2_IRQn
+#define NRF2_RFIRQ_EXTI_IRQHandler    EXTI2_IRQHandler
+
+
 /* 13.56Mhz:MF IO Map */
 #define MF_SPI_MISO_PORT              GPIOB
 #define MF_SPI_MISO_CLK               RCC_APB2Periph_GPIOB
@@ -67,6 +93,11 @@
 #define NRF1_CSN_HIGH()               NRF1_SPI_CSN_PORT->BSRR = NRF1_SPI_CSN_PIN
 #define NRF1_CE_LOW()                 NRF1_SPI_CE_PORT->BRR   = NRF1_SPI_CE_PIN
 #define NRF1_CE_HIGH()                NRF1_SPI_CE_PORT->BSRR  = NRF1_SPI_CE_PIN
+
+#define NRF2_CSN_LOW()                NRF2_SPI_CSN_PORT->BRR  = NRF2_SPI_CSN_PIN
+#define NRF2_CSN_HIGH()               NRF2_SPI_CSN_PORT->BSRR = NRF2_SPI_CSN_PIN
+#define NRF2_CE_LOW()                 NRF2_SPI_CE_PORT->BRR   = NRF2_SPI_CE_PIN
+#define NRF2_CE_HIGH()                NRF2_SPI_CE_PORT->BSRR  = NRF2_SPI_CE_PIN
 
 #define MF_CSN_LOW()                  MF_SPI_CSN_PORT->BRR  = MF_SPI_CSN_PIN
 #define MF_CSN_HIGH()                 MF_SPI_CSN_PORT->BSRR = MF_SPI_CSN_PIN

@@ -429,10 +429,9 @@ void spi_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count
 	spi_cmd_type.data[spi_cmd_type.data_len] = XOR_Cal((uint8_t *)&(spi_cmd_type.cmd), spi_cmd_type.data_len+4);
 	spi_cmd_type.data[spi_cmd_type.data_len+1] = 0x76;
 	
-	/* ??SPI?? */
-#ifdef ZL_RP551_MAIN_F
+
 	NRF2_CSN_LOW();	
-#endif
+
 	memset(retval, 0, BUFFER_SIZE_MAX);
 	//printf("SPI_TX:");
 	pdata = (uint8_t *)&spi_cmd_type;
@@ -447,16 +446,13 @@ void spi_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count
 #endif
 		//printf(" %02x",*(pdata+i));
 #ifdef ZL_RP551_MAIN_H
-		retval[i] = hal_nrf_rw(SPI2, *(pdata+i));
+		retval[i] = hal_nrf_rw(SPI3, *(pdata+i));
 #endif
 		//printf(" %02x",*(pdata+i));
 	}
 	//printf("\r\n");
 
-	/* ??SPI?? */
-#ifdef ZL_RP551_MAIN_F
 	NRF2_CSN_HIGH();
-#endif
 }
 
 
@@ -535,7 +531,7 @@ uint8_t spi_set_cpu_rx_signal_ch( uint8_t rx_ch )
 uint8_t spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 {
 	uint8_t status = 0;
-	#ifdef ZL_RP551_MAIN_F
+	
 	uint8_t set_count = 0;
 	uint8_t nop = 0xFF;
 	
@@ -569,15 +565,17 @@ uint8_t spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 			#ifdef ZL_RP551_MAIN_F
 			hal_nrf_rw(SPI2, *(pdata+i));
 			#endif
+			
+			#ifdef ZL_RP551_MAIN_H
+			hal_nrf_rw(SPI3, *(pdata+i));
+			#endif
 			//printf(" %02x",*(pdata+i));
 		}
 		//printf("\r\n");
 		NRF2_CSN_HIGH();
 		
-    // ????????
 		DelayMs(10);
-		
-		/* ?????? */
+
 		NRF2_CSN_LOW();	
 		pdata = (uint8_t *)&spi_cmd_r;
 		memset(pdata , 0, sizeof(cpu_spi_cmd_typedef));
@@ -591,7 +589,11 @@ uint8_t spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 			#ifdef ZL_RP551_MAIN_F
 			*(pdata+i) = hal_nrf_rw(SPI2, nop);
 			#endif
-			//printf(" %02x",*(pdata+i));
+			
+			#ifdef ZL_RP551_MAIN_H
+			*(pdata+i) = hal_nrf_rw(SPI3, nop);
+			#endif
+		  //printf(" %02x",*(pdata+i));
 		}
 		//printf("\r\n");
 		NRF2_CSN_HIGH();
@@ -615,7 +617,6 @@ uint8_t spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 			set_count++;
 		}
 	}while( set_count < 3 );
-	#endif
 	return status;
 }
 
