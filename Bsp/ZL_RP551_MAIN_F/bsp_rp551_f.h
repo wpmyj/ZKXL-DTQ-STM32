@@ -12,6 +12,7 @@
 #define _ZL_RP551_MAIN_F_H_
 /* SPI configuration defines -------------------------------------------------*/
 /* RX:NRF1 IO Map */
+#define NRF_RX_SPI                    SPI1
 #define NRF1_SPI_MISO_PORT            GPIOA
 #define NRF1_SPI_MISO_CLK             RCC_APB2Periph_GPIOA
 #define NRF1_SPI_MISO_PIN             GPIO_Pin_6
@@ -37,6 +38,7 @@
 #define NRF1_RFIRQ_EXTI_IRQHandler    EXTI9_5_IRQHandler
 
 /* TX:NRF2 IO Map */
+#define NRF_TX_SPI                    SPI2
 #define NRF2_SPI_MISO_PORT            GPIOB
 #define NRF2_SPI_MISO_CLK             RCC_APB2Periph_GPIOB
 #define NRF2_SPI_MISO_PIN             GPIO_Pin_14

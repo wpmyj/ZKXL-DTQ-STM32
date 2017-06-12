@@ -23,6 +23,7 @@
 #define SE2431L_CSD_PIN               GPIO_Pin_11
 
 /* SPI configuration defines -------------------------------------------------*/
+#define NRF_TX_SPI                     SPI1
 #define SPI_MISO_PORT                  GPIOA
 #define SPI_MISO_CLK                   RCC_APB2Periph_GPIOA
 #define SPI_MISO_PIN                   GPIO_Pin_6

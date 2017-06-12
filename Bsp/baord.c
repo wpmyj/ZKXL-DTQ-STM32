@@ -74,6 +74,7 @@ void board_init(void)
 	DelayMs(200);
 	BEEP_DISEN();
 	ledOff(LBLUE);
+
 	status = clicker_config_default_set();
 	printf("[ INIT ] SPI SET CPU RF : %s !\r\n", (status == 0) ? "OK" : "FAIL");
 	IWDG_Configuration();
@@ -437,17 +438,7 @@ void spi_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t count
 	pdata = (uint8_t *)&spi_cmd_type;
 	for(i=0; i<spi_cmd_type.data_len+7; i++)
 	{
-#ifdef ZL_RP551_MAIN_E
-	retval[i] = hal_nrf_rw(SPI1, *(pdata+i));
-#endif
-
-#ifdef ZL_RP551_MAIN_F
-		retval[i] = hal_nrf_rw(SPI2, *(pdata+i));
-#endif
-		//printf(" %02x",*(pdata+i));
-#ifdef ZL_RP551_MAIN_H
-		retval[i] = hal_nrf_rw(SPI3, *(pdata+i));
-#endif
+		retval[i] = hal_nrf_rw(NRF_TX_SPI, *(pdata+i));
 		//printf(" %02x",*(pdata+i));
 	}
 	//printf("\r\n");
@@ -558,17 +549,7 @@ uint8_t spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 		memset(retval, 0, sizeof(cpu_spi_cmd_typedef));
 		for(i=0; i<sizeof(cpu_spi_cmd_typedef); i++)
 		{
-			#ifdef ZL_RP551_MAIN_E
-			hal_nrf_rw(SPI1, *(pdata+i));
-			#endif
-
-			#ifdef ZL_RP551_MAIN_F
-			hal_nrf_rw(SPI2, *(pdata+i));
-			#endif
-			
-			#ifdef ZL_RP551_MAIN_H
-			hal_nrf_rw(SPI3, *(pdata+i));
-			#endif
+			hal_nrf_rw(NRF_TX_SPI, *(pdata+i));
 			//printf(" %02x",*(pdata+i));
 		}
 		//printf("\r\n");
@@ -582,17 +563,7 @@ uint8_t spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 		//printf("SPI_TX_CHECK_CH:");
 		for(i=0; i<sizeof(cpu_spi_cmd_typedef); i++)
 		{
-			#ifdef ZL_RP551_MAIN_E
-			*(pdata+i) = hal_nrf_rw(SPI1, nop);
-			#endif
-
-			#ifdef ZL_RP551_MAIN_F
-			*(pdata+i) = hal_nrf_rw(SPI2, nop);
-			#endif
-			
-			#ifdef ZL_RP551_MAIN_H
-			*(pdata+i) = hal_nrf_rw(SPI3, nop);
-			#endif
+			*(pdata+i) = hal_nrf_rw(NRF_TX_SPI, nop);
 		  //printf(" %02x",*(pdata+i));
 		}
 		//printf("\r\n");

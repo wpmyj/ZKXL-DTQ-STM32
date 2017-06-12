@@ -277,10 +277,8 @@ uint8_t ReadRC(uint8_t Address)
 
 void ReadFIFOData(uint8_t Address,uint8_t *buf, uint8_t len)
 {
-	u8 value;
-
-
 #ifdef ZL_RP551_MAIN_H
+	u8 value;
 	uint8_t *pdata = buf;
 	uint8_t i;
 	
