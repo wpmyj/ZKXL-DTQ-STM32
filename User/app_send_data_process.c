@@ -280,7 +280,8 @@ static void update_data_to_buffer( uint8_t *Message )
 
 						case 3: 
 						{
-							sprintf(answer_range, "%d" , answer_temp.range);
+							if(answer_temp.range < 100)
+								sprintf(answer_range, "%d" , answer_temp.range);
 							memcpy(answer_type,"d",sizeof("d"));
 						}
 						break;
