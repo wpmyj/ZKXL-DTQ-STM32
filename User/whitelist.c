@@ -85,6 +85,9 @@ uint8_t clicker_config_default_set( void )
 	else
 		clicker_set.N_CH_RX      = 4;
 	
+	if(clicker_set.N_CH_TX == clicker_set.N_CH_RX)
+			clicker_set.N_CH_RX    = (clicker_set.N_CH_RX + 2 ) % 11;
+	
 	EE_ReadVariable( CPU_TX_POWER_POS_OF_FEE ,&data);
 	if(( *(int8_t *)(&data) >= 1 ) && ( *(int8_t *)(&data) <= 5 ))
 	{

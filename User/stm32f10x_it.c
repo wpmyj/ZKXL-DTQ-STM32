@@ -55,8 +55,6 @@ void json_skip(uint8_t data)
 {
 	if(( data ==  '\"') || ( data ==  '\''))
 		skip = skip^0x01;
-	if( data ==  ':')
-		skip = 0;
 }
 
 void uart_revice_data_state_mechine( uint8_t data )

@@ -181,7 +181,6 @@ void parse_str_to_time( char *str )
 	memset(str1,0,10);
 	memcpy(str1,str+17,2);
 	system_rtc_timer.sec = atoi( str1 );
-//printf("Parse:num  = %d type = %d \r\n",num,type);
 //printf("Parse:year = %d \r\n",system_rtc_timer.year);
 //printf("Parse:mon  = %d \r\n",system_rtc_timer.mon);
 //printf("Parse:mon  = %d \r\n",system_rtc_timer.date);	
@@ -551,7 +550,7 @@ char *parse_json_item(char *pdata_str, char *key_str, char *value_str)
 		{
 			if((*pdata != '"') && (*pdata != ','))
 			{
-			//printf("%c",*pdata);
+			  //printf("%c",*pdata);
 				key_str[i++] = *pdata;
 			}
 
@@ -570,7 +569,7 @@ char *parse_json_item(char *pdata_str, char *key_str, char *value_str)
 	{
 		if(*pdata != '"')
 		{
-		//printf("%c",*pdata);
+		  //printf("%c",*pdata);
 			value_str[i++] = *pdata;
 		}
 
@@ -578,7 +577,7 @@ char *parse_json_item(char *pdata_str, char *key_str, char *value_str)
 	}
 	pdata++;
 	value_str[i] = '\0';
-  //b_print("KEY:%7s  VALUE:%s \r\n",key_str,value_str);
+  //printf("KEY:%15s  VALUE:%s \r\n",key_str,value_str);
 	return (pdata);
 }
 
@@ -653,7 +652,7 @@ void serial_cmd_answer_start(char *pdata_str)
 	
 	/* prase data control */ 
 	char *p_end,*p_next_start; 
-	char value_str[25],key_str[10];
+	char value_str[25],key_str[20];
 	uint8_t parse_data_status = 0;
 	uint16_t len = strlen(pdata_str);
 	uint8_t real_total = 0;
@@ -670,6 +669,8 @@ void serial_cmd_answer_start(char *pdata_str)
 	int8_t result = 0;
 	
 	/* prase the first key and value */
+	memset(value_str,0x00,25);
+	memset(key_str,  0x00,20);
 	p_end = parse_json_item( pdata_str, key_str, value_str );
 
 	while( (p_end - pdata_str) < len-3 )
@@ -678,6 +679,8 @@ void serial_cmd_answer_start(char *pdata_str)
 		p_next_start = p_end;
 		
 		/* prase next key and value, and get string status*/
+		memset(value_str,0x00,25);
+		memset(key_str,  0x00,20);
 		p_end = parse_json_item( p_next_start, key_str, value_str );
 		while(answer_item_list[i].status != 0xFF)
 		{
@@ -685,6 +688,9 @@ void serial_cmd_answer_start(char *pdata_str)
 				          answer_item_list[i].key_str_len)== 0)
 			{
 				parse_data_status = answer_item_list[i].status;
+				//printf("STATUS = %d, KEY:%-15s  VALUE:%s \r\n",\
+				        answer_item_list[i].status,key_str,value_str);
+				i = 0;
 				break;
 			}
 			i++;
@@ -816,18 +822,30 @@ void serial_cmd_answer_start(char *pdata_str)
 			 ( send_data_status >= SEND_2S_DATA_STATUS))
 		{
 			nrf_transmit_parameter_t transmit_config;
+			uint8_t status;
 
-			/* 准备发送数据管理块 */
-			memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
+			if(clicker_set.N_CH_RX == clicker_set.N_CH_TX )
+				clicker_set.N_CH_RX = (clicker_set.N_CH_TX + 2) % 11;
+	
+			status  = spi_set_cpu_tx_signal_ch(clicker_set.N_CH_RX);
+			status |= spi_set_cpu_rx_signal_ch(clicker_set.N_CH_TX);
 
-			memset(nrf_data.dtq_uid,    0x00, 4);
-			memcpy(nrf_data.jsq_uid,    revicer.uid, 4);
-			memset(transmit_config.dist,0x00, 4);
-			send_data_process_tcb.logic_pac_add = PACKAGE_NUM_ADD;
-			send_data_process_tcb.is_pack_add   = PACKAGE_NUM_ADD;
-
-			/* 启动发送数据状态机 */
-			set_send_data_status( SEND_500MS_DATA_STATUS );
+			if( status != 0 )
+			{
+				result = -3;
+			}
+			else
+			{
+				/* 准备发送数据管理块 */
+				memset(list_tcb_table[SEND_DATA_ACK_TABLE],0,16);
+				memset(nrf_data.dtq_uid,    0x00, 4);
+				memcpy(nrf_data.jsq_uid,    revicer.uid, 4);
+				memset(transmit_config.dist,0x00, 4);
+				send_data_process_tcb.logic_pac_add = PACKAGE_NUM_ADD;
+				send_data_process_tcb.is_pack_add   = PACKAGE_NUM_ADD;
+				/* 启动发送数据状态机 */
+				set_send_data_status( SEND_500MS_DATA_STATUS );
+			}
 		}
 		else
 			result = -1;
@@ -935,6 +953,8 @@ void serial_cmd_import_config(char *pdata_str)
 		p_next_start = p_end;
 		
 		/* prase next key and value, and get string status*/
+		memset(value_str,0x00,25);
+		memset(key_str,  0x00,10);
 		p_end = parse_json_item( p_next_start, key_str, value_str );
 		while(import_item_list[i].status != 0xFF)
 		{
@@ -942,6 +962,9 @@ void serial_cmd_import_config(char *pdata_str)
 				          import_item_list[i].key_str_len)== 0)
 			{
 				parse_data_status = import_item_list[i].status;
+				//printf("STATUS = %3d, KEY:%-10s  VALUE:%s \r\n",\
+				          parse_data_status,key_str,value_str);
+				i = 0;
 				break;
 			}
 			i++;
