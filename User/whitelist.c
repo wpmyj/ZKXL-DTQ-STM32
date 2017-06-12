@@ -104,8 +104,11 @@ uint8_t clicker_config_default_set( void )
 
 	/* 设置设置接收器的信道 */
 	status  = spi_set_cpu_tx_signal_ch(clicker_set.N_CH_RX);
+	if(status != 0)
+		printf("[ INIT ] SPI SET CPU RF TX: %s !\r\n", (status == 0) ? "OK" : "FAIL");
 	status |= spi_set_cpu_rx_signal_ch(clicker_set.N_CH_TX);
-
+	if(status != 0)
+		printf("[ INIT ] SPI SET CPU RF RX: %s !\r\n", (status == 0) ? "OK" : "FAIL");
 	return status;
 }
 
