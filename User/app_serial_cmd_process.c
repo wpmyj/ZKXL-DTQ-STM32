@@ -832,7 +832,7 @@ void serial_cmd_answer_start(char *pdata_str)
 
 			if( status != 0 )
 			{
-				result = -3;
+				result = -1;
 			}
 			else
 			{

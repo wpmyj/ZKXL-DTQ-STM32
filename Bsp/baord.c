@@ -393,12 +393,8 @@ uint8_t spi_read_tx_payload(SPI_TypeDef* SPIx, uint8_t *rx_data_len, uint8_t *rx
 				b_print("  \"fun\": \"dtq_self_inspection\",\r\n");
 				sprintf(str, "%010u" , *(uint32_t *)( nrf_data.rbuf+5));
 				b_print("  \"card_id\": \"%s\",\r\n", str );
-				memset(str,0,20);
-				sprintf(str, "%d" , ( test_buf[1]));
-				b_print("  \"dtq_rssi\": \"-%s\",\r\n", str );
-				memset(str,0,20);
-				sprintf(str, "%d" , ( test_buf[0]));
-				b_print("  \"jsq_rssi\": \"-%s\"\r\n", str );
+				b_print("  \"dtq_rssi\": \"-%d\",\r\n",  prssi[0]  );
+				b_print("  \"jsq_rssi\": \"-%d\"\r\n",   prdata[0] );
 				b_print("}\r\n");
 			}
 		}
