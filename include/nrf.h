@@ -115,12 +115,11 @@ void    spi_write_tx_payload(const uint8_t *tx_pload, uint8_t length, uint8_t co
 
 
 void nrf_transmit_start( nrf_transmit_parameter_t *t_conf);
-void my_nrf_transmit_tx_success_handler(void);
-void my_nrf_transmit_tx_failed_handler(void);
-void my_nrf_receive_success_handler(void);
-
 void nrf51822_spi_init(void);
 void nrf51822_parameters_init(void);
-void TIM3_Int_Init(u16 arr,u16 psc);
+void nrf1_rst_deinit(void);
+void nrf2_rst_deinit(void);
+void nrf1_rst_init(void);
+void nrf2_rst_init(void);
 
 #endif //__NRF_H_

@@ -93,10 +93,7 @@ void uart_revice_data_state_mechine( uint8_t data )
 					{
 						flag_uart_rxing = 0;
 						uart_status = UartSTART;
-						b_print("{\r\n");
-						b_print("  \'fun\': \'Error\',\r\n");
-						b_print("  \'description\': \'uart buffer full!\'\r\n");
-						b_print("}\r\n");
+						printf("{'fun':'Error','description':'uart buffer full!'}");
 						memset(uart_irq_revice_massage[rjson_index],0,JSON_BUFFER_LEN);
 						uart_rx_cnt = 0;
 						uart_json_nesting_num = 0;

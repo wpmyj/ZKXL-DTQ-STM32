@@ -64,13 +64,12 @@ void flash_white_list_use_table(void)
 uint8_t clicker_config_default_set( void )
 {
 	uint16_t data;
-	uint8_t  status;
+	uint8_t  status,status1;
 	
 	/* 读取信道配置参数 */
 	EE_ReadVariable(CPU_RX_CH_POS_OF_FEE,&data);
 	if( data < 125 )
 	{
-		//printf("read %d = %d\r\n",CPU_RX_CH_POS_OF_FEE,data);
 		clicker_set.N_CH_TX      = data;
 	}
 	else
@@ -79,7 +78,6 @@ uint8_t clicker_config_default_set( void )
 	EE_ReadVariable( CPU_TX_CH_POS_OF_FEE ,&data);
 	if( data < 125 )
 	{
-		//printf("read %d = %d\r\n",CPU_TX_CH_POS_OF_FEE,data);
 		clicker_set.N_CH_RX      = data;
 	}
 	else
@@ -105,14 +103,7 @@ uint8_t clicker_config_default_set( void )
 	else
 		clicker_set.N_OPEN_DENUG = 0;
 
-	/* 设置设置接收器的信道 */
-	status  = spi_set_cpu_tx_signal_ch(clicker_set.N_CH_RX);
-	if(status != 0)
-		printf("[ INIT ] SPI SET CPU RF TX: %s !\r\n", (status == 0) ? "OK" : "FAIL");
-	status |= spi_set_cpu_rx_signal_ch(clicker_set.N_CH_TX);
-	if(status != 0)
-		printf("[ INIT ] SPI SET CPU RF RX: %s !\r\n", (status == 0) ? "OK" : "FAIL");
-	return status;
+	return 0;
 }
 
 /******************************************************************************

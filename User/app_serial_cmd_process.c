@@ -139,10 +139,7 @@ void serial_cmd_process(void)
 
 				if(is_know_cmd == 0)
 				{
-					b_print("{\r\n");
-	        b_print("  \"fun\": \"Error\",\r\n");
-					b_print("  \"description\": \"unknow cmd!\"\r\n");
-					b_print("}\r\n");
+					printf("{'fun':'Error','description':'unknow cmd!'}");
 				}
 			}
 			cJSON_Delete(json);

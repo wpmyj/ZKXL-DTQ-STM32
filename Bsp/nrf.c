@@ -173,6 +173,57 @@ void nrf2_spi_init(void)
 #endif
 
 #ifdef ZL_RP551_MAIN_H
+
+void nrf1_rst_init(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
+	/* Configure RST Pin */								//RST ≈‰÷√
+	GPIO_InitStructure.GPIO_Pin   = NRF1_RST_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(NRF1_RST_PORT, &GPIO_InitStructure);
+}
+
+void nrf2_rst_init(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable,ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
+	/* Configure RST Pin */								//RST ≈‰÷√
+	GPIO_InitStructure.GPIO_Pin   = NRF2_RST_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(NRF2_RST_PORT, &GPIO_InitStructure);
+}
+
+void nrf1_rst_deinit()
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
+	/* Configure RST Pin */								//RST ≈‰÷√
+	GPIO_InitStructure.GPIO_Pin   = NRF1_RST_PIN;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+	GPIO_Init(NRF1_RST_PORT, &GPIO_InitStructure);
+}
+
+void nrf2_rst_deinit()
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable,ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
+	/* Configure RST Pin */								//RST ≈‰÷√
+	GPIO_InitStructure.GPIO_Pin   = NRF2_RST_PIN;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+	GPIO_Init(NRF2_RST_PORT, &GPIO_InitStructure);
+}
+
+
+
 void nrf1_spi_init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -218,12 +269,6 @@ void nrf1_spi_init(void)
 	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(NRF1_SPI_IRQ_PORT, &GPIO_InitStructure);
 
-	/* Configure RST Pin */								//RST ≈‰÷√
-	GPIO_InitStructure.GPIO_Pin   = NRF1_RST_PIN;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
-	GPIO_Init(NRF1_RST_PORT, &GPIO_InitStructure);
-
 	/* NRF1_SPIœ‡πÿ≤Œ ˝≈‰÷√ */
 	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
 	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
@@ -259,6 +304,7 @@ void nrf1_spi_init(void)
 
 	SPI_Cmd(SPI1, ENABLE);
 	NRF1_CSN_HIGH();
+	nrf1_rst_init();
 	NRF1_RST_HIGH();	
 }
 
@@ -307,12 +353,6 @@ void nrf2_spi_init(void)
 	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(NRF2_SPI_IRQ_PORT, &GPIO_InitStructure);
 
-	/* Configure RST Pin */								//RST ≈‰÷√
-	GPIO_InitStructure.GPIO_Pin   = NRF2_RST_PIN;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
-	GPIO_Init(NRF2_RST_PORT, &GPIO_InitStructure);
-
 	/* NRF2_SPIœ‡πÿ≤Œ ˝≈‰÷√ */
 	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
 	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
@@ -331,8 +371,10 @@ void nrf2_spi_init(void)
 
 	SPI_Cmd(SPI3, ENABLE);
 	NRF2_CSN_HIGH();
+	nrf2_rst_init();
 	NRF2_RST_HIGH();
 }
+
 #endif
 /******************************************************************************
   Function:my_nrf_transmit_start
