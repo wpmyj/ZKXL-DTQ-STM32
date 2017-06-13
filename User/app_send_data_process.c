@@ -486,6 +486,36 @@ void App_clickers_send_data_process( void )
 
 void retransmit_2s_timer_callback( void )
 {
+	uint8_t status;
+	static uint8_t err_count = 0;
+
+	if(clicker_set.N_CH_RX == clicker_set.N_CH_TX )
+		clicker_set.N_CH_RX = (clicker_set.N_CH_TX + 2) % 11;
+	status  = spi_set_cpu_tx_signal_ch(clicker_set.N_CH_RX);
+	status |= spi_set_cpu_rx_signal_ch(clicker_set.N_CH_TX);
+
+	if( status != 0 )
+	{
+		NRF1_RST_LOW();	
+		NRF2_RST_LOW();	
+		DelayMs(50);
+		NRF1_RST_HIGH();	
+		NRF2_RST_HIGH();
+		err_count++;
+		if( err_count >= 10)
+		{
+			err_count = 0;
+			send_data_status = 0;
+			b_print("{\r\n");
+			b_print("  \'fun\': \'Error\',\r\n");
+			b_print("  \'description\': \'RF lost, Please resest system!\'\r\n");
+			b_print("}\r\n");
+		}
+	}
+	else
+	{
+		err_count = 0;
+	}
 	send_data_status = SEND_2S_DATA_STATUS;
 }
 

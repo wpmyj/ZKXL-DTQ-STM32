@@ -218,6 +218,12 @@ void nrf1_spi_init(void)
 	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(NRF1_SPI_IRQ_PORT, &GPIO_InitStructure);
 
+	/* Configure RST Pin */								//RST 配置
+	GPIO_InitStructure.GPIO_Pin   = NRF1_RST_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(NRF1_RST_PORT, &GPIO_InitStructure);
+
 	/* NRF1_SPI相关参数配置 */
 	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
 	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
@@ -252,7 +258,8 @@ void nrf1_spi_init(void)
 	NVIC_Init(&NVIC_InitStructure);
 
 	SPI_Cmd(SPI1, ENABLE);
-	NRF1_CSN_HIGH();		
+	NRF1_CSN_HIGH();
+	NRF1_RST_HIGH();	
 }
 
 void nrf2_spi_init(void)
@@ -300,6 +307,12 @@ void nrf2_spi_init(void)
 	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
 	GPIO_Init(NRF2_SPI_IRQ_PORT, &GPIO_InitStructure);
 
+	/* Configure RST Pin */								//RST 配置
+	GPIO_InitStructure.GPIO_Pin   = NRF2_RST_PIN;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+	GPIO_Init(NRF2_RST_PORT, &GPIO_InitStructure);
+
 	/* NRF2_SPI相关参数配置 */
 	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
 	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
@@ -317,7 +330,8 @@ void nrf2_spi_init(void)
 	SPI_Init(SPI3, &SPI_InitStructure);
 
 	SPI_Cmd(SPI3, ENABLE);
-	NRF2_CSN_HIGH();		
+	NRF2_CSN_HIGH();
+	NRF2_RST_HIGH();
 }
 #endif
 /******************************************************************************

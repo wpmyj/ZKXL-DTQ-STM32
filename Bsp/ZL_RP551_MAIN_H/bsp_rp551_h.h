@@ -13,6 +13,9 @@
 /* SPI configuration defines -------------------------------------------------*/
 /* RX:NRF1 IO Map */
 #define NRF_RX_SPI                    SPI1
+#define NRF1_RST_PORT                 GPIOA
+#define NRF1_RST_CLK                  RCC_APB2Periph_GPIOA
+#define NRF1_RST_PIN                  GPIO_Pin_3
 #define NRF1_SPI_MISO_PORT            GPIOA
 #define NRF1_SPI_MISO_CLK             RCC_APB2Periph_GPIOA
 #define NRF1_SPI_MISO_PIN             GPIO_Pin_6
@@ -39,6 +42,9 @@
 
 /* TX:NRF2 IO Map */
 #define NRF_TX_SPI                    SPI3
+#define NRF2_RST_PORT                 GPIOA
+#define NRF2_RST_CLK                  RCC_APB2Periph_GPIOA
+#define NRF2_RST_PIN                  GPIO_Pin_15
 #define NRF2_SPI_MISO_PORT            GPIOB
 #define NRF2_SPI_MISO_CLK             RCC_APB2Periph_GPIOB
 #define NRF2_SPI_MISO_PIN             GPIO_Pin_4
@@ -95,11 +101,15 @@
 #define NRF1_CSN_HIGH()               NRF1_SPI_CSN_PORT->BSRR = NRF1_SPI_CSN_PIN
 #define NRF1_CE_LOW()                 NRF1_SPI_CE_PORT->BRR   = NRF1_SPI_CE_PIN
 #define NRF1_CE_HIGH()                NRF1_SPI_CE_PORT->BSRR  = NRF1_SPI_CE_PIN
+#define NRF1_RST_LOW()                NRF1_RST_PORT->BRR      = NRF1_RST_PIN
+#define NRF1_RST_HIGH()               NRF1_RST_PORT->BSRR     = NRF1_RST_PIN
 
 #define NRF2_CSN_LOW()                NRF2_SPI_CSN_PORT->BRR  = NRF2_SPI_CSN_PIN
 #define NRF2_CSN_HIGH()               NRF2_SPI_CSN_PORT->BSRR = NRF2_SPI_CSN_PIN
 #define NRF2_CE_LOW()                 NRF2_SPI_CE_PORT->BRR   = NRF2_SPI_CE_PIN
 #define NRF2_CE_HIGH()                NRF2_SPI_CE_PORT->BSRR  = NRF2_SPI_CE_PIN
+#define NRF2_RST_LOW()                NRF2_RST_PORT->BRR      = NRF2_RST_PIN
+#define NRF2_RST_HIGH()               NRF2_RST_PORT->BSRR     = NRF2_RST_PIN
 
 #define MF_CSN_LOW()                  MF_SPI_CSN_PORT->BRR  = MF_SPI_CSN_PIN
 #define MF_CSN_HIGH()                 MF_SPI_CSN_PORT->BSRR = MF_SPI_CSN_PIN
