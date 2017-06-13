@@ -508,7 +508,7 @@ void retransmit_2s_timer_callback( void )
 			send_data_status = 0;
 			b_print("{\r\n");
 			b_print("  \'fun\': \'Error\',\r\n");
-			b_print("  \'description\': \'RF lost, Please resest system!\'\r\n");
+			b_print("  \'description\': \'rf fails, please restart your receiver!\'\r\n");
 			b_print("}\r\n");
 		}
 	}
