@@ -377,13 +377,6 @@ void App_card_process(void)
 						return;
 					}
 				}
-				//b_print("  \"Interrupt\": \"Send\"\r\n");
-				status = SendInterrupt();
-				DEBUG_CARD_DEBUG_LOG("SendInterrupt status = %d\r\n",status);
-				#ifdef SHOW_CARD_PROCESS_TIME
-				EndTime = PowerOnTime - StartTime;
-				printf("UseTime:SendInterrupt = %d \r\n",EndTime);
-				#endif
 				if( status != MI_OK )
 				{
 					memset(rpdata,0x00,card_data_len);
@@ -437,6 +430,13 @@ void App_card_process(void)
 		{
 			if( card_message_err != 2 )
 			{
+				uint8_t status;
+				status = SendInterrupt();
+				DEBUG_CARD_DEBUG_LOG("SendInterrupt status = %d\r\n",status);
+				#ifdef SHOW_CARD_PROCESS_TIME
+				EndTime = PowerOnTime - StartTime;
+				printf("UseTime:SendInterrupt = %d \r\n",EndTime);
+				#endif
 				#ifdef OPEN_SILENT_MODE
 				ledOn(LBLUE);
 				#else
