@@ -103,7 +103,21 @@ uint8_t clicker_config_default_set( void )
 	else
 		clicker_set.N_OPEN_DENUG = 0;
 
-	return 0;
+	if(clicker_set.N_CH_RX == clicker_set.N_CH_TX )
+				clicker_set.N_CH_RX = (clicker_set.N_CH_TX + 2) % 11;
+	status  = spi_set_cpu_tx_signal_ch(clicker_set.N_CH_RX);
+	status1 = spi_set_cpu_rx_signal_ch(clicker_set.N_CH_TX);
+	nrf1_rst_init();
+	nrf2_rst_init();
+	NRF1_RST_LOW();
+	NRF2_RST_LOW();
+	DelayMs(50);
+	NRF1_RST_HIGH();
+	NRF2_RST_HIGH();
+	nrf1_rst_deinit();
+	nrf2_rst_deinit();
+
+	return (status | status1);
 }
 
 /******************************************************************************
