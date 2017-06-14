@@ -75,9 +75,8 @@ void board_init(void)
 	BEEP_DISEN();
 	ledOff(LBLUE);
 
-	clicker_config_default_set();
-	nrf1_rst_deinit();
-	nrf2_rst_deinit();
+	status = clicker_config_default_set();
+	printf("[ INIT ] RF INIT: %s !\r\n", (status == 0) ? "OK" : "FAIL");;
 	IWDG_Configuration();
 }
 
