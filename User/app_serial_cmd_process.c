@@ -77,7 +77,7 @@ const static json_item_typedef import_item_list[] = {
 {"list",           sizeof("list"),           IMPORT_STATUS_LIST},
 {"upos",           sizeof("upos"),           IMPORT_STATUS_UPOS},
 {"uid",            sizeof("uid"),            IMPORT_STATUS_UID},
-{"att_pro_index",  sizeof("att_pro_index"),  IMPORT_STATUS_ATT},
+{"pro_index",      sizeof("pro_index"),      IMPORT_STATUS_ATT},
 {"over",           sizeof("over"),           0xFF}
 };
 
@@ -313,10 +313,10 @@ void serial_cmd_get_device_no(const cJSON *object)
 	if( clicker_set.N_24G_ATTEND & 0x80 )
 	{
 		attend_tx_ch = clicker_set.N_24G_ATTEND & 0x7F;
-		b_print("  \"att_pro_index\": \"%d\",\r\n",attend_tx_ch);
+		b_print("  \"pro_index\": \"%d\",\r\n",attend_tx_ch);
 	}
 	else
-		b_print("  \"att_pro_index\": \"\",\r\n");
+		b_print("  \"pro_index\": \"\",\r\n");
 	b_print("  \"list\": [\r\n");
 
 	for(i=0; i < MAX_WHITE_LEN; i++)
@@ -882,10 +882,10 @@ void serial_cmd_check_config(const cJSON *object)
 	if( clicker_set.N_24G_ATTEND & 0x80 )
 	{
 		attend_tx_ch = clicker_set.N_24G_ATTEND & 0x7F;
-		b_print("  \"att_pro_index\": \"%d\",\r\n",attend_tx_ch);
+		b_print("  \"pro_index\": \"%d\",\r\n",attend_tx_ch);
 	}
 	else
-		b_print("  \"att_pro_index\": \"\",\r\n");
+		b_print("  \"pro_index\": \"\",\r\n");
 
 	b_print("  \"list\": [\r\n");
 
@@ -1036,10 +1036,10 @@ void serial_cmd_import_config(char *pdata_str)
 				break;
 				case IMPORT_STATUS_ATT:
 				{
-					uint8_t att_pro_index = atoi(value_str);
-					if(( att_pro_index >= 0) && ( att_pro_index <= 12))
+					uint8_t pro_index = atoi(value_str);
+					if(( pro_index >= 0) && ( pro_index <= 12))
 					{
-						clicker_set.N_24G_ATTEND = att_pro_index | 0x80;
+						clicker_set.N_24G_ATTEND = pro_index | 0x80;
 						EE_WriteVariable( CPU_24G_ATTENDANCE_OF_FEE , clicker_set.N_24G_ATTEND );
 						result = 0;
 					}
@@ -1117,8 +1117,8 @@ void serial_cmd_attendance_24g(const cJSON *object)
 	int8_t  tx_ch = 81;
 	int8_t status;
 
-	attend = atoi(cJSON_GetObjectItem(object, "attendance_status")->valuestring);
-	tx_ch  = atoi(cJSON_GetObjectItem(object, "att_pro_index")->valuestring);
+	attend = atoi(cJSON_GetObjectItem(object, "is_open")->valuestring);
+	tx_ch  = atoi(cJSON_GetObjectItem(object, "pro_index")->valuestring);
 	
 	if(( attend <= 1) && (( tx_ch >= 0) && ( tx_ch <= 12)))
 	{
