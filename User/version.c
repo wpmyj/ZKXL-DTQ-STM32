@@ -38,7 +38,7 @@ const uint8_t hardware[30] = {
 };
 #define MAIN_VERSION          0x00
 #define SUB_VERSION_1         0x02
-#define SUB_VERSION_2         0x00
+#define SUB_VERSION_2         0x01
 #endif
 
 const uint8_t company[16] = {
