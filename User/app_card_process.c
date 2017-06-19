@@ -437,6 +437,17 @@ void App_card_process(void)
 				EndTime = PowerOnTime - StartTime;
 				printf("UseTime:SendInterrupt = %d \r\n",EndTime);
 				#endif
+				if( status != MI_OK )
+				{
+					uint8_t *rpdata = (uint8_t *)&rID;
+					uint8_t *wpdata = (uint8_t *)&wID;
+					uint8_t card_data_len = sizeof(rf_id_typedf);
+					memset(rpdata,0x00,card_data_len);
+					memset(wpdata,0x00,card_data_len);
+					mfrc500_init();
+					rf_set_card_status(1);
+					return;
+				}
 				#ifdef OPEN_SILENT_MODE
 				ledOn(LBLUE);
 				#else
@@ -454,7 +465,7 @@ void App_card_process(void)
 			{
 				char str[21];
 				b_print("{\r\n");
-				b_print("  \"fun\": \"set_student_id\",\r\n");
+				b_print("  \"fun\": \"update_student_id_info\",\r\n");
 				memset(str,0,20);
 				sprintf(str, "%010u" , *(uint32_t *)( wl.uids[write_uid_pos].uid));
 				b_print("  \"card_id\": \"%s\",\r\n", str );
