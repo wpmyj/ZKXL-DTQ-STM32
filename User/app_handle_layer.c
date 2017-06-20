@@ -27,14 +27,14 @@
 void app_handle_layer(void)
 {
 	/*clickers send data process */
-	App_clickers_send_data_process();
+	//App_clickers_send_data_process();
 
 	/* serial cmd processing process */
-	App_seirial_cmd_process();
+	//App_seirial_cmd_process();
 
 	/* MI Card processing process */
 	App_card_process();
 
 	/*revicer spi send data process */
-	App_spi_send_data_process();
+	//App_spi_send_data_process();
 }

@@ -12,6 +12,7 @@
 #include "main.h"
 #include "stdlib.h"
 #include "board.h"
+#include "app_card_process.h"
 
 extern void app_handle_layer(void);
 
@@ -27,6 +28,8 @@ int main(void)
 {
 	/* System initialize -------------------------------------------------------*/
 	board_init();
+	wl.match_status = ON;
+	rf_set_card_status(1);
 	
 	while(1)
 	{	
