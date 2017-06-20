@@ -53,6 +53,7 @@ void App_seirial_cmd_process(void);
 #define IMPORT_STATUS_LIST                 0x06
 #define IMPORT_STATUS_UPOS                 0x07
 #define IMPORT_STATUS_UID                  0x08
+#define IMPORT_STATUS_ATT                  0x09
 
 typedef struct
 {

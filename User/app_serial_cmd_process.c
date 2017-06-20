@@ -51,8 +51,8 @@ const static serial_cmd_typedef cmd_list[] = {
 {"bootloader",     sizeof("bootloader"),     serial_cmd_bootloader    },
 {"attendance_24g", sizeof("attendance_24g"), serial_cmd_attendance_24g},
 {"dtq_self_inspection",sizeof("dtq_self_inspection"),serial_cmd_self_inspection},
-{"raise_hand_set", sizeof("raise_hand_set"), serial_cmd_raise_hand_sign_in_set},
-{"sign_in_set",    sizeof("sign_in_set"),    serial_cmd_raise_hand_sign_in_set},
+{"set_raise_hand", sizeof("set_raise_hand"), serial_cmd_raise_hand_sign_in_set},
+{"set_sign_in",    sizeof("set_sign_in"),    serial_cmd_raise_hand_sign_in_set},
 {"dtq_debug_set",  sizeof("dtq_debug_set"),  serial_cmd_dtq_debug_set},
 {"NO_USE",         sizeof("NO_USE"),         NULL                     }
 };
@@ -77,6 +77,7 @@ const static json_item_typedef import_item_list[] = {
 {"list",           sizeof("list"),           IMPORT_STATUS_LIST},
 {"upos",           sizeof("upos"),           IMPORT_STATUS_UPOS},
 {"uid",            sizeof("uid"),            IMPORT_STATUS_UID},
+{"pro_index",      sizeof("pro_index"),      IMPORT_STATUS_ATT},
 {"over",           sizeof("over"),           0xFF}
 };
 
@@ -139,10 +140,7 @@ void serial_cmd_process(void)
 
 				if(is_know_cmd == 0)
 				{
-					b_print("{\r\n");
-	        b_print("  \"fun\": \"Error\",\r\n");
-					b_print("  \"description\": \"unknow cmd!\"\r\n");
-					b_print("}\r\n");
+					printf("{'fun':'Error','description':'unknow cmd!'}");
 				}
 			}
 			cJSON_Delete(json);
@@ -314,14 +312,11 @@ void serial_cmd_get_device_no(const cJSON *object)
 	b_print("  \"tx_power\": \"%s\",\r\n",str);
 	if( clicker_set.N_24G_ATTEND & 0x80 )
 	{
-		b_print("  \"attendance_status\": \"on\",\r\n");
-		memset(str,0,10);
 		attend_tx_ch = clicker_set.N_24G_ATTEND & 0x7F;
-		sprintf(str, "%d" , attend_tx_ch);
-		b_print("  \"attendance_tx_ch\": \"%s\",\r\n",str);
+		b_print("  \"pro_index\": \"%d\",\r\n",attend_tx_ch);
 	}
 	else
-		b_print("  \"attendance_status\": \"off\",\r\n");
+		b_print("  \"pro_index\": \"\",\r\n");
 	b_print("  \"list\": [\r\n");
 
 	for(i=0; i < MAX_WHITE_LEN; i++)
@@ -590,18 +585,18 @@ void serial_cmd_raise_hand_sign_in_set(const cJSON *object)
 	char *p_cmd_str = cJSON_GetObjectItem(object, "fun")->valuestring;
 
 	b_print("{\r\n");
-	if(strncmp(p_cmd_str, "raise_hand_set", sizeof("raise_hand_set")-1)== 0 )
+	if(strncmp(p_cmd_str, "set_raise_hand", sizeof("set_raise_hand")-1)== 0 )
 	{
 		p_raise_hand_data = cJSON_GetObjectItem(object,"raise_hand")->valuestring;
 		raise_hand = atoi(p_raise_hand_data);
-		b_print("  \"fun\": \"raise_hand_set\",\r\n");
+		b_print("  \"fun\": \"set_raise_hand\",\r\n");
 	}
 
-	if(strncmp(p_cmd_str, "sign_in_set", sizeof("sign_in_set")-1)== 0 )
+	if(strncmp(p_cmd_str, "set_sign_in", sizeof("set_sign_in")-1)== 0 )
 	{
 		p_sign_in_data = cJSON_GetObjectItem(object,"attendance")->valuestring;
 		sign_in = atoi(p_sign_in_data);
-		b_print("  \"fun\": \"sign_in_set\",\r\n");
+		b_print("  \"fun\": \"set_sign_in\",\r\n");
 	}
 
 	/* 准备发送数据 */
@@ -886,14 +881,11 @@ void serial_cmd_check_config(const cJSON *object)
 
 	if( clicker_set.N_24G_ATTEND & 0x80 )
 	{
-		b_print("  \"attendance_status\": \"on\",\r\n");
-		memset(str,0,10);
 		attend_tx_ch = clicker_set.N_24G_ATTEND & 0x7F;
-		sprintf(str, "%d" , attend_tx_ch);
-		b_print("  \"attendance_tx_ch\": \"%s\",\r\n",str);
+		b_print("  \"pro_index\": \"%d\",\r\n",attend_tx_ch);
 	}
 	else
-		b_print("  \"attendance_status\": \"off\",\r\n");
+		b_print("  \"pro_index\": \"\",\r\n");
 
 	b_print("  \"list\": [\r\n");
 
@@ -931,7 +923,7 @@ void serial_cmd_import_config(char *pdata_str)
 	
 	/* prase data control */ 
 	char *p_end,*p_next_start; 
-	char value_str[25],key_str[10];
+	char value_str[25],key_str[20];
 	uint8_t parse_data_status = 0;
 	uint16_t len = strlen(pdata_str);
 	uint16_t upos;
@@ -954,7 +946,7 @@ void serial_cmd_import_config(char *pdata_str)
 		
 		/* prase next key and value, and get string status*/
 		memset(value_str,0x00,25);
-		memset(key_str,  0x00,10);
+		memset(key_str,  0x00,20);
 		p_end = parse_json_item( p_next_start, key_str, value_str );
 		while(import_item_list[i].status != 0xFF)
 		{
@@ -1042,6 +1034,21 @@ void serial_cmd_import_config(char *pdata_str)
 						}
 				}
 				break;
+				case IMPORT_STATUS_ATT:
+				{
+					uint8_t pro_index = atoi(value_str);
+					if(( pro_index >= 0) && ( pro_index <= 12))
+					{
+						clicker_set.N_24G_ATTEND = pro_index | 0x80;
+						EE_WriteVariable( CPU_24G_ATTENDANCE_OF_FEE , clicker_set.N_24G_ATTEND );
+						result = 0;
+					}
+					else
+					{
+						result = -1;
+					}
+				}
+				break;
 			case IMPORT_STATUS_UPOS: 
 				{
 					upos = atoi(value_str);
@@ -1110,8 +1117,8 @@ void serial_cmd_attendance_24g(const cJSON *object)
 	int8_t  tx_ch = 81;
 	int8_t status;
 
-	attend = atoi(cJSON_GetObjectItem(object, "attendance_status")->valuestring);
-	tx_ch  = atoi(cJSON_GetObjectItem(object, "attendance_pro_index")->valuestring);
+	attend = atoi(cJSON_GetObjectItem(object, "is_open")->valuestring);
+	tx_ch  = atoi(cJSON_GetObjectItem(object, "pro_index")->valuestring);
 	
 	if(( attend <= 1) && (( tx_ch >= 0) && ( tx_ch <= 12)))
 	{

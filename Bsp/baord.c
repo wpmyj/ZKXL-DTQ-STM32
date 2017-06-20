@@ -76,10 +76,9 @@ void board_init(void)
 	ledOff(LBLUE);
 
 	status = clicker_config_default_set();
-	printf("[ INIT ] SPI SET CPU RF : %s !\r\n", (status == 0) ? "OK" : "FAIL");
+	printf("[ INIT ] RF INIT: %s !\r\n", (status == 0) ? "OK" : "FAIL");;
 	IWDG_Configuration();
 }
-
 
 /*******************************************************************************
 * Function Name   : void uart_send_char( uint8_t ch )
@@ -535,27 +534,27 @@ uint8_t spi_set_cpu_tx_signal_ch( uint8_t tx_ch )
 	{
 		uint16_t i;
 		NRF2_CSN_LOW();	
-		printf("SPI_TX_SET_CH  :");
+		//printf("SPI_TX_SET_CH  :");
 		pdata = (uint8_t *)&spi_cmd_w;
 		memset(retval, 0, sizeof(cpu_spi_cmd_typedef));
 		for(i=0; i<sizeof(cpu_spi_cmd_typedef); i++)
 		{
 			hal_nrf_rw(NRF_TX_SPI, *(pdata+i));
-			printf(" %02x",*(pdata+i));
+			//printf(" %02x",*(pdata+i));
 		}
-		printf("\r\n");
+		//printf("\r\n");
 		NRF2_CSN_HIGH();
 		for(i=10000;i>0;i--);
 		NRF2_CSN_LOW();	
 		pdata = (uint8_t *)&spi_cmd_r;
 		memset(pdata , 0, sizeof(cpu_spi_cmd_typedef));
-		printf("SPI_TX_CHECK_CH:");
+		//printf("SPI_TX_CHECK_CH:");
 		for(i=0; i<sizeof(cpu_spi_cmd_typedef); i++)
 		{
 			*(pdata+i) = hal_nrf_rw(NRF_TX_SPI, nop);
-		  (" %02x",*(pdata+i));
+			//printf(" %02x",*(pdata+i));
 		}
-		printf("\r\n");
+		//printf("\r\n");
 		NRF2_CSN_HIGH();
 		
 	  if( spi_cmd_r.cmd == 0x21 )
