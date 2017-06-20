@@ -25,8 +25,10 @@ extern void app_handle_layer(void);
 ******************************************************************************/
 int main(void)
 {
+	cJSON *object;
 	/* System initialize -------------------------------------------------------*/
 	board_init();
+	serial_cmd_self_inspection(object);
 	
 	while(1)
 	{	
