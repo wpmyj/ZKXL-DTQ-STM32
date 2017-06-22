@@ -259,7 +259,7 @@ void serial_cmd_bind_operation(const cJSON *object)
 	uint8_t card_status = 0;
 	char *p_cmd_str = cJSON_GetObjectItem(object, "fun")->valuestring;
 	
-	card_status = rf_get_card_status();
+	//card_status = rf_get_card_status();
 	b_print("{\r\n");
 
 	if(strncmp( p_cmd_str, "bind_start", 10) == 0)
@@ -267,10 +267,8 @@ void serial_cmd_bind_operation(const cJSON *object)
 		wl.match_status = ON;
 		rf_set_card_status(1);
 		b_print("  \"fun\": \"bind_start\",\r\n");
-		if( card_status == 0 )
-			b_print("  \"result\": \"0\"\r\n");
-		else
-			b_print("  \"result\": \"-1\"\r\n");
+		b_print("  \"device_type\": \"DTQ\",\r\n");
+		b_print("  \"result\": \"0\"\r\n");
 	}
 
 	if(strncmp( p_cmd_str, "bind_stop", 9 ) == 0)
@@ -280,6 +278,7 @@ void serial_cmd_bind_operation(const cJSON *object)
 		PcdHalt();
 		PcdAntennaOff();
 		b_print("  \"fun\": \"bind_stop\",\r\n");
+		b_print("  \"device_type\": \"DTQ\",\r\n");
 		b_print("  \"result\": \"0\"\r\n");
 	}
 	b_print("}\r\n");

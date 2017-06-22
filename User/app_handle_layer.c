@@ -30,7 +30,7 @@ void app_handle_layer(void)
 	//App_clickers_send_data_process();
 
 	/* serial cmd processing process */
-	//App_seirial_cmd_process();
+	App_seirial_cmd_process();
 
 	/* MI Card processing process */
 	App_card_process();

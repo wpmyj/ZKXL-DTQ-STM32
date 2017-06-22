@@ -30,7 +30,8 @@ int main(void)
 	board_init();
 	wl.match_status = ON;
 	rf_set_card_status(1);
-	
+	printf("{\"fun\":\"system_init\",\"status\":\"0\"}\r\n");
+
 	while(1)
 	{	
 		app_handle_layer();
